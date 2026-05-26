@@ -1,13 +1,13 @@
-import { Link } from 'react-router-dom';
-import { ROUTES } from '../constants/routes';
 import './HomePage.css';
+import { NavLink } from 'react-router-dom';
+import { ROUTES } from '../constants/routes';
 
 const menuItems = [
-  { icon: 'dashboard', label: 'Tổng quan', active: true },
-  { icon: 'manage_accounts', label: 'Quản lý tài khoản' },
-  { icon: 'security', label: 'Quyền truy cập' },
-  { icon: 'settings', label: 'Cấu hình hệ thống' },
-  { icon: 'history', label: 'Nhật ký hệ thống' },
+  { icon: 'dashboard', label: 'Tổng quan', href: ROUTES.HOME },
+  { icon: 'manage_accounts', label: 'Quản lý tài khoản', href: ROUTES.ADMIN.USERS },
+  { icon: 'security', label: 'Quyền truy cập', href: ROUTES.ADMIN.ROLES },
+  { icon: 'settings', label: 'Cấu hình hệ thống', href: ROUTES.ADMIN.SYSTEM_CONFIG },
+  { icon: 'history', label: 'Nhật ký hệ thống', href: ROUTES.ADMIN.AUDIT_LOG },
 ];
 
 const metrics = [
@@ -22,7 +22,7 @@ const metrics = [
     icon: 'event_seat',
     label: 'Chỗ trống hiện tại',
     value: '184',
-    trend: '85% đầy',
+    trend: '85% Đầy',
     tone: 'slate',
   },
   {
@@ -54,41 +54,13 @@ const activities = [
 
 const devices = [
   ['videocam', 'Hệ thống Camera AI', '24/24 Online', 'online'],
-  ['door_front', 'Cổng Barrier', '8/8 hoạt động', 'online'],
+  ['door_front', 'Cổng Barrier', '8/8 Hoạt động', 'online'],
   ['point_of_sale', 'Trạm thu phí POS', '1 trạm đang bảo trì', 'offline'],
-  ['router', 'Hệ thống mạng & server', 'Độ trễ: 12ms', 'online'],
+  ['router', 'Hệ thống Mạng & Server', 'Độ trễ: 12ms', 'online'],
 ];
 
 function Icon({ name }: { name: string }) {
-  return (
-    <span className="material-symbols-outlined" aria-hidden="true">
-      {name}
-    </span>
-  );
-}
-
-function getMenuRoute(icon: string) {
-  if (icon === 'security') {
-    return ROUTES.ADMIN.ROLES;
-  }
-
-  if (icon === 'dashboard') {
-    return ROUTES.HOME;
-  }
-
-  if (icon === 'manage_accounts') {
-    return ROUTES.ADMIN.USERS;
-  }
-
-  if (icon === 'settings') {
-    return ROUTES.ADMIN.SYSTEM_CONFIG;
-  }
-
-  if (icon === 'history') {
-    return ROUTES.ADMIN.AUDIT_LOG;
-  }
-
-  return ROUTES.HOME;
+  return <span className="material-symbols-outlined" aria-hidden="true">{name}</span>;
 }
 
 export default function HomePage() {
@@ -107,10 +79,15 @@ export default function HomePage() {
 
         <nav className="side-nav">
           {menuItems.map((item) => (
-            <Link className={item.active ? 'nav-link active' : 'nav-link'} to={getMenuRoute(item.icon)} key={item.label}>
+            <NavLink
+              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+              end={item.href === ROUTES.HOME}
+              key={item.label}
+              to={item.href}
+            >
               <Icon name={item.icon} />
               <span>{item.label}</span>
-            </Link>
+            </NavLink>
           ))}
         </nav>
 
@@ -163,7 +140,7 @@ export default function HomePage() {
             <div className="heading-actions">
               <button className="secondary-button" type="button">
                 <Icon name="calendar_today" />
-                Hôm nay: 20/05/2026
+                Hôm nay: 24/05/2024
               </button>
               <button className="primary-button" type="button">
                 <Icon name="download" />
@@ -174,7 +151,10 @@ export default function HomePage() {
 
           <section className="metric-grid" aria-label="Chỉ số tổng quan">
             {metrics.map((metric) => (
-              <article className={`metric-card ${metric.featured ? 'featured' : ''}`} key={metric.label}>
+              <article
+                className={`metric-card ${metric.featured ? 'featured' : ''}`}
+                key={metric.label}
+              >
                 <div className="metric-top">
                   <div className={`metric-icon ${metric.tone}`}>
                     <Icon name={metric.icon} />
@@ -306,13 +286,11 @@ export default function HomePage() {
         </section>
 
         <footer className="dashboard-footer">
-          <p>© 2026 Smart Parking AI. Toàn bộ quyền được bảo hộ.</p>
+          <p>© 2024 Smart Parking AI. Toàn bộ quyền được bảo hộ.</p>
           <div>
             <a href="#">Điều khoản</a>
             <a href="#">Bảo mật</a>
-            <span>
-              <i /> Trạng thái hệ thống: Hoạt động
-            </span>
+            <span><i /> Trạng thái hệ thống: Hoạt động</span>
           </div>
         </footer>
       </main>
