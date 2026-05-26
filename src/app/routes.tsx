@@ -10,7 +10,7 @@ export function AppRoutes() {
       <Route path={ROUTES.HOME} element={<HomePage />} />
       <Route path={ROUTES.ADMIN.DASHBOARD} element={<HomePage />} />
       <Route path={ROUTES.ADMIN.ROLES} element={<RolePermissionPage />} />
-      <Route path="*" element={<NotFoundPage />} />
+      <Route path="*/" element={<NotFoundPage />} />
     </Routes>
   );
 }
