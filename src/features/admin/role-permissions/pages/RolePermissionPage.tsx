@@ -1,5 +1,5 @@
 import { FormEvent, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { ROUTES } from '../../../../constants/routes';
 import { STORAGE_KEYS } from '../../../../constants/storageKeys';
 import { ADMIN_CODE, permissionActions, permissionModules } from '../data';

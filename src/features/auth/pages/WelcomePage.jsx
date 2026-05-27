@@ -94,11 +94,11 @@ export default function WelcomePage() {
           <span>Parking System</span>
         </div>
 
-        <nav className="welcome-nav" aria-label="Điều hướng trang chủ">
-          <a href="WelcomePage.jsx#trang-chu">Trang chủ</a>
-          <a href="WelcomePage.jsx#thong-tin-bai">Thông tin bãi</a>
-          <a href="WelcomePage.jsx#thong-bao">Thông báo của Admin</a>
-        </nav>
+       <nav className="welcome-nav" aria-label="Điều hướng trang chủ">
+          <a href="#trang-chu">Trang chủ</a>
+          <a href="#thong-tin-bai">Thông tin bãi</a>
+        <a href="#thong-bao">Thông báo của Admin</a>
+      </nav>
 
         <div className="welcome-actions">
           <button className="welcome-button-secondary" type="button" onClick={() => navigate('/signup')}>
@@ -126,7 +126,7 @@ export default function WelcomePage() {
                 giúp tối ưu hóa không gian đỗ xe và nâng cao trải nghiệm người dùng với
                 tính chính xác tuyệt đối.
               </p>
-              <a className="welcome-explore" href="WelcomePage.jsx#thong-tin-bai">
+              <a className="welcome-explore" href="#thong-tin-bai">
                 Khám phá ngay
                 <span className="material-symbols-outlined">arrow_forward</span>
               </a>
@@ -271,8 +271,8 @@ export default function WelcomePage() {
           <section>
             <h2>Theo dõi chúng tôi</h2>
             <div className="welcome-socials">
-              <a href="WelcomePage.jsx#facebook" aria-label="Facebook">f</a>
-              <a href="WelcomePage.jsx#twitter" aria-label="Twitter">x</a>
+              <a href="#facebook" aria-label="Facebook">f</a>
+              <a href="#twitter" aria-label="Twitter">x</a>
             </div>
           </section>
         </div>
