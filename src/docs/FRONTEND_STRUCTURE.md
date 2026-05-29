@@ -6,7 +6,7 @@ Mục tiêu là chia frontend theo đúng nghiệp vụ bãi xe, dễ code, dễ
 ## 1. Nguyên tắc tổ chức
 
 - `src/app`: khởi tạo ứng dụng, providers và route shell.
-- `src/router`: cấu hình route theo role nếu tách khỏi `src/app/routes.tsx`.
+- `src/router`: cấu hình route theo role nếu tách khỏi `src/app/routes.jsx`.
 - `src/layouts`: layout dùng cho từng nhóm màn hình như Admin, Manager, Staff, Driver.
 - `src/features`: nơi chứa code nghiệp vụ chính. Mỗi feature có `components`, `services`, `hooks`, `types` khi cần.
 - `src/components`: component dùng chung toàn hệ thống.
