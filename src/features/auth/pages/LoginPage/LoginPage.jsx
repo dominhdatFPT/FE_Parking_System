@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { login } from '../../services/authService';
+import { login } from '../../../../services/modules/authService';
+import { ROUTES } from '../../../../constants/routes';
 
 const adminHeroImage =
   'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1400&q=80';
@@ -63,7 +64,7 @@ export default function LoginPage() {
           localStorage.setItem('rememberMe', 'true');
         }
 
-        navigate('/admin/dashboard');
+        navigate(ROUTES.ADMIN.USERS);
       }
     } catch (err) {
       setError('Email hoặc mật khẩu không chính xác');

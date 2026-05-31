@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { login } from '../../services/authService';
+import { login } from '../../../../services/modules/authService';
+import { ROUTES } from '../../../../constants/routes';
 
 const userFieldClass = 'grid gap-1.5';
 const userLabelClass =
@@ -207,6 +208,13 @@ export default function UserLoginPage() {
               >
                 Đăng ký tài khoản mới
               </a>
+              <button
+                className="mt-3 inline-flex min-h-12 w-full cursor-pointer items-center justify-center rounded border border-[#c6c6cd] bg-white text-[15px] font-bold leading-5 text-[#45464d] transition hover:border-[#0051d5] hover:text-[#0051d5]"
+                type="button"
+                onClick={() => navigate(ROUTES.ADMIN_LOGIN)}
+              >
+                Đăng nhập quản trị viên
+              </button>
             </div>
           </section>
         </div>

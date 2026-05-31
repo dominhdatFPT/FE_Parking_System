@@ -1,0 +1,98 @@
+import type { ReactNode } from 'react';
+import { NavLink, useNavigate } from 'react-router';
+import { ROUTES } from '../constants/routes';
+import { STORAGE_KEYS } from '../constants/storageKeys';
+
+type MainLayoutProps = {
+  children: ReactNode;
+};
+
+const navigationItems = [
+  { label: 'Tổng quan', path: ROUTES.DASHBOARD, icon: 'dashboard' },
+  { label: 'Phiên gửi xe', path: ROUTES.STAFF.SESSIONS, icon: 'receipt_long' },
+  { label: 'Chỗ đỗ', path: ROUTES.MANAGER.SLOTS, icon: 'local_parking' },
+  { label: 'Thanh toán', path: ROUTES.DRIVER.PAYMENTS, icon: 'payments' },
+  { label: 'Báo cáo', path: ROUTES.MANAGER.REPORTS, icon: 'monitoring' },
+];
+
+export default function MainLayout({ children }: MainLayoutProps) {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.USER);
+    navigate(ROUTES.LOGIN, { replace: true });
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f4f7fb] text-[#172033] lg:grid lg:grid-cols-[264px_minmax(0,1fr)]">
+      <aside className="hidden border-r border-[#d9e2ee] bg-white lg:flex lg:flex-col">
+        <div className="flex h-16 items-center gap-3 border-b border-[#e4eaf2] px-5">
+          <img
+            alt="Parking System Logo"
+            className="h-10 w-10 rounded-full object-cover"
+            src="/parking-system-logo.png"
+          />
+          <div>
+            <p className="font-semibold text-[#101828]">Parking System</p>
+            <p className="text-xs text-[#667085]">Admin workspace</p>
+          </div>
+        </div>
+
+        <nav className="grid gap-1 p-3">
+          {navigationItems.map((item) => (
+            <NavLink
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded px-3 py-2.5 text-sm font-medium transition ${
+                  isActive
+                    ? 'bg-[#eaf2ff] text-[#0051d5]'
+                    : 'text-[#475467] hover:bg-[#f2f5f9] hover:text-[#101828]'
+                }`
+              }
+              key={item.path}
+              to={item.path}
+            >
+              <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="mt-auto border-t border-[#e4eaf2] p-4">
+          <button
+            className="flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2.5 text-sm font-semibold text-[#b42318] hover:bg-[#fff1f1]"
+            type="button"
+            onClick={handleLogout}
+          >
+            <span className="material-symbols-outlined text-[20px]">logout</span>
+            Đăng xuất
+          </button>
+        </div>
+      </aside>
+
+      <div className="min-w-0">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-[#d9e2ee] bg-white/95 px-4 backdrop-blur lg:px-6">
+          <div>
+            <p className="text-sm font-semibold text-[#101828]">Dashboard</p>
+            <p className="text-xs text-[#667085]">Parking operations overview</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="grid h-10 w-10 cursor-pointer place-items-center rounded border border-[#d9e2ee] bg-white text-[#475467] hover:text-[#0051d5]">
+              <span className="material-symbols-outlined">notifications</span>
+            </button>
+            <button
+              className="hidden h-10 cursor-pointer items-center gap-2 rounded border border-[#d9e2ee] bg-white px-3 text-sm font-semibold text-[#475467] hover:text-[#0051d5] sm:inline-flex"
+              type="button"
+              onClick={handleLogout}
+            >
+              <span className="material-symbols-outlined text-[18px]">logout</span>
+              Đăng xuất
+            </button>
+          </div>
+        </header>
+
+        <main className="p-4 lg:p-6">{children}</main>
+      </div>
+    </div>
+  );
+}
