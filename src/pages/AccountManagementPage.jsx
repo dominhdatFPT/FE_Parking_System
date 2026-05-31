@@ -1,91 +1,86 @@
 import './HomePage.css';
 import './AccountManagementPage.css';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes';
-
+import Icon from '../components/Icon';
+import NotificationDropdown from '../components/NotificationDropdown';
+import SettingsDropdown from '../components/SettingsDropdown';
 const menuItems = [
-  { icon: 'dashboard', label: 'Tổng quan', href: ROUTES.HOME },
-  { icon: 'manage_accounts', label: 'Quản lý tài khoản', href: ROUTES.ADMIN.USERS },
-  { icon: 'security', label: 'Quyền truy cập', href: ROUTES.ADMIN.ROLES },
-  { icon: 'settings', label: 'Cấu hình hệ thống', href: ROUTES.ADMIN.SYSTEM_CONFIG },
-  { icon: 'history', label: 'Nhật ký hệ thống', href: ROUTES.ADMIN.AUDIT_LOG },
+    { icon: 'dashboard', label: 'Tổng quan', href: ROUTES.HOME },
+    { icon: 'manage_accounts', label: 'Quản lý tài khoản', href: ROUTES.ADMIN.USERS },
+    { icon: 'security', label: 'Quyền truy cập', href: ROUTES.ADMIN.ROLES },
+    { icon: 'settings', label: 'Cấu hình hệ thống', href: ROUTES.ADMIN.SYSTEM_CONFIG },
+    { icon: 'history', label: 'Nhật ký hệ thống', href: ROUTES.ADMIN.AUDIT_LOG },
 ];
-
 const summaryCards = [
-  { icon: 'group', label: 'Tổng tài khoản', value: '248', detail: '+12 tài khoản mới', tone: 'blue' },
-  { icon: 'verified_user', label: 'Đang hoạt động', value: '221', detail: '89% tổng hệ thống', tone: 'green' },
-  { icon: 'admin_panel_settings', label: 'Quản trị viên', value: '18', detail: '4 nhóm quyền', tone: 'slate' },
-  { icon: 'lock_clock', label: 'Tạm khóa', value: '9', detail: 'Cần rà soát', tone: 'orange' },
+    { icon: 'group', label: 'Tổng tài khoản', value: '248', detail: '+12 tài khoản mới', tone: 'blue' },
+    { icon: 'verified_user', label: 'Đang hoạt động', value: '221', detail: '89% tổng hệ thống', tone: 'green' },
+    { icon: 'admin_panel_settings', label: 'Quản trị viên', value: '18', detail: '4 nhóm quyền', tone: 'slate' },
+    { icon: 'lock_clock', label: 'Tạm khóa', value: '9', detail: 'Cần rà soát', tone: 'orange' },
 ];
-
 const users = [
-  {
-    name: 'Nguyễn Minh Anh',
-    email: 'minhanh@parking.ai',
-    role: 'Quản trị viên',
-    department: 'Vận hành',
-    lastActive: '20/05/2026 19:42',
-    status: 'Hoạt động',
-    state: 'success',
-  },
-  {
-    name: 'Trần Quốc Huy',
-    email: 'quochuy@parking.ai',
-    role: 'Quản lý bãi xe',
-    department: 'Bãi xe A1',
-    lastActive: '20/05/2026 18:15',
-    status: 'Hoạt động',
-    state: 'success',
-  },
-  {
-    name: 'Lê Hoàng Vy',
-    email: 'hoangvy@parking.ai',
-    role: 'Nhân viên cổng',
-    department: 'Cổng chính',
-    lastActive: '20/05/2026 16:08',
-    status: 'Chờ xác minh',
-    state: 'warning',
-  },
-  {
-    name: 'Phạm Đức Long',
-    email: 'duclong@parking.ai',
-    role: 'Kế toán',
-    department: 'Tài chính',
-    lastActive: '18/05/2026 09:30',
-    status: 'Tạm khóa',
-    state: 'error',
-  },
-  {
-    name: 'Vũ Thanh Hà',
-    email: 'thanhha@parking.ai',
-    role: 'Giám sát camera',
-    department: 'An ninh',
-    lastActive: '20/05/2026 13:22',
-    status: 'Hoạt động',
-    state: 'success',
-  },
+    {
+        name: 'Nguyễn Minh Anh',
+        email: 'minhanh@parking.ai',
+        role: 'Quản trị viên',
+        department: 'Vận hành',
+        lastActive: '20/05/2026 19:42',
+        status: 'Hoạt động',
+        state: 'success',
+    },
+    {
+        name: 'Trần Quốc Huy',
+        email: 'quochuy@parking.ai',
+        role: 'Quản lý bãi xe',
+        department: 'Bãi xe A1',
+        lastActive: '20/05/2026 18:15',
+        status: 'Hoạt động',
+        state: 'success',
+    },
+    {
+        name: 'Lê Hoàng Vy',
+        email: 'hoangvy@parking.ai',
+        role: 'Nhân viên cổng',
+        department: 'Cổng chính',
+        lastActive: '20/05/2026 16:08',
+        status: 'Chờ xác minh',
+        state: 'warning',
+    },
+    {
+        name: 'Phạm Đức Long',
+        email: 'duclong@parking.ai',
+        role: 'Kế toán',
+        department: 'Tài chính',
+        lastActive: '18/05/2026 09:30',
+        status: 'Tạm khóa',
+        state: 'error',
+    },
+    {
+        name: 'Vũ Thanh Hà',
+        email: 'thanhha@parking.ai',
+        role: 'Giám sát camera',
+        department: 'An ninh',
+        lastActive: '20/05/2026 13:22',
+        status: 'Hoạt động',
+        state: 'success',
+    },
 ];
-
-function Icon({ name }: { name: string }) {
-  return <span className="material-symbols-outlined" aria-hidden="true">{name}</span>;
+function initials(name) {
+    return name
+        .split(' ')
+        .slice(-2)
+        .map((part) => part[0])
+        .join('')
+        .toUpperCase();
 }
-
-function initials(name: string) {
-  return name
-    .split(' ')
-    .slice(-2)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase();
-}
-
 export default function AccountManagementPage() {
-  return (
-    <div className="dashboard-shell account-page">
+    const { user, role } = useAuth();
+    return (<div className="dashboard-shell account-page">
       <aside className="sidebar" aria-label="Điều hướng chính">
         <div className="brand">
           <div className="brand-icon">
-            <Icon name="local_parking" />
+            <Icon name="local_parking"/>
           </div>
           <div>
             <h1>Smart Parking AI</h1>
@@ -94,26 +89,19 @@ export default function AccountManagementPage() {
         </div>
 
         <nav className="side-nav">
-          {menuItems.map((item) => (
-            <NavLink
-              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
-              end={item.href === ROUTES.HOME}
-              key={item.label}
-              to={item.href}
-            >
-              <Icon name={item.icon} />
+          {menuItems.map((item) => (<NavLink className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')} end={item.href === ROUTES.HOME} key={item.label} to={item.href}>
+              <Icon name={item.icon}/>
               <span>{item.label}</span>
-            </NavLink>
-          ))}
+            </NavLink>))}
         </nav>
 
         <div className="side-footer">
           <a className="nav-link" href="#">
-            <Icon name="help" />
+            <Icon name="help"/>
             <span>Hỗ trợ</span>
           </a>
           <a className="nav-link logout" href="#">
-            <Icon name="logout" />
+            <Icon name="logout"/>
             <span>Đăng xuất</span>
           </a>
         </div>
@@ -122,28 +110,19 @@ export default function AccountManagementPage() {
       <main className="main-content">
         <header className="topbar">
           <label className="search-box">
-            <Icon name="search" />
-            <input placeholder="Tìm kiếm tài khoản, email, vai trò..." type="search" />
+            <Icon name="search"/>
+            <input placeholder="Tìm kiếm tài khoản, email, vai trò..." type="search"/>
           </label>
 
           <div className="topbar-actions">
-            <button aria-label="Thông báo" className="icon-button" type="button">
-              <Icon name="notifications" />
-            </button>
-            <button aria-label="Cài đặt" className="icon-button" type="button">
-              <Icon name="settings" />
-            </button>
-            <div className="divider" />
-            <button className="profile-button" type="button">
-              <span>
-                <strong>Admin Toàn Cầu</strong>
-                <small>Quản trị viên</small>
-              </span>
-              <img
-                alt="Admin profile"
-                src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=96&q=80"
-              />
-            </button>
+            <NotificationDropdown />
+            <SettingsDropdown trigger={<button className="profile-button" type="button">
+                  <span>
+                    <strong>{user.fullName}</strong>
+                    <small>{role === 'admin' ? 'Quản trị viên' : 'Nhân viên'}</small>
+                  </span>
+                  <img alt="User profile" src={user.avatarUrl ?? 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=96&q=80'}/>
+                </button>}/>
           </div>
         </header>
 
@@ -155,29 +134,27 @@ export default function AccountManagementPage() {
             </div>
             <div className="heading-actions">
               <button className="secondary-button" type="button">
-                <Icon name="upload_file" />
+                <Icon name="upload_file"/>
                 Nhập danh sách
               </button>
               <button className="primary-button" type="button">
-                <Icon name="person_add" />
+                <Icon name="person_add"/>
                 Thêm tài khoản
               </button>
             </div>
           </div>
 
           <section className="account-summary-grid" aria-label="Tổng quan tài khoản">
-            {summaryCards.map((card) => (
-              <article className="account-summary-card" key={card.label}>
+            {summaryCards.map((card) => (<article className="account-summary-card" key={card.label}>
                 <div className={`account-summary-icon ${card.tone}`}>
-                  <Icon name={card.icon} />
+                  <Icon name={card.icon}/>
                 </div>
                 <div>
                   <p>{card.label}</p>
                   <strong>{card.value}</strong>
                   <span>{card.detail}</span>
                 </div>
-              </article>
-            ))}
+              </article>))}
           </section>
 
           <section className="account-tools panel">
@@ -185,8 +162,8 @@ export default function AccountManagementPage() {
               <label>
                 <span>Tìm kiếm</span>
                 <div className="field-with-icon">
-                  <Icon name="search" />
-                  <input placeholder="Tên, email hoặc bộ phận" type="search" />
+                  <Icon name="search"/>
+                  <input placeholder="Tên, email hoặc bộ phận" type="search"/>
                 </div>
               </label>
               <label>
@@ -208,7 +185,7 @@ export default function AccountManagementPage() {
                 </select>
               </label>
               <button className="secondary-button account-filter-button" type="button">
-                <Icon name="filter_alt" />
+                <Icon name="filter_alt"/>
                 Lọc dữ liệu
               </button>
             </div>
@@ -221,7 +198,7 @@ export default function AccountManagementPage() {
                 <p>5 tài khoản hiển thị trong hệ thống quản trị.</p>
               </div>
               <button className="secondary-button" type="button">
-                <Icon name="download" />
+                <Icon name="download"/>
                 Xuất dữ liệu
               </button>
             </div>
@@ -239,8 +216,7 @@ export default function AccountManagementPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user) => (
-                    <tr key={user.email}>
+                  {users.map((user) => (<tr key={user.email}>
                       <td>
                         <div className="user-cell">
                           <span className="avatar">{initials(user.name)}</span>
@@ -259,18 +235,17 @@ export default function AccountManagementPage() {
                       <td>
                         <div className="row-actions">
                           <button aria-label={`Sửa ${user.name}`} type="button">
-                            <Icon name="edit" />
+                            <Icon name="edit"/>
                           </button>
                           <button aria-label={`Khóa ${user.name}`} type="button">
-                            <Icon name="lock" />
+                            <Icon name="lock"/>
                           </button>
                           <button aria-label={`Xem thêm ${user.name}`} type="button">
-                            <Icon name="more_horiz" />
+                            <Icon name="more_horiz"/>
                           </button>
                         </div>
                       </td>
-                    </tr>
-                  ))}
+                    </tr>))}
                 </tbody>
               </table>
             </div>
@@ -286,6 +261,5 @@ export default function AccountManagementPage() {
           </div>
         </footer>
       </main>
-    </div>
-  );
+    </div>);
 }

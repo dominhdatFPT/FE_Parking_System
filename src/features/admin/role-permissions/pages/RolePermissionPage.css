@@ -2,19 +2,205 @@
   display: grid;
   min-height: 100vh;
   place-items: center;
-  background: #eef2f7;
+  background: radial-gradient(circle at top, rgba(37, 99, 235, 0.08), transparent 35%), #eef2f7;
   padding: 24px;
 }
 
 .rbac-access__card {
+  position: relative;
   display: grid;
-  width: min(100%, 440px);
-  gap: 14px;
-  border: 1px solid #d8dbe7;
-  border-radius: 8px;
-  background: #ffffff;
-  padding: 28px;
-  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+  width: min(100%, 520px);
+  gap: 28px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.98);
+  padding: 36px;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.rbac-access__back {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  background: rgba(255, 255, 255, 0.9);
+  color: #2563eb;
+  transition: transform 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+
+.rbac-access__back:hover {
+  transform: translateY(-1px);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.rbac-access__intro {
+  display: grid;
+  gap: 10px;
+}
+
+.rbac-access__intro h1 {
+  margin: 0;
+  font-size: clamp(2rem, 2.4vw, 2.4rem);
+  line-height: 1.05;
+  color: #0f172a;
+}
+
+.rbac-access__description {
+  margin: 0;
+  color: #475569;
+  line-height: 1.75;
+  max-width: 44rem;
+}
+
+.rbac-access__field {
+  display: grid;
+  gap: 18px;
+}
+
+.rbac-input-group {
+  position: relative;
+  display: grid;
+}
+
+.rbac-input-group input {
+  width: 100%;
+  min-height: 50px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 14px;
+  padding: 0 52px 0 18px;
+  font-size: 1rem;
+  color: #0f172a;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rbac-input-group input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.rbac-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.08);
+  border: none;
+  color: #1d4ed8;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.rbac-password-toggle:hover {
+  background: rgba(37, 99, 235, 0.14);
+  transform: translateY(-50%) scale(1.02);
+}
+
+.rbac-password-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.rbac-access__meta {
+  display: grid;
+}
+
+.rbac-access__security-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: rgba(37, 99, 235, 0.06);
+  color: #1e293b;
+}
+
+.rbac-access__security-pill .material-symbols-outlined {
+  font-size: 20px;
+  color: #2563eb;
+}
+
+.rbac-access__security-pill p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.rbac-alert {
+  border-radius: 14px;
+  padding: 14px 18px;
+  font-size: 0.95rem;
+}
+
+.rbac-alert--error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.rbac-alert--success {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.rbac-access__submit {
+  min-height: 52px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.rbac-access__submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 36px rgba(37, 99, 235, 0.22);
+}
+
+.rbac-access__submit:disabled {
+  opacity: 0.8;
+  cursor: wait;
+}
+
+@media (max-width: 560px) {
+  .rbac-access {
+    padding: 18px;
+  }
+
+  .rbac-access__card {
+    width: 100%;
+    padding: 24px;
+    gap: 22px;
+  }
+
+  .rbac-access__intro h1 {
+    font-size: 2rem;
+  }
+
+  .rbac-access__back {
+    top: 16px;
+    right: 16px;
+  }
 }
 
 .rbac-access h1,
@@ -130,8 +316,55 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 24px;
   margin-bottom: 18px;
 }
+
+.rbac-header__title-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.rbac-back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  padding: 0;
+  border-radius: 12px;
+}
+
+.rbac-password-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rbac-password-field input {
+  flex: 1;
+}
+
+.rbac-password-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid #c3c6d6;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+}
+.rbac-password-toggle .material-symbols-outlined {
+  font-size: 20px;
+}
+
 
 .rbac-header h1,
 .rbac-header p,
@@ -383,6 +616,37 @@
 
 .rbac-log p {
   margin: 8px 0;
+}
+
+/* Admin Code modal */
+.rbac-modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(2,6,23,0.5);
+  z-index: 1200;
+  padding: 24px;
+}
+.rbac-modal__panel {
+  width: min(560px, 100%);
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 20px 60px rgba(2,6,23,0.3);
+  display: grid;
+  gap: 12px;
+}
+.rbac-modal__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.rbac-modal input[type=password] {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #c3c6d6;
+  border-radius: 8px;
 }
 
 @media (max-width: 1080px) {

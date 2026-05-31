@@ -1,3 +1,3 @@
 export default function ForbiddenPage() {
-  return <main>403 - Forbidden</main>;
+    return <main>403 - Forbidden</main>;
 }
