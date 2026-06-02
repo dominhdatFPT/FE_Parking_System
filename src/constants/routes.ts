@@ -15,6 +15,22 @@ export const ROUTES = {
     AUDIT_LOG: '/admin/audit-log',
   },
 
+  NOTIFICATIONS: {
+    BASE: '/notifications',
+    DETAIL: '/notifications/:id',
+  },
+
+  SETTINGS: {
+    BASE: '/settings',
+    PROFILE: '/settings/profile',
+    PASSWORD: '/settings/password',
+    NOTIFICATIONS: '/settings/notifications',
+    LANGUAGE: '/settings/language',
+    SYSTEM: '/settings/system',
+    PERMISSIONS: '/settings/permissions',
+    SECURITY_LOGS: '/settings/security-logs',
+  },
+
   MANAGER: {
     DASHBOARD: '/manager',
     BUILDINGS: '/manager/buildings',

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { login } from '../../../../services/modules/authService';
-import { ROUTES } from '../../../../constants/routes';
 
 const userFieldClass = 'grid gap-1.5';
 const userLabelClass =

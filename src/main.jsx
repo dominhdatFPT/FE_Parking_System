@@ -4,13 +4,10 @@ import { BrowserRouter } from 'react-router';
 import App from './app/App';
 import { AppProviders } from './app/providers';
 import './styles/globals.css';
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+ReactDOM.createRoot(document.getElementById('root')).render(<React.StrictMode>
     <BrowserRouter>
       <AppProviders>
         <App />
       </AppProviders>
     </BrowserRouter>
-  </React.StrictMode>,
-);
+  </React.StrictMode>);

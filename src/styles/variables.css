@@ -1,0 +1,33 @@
+:root {
+  --color-primary: #2563eb;
+  --color-danger: #dc2626;
+  --color-success: #16a34a;
+  --color-border: #d1d5db;
+  --color-surface: #ffffff;
+  --color-text: #1f2937;
+}
+
+.dark {
+  --color-primary: #60a5fa;
+  --color-danger: #f87171;
+  --color-success: #4ade80;
+  --color-border: #374151;
+  --color-surface: #0f172a;
+  --color-text: #e2e8f0;
+  --dashboard-bg: #020617;
+  --sidebar: #111827;
+  --surface: #0f172a;
+  --surface-low: #111827;
+  --surface-high: #1f2937;
+  --text: #e2e8f0;
+  --sidebar-active: #1e293b;
+  --outline: rgba(148, 163, 184, 0.24);
+  --muted: #94a3b8;
+  --primary: #93c5fd;
+  --primary-bright: #60a5fa;
+  --primary-soft: #1e40af;
+  --primary-dim: #93c5fd;
+  --secondary-soft: #475569;
+  --error: #fb7185;
+  --error-soft: rgba(248, 113, 113, 0.12);
+}
