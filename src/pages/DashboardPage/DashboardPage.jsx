@@ -1,4 +1,4 @@
-import MainLayout from '../layouts/MainLayout';
+import MainLayout from '../../layouts/MainLayout';
 
 const summaryCards = [
   { label: 'Xe đang gửi', value: '326', icon: 'directions_car', tone: 'bg-[#eaf2ff] text-[#0051d5]' },

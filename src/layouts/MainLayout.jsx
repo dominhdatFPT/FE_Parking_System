@@ -1,22 +1,40 @@
-import type { ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router';
 import { ROUTES } from '../constants/routes';
 import { STORAGE_KEYS } from '../constants/storageKeys';
+import { useAuth } from '../contexts/AuthContext';
 
-type MainLayoutProps = {
-  children: ReactNode;
+const getNavigationItems = (role) => {
+  const baseItems = [
+    { label: 'Tổng quan', path: ROUTES.DASHBOARD, icon: 'dashboard' },
+  ];
+
+  if (role === 'admin') {
+    baseItems.push(
+      { label: 'Quản lý tài khoản', path: ROUTES.ADMIN.USERS, icon: 'people' },
+      { label: 'Quyền truy cập', path: ROUTES.ADMIN.ROLES, icon: 'security' },
+      { label: 'Cấu hình hệ thống', path: ROUTES.ADMIN.SYSTEM_CONFIG, icon: 'settings' },
+      { label: 'Nhật ký hệ thống', path: ROUTES.ADMIN.AUDIT_LOG, icon: 'history' }
+    );
+  } else if (role === 'staff') {
+    baseItems.push(
+      { label: 'Phiên gửi xe', path: ROUTES.STAFF.SESSIONS, icon: 'receipt_long' },
+      { label: 'Ngoại lệ', path: ROUTES.STAFF.EXCEPTIONS, icon: 'warning' }
+    );
+  } else if (role === 'manager') {
+    baseItems.push(
+      { label: 'Chỗ đỗ', path: ROUTES.MANAGER.SLOTS, icon: 'local_parking' },
+      { label: 'Báo cáo', path: ROUTES.MANAGER.REPORTS, icon: 'monitoring' },
+      { label: 'Tối ưu hóa AI', path: ROUTES.MANAGER.AI_OPTIMIZATION, icon: 'smart_toy' }
+    );
+  }
+
+  return baseItems;
 };
 
-const navigationItems = [
-  { label: 'Tổng quan', path: ROUTES.DASHBOARD, icon: 'dashboard' },
-  { label: 'Phiên gửi xe', path: ROUTES.STAFF.SESSIONS, icon: 'receipt_long' },
-  { label: 'Chỗ đỗ', path: ROUTES.MANAGER.SLOTS, icon: 'local_parking' },
-  { label: 'Thanh toán', path: ROUTES.DRIVER.PAYMENTS, icon: 'payments' },
-  { label: 'Báo cáo', path: ROUTES.MANAGER.REPORTS, icon: 'monitoring' },
-];
-
-export default function MainLayout({ children }: MainLayoutProps) {
+export default function MainLayout({ children }) {
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const navigationItems = getNavigationItems(role);
 
   const handleLogout = () => {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);

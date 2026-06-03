@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import Icon from './Icon';
 import { ROUTES } from '../constants/routes';
 import { getNotificationsForRole, getUnreadCount, markNotificationAsRead, } from '../features/notifications/notifications';

@@ -1,5 +1,5 @@
 import { cloneElement, useCallback, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import Icon from './Icon';
 import { ROUTES } from '../constants/routes';
 import { useAuth } from '../contexts/AuthContext';

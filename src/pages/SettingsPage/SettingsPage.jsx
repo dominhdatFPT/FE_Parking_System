@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { useParams } from 'react-router-dom';
-import DashboardShell from '../components/DashboardShell';
-import { SETTINGS_SECTIONS } from '../features/settings/config';
+import { useParams } from 'react-router';
+import DashboardShell from '../../components/DashboardShell';
+import { SETTINGS_SECTIONS } from '../../features/settings/config';
 export default function SettingsPage() {
     const { section } = useParams();
     const data = useMemo(() => (section ? SETTINGS_SECTIONS[section] : undefined), [section]);

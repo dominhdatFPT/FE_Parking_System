@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { ROUTES } from '../../../../constants/routes';
 import { STORAGE_KEYS } from '../../../../constants/storageKeys';
 import { ADMIN_CODE, permissionActions, permissionModules } from '../data';
 import { getSecurityLogs, getStoredPermissions, getStoredRoles, getStoredUsers, saveRolePermissionState, writeSecurityLog, } from '../services/rolePermissionStorage';
-import './RolePermissionPage.css';
 import RoleList from '../components/RoleList';
 import PermissionMatrix from '../components/PermissionMatrix';
 import RoleForm from '../components/RoleForm';
@@ -269,198 +268,263 @@ export default function RolePermissionPage() {
       openAdminModal('Assign role to user', assignRoleConfirmed);
     }
     if (!isVerified) {
-        return (<main className="rbac-access">
-        <form className="rbac-access__card" onSubmit={handleAccessSubmit}>
-          <button className="rbac-back-button rbac-access__back" aria-label="Quay lại" onClick={handleBack} type="button">
-            <Icon name="arrow_back" />
-          </button>
-          <div className="rbac-access__intro">
-            <span className="rbac-eyebrow">ADMIN CODE REQUIRED</span>
-            <h1>Nhập Admin Code để mở màn hình phân quyền</h1>
-            <p className="rbac-access__description">Nếu nhập sai, hệ thống sẽ từ chối truy cập và ghi log bảo mật.</p>
-          </div>
-          <div className="rbac-access__field">
-            <div className="rbac-input-group">
-              <input
-                autoFocus
-                onChange={(event) => setAdminCode(event.target.value)}
-                placeholder="Ví dụ: ADMIN2026"
-                type={showAdminAccess ? 'text' : 'password'}
-                value={adminCode}
-                disabled={isSubmitting}
-              />
-              <button
-                type="button"
-                className="rbac-password-toggle"
-                aria-label={showAdminAccess ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-                onClick={() => setShowAdminAccess((value) => !value)}
-                disabled={isSubmitting}
-              >
-                <span className="material-symbols-outlined">{showAdminAccess ? 'visibility_off' : 'visibility'}</span>
-              </button>
-            </div>
-            <div className="rbac-access__meta">
-              <div className="rbac-access__security-pill">
-                <span className="material-symbols-outlined">security</span>
-                <p>Tất cả hoạt động truy cập phân quyền đều được ghi log và bảo vệ.</p>
-              </div>
-            </div>
-            {authError ? <div className="rbac-alert rbac-alert--error">{authError}</div> : null}
-            {authSuccess ? <div className="rbac-alert rbac-alert--success">Xác thực thành công. Đang mở màn hình phân quyền…</div> : null}
-            <button className="rbac-access__submit" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Đang xác thực...' : 'Xác thực'}
-            </button>
-          </div>
-        </form>
-      </main>);
+        return (
+            <main className="grid min-h-screen place-items-center bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+                <form className="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-2xl p-8 space-y-6" onSubmit={handleAccessSubmit}>
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-3">Admin Code Required</p>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Nhập Admin Code</h1>
+                        <p className="text-gray-600">Xác thực quyền truy cập. Nếu nhập sai, hệ thống sẽ ghi log bảo mật.</p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="flex gap-2">
+                            <input
+                                autoFocus
+                                onChange={(event) => setAdminCode(event.target.value)}
+                                placeholder="Ví dụ: ADMIN2026"
+                                type={showAdminAccess ? 'text' : 'password'}
+                                value={adminCode}
+                                disabled={isSubmitting}
+                                className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition disabled:bg-gray-100"
+                            />
+                            <button
+                                type="button"
+                                className="px-3 py-3 text-gray-600 hover:text-gray-900 disabled:text-gray-300"
+                                aria-label={showAdminAccess ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                                onClick={() => setShowAdminAccess((value) => !value)}
+                                disabled={isSubmitting}
+                            >
+                                <span className="material-symbols-outlined text-xl">{showAdminAccess ? 'visibility_off' : 'visibility'}</span>
+                            </button>
+                        </div>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 flex gap-2">
+                            <span className="material-symbols-outlined text-blue-600 flex-shrink-0 mt-0.5">security</span>
+                            <p className="text-sm text-blue-700">Tất cả hoạt động truy cập đều được ghi log và bảo vệ.</p>
+                        </div>
+                    </div>
+
+                    {authError && <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-700 font-medium">{authError}</div>}
+                    {authSuccess && <div className="rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-green-700 font-medium">Xác thực thành công. Đang mở màn hình...</div>}
+
+                    <div className="flex gap-3">
+                        <button
+                            type="button"
+                            onClick={handleBack}
+                            className="flex-1 px-4 py-3 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition"
+                        >
+                            Quay lại
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="flex-1 px-4 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:bg-gray-400 transition"
+                        >
+                            {isSubmitting ? 'Đang xác thực...' : 'Xác thực'}
+                        </button>
+                    </div>
+                </form>
+            </main>
+        );
     }
-    return (<div className="rbac-page">
-      <AdminCodeModal open={showAdminModal} title={pendingActionName} onCancel={handleModalCancel} onConfirm={handleModalConfirm} />
-      <aside className="rbac-sidebar">
-        <div className="rbac-sidebar__brand">
-          <div className="rbac-sidebar__logo">
-            <Icon name="local_parking"/>
-          </div>
-          <div>
-            <strong>Smart Parking AI</strong>
-            <span>System Administrator</span>
-          </div>
+    return (
+        <div className="flex min-h-screen bg-gray-50 text-gray-900 max-lg:flex-col">
+            <AdminCodeModal open={showAdminModal} title={pendingActionName} onCancel={handleModalCancel} onConfirm={handleModalConfirm} />
+            
+            {/* Sidebar */}
+            <aside className="w-72 flex-shrink-0 bg-slate-900 text-white shadow-xl max-lg:w-full max-lg:max-h-fit">
+                <div className="space-y-8 p-6">
+                    {/* Logo */}
+                    <div className="flex items-center gap-3 border-b border-slate-700 pb-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-600">
+                            <Icon name="local_parking" />
+                        </div>
+                        <div>
+                            <strong className="block text-lg">Smart Parking AI</strong>
+                            <span className="text-sm text-slate-400">System Administrator</span>
+                        </div>
+                    </div>
+
+                    {/* Navigation */}
+                    <nav className="space-y-2">
+                        <Link to={ROUTES.ADMIN.DASHBOARD} className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-300 transition hover:bg-slate-800/50 hover:text-white">
+                            <Icon name="dashboard" />
+                            Tổng quan
+                        </Link>
+                        <Link to={ROUTES.ADMIN.USERS} className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-300 transition hover:bg-slate-800/50 hover:text-white">
+                            <Icon name="manage_accounts" />
+                            Quản lý tài khoản
+                        </Link>
+                        <Link to={ROUTES.ADMIN.ROLES} className="flex items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-white shadow-lg">
+                            <Icon name="security" />
+                            Phân quyền
+                        </Link>
+                        <Link to={ROUTES.ADMIN.SYSTEM_CONFIG} className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-300 transition hover:bg-slate-800/50 hover:text-white">
+                            <Icon name="settings" />
+                            Cấu hình hệ thống
+                        </Link>
+                        <Link to={ROUTES.ADMIN.AUDIT_LOG} className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-300 transition hover:bg-slate-800/50 hover:text-white">
+                            <Icon name="history" />
+                            Audit Log & Bảo mật
+                        </Link>
+                    </nav>
+
+                    {/* Footer */}
+                    <div className="space-y-2 border-t border-slate-700 pt-4">
+                        <Link to={ROUTES.HOME} className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-300 transition hover:bg-slate-800/50 hover:text-white">
+                            <Icon name="help" />
+                            Hỗ trợ
+                        </Link>
+                        <button onClick={handleLogout} type="button" className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-rose-300 transition hover:bg-slate-800/50 hover:text-rose-100">
+                            <Icon name="logout" />
+                            Đăng xuất
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-1 overflow-auto p-6 max-lg:p-4">
+                <header className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-1">RBAC Management</p>
+                        <h1 className="text-3xl font-bold text-gray-900">Phân quyền hệ thống</h1>
+                    </div>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={handleBack}
+                            type="button"
+                            className="rounded-lg border border-gray-300 bg-white px-6 py-2.5 font-semibold text-gray-700 transition hover:bg-gray-50"
+                        >
+                            Quay lại
+                        </button>
+                        <label className="flex-1 lg:flex-none">
+                            <span className="block text-sm font-semibold text-gray-700 mb-2">Tìm kiếm Role</span>
+                            <input
+                                onChange={(event) => setSearchValue(event.target.value)}
+                                placeholder="Admin, Manager, Staff, Driver..."
+                                type="search"
+                                value={searchValue}
+                                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                            />
+                        </label>
+                    </div>
+                </header>
+
+                {message && (
+                    <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-blue-700 font-medium">
+                        {message}
+                    </div>
+                )}
+
+                {/* Main Grid */}
+                <section className="mb-6 grid gap-6 lg:grid-cols-[1fr_1.8fr]">
+                    {/* Role List */}
+                    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                        <div className="mb-4">
+                            <h2 className="text-xl font-bold text-gray-900">Danh sách Role</h2>
+                            <p className="text-sm text-gray-600">Xem, tìm kiếm và chọn role</p>
+                        </div>
+                        <RoleList
+                            roles={filteredRoles}
+                            selectedRoleId={selectedRole.id}
+                            onSelect={(id) => {
+                                setSelectedRoleId(id);
+                                setMessage('');
+                            }}
+                        />
+                    </div>
+
+                    {/* Permission Matrix */}
+                    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                        <div className="mb-4 flex items-center justify-between gap-4">
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-900">Permission Matrix: {selectedRole.name}</h2>
+                                <p className="text-sm text-gray-600">Quản lý quyền View/Create/Edit/Delete</p>
+                            </div>
+                            <button
+                                onClick={handleSavePermissions}
+                                type="button"
+                                className="rounded-lg bg-blue-600 px-6 py-2.5 font-semibold text-white transition hover:bg-blue-700 whitespace-nowrap"
+                            >
+                                Lưu quyền
+                            </button>
+                        </div>
+                        <PermissionMatrix
+                            permissionModules={permissionModules}
+                            permissionActions={permissionActions}
+                            selectedPermissions={selectedPermissions}
+                            togglePermission={togglePermission}
+                        />
+                    </div>
+                </section>
+
+                {/* Actions Grid */}
+                <section className="mb-6 grid gap-6 lg:grid-cols-3">
+                    <RoleForm
+                        newRoleName={newRoleName}
+                        setNewRoleName={setNewRoleName}
+                        newRoleDescription={newRoleDescription}
+                        setNewRoleDescription={setNewRoleDescription}
+                        onCreateRole={handleCreateRole}
+                    />
+
+                    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                        <div className="mb-4">
+                            <h2 className="text-xl font-bold text-gray-900">Xóa Role</h2>
+                            <p className="text-sm text-gray-600">Kiểm tra trước khi xóa</p>
+                        </div>
+                        <p className="mb-4 text-gray-700">
+                            Role đang chọn: <strong>{selectedRole.name}</strong>
+                        </p>
+                        <button
+                            onClick={handleDeleteRole}
+                            type="button"
+                            className="w-full rounded-lg bg-red-600 px-4 py-2.5 font-semibold text-white transition hover:bg-red-700"
+                        >
+                            Xóa Role đang chọn
+                        </button>
+                    </div>
+
+                    <AssignUserForm
+                        users={users}
+                        roles={roles}
+                        selectedUserId={selectedUserId}
+                        setSelectedUserId={setSelectedUserId}
+                        assignRoleId={assignRoleId}
+                        setAssignRoleId={setAssignRoleId}
+                        onAssign={handleAssignRole}
+                    />
+                </section>
+
+                {/* Bottom Section */}
+                <section className="grid gap-6 lg:grid-cols-[300px_1fr]">
+                    <label className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                        <span className="block text-sm font-bold text-gray-700 mb-3">Admin Code</span>
+                        <div className="flex gap-2">
+                            <input
+                                onChange={(event) => setOperationCode(event.target.value)}
+                                placeholder="Admin Code"
+                                type={showOperationCode ? 'text' : 'password'}
+                                value={operationCode}
+                                className="flex-1 rounded-lg border border-gray-300 px-3 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition text-sm"
+                            />
+                            <button
+                                type="button"
+                                className="px-2 text-gray-600 hover:text-gray-900"
+                                aria-label={showOperationCode ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                                onClick={() => setShowOperationCode((value) => !value)}
+                            >
+                                <span className="material-symbols-outlined">
+                                    {showOperationCode ? 'visibility_off' : 'visibility'}
+                                </span>
+                            </button>
+                        </div>
+                    </label>
+
+                    <SecurityLog securityLogs={securityLogs} />
+                </section>
+            </main>
         </div>
-        <nav>
-          <Link to={ROUTES.ADMIN.DASHBOARD}>
-            <Icon name="dashboard"/>
-            Tổng quan
-          </Link>
-          <Link to={ROUTES.ADMIN.USERS}>
-            <Icon name="manage_accounts"/>
-            Quản lý tài khoản
-          </Link>
-          <Link className="active" to={ROUTES.ADMIN.ROLES}>
-            <Icon name="security"/>
-            Phân quyền
-          </Link>
-          <Link to={ROUTES.ADMIN.SYSTEM_CONFIG}>
-            <Icon name="settings"/>
-            Cấu hình hệ thống
-          </Link>
-          <Link to={ROUTES.ADMIN.AUDIT_LOG}>
-            <Icon name="history"/>
-            Audit Log & Bảo mật
-          </Link>
-        </nav>
-        <div className="rbac-sidebar__footer">
-          <Link to={ROUTES.HOME}>
-            <Icon name="help"/>
-            Hỗ trợ
-          </Link>
-          <button className="rbac-sidebar__logout" onClick={handleLogout} type="button">
-            <Icon name="logout"/>
-            Đăng xuất
-          </button>
-        </div>
-      </aside>
-
-      <main className="rbac-main">
-        <header className="rbac-header">
-          <div className="rbac-header__title-group">
-            <button className="rbac-back-button" aria-label="Quay lại" onClick={handleBack} type="button">
-              <Icon name="arrow_back" />
-            </button>
-            <div>
-              <p className="rbac-eyebrow">RBAC Management</p>
-              <h1>Phân quyền hệ thống</h1>
-            </div>
-          </div>
-          <label>
-            Tìm kiếm Role
-            <input onChange={(event) => setSearchValue(event.target.value)} placeholder="Admin, Manager, Staff, Driver..." type="search" value={searchValue}/>
-          </label>
-        </header>
-
-        {message ? <p className="rbac-message">{message}</p> : null}
-
-        <section className="rbac-grid">
-          <div className="rbac-panel">
-            <div className="rbac-panel__heading">
-              <h2>Danh sách Role</h2>
-              <p>Flow 2 và 8: xem, tìm kiếm và chọn role.</p>
-            </div>
-            <RoleList
-              roles={filteredRoles}
-              selectedRoleId={selectedRole.id}
-              onSelect={(id) => {
-                setSelectedRoleId(id);
-                setMessage('');
-              }}
-              searchValue={searchValue}
-              setSearchValue={setSearchValue}
-            />
-          </div>
-
-          <div className="rbac-panel">
-            <div className="rbac-panel__heading rbac-panel__heading--row">
-              <div>
-                <h2>Permission Matrix: {selectedRole.name}</h2>
-                <p>Flow 3 và 5: xem, chỉnh quyền View/Create/Edit/Delete.</p>
-              </div>
-              <button onClick={handleSavePermissions} type="button">
-                Lưu quyền
-              </button>
-            </div>
-            <PermissionMatrix
-              permissionModules={permissionModules}
-              permissionActions={permissionActions}
-              selectedPermissions={selectedPermissions}
-              togglePermission={togglePermission}
-            />
-          </div>
-        </section>
-
-        <section className="rbac-actions">
-          <RoleForm
-            newRoleName={newRoleName}
-            setNewRoleName={setNewRoleName}
-            newRoleDescription={newRoleDescription}
-            setNewRoleDescription={setNewRoleDescription}
-            onCreateRole={handleCreateRole}
-          />
-
-          <div className="rbac-panel">
-            <div className="rbac-panel__heading">
-              <h2>Xóa Role</h2>
-              <p>Flow 6: kiểm tra role đang được gán trước khi xóa.</p>
-            </div>
-            <p>
-              Role đang chọn: <strong>{selectedRole.name}</strong>
-            </p>
-            <button className="danger" onClick={handleDeleteRole} type="button">
-              Xóa Role đang chọn
-            </button>
-          </div>
-
-          <AssignUserForm
-            users={users}
-            roles={roles}
-            selectedUserId={selectedUserId}
-            setSelectedUserId={setSelectedUserId}
-            assignRoleId={assignRoleId}
-            setAssignRoleId={setAssignRoleId}
-            onAssign={handleAssignRole}
-          />
-        </section>
-
-        <section className="rbac-bottom">
-          <label className="rbac-code">
-            Admin Code cho thao tác tạo/sửa/xóa/gán Role
-            <div className="rbac-password-field">
-              <input onChange={(event) => setOperationCode(event.target.value)} placeholder="Nhập Admin Code trước khi lưu thao tác" type={showOperationCode ? 'text' : 'password'} value={operationCode} />
-              <button type="button" className="rbac-password-toggle" aria-label={showOperationCode ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'} onClick={() => setShowOperationCode((value) => !value)}>
-                <span className="material-symbols-outlined">{showOperationCode ? 'visibility_off' : 'visibility'}</span>
-              </button>
-            </div>
-          </label>
-          <SecurityLog securityLogs={securityLogs} />
-        </section>
-      </main>
-    </div>);
+    );
 }

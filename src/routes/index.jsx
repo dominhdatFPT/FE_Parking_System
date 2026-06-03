@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router';
+import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes';
 import MainLayout from '../layouts/MainLayout';
 import LoginPage from '../features/auth/pages/LoginPage';
@@ -10,6 +11,7 @@ import ResetPassword from '../features/auth/pages/ResetPassword';
 import SignupPage from '../features/auth/pages/SignupPage';
 import AdminSignup from '../features/auth/pages/AdminSignup';
 import NotFoundPage from '../pages/NotFoundPage';
+import ForbiddenPage from '../pages/ForbiddenPage';
 import AccountManagementPage from '../pages/AccountManagementPage';
 import SettingsPage from '../pages/SettingsPage';
 import NotificationDetailPage from '../pages/NotificationDetailPage';
@@ -27,6 +29,21 @@ function RequireAuth({ children }) {
   return children;
 }
 
+function RequireAdminRole({ children }) {
+  const { role } = useAuth();
+  const token = localStorage.getItem('access_token');
+
+  if (!token) {
+    return <Navigate to={ROUTES.LOGIN} replace />;
+  }
+
+  if (role !== 'admin') {
+    return <Navigate to={ROUTES.FORBIDDEN} replace />;
+  }
+
+  return children;
+}
+
 export function AppRoutes() {
   return (
     <Routes>
@@ -37,6 +54,48 @@ export function AppRoutes() {
       <Route path="/admin/signup" element={<AdminSignup />} />
       <Route path="/recovery" element={<AccountRecovery />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      
+      <Route
+        path="/home"
+        element={
+          <RequireAuth>
+            <HomePage />
+          </RequireAuth>
+        }
+      />
+      
+      <Route
+        path={ROUTES.ADMIN.USERS}
+        element={
+          <RequireAdminRole>
+            <AccountManagementPage />
+          </RequireAdminRole>
+        }
+      />
+      <Route
+        path={ROUTES.ADMIN.ROLES}
+        element={
+          <RequireAdminRole>
+            <RolePermissionPage />
+          </RequireAdminRole>
+        }
+      />
+      <Route
+        path={ROUTES.ADMIN.SYSTEM_CONFIG}
+        element={
+          <RequireAdminRole>
+            <SystemConfigurationPage />
+          </RequireAdminRole>
+        }
+      />
+      <Route
+        path={ROUTES.ADMIN.AUDIT_LOG}
+        element={
+          <RequireAdminRole>
+            <AuditLogPage />
+          </RequireAdminRole>
+        }
+      />
       
       <Route element={<MainLayout />}>
         <Route
@@ -55,10 +114,6 @@ export function AppRoutes() {
             </RequireAuth>
           }
         />
-        <Route path={ROUTES.ADMIN.USERS} element={<AccountManagementPage />}/>
-        <Route path={ROUTES.ADMIN.ROLES} element={<RolePermissionPage />}/>
-        <Route path={ROUTES.ADMIN.SYSTEM_CONFIG} element={<SystemConfigurationPage />}/>
-        <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AuditLogPage />}/>
         <Route path={ROUTES.NOTIFICATIONS.DETAIL} element={<NotificationDetailPage />}/>
         <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />}/>
       </Route>

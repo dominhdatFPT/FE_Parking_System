@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import DashboardShell from '../components/DashboardShell';
-import { getSecurityLogs } from '../features/admin/role-permissions/services/rolePermissionStorage';
-import './AuditLogPage.css';
+import DashboardShell from '../../components/DashboardShell';
+import { getSecurityLogs } from '../../features/admin/role-permissions/services/rolePermissionStorage';
 
 const STATUS_OPTIONS = ['All', 'Success', 'Failed', 'Blocked'];
 
