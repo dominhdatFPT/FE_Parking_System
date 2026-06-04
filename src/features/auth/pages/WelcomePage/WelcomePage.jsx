@@ -167,11 +167,11 @@ export default function WelcomePage() {
             Đăng ký
           </button>
           <button
-            className="min-h-9 cursor-pointer rounded border-2 border-[#0051d5] bg-[#0051d5] px-5 py-2 text-xs font-bold uppercase tracking-[0.05em] text-white shadow-[0_8px_18px_rgba(0,81,213,0.16)] transition hover:bg-[#316bf3] hover:shadow-[0_10px_22px_rgba(0,81,213,0.22)] active:scale-95 max-[720px]:px-2.5 max-[720px]:py-1.5"
+            className="min-h-9 cursor-pointer rounded border-2 border-[#1e3a8a] bg-[#1e3a8a] px-5 py-2 text-xs font-bold uppercase tracking-[0.05em] shadow-[0_8px_18px_rgba(30,58,138,0.16)] transition hover:bg-blue-800 hover:border-blue-800 hover:shadow-[0_10px_22px_rgba(30,58,138,0.22)] active:scale-95 max-[720px]:px-2.5 max-[720px]:py-1.5"
             type="button"
             onClick={() => navigate('/login')}
           >
-            Đăng nhập
+            <span className="text-white">Đăng nhập</span>
           </button>
           <button aria-label="Ngôn ngữ" className="grid min-h-9 w-9 cursor-pointer place-items-center rounded border-0 bg-transparent text-[#45464d] transition hover:bg-[#eceef0] hover:text-[#0051d5] active:scale-95 max-[720px]:hidden" type="button">
             <span className="material-symbols-outlined">language</span>
@@ -194,9 +194,9 @@ export default function WelcomePage() {
                 giúp tối ưu hóa không gian đỗ xe và nâng cao trải nghiệm người dùng với
                 tính chính xác tuyệt đối.
               </p>
-              <a className="inline-flex min-h-12 items-center gap-2 rounded bg-[#0051d5] px-8 py-3 text-xs font-bold uppercase tracking-[0.05em] text-white no-underline hover:bg-[#003ea8]" href="#thong-tin-bai">
-                Khám phá ngay
-                <span className="material-symbols-outlined">arrow_forward</span>
+              <a className="inline-flex min-h-12 items-center gap-2 rounded bg-[#1e3a8a] px-8 py-3 text-xs font-bold uppercase tracking-[0.05em] no-underline hover:bg-blue-800 transition-colors" href="#thong-tin-bai">
+                <span className="text-white">Khám phá ngay</span>
+                <span className="material-symbols-outlined text-white">arrow_forward</span>
               </a>
             </div>
 
