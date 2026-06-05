@@ -103,34 +103,7 @@ export default function SignupPage() {
 
   return (
     <main className="flex h-screen min-h-screen flex-col overflow-hidden bg-[#f7f9fb] text-[#191c1e]">
-      <header className="z-10 flex h-16 items-center justify-between border-b border-[#c6c6cd] bg-[#f7f9fb] px-6 max-sm:px-4">
-        <div className="flex items-center gap-2">
-          <img
-            alt="Parking System Logo"
-            className="h-12 w-12 rounded-full object-cover"
-            src={logoUrl}
-          />
-          <span className="text-2xl font-bold leading-8 text-[#0051d5] max-sm:text-xl">
-            Parking System
-          </span>
-        </div>
-        <div className="flex items-center gap-4">
-          <button
-            aria-label="Ngôn ngữ"
-            className="grid h-9 w-9 cursor-pointer place-items-center rounded bg-transparent text-[#45464d] transition hover:bg-[#eceef0] hover:text-[#0051d5]"
-            type="button"
-          >
-            <span className="material-symbols-outlined">language</span>
-          </button>
-          <button
-            aria-label="Trợ giúp"
-            className="grid h-9 w-9 cursor-pointer place-items-center rounded bg-transparent text-[#45464d] transition hover:bg-[#eceef0] hover:text-[#0051d5]"
-            type="button"
-          >
-            <span className="material-symbols-outlined">help</span>
-          </button>
-        </div>
-      </header>
+
       <section className="flex min-h-0 flex-1 overflow-hidden border-t border-[#c6c6cd] bg-white max-[980px]:border-t-0">
         <aside
           className="relative flex w-1/2 flex-col justify-between overflow-hidden bg-[#131b2e] px-6 py-8 text-white max-[980px]:hidden"

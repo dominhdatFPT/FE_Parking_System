@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { login } from '../../../../services/modules/authService';
+import { ROUTES } from '../../../../constants/routes';
 
 const userFieldClass = 'grid gap-1.5';
 const userLabelClass =
@@ -64,58 +65,44 @@ export default function UserLoginPage() {
   };
 
   return (
-    <div className="relative flex h-screen flex-col overflow-hidden bg-[#f7f9fb] text-[#191c1e]">
-      <header className="z-10 flex h-16 items-center justify-between border-b border-[#c6c6cd] bg-[#f7f9fb] px-6 max-[720px]:px-4">
-        <div className="flex items-center gap-2">
-          <img
-            alt="Parking System Logo"
-            className="h-12 w-12 rounded-full object-cover"
-            src="/parking-system-logo.png"
-          />
-          <span className="text-2xl font-bold leading-8 text-[#0051d5] max-[720px]:text-lg">
-            Parking System
-          </span>
-        </div>
-        <div className="flex items-center gap-4">
-          <button
-            aria-label="Ngôn ngữ"
-            className="grid h-9 w-9 cursor-pointer place-items-center rounded bg-transparent text-[#45464d] transition hover:bg-[#eceef0] hover:text-[#0051d5]"
-            type="button"
-          >
-            <span className="material-symbols-outlined">language</span>
-          </button>
-          <button
-            aria-label="Trợ giúp"
-            className="grid h-9 w-9 cursor-pointer place-items-center rounded bg-transparent text-[#45464d] transition hover:bg-[#eceef0] hover:text-[#0051d5]"
-            type="button"
-          >
-            <span className="material-symbols-outlined">help</span>
-          </button>
-        </div>
-      </header>
-
-      <main className="flex flex-1 items-center justify-center overflow-hidden p-4 max-[720px]:px-4 max-[720px]:py-3">
-        <div className="grid h-full max-h-[600px] w-full max-w-6xl grid-cols-[minmax(0,1fr)_minmax(380px,1fr)] overflow-hidden rounded-lg border border-[#c6c6cd] bg-white shadow-[0_12px_28px_rgba(19,27,46,0.08)] max-[980px]:max-h-none max-[980px]:grid-cols-1 max-[720px]:rounded">
-          <section
-            className="flex flex-col justify-between gap-5 bg-[#131b2e] p-8 text-white max-[980px]:hidden"
-            aria-label="Dịch vụ bãi xe"
-          >
+    <main className="flex h-screen min-h-screen flex-col overflow-hidden bg-[#f7f9fb] text-[#191c1e]">
+      <section className="flex min-h-0 flex-1 overflow-hidden border-t border-[#c6c6cd] bg-white max-[980px]:border-t-0">
+        <aside
+          className="relative flex w-1/2 flex-col justify-between overflow-hidden bg-[#131b2e] px-6 py-8 text-white max-[980px]:hidden"
+          aria-label="Dịch vụ bãi xe"
+        >
             <div>
-              <h1 className="mb-3 text-[32px] font-bold leading-10">Quản lý bãi xe thông minh</h1>
-              <p className="mb-7 text-sm leading-5 text-[#c6c6cd]">
-                Hệ thống Nexus mang lại trải nghiệm đỗ xe tự động, an toàn và minh bạch
-                tuyệt đối cho cư dân.
+              <div className="mb-6 flex items-center gap-3">
+                <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-white/95">
+                  <img
+                    alt="Parking System Logo"
+                    className="h-full w-full object-cover"
+                    src="/parking-system-logo.png"
+                  />
+                </div>
+                <span className="text-2xl font-semibold leading-8 text-white">Parking System</span>
+              </div>
+
+              <h1 className="mb-3 text-[26px] font-bold leading-9 text-[#dbe1ff]">
+                Giải pháp Quản lý Bãi đậu xe Thông minh
+              </h1>
+              <p className="mb-8 max-w-[420px] text-[15px] leading-relaxed text-[#7c839b] opacity-90">
+                Nâng tầm trải nghiệm vận hành với hệ thống tự động hóa chuẩn doanh
+                nghiệp. Chính xác, bảo mật và hiệu quả vượt trội cho mọi cơ sở hạ tầng.
               </p>
 
-              <div className="grid gap-5">
+              <div className="grid gap-4">
                 {benefits.map((benefit) => (
-                  <article className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3" key={benefit.title}>
-                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded bg-[#316bf3]/20 text-[#dbe1ff]">
-                      <span className="material-symbols-outlined">{benefit.icon}</span>
+                  <article 
+                    className="flex items-center gap-4 rounded-xl border border-white/5 bg-white/5 p-4 transition-all duration-300 hover:-translate-y-1 hover:bg-white/10 hover:shadow-xl" 
+                    key={benefit.title}
+                  >
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#316bf3] to-[#003ea8] text-white shadow-[0_0_15px_rgba(49,107,243,0.4)]">
+                      <span className="material-symbols-outlined text-[22px]">{benefit.icon}</span>
                     </div>
                     <div>
-                      <h2 className="mb-0.5 text-[15px] leading-5 text-white">{benefit.title}</h2>
-                      <p className="text-[13px] leading-[18px] text-[#c6c6cd]">{benefit.description}</p>
+                      <h2 className="mb-1 text-[15px] font-semibold leading-5 text-white tracking-wide">{benefit.title}</h2>
+                      <p className="text-[13px] leading-[18px] text-[#a5adc6]">{benefit.description}</p>
                     </div>
                   </article>
                 ))}
@@ -129,12 +116,13 @@ export default function UserLoginPage() {
                 src="https://images.unsplash.com/photo-1530124566582-a618bc2615dc?auto=format&fit=crop&w=900&q=80"
               />
             </div>
-          </section>
+        </aside>
 
-          <section
-            className="flex flex-col justify-start overflow-y-auto overflow-x-hidden p-7 [scrollbar-width:thin] [scrollbar-color:#c6c6cd_transparent] max-[980px]:px-6 max-[980px]:py-8 max-[720px]:px-4 max-[720px]:py-5"
-            aria-label="Đăng nhập cư dân"
-          >
+        <section
+          className="flex min-h-0 w-1/2 flex-1 flex-col justify-center overflow-y-auto overflow-x-hidden bg-white px-6 py-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-[980px]:w-full max-[980px]:px-6 max-[980px]:py-5 max-sm:px-4 max-sm:py-4"
+          aria-label="Đăng nhập cư dân"
+        >
+          <div className="mx-auto w-full max-w-md max-sm:max-w-full">
             <div className="mb-7">
               <h2 className="mb-1.5 text-[22px] font-semibold leading-7 text-[#191c1e] max-[720px]:text-lg max-[720px]:leading-6">
                 Chào mừng cư dân
@@ -215,21 +203,9 @@ export default function UserLoginPage() {
                 Đăng nhập quản trị viên
               </button>
             </div>
-          </section>
-        </div>
-      </main>
-
-      <footer className="flex min-h-[60px] items-center justify-between gap-4 border-t border-[#c6c6cd] bg-[#f2f4f6] px-6 py-3 text-xs max-[720px]:min-h-0 max-[720px]:flex-col">
-        <div className="flex items-center gap-1.5">
-          <strong className="text-[11px] tracking-[0.05em] text-[#0051d5]">NEXUS</strong>
-          <span className="text-xs leading-4 text-[#45464d]">© 2024 Nexus Facility Management. Operational Precision.</span>
-        </div>
-        <nav className="flex gap-4 max-[720px]:w-full max-[720px]:flex-wrap max-[720px]:gap-x-4 max-[720px]:gap-y-3" aria-label="Liên kết hỗ trợ">
-          <a className="text-xs leading-4 text-[#45464d] no-underline hover:text-[#003ea8] hover:underline" href="/support">Trung tâm trợ giúp</a>
-          <a className="text-xs leading-4 text-[#45464d] no-underline hover:text-[#003ea8] hover:underline" href="/terms">Điều khoản dịch vụ</a>
-          <a className="text-xs leading-4 text-[#45464d] no-underline hover:text-[#003ea8] hover:underline" href="/privacy">Chính sách bảo mật</a>
-        </nav>
-      </footer>
-    </div>
+          </div>
+        </section>
+      </section>
+    </main>
   );
 }
