@@ -2,17 +2,27 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 
 const AuthContext = createContext(undefined);
 
+// Bật cờ này thành true để bỏ qua bước đăng nhập trong quá trình code/test API
+const DEV_MODE_BYPASS_AUTH = true;
+
+const DEFAULT_USER = {
+    id: 'dev-bypass',
+    email: 'dev@parking.ai',
+    fullName: 'Developer Mode',
+    role: 'admin',
+};
+
 function readInitialUser() {
     if (typeof window === 'undefined')
-        return null;
+        return DEV_MODE_BYPASS_AUTH ? DEFAULT_USER : null;
     const stored = window.localStorage.getItem('smart-parking-user');
     if (!stored)
-        return null;
+        return DEV_MODE_BYPASS_AUTH ? DEFAULT_USER : null;
     try {
         return JSON.parse(stored);
     }
     catch {
-        return null;
+        return DEV_MODE_BYPASS_AUTH ? DEFAULT_USER : null;
     }
 }
 

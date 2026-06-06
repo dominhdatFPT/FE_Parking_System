@@ -190,11 +190,13 @@ export default function LoginPage() {
               </div>
 
               <button
-                className="min-h-16 cursor-pointer rounded bg-[#316bf3] text-lg font-semibold text-white shadow-[0_16px_28px_rgba(49,107,243,0.22)] hover:bg-[#003ea8] disabled:cursor-not-allowed disabled:opacity-65"
+                className="flex items-center justify-center min-h-16 cursor-pointer rounded-lg bg-[#1e3a8a] hover:bg-blue-800 text-lg font-semibold shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-65"
                 type="submit"
                 disabled={loading}
               >
-                {loading ? 'Đang đăng nhập...' : 'Đăng nhập hệ thống'}
+                <span className="text-white">
+                  {loading ? 'Đang đăng nhập...' : 'Đăng nhập hệ thống'}
+                </span>
               </button>
 
               <p className="-mt-2 text-center text-sm text-[#45464d]">
