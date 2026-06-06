@@ -1,40 +1,48 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+
 const AuthContext = createContext(undefined);
-const DEFAULT_USER = {
-    id: 'u-001',
-    fullName: 'Gia Võ',
-    email: 'gia.vo@example.com',
-    role: 'admin',
-    avatarUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=96&q=80',
-};
+
 function readInitialUser() {
     if (typeof window === 'undefined')
-        return DEFAULT_USER;
+        return null;
     const stored = window.localStorage.getItem('smart-parking-user');
     if (!stored)
-        return DEFAULT_USER;
+        return null;
     try {
-        const parsed = JSON.parse(stored);
-        return {
-            ...DEFAULT_USER,
-            ...parsed,
-        };
+        return JSON.parse(stored);
     }
     catch {
-        return DEFAULT_USER;
+        return null;
     }
 }
+
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(readInitialUser);
+
     useEffect(() => {
-        window.localStorage.setItem('smart-parking-user', JSON.stringify(user));
+        if (user) {
+            window.localStorage.setItem('smart-parking-user', JSON.stringify(user));
+        } else {
+            window.localStorage.removeItem('smart-parking-user');
+        }
     }, [user]);
+
     const setRole = (nextRole) => {
+        if (!user) return;
         setUser((currentUser) => ({ ...currentUser, role: nextRole }));
     };
-    const value = useMemo(() => ({ user, role: user.role, setUser, setRole }), [user]);
+
+    const value = useMemo(() => ({ 
+        user, 
+        role: user?.role, 
+        setUser, 
+        setRole,
+        isAuthenticated: !!user 
+    }), [user]);
+
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
+
 export function useAuth() {
     const ctx = useContext(AuthContext);
     if (!ctx)

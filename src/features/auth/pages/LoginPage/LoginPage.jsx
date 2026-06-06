@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { login } from '../../../../services/modules/authService';
 import { ROUTES } from '../../../../constants/routes';
+import { useAuth } from '../../../../contexts/AuthContext';
 
 const adminHeroImage =
   'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1400&q=80';
@@ -48,6 +49,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -58,7 +60,10 @@ export default function LoginPage() {
       const response = await login(email, password);
 
       if (response.token) {
-        localStorage.setItem('token', response.token);
+        localStorage.setItem('access_token', response.token);
+
+        // Cập nhật AuthContext
+        setUser({ id: 'admin-placeholder', role: 'admin', ...response.user });
 
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true');

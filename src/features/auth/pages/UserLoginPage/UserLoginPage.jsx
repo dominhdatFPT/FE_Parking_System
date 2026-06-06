@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { login } from '../../../../services/modules/authService';
 import { ROUTES } from '../../../../constants/routes';
+import { useAuth } from '../../../../contexts/AuthContext';
 
 const userFieldClass = 'grid gap-1.5';
 const userLabelClass =
@@ -37,6 +38,7 @@ export default function UserLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -47,8 +49,11 @@ export default function UserLoginPage() {
       const response = await login(phone, password);
 
       if (response.token) {
-        localStorage.setItem('token', response.token);
+        localStorage.setItem('access_token', response.token);
         localStorage.setItem('userRole', 'driver');
+        
+        // Cập nhật AuthContext
+        setUser({ id: 'driver-placeholder', role: 'driver', ...response.user });
 
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true');

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { NavLink } from 'react-router';
+import { NavLink, useNavigate } from 'react-router';
 import { useAuth } from '../../contexts/AuthContext';
 import { ROUTES } from '../../constants/routes';
 import Icon from '../../components/Icon';
@@ -100,6 +100,8 @@ function ToggleRow({ label, checked, onChange }) {
 
 export default function SystemConfigurationPage() {
     const { user, role } = useAuth();
+    const navigate = useNavigate();
+    const handleNavigate = (path) => navigate(path);
     const [config, setConfig] = useState(DEFAULT_CONFIG);
     const [message, setMessage] = useState('');
 
@@ -140,8 +142,8 @@ export default function SystemConfigurationPage() {
     return (
         <div className="flex min-h-screen bg-gray-100">
             {/* ── Sidebar ── */}
-            <aside className="w-64 flex-shrink-0 bg-slate-900 text-white shadow-xl">
-                <div className="space-y-6 p-4">
+            <aside className="w-64 flex-shrink-0 flex flex-col bg-slate-900 text-white shadow-xl">
+                <div className="flex-1 space-y-6 p-4">
                     {/* Brand */}
                     <div className="flex items-center gap-3 border-b border-slate-700 pb-4">
                         <div className="flex h-10 w-10 items-center justify-center rounded bg-blue-600">
@@ -173,24 +175,27 @@ export default function SystemConfigurationPage() {
                             </NavLink>
                         ))}
                     </nav>
+                </div>
 
-                    {/* Footer */}
-                    <div className="space-y-1 border-t border-slate-700 pt-4">
-                        <a
-                            href="#"
-                            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800/50 hover:text-white"
-                        >
-                            <Icon name="help" />
-                            <span>Hỗ trợ</span>
-                        </a>
-                        <a
-                            href="#"
-                            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-rose-300 transition hover:bg-slate-800/50 hover:text-rose-100"
-                        >
-                            <Icon name="logout" />
-                            <span>Đăng xuất</span>
-                        </a>
-                    </div>
+                {/* Footer */}
+                <div className="p-4 border-t border-slate-700 flex items-center gap-3 shrink-0 mt-auto bg-slate-900">
+                  <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-[#20438e] hover:bg-blue-800 rounded-xl transition-colors text-sm font-semibold shadow-sm text-white">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Hỗ trợ</span>
+                  </button>
+                  <button 
+                    title="Đăng xuất"
+                    onClick={() => handleNavigate('/login')}
+                    className="flex-shrink-0 flex items-center justify-center p-2.5 text-red-600 hover:text-white hover:bg-red-600 bg-red-100 rounded-lg transition-all"
+                  >
+                    <svg className="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                  </button>
                 </div>
             </aside>
 
