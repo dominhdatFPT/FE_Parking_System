@@ -1,358 +1,225 @@
-import { NavLink } from 'react-router';
-import { useAuth } from '../../contexts/AuthContext';
-import { ROUTES } from '../../constants/routes';
-import Icon from '../../components/Icon';
-import NotificationDropdown from '../../components/NotificationDropdown';
-import SettingsDropdown from '../../components/SettingsDropdown';
+﻿import Icon from '../../components/Icon';
 
-// Helper functions for styling
-const getStatusStyle = (state) => {
-    const styles = {
-        success: 'bg-green-100 text-green-800',
-        warning: 'bg-yellow-100 text-yellow-800',
-        error: 'bg-red-100 text-red-800',
-    };
-    return styles[state] || 'bg-gray-100 text-gray-800';
-};
+const users = [
+  {
+    name: 'Nguyen Minh Anh',
+    email: 'minhanh@parking.ai',
+    role: 'Quan tri vien',
+    department: 'Van hanh',
+    lastActive: '20/05/2026 19:42',
+    status: 'Hoat dong',
+    state: 'success',
+  },
+  {
+    name: 'Tran Quoc Huy',
+    email: 'quochuy@parking.ai',
+    role: 'Quan ly bai xe',
+    department: 'Bai xe A1',
+    lastActive: '20/05/2026 18:15',
+    status: 'Hoat dong',
+    state: 'success',
+  },
+  {
+    name: 'Le Hoang Vy',
+    email: 'hoangvy@parking.ai',
+    role: 'Nhan vien cong',
+    department: 'Cong chinh',
+    lastActive: '20/05/2026 16:08',
+    status: 'Cho xac minh',
+    state: 'warning',
+  },
+  {
+    name: 'Pham Duc Long',
+    email: 'duclong@parking.ai',
+    role: 'Ke toan',
+    department: 'Tai chinh',
+    lastActive: '18/05/2026 09:30',
+    status: 'Tam khoa',
+    state: 'error',
+  },
+  {
+    name: 'Vu Thanh Ha',
+    email: 'thanhha@parking.ai',
+    role: 'Giam sat camera',
+    department: 'An ninh',
+    lastActive: '20/05/2026 13:22',
+    status: 'Hoat dong',
+    state: 'success',
+  },
+];
 
-const getToneStyle = (tone) => {
-    const styles = {
-        blue: 'bg-blue-50 text-blue-600',
-        green: 'bg-green-50 text-green-600',
-        slate: 'bg-slate-50 text-slate-600',
-        orange: 'bg-orange-50 text-orange-600',
-    };
-    return styles[tone] || 'bg-gray-50 text-gray-600';
+const statusStyles = {
+  success: 'bg-emerald-100 text-emerald-700',
+  warning: 'bg-amber-100 text-amber-700',
+  error: 'bg-rose-100 text-rose-700',
 };
 
 function initials(name) {
-    return name
-        .split(' ')
-        .slice(-2)
-        .map((part) => part[0])
-        .join('')
-        .toUpperCase();
+  return name
+    .split(' ')
+    .slice(-2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
 }
 
-const menuItems = [
-    { icon: 'dashboard', label: 'Tổng quan', href: ROUTES.HOME },
-    { icon: 'manage_accounts', label: 'Quản lý tài khoản', href: ROUTES.ADMIN.USERS },
-    { icon: 'security', label: 'Quyền truy cập', href: ROUTES.ADMIN.ROLES },
-    { icon: 'settings', label: 'Cấu hình hệ thống', href: ROUTES.ADMIN.SYSTEM_CONFIG },
-    { icon: 'history', label: 'Nhật ký hệ thống', href: ROUTES.ADMIN.AUDIT_LOG },
-];
-
-const summaryCards = [
-    { icon: 'group', label: 'Tổng tài khoản', value: '248', detail: '+12 tài khoản mới', tone: 'blue' },
-    { icon: 'verified_user', label: 'Đang hoạt động', value: '221', detail: '89% tổng hệ thống', tone: 'green' },
-    { icon: 'admin_panel_settings', label: 'Quản trị viên', value: '18', detail: '4 nhóm quyền', tone: 'slate' },
-    { icon: 'lock_clock', label: 'Tạm khóa', value: '9', detail: 'Cần rà soát', tone: 'orange' },
-];
-
-const users = [
-    {
-        name: 'Nguyễn Minh Anh',
-        email: 'minhanh@parking.ai',
-        role: 'Quản trị viên',
-        department: 'Vận hành',
-        lastActive: '20/05/2026 19:42',
-        status: 'Hoạt động',
-        state: 'success',
-    },
-    {
-        name: 'Trần Quốc Huy',
-        email: 'quochuy@parking.ai',
-        role: 'Quản lý bãi xe',
-        department: 'Bãi xe A1',
-        lastActive: '20/05/2026 18:15',
-        status: 'Hoạt động',
-        state: 'success',
-    },
-    {
-        name: 'Lê Hoàng Vy',
-        email: 'hoangvy@parking.ai',
-        role: 'Nhân viên cổng',
-        department: 'Cổng chính',
-        lastActive: '20/05/2026 16:08',
-        status: 'Chờ xác minh',
-        state: 'warning',
-    },
-    {
-        name: 'Phạm Đức Long',
-        email: 'duclong@parking.ai',
-        role: 'Kế toán',
-        department: 'Tài chính',
-        lastActive: '18/05/2026 09:30',
-        status: 'Tạm khóa',
-        state: 'error',
-    },
-    {
-        name: 'Vũ Thanh Hà',
-        email: 'thanhha@parking.ai',
-        role: 'Giám sát camera',
-        department: 'An ninh',
-        lastActive: '20/05/2026 13:22',
-        status: 'Hoạt động',
-        state: 'success',
-    },
-];
-
 export default function AccountManagementPage() {
-    const { user, role } = useAuth();
-
-    return (
-        <div className="flex min-h-screen bg-gray-100">
-            {/* Sidebar */}
-            <aside className="w-64 flex-shrink-0 bg-slate-900 text-white shadow-xl">
-                <div className="space-y-6 p-4">
-                    {/* Brand */}
-                    <div className="flex items-center gap-3 border-b border-slate-700 pb-4">
-                        <div className="flex h-10 w-10 items-center justify-center rounded bg-blue-600">
-                            <Icon name="local_parking" />
-                        </div>
-                        <div>
-                            <h1 className="font-bold text-lg">Smart Parking AI</h1>
-                            <p className="text-xs text-slate-400">Hệ thống quản trị</p>
-                        </div>
-                    </div>
-
-                    {/* Navigation */}
-                    <nav className="space-y-1">
-                        {menuItems.map((item) => (
-                            <NavLink
-                                key={item.label}
-                                to={item.href}
-                                end={item.href === ROUTES.HOME}
-                                className={({ isActive }) =>
-                                    `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-                                        isActive
-                                            ? 'bg-blue-600 text-white shadow-lg'
-                                            : 'text-slate-300 hover:bg-slate-800/50 hover:text-white'
-                                    }`
-                                }
-                            >
-                                <Icon name={item.icon} />
-                                <span>{item.label}</span>
-                            </NavLink>
-                        ))}
-                    </nav>
-
-                    {/* Footer */}
-                    <div className="space-y-1 border-t border-slate-700 pt-4">
-                        <a
-                            href="#"
-                            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800/50 hover:text-white"
-                        >
-                            <Icon name="help" />
-                            <span>Hỗ trợ</span>
-                        </a>
-                        <a
-                            href="#"
-                            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-rose-300 transition hover:bg-slate-800/50 hover:text-rose-100"
-                        >
-                            <Icon name="logout" />
-                            <span>Đăng xuất</span>
-                        </a>
-                    </div>
-                </div>
-            </aside>
-
-            {/* Main Content */}
-            <main className="flex-1 overflow-auto">
-                {/* Header */}
-                <header className="border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
-                    <div className="flex items-center justify-between gap-4">
-                        {/* Search */}
-                        <label className="flex flex-1 items-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-gray-600 focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-200">
-                            <Icon name="search" />
-                            <input
-                                placeholder="Tìm kiếm tài khoản, email, vai trò..."
-                                type="search"
-                                className="flex-1 bg-transparent outline-none"
-                            />
-                        </label>
-
-                        {/* Actions */}
-                        <div className="flex items-center gap-3">
-                            <NotificationDropdown />
-                            <SettingsDropdown
-                                trigger={
-                                    <button className="flex items-center gap-2 rounded-lg hover:bg-gray-100 p-2 transition">
-                                        <span className="text-right">
-                                            <strong className="block text-sm text-gray-900">{user?.fullName}</strong>
-                                            <small className="text-xs text-gray-600">
-                                                {role === 'admin' ? 'Quản trị viên' : 'Nhân viên'}
-                                            </small>
-                                        </span>
-                                        <img
-                                            alt="User profile"
-                                            src={
-                                                user?.avatarUrl ??
-                                                'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=96&q=80'
-                                            }
-                                            className="h-10 w-10 rounded-full"
-                                        />
-                                    </button>
-                                }
-                            />
-                        </div>
-                    </div>
-                </header>
-
-                {/* Content Area */}
-                <section className="space-y-6 p-6">
-                    {/* Page Heading */}
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                        <div>
-                            <h2 className="text-3xl font-bold text-gray-900">Quản lý tài khoản</h2>
-                            <p className="text-gray-600">Quản trị người dùng, vai trò truy cập và trạng thái tài khoản trong hệ thống.</p>
-                        </div>
-                        <div className="flex gap-3">
-                            <button className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                                <Icon name="upload_file" />
-                                Nhập danh sách
-                            </button>
-                            <button className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-                                <Icon name="person_add" />
-                                Thêm tài khoản
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Summary Cards */}
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        {summaryCards.map((card) => (
-                            <div key={card.label} className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition">
-                                <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${getToneStyle(card.tone)} mb-4`}>
-                                    <Icon name={card.icon} />
-                                </div>
-                                <p className="text-sm text-gray-600">{card.label}</p>
-                                <strong className="text-2xl text-gray-900">{card.value}</strong>
-                                <p className="text-xs text-gray-500 mt-1">{card.detail}</p>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Filter Section */}
-                    <div className="rounded-lg border border-gray-200 bg-white p-6">
-                        <div className="grid gap-4 md:grid-cols-4">
-                            <label>
-                                <span className="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</span>
-                                <div className="relative">
-                                    <Icon name="search" />
-                                    <input 
-                                        placeholder="Tên, email hoặc bộ phận" 
-                                        type="search"
-                                        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 pl-10 text-sm placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                                    />
-                                </div>
-                            </label>
-                            <label>
-                                <span className="block text-sm font-medium text-gray-700 mb-2">Vai trò</span>
-                                <select className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                                    <option>Tất cả vai trò</option>
-                                    <option>Quản trị viên</option>
-                                    <option>Quản lý bãi xe</option>
-                                    <option>Nhân viên cổng</option>
-                                </select>
-                            </label>
-                            <label>
-                                <span className="block text-sm font-medium text-gray-700 mb-2">Trạng thái</span>
-                                <select className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                                    <option>Tất cả trạng thái</option>
-                                    <option>Hoạt động</option>
-                                    <option>Chờ xác minh</option>
-                                    <option>Tạm khóa</option>
-                                </select>
-                            </label>
-                            <div className="flex items-end">
-                                <button className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                                    <Icon name="filter_alt" />
-                                    Lọc dữ liệu
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Accounts Table */}
-                    <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-                        <div className="flex items-center justify-between border-b border-gray-200 p-6">
-                            <div>
-                                <h3 className="font-semibold text-gray-900">Danh sách tài khoản</h3>
-                                <p className="text-sm text-gray-600">5 tài khoản hiển thị trong hệ thống quản trị.</p>
-                            </div>
-                            <button className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                                <Icon name="download" />
-                                Xuất dữ liệu
-                            </button>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b border-gray-200 bg-gray-50">
-                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Người dùng</th>
-                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Vai trò</th>
-                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Bộ phận</th>
-                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Hoạt động cuối</th>
-                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Trạng thái</th>
-                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Thao tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200">
-                                    {users.map((u) => (
-                                        <tr key={u.email} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 font-semibold text-gray-700">
-                                                        {initials(u.name)}
-                                                    </div>
-                                                    <div>
-                                                        <strong className="block text-sm text-gray-900">{u.name}</strong>
-                                                        <p className="text-xs text-gray-500">{u.email}</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-gray-700">{u.role}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-700">{u.department}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-700">{u.lastActive}</td>
-                                            <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getStatusStyle(u.state)}`}>
-                                                    {u.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-2">
-                                                    <button className="rounded-lg p-2 hover:bg-gray-100 text-gray-600 hover:text-gray-900" title="Sửa">
-                                                        <Icon name="edit" />
-                                                    </button>
-                                                    <button className="rounded-lg p-2 hover:bg-gray-100 text-gray-600 hover:text-gray-900" title="Khóa">
-                                                        <Icon name="lock" />
-                                                    </button>
-                                                    <button className="rounded-lg p-2 hover:bg-gray-100 text-gray-600 hover:text-gray-900" title="Thêm">
-                                                        <Icon name="more_horiz" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Footer */}
-                <footer className="border-t border-gray-200 bg-white px-6 py-4 text-sm text-gray-600">
-                    <div className="flex items-center justify-between">
-                        <p>© 2024 Smart Parking AI. Toàn bộ quyền được bảo hộ.</p>
-                        <div className="flex gap-4">
-                            <a href="#" className="hover:text-gray-900">Điều khoản</a>
-                            <a href="#" className="hover:text-gray-900">Bảo mật</a>
-                            <span>Trạng thái hệ thống: Hoạt động</span>
-                        </div>
-                    </div>
-                </footer>
-            </main>
+  return (
+    <div className="space-y-8 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold text-slate-950">Quan ly tai khoan</h1>
+            <p className="mt-2 max-w-2xl text-sm text-slate-600">
+              Quan tri nguoi dung, vai tro truy cap va trang thai tai khoan trong he thong.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              className="inline-flex items-center gap-2 rounded-3xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              type="button"
+            >
+              <Icon name="upload_file" />
+              Nhap danh sach
+            </button>
+            <button
+              className="inline-flex items-center gap-2 rounded-3xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+              type="button"
+            >
+              <Icon name="person_add" />
+              Them tai khoan
+            </button>
+          </div>
         </div>
-    );
+
+        <div className="mt-8 rounded-[28px] border border-slate-200 bg-slate-50 p-6">
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-950">Bang dieu khien tai khoan</h2>
+              <p className="mt-1 text-sm text-slate-600">Tim kiem, loc va quan ly quyen truy cap cua nguoi dung.</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <button className="inline-flex items-center gap-2 rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" type="button">
+                <Icon name="download" />
+                Xuat du lieu
+              </button>
+              <button className="inline-flex items-center gap-2 rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" type="button">
+                <Icon name="refresh" />
+                Lam moi
+              </button>
+            </div>
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-[1.6fr_1fr_1fr_0.9fr]">
+            <label className="space-y-2 text-sm text-slate-600">
+              <span>Tim kiem</span>
+              <div className="relative">
+                <span className="material-symbols-outlined pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                <input
+                  type="search"
+                  placeholder="Ten, email hoac bo phan"
+                  className="w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 pl-11 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+            </label>
+            <label className="space-y-2 text-sm text-slate-600">
+              <span>Vai tro</span>
+              <select className="w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                <option>Tat ca vai tro</option>
+                <option>Quan tri vien</option>
+                <option>Quan ly bai xe</option>
+                <option>Nhan vien cong</option>
+                <option>Ke toan</option>
+              </select>
+            </label>
+            <label className="space-y-2 text-sm text-slate-600">
+              <span>Trang thai</span>
+              <select className="w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                <option>Tat ca trang thai</option>
+                <option>Hoat dong</option>
+                <option>Cho xac minh</option>
+                <option>Tam khoa</option>
+              </select>
+            </label>
+            <div className="flex items-end">
+              <button className="inline-flex w-full items-center justify-center gap-2 rounded-3xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700" type="button">
+                <Icon name="filter_alt" />
+                Ap dung
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-slate-950">Danh sach tai khoan</h2>
+            <p className="mt-1 text-sm text-slate-600">Xem thong tin nguoi dung va trang thai truy cap moi nhat.</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button className="inline-flex items-center gap-2 rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" type="button">
+              <Icon name="person_add" />
+              Them moi
+            </button>
+            <button className="inline-flex items-center gap-2 rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" type="button">
+              <Icon name="download" />
+              Xuat bang
+            </button>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200 text-sm text-slate-700">
+            <thead className="bg-slate-50 text-left text-xs uppercase tracking-[0.18em] text-slate-500">
+              <tr>
+                <th className="whitespace-nowrap px-4 py-3">Nguoi dung</th>
+                <th className="whitespace-nowrap px-4 py-3">Vai tro</th>
+                <th className="whitespace-nowrap px-4 py-3">Bo phan</th>
+                <th className="whitespace-nowrap px-4 py-3">Hoat dong cuoi</th>
+                <th className="whitespace-nowrap px-4 py-3">Trang thai</th>
+                <th className="whitespace-nowrap px-4 py-3">Thao tac</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 bg-white">
+              {users.map((user) => (
+                <tr key={user.email} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-4 py-4">
+                    <div className="flex items-center gap-4">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-3xl bg-slate-100 text-sm font-semibold text-slate-900">{initials(user.name)}</span>
+                      <div>
+                        <p className="font-semibold text-slate-950">{user.name}</p>
+                        <p className="text-sm text-slate-500">{user.email}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 text-slate-700">{user.role}</td>
+                  <td className="px-4 py-4 text-slate-700">{user.department}</td>
+                  <td className="px-4 py-4 text-slate-700">{user.lastActive}</td>
+                  <td className="px-4 py-4">
+                    <span className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${statusStyles[user.state]}`}>
+                      {user.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="flex flex-wrap gap-2">
+                      <button className="inline-flex h-11 w-11 items-center justify-center rounded-3xl bg-slate-100 text-slate-700 transition hover:bg-slate-200" aria-label={`Sua ${user.name}`} type="button">
+                        <Icon name="edit" />
+                      </button>
+                      <button className="inline-flex h-11 w-11 items-center justify-center rounded-3xl bg-slate-100 text-slate-700 transition hover:bg-slate-200" aria-label={`Khoa ${user.name}`} type="button">
+                        <Icon name="lock" />
+                      </button>
+                      <button className="inline-flex h-11 w-11 items-center justify-center rounded-3xl bg-slate-100 text-slate-700 transition hover:bg-slate-200" aria-label={`Xem them ${user.name}`} type="button">
+                        <Icon name="more_horiz" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  );
 }

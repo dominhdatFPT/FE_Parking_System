@@ -2,9 +2,9 @@ import { Navigate, Route, Routes } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes';
 import MainLayout from '../layouts/MainLayout';
+import AdminLayout from '../layouts/AdminLayout';
 import LoginPage from '../features/auth/pages/LoginPage';
 import UserLoginPage from '../features/auth/pages/UserLoginPage/UserLoginPage';
-import DashboardPage from '../pages/DashboardPage';
 import HomePage from '../pages/HomePage';
 import WelcomePage from '../features/auth/pages/WelcomePage';
 import AccountRecovery from '../features/auth/pages/AccountRecovery';
@@ -61,9 +61,7 @@ export function AppRoutes() {
       <Route path="/recovery" element={<AccountRecovery />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       
-      <Route
-        path="/home"
-        element={
+      <Route path="/home" element={
           <RequireAuth>
             <HomePage />
           </RequireAuth>
@@ -75,56 +73,15 @@ export function AppRoutes() {
       <Route path="/driver-history" element={<DriverHistory />} />
       <Route path="/driver-profile" element={<DriverProfile />} />
       
-      <Route
-        path={ROUTES.ADMIN.USERS}
-        element={
-          <RequireAdminRole>
-            <AccountManagementPage />
-          </RequireAdminRole>
-        }
-      />
-      <Route
-        path={ROUTES.ADMIN.ROLES}
-        element={
-          <RequireAdminRole>
-            <RolePermissionPage />
-          </RequireAdminRole>
-        }
-      />
-      <Route
-        path={ROUTES.ADMIN.SYSTEM_CONFIG}
-        element={
-          <RequireAdminRole>
-            <SystemConfigurationPage />
-          </RequireAdminRole>
-        }
-      />
-      <Route
-        path={ROUTES.ADMIN.AUDIT_LOG}
-        element={
-          <RequireAdminRole>
-            <AuditLogPage />
-          </RequireAdminRole>
-        }
-      />
+      <Route element={<RequireAdminRole><AdminLayout /></RequireAdminRole>}>
+        <Route path={ROUTES.ADMIN.DASHBOARD} element={<HomePage />} />
+        <Route path={ROUTES.ADMIN.USERS} element={<AccountManagementPage />} />
+        <Route path={ROUTES.ADMIN.ROLES} element={<RolePermissionPage />} />
+        <Route path={ROUTES.ADMIN.SYSTEM_CONFIG} element={<SystemConfigurationPage />} />
+        <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AuditLogPage />} />
+      </Route>
       
       <Route element={<MainLayout />}>
-        <Route
-          path={ROUTES.DASHBOARD}
-          element={
-            <RequireAuth>
-              <DashboardPage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path={ROUTES.ADMIN.DASHBOARD}
-          element={
-            <RequireAuth>
-              <DashboardPage />
-            </RequireAuth>
-          }
-        />
         <Route path={ROUTES.NOTIFICATIONS.DETAIL} element={<NotificationDetailPage />}/>
         <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />}/>
       </Route>

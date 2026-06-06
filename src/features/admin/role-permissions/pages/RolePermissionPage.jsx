@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { ROUTES } from '../../../../constants/routes';
-import { STORAGE_KEYS } from '../../../../constants/storageKeys';
 import { ADMIN_CODE, permissionActions, permissionModules } from '../data';
 import { getSecurityLogs, getStoredPermissions, getStoredRoles, getStoredUsers, saveRolePermissionState, writeSecurityLog, } from '../services/rolePermissionStorage';
 import RoleList from '../components/RoleList';
@@ -57,13 +56,6 @@ export default function RolePermissionPage() {
             return;
         }
         navigate(ROUTES.ADMIN.DASHBOARD);
-    }
-    function handleLogout() {
-        window.localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-        window.localStorage.removeItem(STORAGE_KEYS.USER);
-        window.sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-        window.sessionStorage.removeItem(STORAGE_KEYS.USER);
-        navigate(ROUTES.LOGIN);
     }
     const filteredRoles = useMemo(() => {
         const keyword = searchValue.trim().toLowerCase();
@@ -269,7 +261,7 @@ export default function RolePermissionPage() {
     }
     if (!isVerified) {
         return (
-            <main className="grid min-h-screen place-items-center bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+            <div className="grid min-h-[calc(100vh-7rem)] place-items-center bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
                 <form className="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-2xl p-8 space-y-6" onSubmit={handleAccessSubmit}>
                     <div>
                         <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-3">Admin Code Required</p>
@@ -324,73 +316,19 @@ export default function RolePermissionPage() {
                         </button>
                     </div>
                 </form>
-            </main>
+            </div>
         );
     }
     return (
-        <div className="flex min-h-screen bg-gray-50 text-gray-900 max-lg:flex-col">
+        <>
             <AdminCodeModal open={showAdminModal} title={pendingActionName} onCancel={handleModalCancel} onConfirm={handleModalConfirm} />
-            
-            {/* Sidebar */}
-            <aside className="w-72 flex-shrink-0 bg-slate-900 text-white shadow-xl max-lg:w-full max-lg:max-h-fit">
-                <div className="space-y-8 p-6">
-                    {/* Logo */}
-                    <div className="flex items-center gap-3 border-b border-slate-700 pb-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-600">
-                            <Icon name="local_parking" />
-                        </div>
-                        <div>
-                            <strong className="block text-lg">Smart Parking AI</strong>
-                            <span className="text-sm text-slate-400">System Administrator</span>
-                        </div>
-                    </div>
-
-                    {/* Navigation */}
-                    <nav className="space-y-2">
-                        <Link to={ROUTES.ADMIN.DASHBOARD} className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-300 transition hover:bg-slate-800/50 hover:text-white">
-                            <Icon name="dashboard" />
-                            Tổng quan
-                        </Link>
-                        <Link to={ROUTES.ADMIN.USERS} className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-300 transition hover:bg-slate-800/50 hover:text-white">
-                            <Icon name="manage_accounts" />
-                            Quản lý tài khoản
-                        </Link>
-                        <Link to={ROUTES.ADMIN.ROLES} className="flex items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-white shadow-lg">
-                            <Icon name="security" />
-                            Phân quyền
-                        </Link>
-                        <Link to={ROUTES.ADMIN.SYSTEM_CONFIG} className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-300 transition hover:bg-slate-800/50 hover:text-white">
-                            <Icon name="settings" />
-                            Cấu hình hệ thống
-                        </Link>
-                        <Link to={ROUTES.ADMIN.AUDIT_LOG} className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-300 transition hover:bg-slate-800/50 hover:text-white">
-                            <Icon name="history" />
-                            Audit Log & Bảo mật
-                        </Link>
-                    </nav>
-
-                    {/* Footer */}
-                    <div className="space-y-2 border-t border-slate-700 pt-4">
-                        <Link to={ROUTES.HOME} className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-300 transition hover:bg-slate-800/50 hover:text-white">
-                            <Icon name="help" />
-                            Hỗ trợ
-                        </Link>
-                        <button onClick={handleLogout} type="button" className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-rose-300 transition hover:bg-slate-800/50 hover:text-rose-100">
-                            <Icon name="logout" />
-                            Đăng xuất
-                        </button>
-                    </div>
-                </div>
-            </aside>
-
-            {/* Main Content */}
-            <main className="flex-1 overflow-auto p-6 max-lg:p-4">
+            <div className="space-y-6">
                 <header className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-1">RBAC Management</p>
                         <h1 className="text-3xl font-bold text-gray-900">Phân quyền hệ thống</h1>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                         <button
                             onClick={handleBack}
                             type="button"
@@ -398,7 +336,7 @@ export default function RolePermissionPage() {
                         >
                             Quay lại
                         </button>
-                        <label className="flex-1 lg:flex-none">
+                        <label className="flex-1 sm:flex-none">
                             <span className="block text-sm font-semibold text-gray-700 mb-2">Tìm kiếm Role</span>
                             <input
                                 onChange={(event) => setSearchValue(event.target.value)}
@@ -412,14 +350,12 @@ export default function RolePermissionPage() {
                 </header>
 
                 {message && (
-                    <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-blue-700 font-medium">
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-blue-700 font-medium">
                         {message}
                     </div>
                 )}
 
-                {/* Main Grid */}
-                <section className="mb-6 grid gap-6 lg:grid-cols-[1fr_1.8fr]">
-                    {/* Role List */}
+                <section className="grid gap-6 lg:grid-cols-[1fr_1.8fr]">
                     <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                         <div className="mb-4">
                             <h2 className="text-xl font-bold text-gray-900">Danh sách Role</h2>
@@ -435,7 +371,6 @@ export default function RolePermissionPage() {
                         />
                     </div>
 
-                    {/* Permission Matrix */}
                     <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                         <div className="mb-4 flex items-center justify-between gap-4">
                             <div>
@@ -459,8 +394,7 @@ export default function RolePermissionPage() {
                     </div>
                 </section>
 
-                {/* Actions Grid */}
-                <section className="mb-6 grid gap-6 lg:grid-cols-3">
+                <section className="grid gap-6 lg:grid-cols-3">
                     <RoleForm
                         newRoleName={newRoleName}
                         setNewRoleName={setNewRoleName}
@@ -497,7 +431,6 @@ export default function RolePermissionPage() {
                     />
                 </section>
 
-                {/* Bottom Section */}
                 <section className="grid gap-6 lg:grid-cols-[300px_1fr]">
                     <label className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                         <span className="block text-sm font-bold text-gray-700 mb-3">Admin Code</span>
@@ -524,7 +457,7 @@ export default function RolePermissionPage() {
 
                     <SecurityLog securityLogs={securityLogs} />
                 </section>
-            </main>
-        </div>
+            </div>
+        </>
     );
 }

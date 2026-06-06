@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useAuth } from '../../../../contexts/AuthContext';
 import { login } from '../../../../services/modules/authService';
 import { ROUTES } from '../../../../constants/routes';
+import { STORAGE_KEYS } from '../../../../constants/storageKeys';
 
 const adminHeroImage =
   'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1400&q=80';
@@ -48,6 +50,10 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { setUser } = useAuth();
+
+  const SAMPLE_ADMIN_EMAIL = 'dat@example.com';
+  const SAMPLE_ADMIN_PASSWORD = 'admin2026';
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -55,16 +61,47 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const response = await login(email, password);
-
-      if (response.token) {
-        localStorage.setItem('token', response.token);
+      if (
+        email.trim().toLowerCase() === SAMPLE_ADMIN_EMAIL &&
+        password === SAMPLE_ADMIN_PASSWORD
+      ) {
+        const sampleToken = 'sample-admin-token';
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, sampleToken);
+        setUser({
+          id: 'u-001',
+          fullName: 'Đỗ Minh Đạt',
+          email: SAMPLE_ADMIN_EMAIL,
+          role: 'admin',
+          avatarUrl:
+            'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=96&q=80',
+        });
 
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true');
         }
 
-        navigate(ROUTES.ADMIN.USERS);
+        navigate(ROUTES.ADMIN.DASHBOARD);
+        return;
+      }
+
+      const response = await login(email, password);
+
+      if (response.token) {
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
+        setUser({
+          id: 'u-001',
+          fullName: 'Đỗ Minh Đạt',
+          email,
+          role: 'admin',
+          avatarUrl:
+            'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=96&q=80',
+        });
+
+        if (rememberMe) {
+          localStorage.setItem('rememberMe', 'true');
+        }
+
+        navigate(ROUTES.ADMIN.DASHBOARD);
       }
     } catch (err) {
       setError('Email hoặc mật khẩu không chính xác');

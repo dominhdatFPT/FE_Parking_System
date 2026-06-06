@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router';
+import { NavLink, Outlet, useNavigate } from 'react-router';
 import { ROUTES } from '../constants/routes';
 import { STORAGE_KEYS } from '../constants/storageKeys';
 import { useAuth } from '../contexts/AuthContext';
@@ -109,7 +109,9 @@ export default function MainLayout({ children }) {
           </div>
         </header>
 
-        <main className="p-4 lg:p-6">{children}</main>
+        <main className="p-4 lg:p-6">
+          <Outlet />
+        </main>
       </div>
     </div>
   );

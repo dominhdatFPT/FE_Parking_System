@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useAuth } from '../../../../contexts/AuthContext';
 import { login } from '../../../../services/modules/authService';
 import { ROUTES } from '../../../../constants/routes';
+import { STORAGE_KEYS } from '../../../../constants/storageKeys';
 
 const userFieldClass = 'grid gap-1.5';
 const userLabelClass =
@@ -37,6 +39,7 @@ export default function UserLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -47,8 +50,15 @@ export default function UserLoginPage() {
       const response = await login(phone, password);
 
       if (response.token) {
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('userRole', 'driver');
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
+        setUser({
+          id: 'u-004',
+          fullName: 'Driver User',
+          email: phone,
+          role: 'driver',
+          avatarUrl:
+            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=96&q=80',
+        });
 
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true');
