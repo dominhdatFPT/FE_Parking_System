@@ -26,9 +26,9 @@ import SystemConfigurationPage from '../pages/SystemConfigurationPage';
 import AuditLogPage from '../pages/AuditLogPage';
 
 function RequireAuth({ children }) {
-  const token = localStorage.getItem('access_token');
+  const { isAuthenticated } = useAuth();
 
-  if (!token) {
+  if (!isAuthenticated) {
     return <Navigate to={ROUTES.LOGIN} replace />;
   }
 
@@ -36,10 +36,9 @@ function RequireAuth({ children }) {
 }
 
 function RequireAdminRole({ children }) {
-  const { role } = useAuth();
-  const token = localStorage.getItem('access_token');
+  const { role, isAuthenticated } = useAuth();
 
-  if (!token) {
+  if (!isAuthenticated) {
     return <Navigate to={ROUTES.LOGIN} replace />;
   }
 

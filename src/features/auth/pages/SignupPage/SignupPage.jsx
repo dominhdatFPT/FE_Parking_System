@@ -316,11 +316,13 @@ export default function SignupPage() {
               </label>
 
               <button
-                className="mt-0.5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#0051d5] p-[11px] text-base font-semibold leading-6 text-white transition hover:bg-[#003ea8] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 max-sm:p-2.5 max-sm:text-sm max-sm:leading-5"
+                className="mt-0.5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#1e3a8a] p-[11px] text-base font-semibold leading-6 transition hover:bg-blue-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 max-sm:p-2.5 max-sm:text-sm max-sm:leading-5 shadow-sm"
                 type="submit"
                 disabled={loading}
               >
-                {loading ? 'Đang tạo tài khoản...' : 'Tạo Tài Khoản'}
+                <span className="text-white">
+                  {loading ? 'Đang tạo tài khoản...' : 'Tạo Tài Khoản'}
+                </span>
                 {!loading && (
                   <span className="material-symbols-outlined text-[18px] text-white">
                     arrow_forward
