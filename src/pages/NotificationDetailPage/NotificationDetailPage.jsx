@@ -9,7 +9,7 @@ import { formatDate } from '../../utils/formatDate';
 import { NavLink } from 'react-router';
 import { ROUTES } from '../../constants/routes';
 const menuItems = [
-    { icon: 'dashboard', label: 'Tổng quan', href: ROUTES.HOME },
+    { icon: 'dashboard', label: 'Tổng quan', href: '/home' },
     { icon: 'manage_accounts', label: 'Quản lý tài khoản', href: ROUTES.ADMIN.USERS },
     { icon: 'security', label: 'Quyền truy cập', href: ROUTES.ADMIN.ROLES },
     { icon: 'settings', label: 'Cấu hình hệ thống', href: ROUTES.ADMIN.SYSTEM_CONFIG },

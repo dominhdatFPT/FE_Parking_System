@@ -184,11 +184,13 @@ export default function UserLoginPage() {
               </label>
 
               <button
-                className="inline-flex min-h-12 w-full cursor-pointer items-center justify-center rounded bg-[#0051d5] text-[15px] font-bold leading-5 text-white shadow-[0_12px_24px_rgba(0,81,213,0.18)] transition hover:bg-[#003ea8] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-65"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-[#1e3a8a] hover:bg-blue-800 rounded-lg transition-colors text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-65"
                 type="submit"
                 disabled={loading}
               >
-                {loading ? 'Đang đăng nhập...' : 'Đăng nhập ngay'}
+                <span className="text-white">
+                  {loading ? 'Đang đăng nhập...' : 'Đăng nhập ngay'}
+                </span>
               </button>
             </form>
 

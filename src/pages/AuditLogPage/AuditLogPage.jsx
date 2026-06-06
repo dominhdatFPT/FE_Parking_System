@@ -88,11 +88,11 @@ export default function AuditLogPage() {
           </div>
           <div className="flex items-end">
             <button 
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="rounded-lg bg-[#1e3a8a] px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               type="button" 
               onClick={handleRefresh}
             >
-              Tải lại
+              <span className="text-white">Tải lại</span>
             </button>
           </div>
         </div>

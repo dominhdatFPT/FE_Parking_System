@@ -6,7 +6,7 @@ import Icon from '../../components/Icon';
 import NotificationDropdown from '../../components/NotificationDropdown';
 import SettingsDropdown from '../../components/SettingsDropdown';
 const menuItems = [
-    { icon: 'dashboard', label: 'Tổng quan', href: ROUTES.HOME },
+    { icon: 'dashboard', label: 'Tổng quan', href: '/home' },
     { icon: 'manage_accounts', label: 'Quản lý tài khoản', href: ROUTES.ADMIN.USERS },
     { icon: 'security', label: 'Quyền truy cập', href: ROUTES.ADMIN.ROLES },
     { icon: 'settings', label: 'Cấu hình hệ thống', href: ROUTES.ADMIN.SYSTEM_CONFIG },
@@ -863,12 +863,12 @@ export default function HomePage() {
 
                 {/* Export Report Button */}
                 <button
-                  className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white transition hover:bg-blue-700"
+                  className="flex items-center gap-2 rounded-lg bg-[#1e3a8a] px-4 py-2.5 font-medium text-white transition hover:bg-blue-800 shadow-sm"
                   type="button"
                   onClick={openReportPreview}
                 >
                   <Icon name="download" />
-                  Xuất báo cáo
+                  <span className="text-white">Xuất báo cáo</span>
                 </button>
               </div>
             </div>

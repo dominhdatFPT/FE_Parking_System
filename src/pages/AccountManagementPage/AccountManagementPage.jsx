@@ -35,7 +35,7 @@ function initials(name) {
 }
 
 const menuItems = [
-    { icon: 'dashboard', label: 'Tổng quan', href: ROUTES.HOME },
+    { icon: 'dashboard', label: 'Tổng quan', href: '/home' },
     { icon: 'manage_accounts', label: 'Quản lý tài khoản', href: ROUTES.ADMIN.USERS },
     { icon: 'security', label: 'Quyền truy cập', href: ROUTES.ADMIN.ROLES },
     { icon: 'settings', label: 'Cấu hình hệ thống', href: ROUTES.ADMIN.SYSTEM_CONFIG },
@@ -217,9 +217,9 @@ export default function AccountManagementPage() {
                                 <Icon name="upload_file" />
                                 Nhập danh sách
                             </button>
-                            <button className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                            <button className="inline-flex items-center gap-2 rounded-lg bg-[#1e3a8a] px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 shadow-sm transition-colors">
                                 <Icon name="person_add" />
-                                Thêm tài khoản
+                                <span className="text-white">Thêm tài khoản</span>
                             </button>
                         </div>
                     </div>

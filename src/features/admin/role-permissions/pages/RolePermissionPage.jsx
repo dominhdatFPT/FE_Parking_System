@@ -318,9 +318,11 @@ export default function RolePermissionPage() {
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex-1 px-4 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:bg-gray-400 transition"
+                            className="flex-1 px-4 py-3 rounded-lg bg-[#1e3a8a] font-semibold hover:bg-blue-800 disabled:bg-gray-400 transition shadow-sm"
                         >
-                            {isSubmitting ? 'Đang xác thực...' : 'Xác thực'}
+                            <span className="text-white">
+                                {isSubmitting ? 'Đang xác thực...' : 'Xác thực'}
+                            </span>
                         </button>
                     </div>
                 </form>
@@ -347,7 +349,7 @@ export default function RolePermissionPage() {
 
                     {/* Navigation */}
                     <nav className="space-y-2">
-                        <Link to={ROUTES.ADMIN.DASHBOARD} className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-300 transition hover:bg-slate-800/50 hover:text-white">
+                        <Link to="/home" className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-300 transition hover:bg-slate-800/50 hover:text-white">
                             <Icon name="dashboard" />
                             Tổng quan
                         </Link>
