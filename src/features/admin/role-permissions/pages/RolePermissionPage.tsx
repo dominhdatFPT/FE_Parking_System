@@ -1,490 +1,311 @@
-import { FormEvent, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import { ROUTES } from '../../../../constants/routes';
 import { STORAGE_KEYS } from '../../../../constants/storageKeys';
-import { ADMIN_CODE, permissionActions, permissionModules } from '../data';
-import {
-  getSecurityLogs,
-  getStoredPermissions,
-  getStoredRoles,
-  getStoredUsers,
-  saveRolePermissionState,
-  writeSecurityLog,
-} from '../services/rolePermissionStorage';
-import type { PermissionAction, PermissionMatrix, PermissionModule, Role, RolePermissionSet } from '../types';
+import '../../../../pages/HomePage.css';
 import './RolePermissionPage.css';
 
-const emptyPermissionRow = { view: false, create: false, edit: false, delete: false };
+type RoleItem = {
+  name: string;
+  description: string;
+  active: boolean;
+};
 
-function createEmptyMatrix(): PermissionMatrix {
-  return permissionModules.reduce((matrix, moduleItem) => {
-    matrix[moduleItem.key] = { ...emptyPermissionRow };
-    return matrix;
-  }, {} as PermissionMatrix);
-}
+const roles: RoleItem[] = [
+  { name: 'Driver', description: 'Người dùng chính của hệ thống', active: true },
+  { name: 'Admin', description: 'Toàn quyền quản trị hệ thống', active: true },
+  { name: 'Manager', description: 'Quản lý cơ sở và vận hành', active: true },
+  { name: 'Staff', description: 'Nhân viên điều phối bãi xe', active: true },
+];
 
-function verifyAdminCode(code: string) {
-  return code.trim() === ADMIN_CODE;
-}
+type ModulePermission = {
+  name: string;
+  permissions: [boolean, boolean, boolean, boolean];
+  highlight?: boolean;
+};
+
+const defaultModules: ModulePermission[] = [
+  { name: 'Quản lý bãi xe', permissions: [true, true, true, true] },
+  { name: 'Quản lý slot', permissions: [true, true, true, false] },
+  { name: 'Phiên gửi xe', permissions: [true, true, false, false] },
+  { name: 'Thanh toán', permissions: [true, false, false, false] },
+  { name: 'AI Smart Parking', permissions: [true, true, true, true], highlight: true },
+  { name: 'Báo cáo', permissions: [true, true, false, false] },
+];
+
+const menuItems = [
+  { icon: 'dashboard', label: 'Tổng quan', href: ROUTES.HOME },
+  { icon: 'manage_accounts', label: 'Quản lý tài khoản', href: ROUTES.ADMIN.USERS },
+  { icon: 'admin_panel_settings', label: 'Phân quyền', href: ROUTES.ADMIN.ROLES },
+  { icon: 'settings', label: 'Cấu hình hệ thống', href: ROUTES.ADMIN.SYSTEM_CONFIG },
+  { icon: 'history', label: 'Nhật ký và bảo mật', href: ROUTES.ADMIN.AUDIT_LOG },
+];
 
 function Icon({ name }: { name: string }) {
-  return (
-    <span className="material-symbols-outlined" aria-hidden="true">
-      {name}
-    </span>
-  );
+  return <span className="material-symbols-outlined">{name}</span>;
 }
 
 export default function RolePermissionPage() {
-  const navigate = useNavigate();
-  const [isVerified, setIsVerified] = useState(false);
-  const [adminCode, setAdminCode] = useState('');
-  const [authError, setAuthError] = useState('');
-  const [roles, setRoles] = useState<Role[]>(getStoredRoles);
-  const [permissions, setPermissions] = useState<RolePermissionSet>(getStoredPermissions);
-  const [users, setUsers] = useState(getStoredUsers);
-  const [securityLogs, setSecurityLogs] = useState(getSecurityLogs);
-  const [selectedRoleId, setSelectedRoleId] = useState(roles[0]?.id ?? 'admin');
-  const [searchValue, setSearchValue] = useState('');
-  const [message, setMessage] = useState('');
-  const [newRoleName, setNewRoleName] = useState('');
-  const [newRoleDescription, setNewRoleDescription] = useState('');
-  const [operationCode, setOperationCode] = useState('');
-  const [selectedUserId, setSelectedUserId] = useState(users[0]?.userId ?? '');
-  const [assignRoleId, setAssignRoleId] = useState(roles[0]?.id ?? 'admin');
+  const [keyword, setKeyword] = useState('');
+  const [selectedRole, setSelectedRole] = useState('Driver');
+  const [modulePermissions, setModulePermissions] = useState(defaultModules);
+  const [lastSavedPermissions, setLastSavedPermissions] = useState(JSON.stringify(defaultModules));
+  const [saveCode, setSaveCode] = useState('');
+  const [saveMessage, setSaveMessage] = useState('');
+  const [adminId, setAdminId] = useState('');
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [authMessage, setAuthMessage] = useState('');
 
-  const selectedRole = roles.find((role) => role.id === selectedRoleId) ?? roles[0];
-  const selectedPermissions = permissions[selectedRole.id] ?? createEmptyMatrix();
-
-  function handleBack() {
-    if (window.history.length > 1) {
-      navigate(-1);
-      return;
-    }
-
-    navigate(ROUTES.ADMIN.DASHBOARD);
+  const rawUser = window.localStorage.getItem(STORAGE_KEYS.USER) || window.sessionStorage.getItem(STORAGE_KEYS.USER);
+  let currentRole = '';
+  try {
+    const parsed = rawUser ? JSON.parse(rawUser) : {};
+    currentRole = String(parsed?.roleId || parsed?.role || '').toLowerCase();
+  } catch {
+    currentRole = '';
   }
 
-  function handleLogout() {
-    window.localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    window.localStorage.removeItem(STORAGE_KEYS.USER);
-    window.sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    window.sessionStorage.removeItem(STORAGE_KEYS.USER);
-    navigate(ROUTES.LOGIN);
-  }
+  const isStaff = currentRole === 'staff';
 
   const filteredRoles = useMemo(() => {
-    const keyword = searchValue.trim().toLowerCase();
-    if (!keyword) {
-      return roles;
-    }
+    const q = keyword.trim().toLowerCase();
+    if (!q) return roles;
+    return roles.filter((role) => role.name.toLowerCase().includes(q) || role.description.toLowerCase().includes(q));
+  }, [keyword]);
 
-    return roles.filter((role) => {
-      return role.name.toLowerCase().includes(keyword) || role.description.toLowerCase().includes(keyword);
-    });
-  }, [roles, searchValue]);
-
-  function refreshLogs() {
-    setSecurityLogs(getSecurityLogs());
-  }
-
-  function rejectOperation(action: string, reason: string) {
-    writeSecurityLog({ action, status: 'Failed', message: reason });
-    refreshLogs();
-    setMessage(reason);
-  }
-
-  function requireOperationCode(action: string) {
-    if (!verifyAdminCode(operationCode)) {
-      rejectOperation(action, 'Admin Code không hợp lệ. Thao tác đã bị từ chối và ghi log bảo mật.');
-      return false;
-    }
-
-    setOperationCode('');
-    return true;
-  }
-
-  function persist(nextRoles = roles, nextPermissions = permissions, nextUsers = users) {
-    saveRolePermissionState(nextRoles, nextPermissions, nextUsers);
-  }
-
-  function handleAccessSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!verifyAdminCode(adminCode)) {
-      writeSecurityLog({
-        action: 'Access role permission screen',
-        status: 'Blocked',
-        message: 'Nhập sai Admin Code khi truy cập màn hình phân quyền.',
-      });
-      refreshLogs();
-      setAuthError('Admin Code không đúng. Bạn không được phép truy cập màn hình này.');
+  function handleUnlock() {
+    if (isStaff) {
+      setAuthMessage('Tài khoản Staff không được phép sử dụng màn hình Phân quyền.');
       return;
     }
 
-    writeSecurityLog({
-      action: 'Access role permission screen',
-      status: 'Success',
-      message: 'Xác thực Admin Code thành công.',
-    });
-    refreshLogs();
-    setIsVerified(true);
+    if (adminId.trim() !== 'ADMINID') {
+      setAuthMessage('ADMINID không đúng. Vui lòng nhập lại.');
+      return;
+    }
+
+    setAuthMessage('');
+    setIsUnlocked(true);
   }
 
-  function togglePermission(moduleKey: PermissionModule, actionKey: PermissionAction) {
-    setPermissions((currentPermissions) => ({
-      ...currentPermissions,
-      [selectedRole.id]: {
-        ...selectedPermissions,
-        [moduleKey]: {
-          ...selectedPermissions[moduleKey],
-          [actionKey]: !selectedPermissions[moduleKey][actionKey],
-        },
-      },
-    }));
-    setMessage('Quyền đã thay đổi, cần nhập Admin Code và lưu để cập nhật hệ thống.');
-  }
-
-  function handleCreateRole(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!requireOperationCode('Create role')) {
-      return;
-    }
-
-    const trimmedName = newRoleName.trim();
-    if (!trimmedName) {
-      setMessage('Tên Role không được để trống.');
-      return;
-    }
-
-    const newRole: Role = {
-      id: `role-${Date.now()}`,
-      name: trimmedName,
-      description: newRoleDescription.trim() || 'Role mới trong hệ thống',
-      status: 'Active',
-      assignedUsers: 0,
-    };
-    const nextRoles = [...roles, newRole];
-    const nextPermissions = { ...permissions, [newRole.id]: createEmptyMatrix() };
-
-    setRoles(nextRoles);
-    setPermissions(nextPermissions);
-    setSelectedRoleId(newRole.id);
-    setNewRoleName('');
-    setNewRoleDescription('');
-    persist(nextRoles, nextPermissions, users);
-    writeSecurityLog({ action: 'Create role', status: 'Success', message: `Đã tạo role ${newRole.name}.` });
-    refreshLogs();
-    setMessage('Đã tạo Role mới và cập nhật danh sách.');
-  }
-
-  function handleSavePermissions() {
-    if (!requireOperationCode('Update role permissions')) {
-      return;
-    }
-
-    persist();
-    writeSecurityLog({
-      action: 'Update role permissions',
-      status: 'Success',
-      message: `Đã cập nhật quyền cho role ${selectedRole.name}.`,
-    });
-    refreshLogs();
-    setMessage('Đã lưu thay đổi phân quyền.');
-  }
-
-  function handleDeleteRole() {
-    if (selectedRole.isSystemRole) {
-      setMessage('Không được xóa role hệ thống mặc định.');
-      return;
-    }
-
-    if (selectedRole.assignedUsers > 0) {
-      writeSecurityLog({
-        action: 'Delete role',
-        status: 'Blocked',
-        message: `Không cho phép xóa ${selectedRole.name} vì đang được gán cho user.`,
-      });
-      refreshLogs();
-      setMessage('Role đang được gán cho user, không thể xóa.');
-      return;
-    }
-
-    if (!requireOperationCode('Delete role')) {
-      return;
-    }
-
-    const nextRoles = roles.filter((role) => role.id !== selectedRole.id);
-    const nextPermissions = { ...permissions };
-    delete nextPermissions[selectedRole.id];
-
-    setRoles(nextRoles);
-    setPermissions(nextPermissions);
-    setSelectedRoleId(nextRoles[0]?.id ?? '');
-    persist(nextRoles, nextPermissions, users);
-    writeSecurityLog({ action: 'Delete role', status: 'Success', message: `Đã xóa role ${selectedRole.name}.` });
-    refreshLogs();
-    setMessage('Đã xóa Role và cập nhật danh sách.');
-  }
-
-  function handleAssignRole() {
-    if (!requireOperationCode('Assign role to user')) {
-      return;
-    }
-
-    const previousUsers = users;
-    const nextUsers = users.map((user) => (user.userId === selectedUserId ? { ...user, roleId: assignRoleId } : user));
-    const nextRoles = roles.map((role) => {
-      const assignedUsers = nextUsers.filter((user) => user.roleId === role.id).length;
-      return { ...role, assignedUsers };
-    });
-
-    setUsers(nextUsers);
-    setRoles(nextRoles);
-    persist(nextRoles, permissions, nextUsers);
-    writeSecurityLog({
-      action: 'Assign role to user',
-      status: 'Success',
-      message: `Đã gán role ${assignRoleId} cho user ${selectedUserId}.`,
-    });
-    refreshLogs();
-    setMessage(previousUsers === nextUsers ? 'Không có thay đổi.' : 'Đã gán Role cho User và cập nhật quyền.');
-  }
-
-  if (!isVerified) {
-    return (
-      <main className="rbac-access">
-        <form className="rbac-access__card" onSubmit={handleAccessSubmit}>
-          <p className="rbac-eyebrow">Admin Code Required</p>
-          <button className="rbac-back-button" onClick={handleBack} type="button">
-            Quay lại
-          </button>
-          <h1>Xác thực quyền truy cập</h1>
-          <p>Nhập Admin Code để mở màn hình phân quyền. Nếu nhập sai, hệ thống sẽ từ chối truy cập và ghi log bảo mật.</p>
-          <input
-            autoFocus
-            onChange={(event) => setAdminCode(event.target.value)}
-            placeholder="Ví dụ: ADMIN2026"
-            type="password"
-            value={adminCode}
-          />
-          {authError ? <strong className="rbac-error">{authError}</strong> : null}
-          <button type="submit">Xác thực</button>
-        </form>
-      </main>
+  function togglePermission(moduleIndex: number, permissionIndex: 0 | 1 | 2 | 3) {
+    setSaveMessage('');
+    setModulePermissions((current) =>
+      current.map((moduleItem, index) => {
+        if (index !== moduleIndex) return moduleItem;
+        const nextPermissions = [...moduleItem.permissions] as [boolean, boolean, boolean, boolean];
+        nextPermissions[permissionIndex] = !nextPermissions[permissionIndex];
+        return { ...moduleItem, permissions: nextPermissions };
+      }),
     );
   }
 
+  function handleSavePermissionChange() {
+    const hasChanged = JSON.stringify(modulePermissions) !== lastSavedPermissions;
+    if (!hasChanged) {
+      setSaveMessage('Chưa có thay đổi nào để lưu.');
+      return;
+    }
+
+    if (saveCode.trim() !== 'ADMINID') {
+      setSaveMessage('Bạn phải nhập đúng ADMINID để lưu thay đổi phân quyền.');
+      return;
+    }
+
+    setLastSavedPermissions(JSON.stringify(modulePermissions));
+    setSaveCode('');
+    setSaveMessage(`Đã lưu thay đổi phân quyền cho vai trò ${selectedRole}.`);
+  }
+
   return (
-    <div className="rbac-page">
-      <aside className="rbac-sidebar">
-        <div className="rbac-sidebar__brand">
-          <div className="rbac-sidebar__logo">
+    <div className="dashboard-shell">
+      <aside className="sidebar" aria-label="Dieu huong chinh">
+        <div className="brand">
+          <div className="brand-icon">
             <Icon name="local_parking" />
           </div>
           <div>
-            <strong>Smart Parking AI</strong>
-            <span>System Administrator</span>
+            <h1>Smart Parking AI</h1>
+            <p>HE THONG QUAN TRI</p>
           </div>
         </div>
-        <nav>
-          <Link to={ROUTES.ADMIN.DASHBOARD}>
-            <Icon name="dashboard" />
-            Tổng quan
-          </Link>
-          <Link to={ROUTES.ADMIN.USERS}>
-            <Icon name="manage_accounts" />
-            Quản lý tài khoản
-          </Link>
-          <Link className="active" to={ROUTES.ADMIN.ROLES}>
-            <Icon name="security" />
-            Phân quyền
-          </Link>
-          <Link to={ROUTES.ADMIN.SYSTEM_CONFIG}>
-            <Icon name="settings" />
-            Cấu hình hệ thống
-          </Link>
-          <Link to={ROUTES.ADMIN.AUDIT_LOG}>
-            <Icon name="history" />
-            Audit Log & Bảo mật
-          </Link>
+
+        <nav className="side-nav">
+          {menuItems.map((item) => (
+            <NavLink
+              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+              end={item.href === ROUTES.HOME}
+              key={item.label}
+              to={item.href}
+            >
+              <Icon name={item.icon} />
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
         </nav>
-        <div className="rbac-sidebar__footer">
-          <Link to={ROUTES.HOME}>
+
+        <div className="side-footer">
+          <a className="nav-link" href="#">
             <Icon name="help" />
-            Hỗ trợ
-          </Link>
-          <button className="rbac-sidebar__logout" onClick={handleLogout} type="button">
+            <span>Hỗ trợ</span>
+          </a>
+          <a className="nav-link logout" href="#">
             <Icon name="logout" />
-            Đăng xuất
-          </button>
+            <span>Đăng xuất</span>
+          </a>
         </div>
       </aside>
 
-      <main className="rbac-main">
-        <header className="rbac-header">
-          <div>
-            <p className="rbac-eyebrow">RBAC Management</p>
-            <h1>Phân quyền hệ thống</h1>
-          </div>
-          <button className="rbac-back-button" onClick={handleBack} type="button">
-            Quay lại
-          </button>
-          <label>
-            Tìm kiếm Role
-            <input
-              onChange={(event) => setSearchValue(event.target.value)}
-              placeholder="Admin, Manager, Staff, Driver..."
-              type="search"
-              value={searchValue}
-            />
+      <main className="main-content">
+        <header className="topbar">
+          <label className="search-box">
+            <Icon name="search" />
+            <input placeholder="Tim kiem du lieu..." type="search" />
           </label>
+
+          <div className="topbar-actions">
+            <button aria-label="Thong bao" className="icon-button" type="button">
+              <Icon name="notifications" />
+            </button>
+            <button aria-label="Cai dat" className="icon-button" type="button">
+              <Icon name="settings" />
+            </button>
+            <div className="divider" />
+            <button className="profile-button" type="button">
+              <span>
+                <strong>Admin Toan Cau</strong>
+                <small>QUAN TRI VIEN</small>
+              </span>
+              <img
+                alt="Admin profile"
+                src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=96&q=80"
+              />
+            </button>
+          </div>
         </header>
 
-        {message ? <p className="rbac-message">{message}</p> : null}
+        <section className="content-area permission-workspace">
+          {!isUnlocked ? (
+            <section className="permission-lock panel">
+              <h2>Mở khóa màn hình phân quyền</h2>
+              <p>Chỉ người dùng quản trị được phép truy cập. Vui lòng nhập ADMINID để tiếp tục.</p>
+              <input
+                onChange={(event) => setAdminId(event.target.value)}
+                placeholder="Nhập ADMINID"
+                type="password"
+                value={adminId}
+              />
+              {authMessage ? <strong>{authMessage}</strong> : null}
+              <button className="primary-button" onClick={handleUnlock} type="button">
+                Xác nhận mở khóa
+              </button>
+            </section>
+          ) : null}
 
-        <section className="rbac-grid">
-          <div className="rbac-panel">
-            <div className="rbac-panel__heading">
-              <h2>Danh sách Role</h2>
-              <p>Flow 2 và 8: xem, tìm kiếm và chọn role.</p>
-            </div>
-            <div className="rbac-role-list">
+          {isUnlocked ? (
+            <>
+          <header className="permission-header">
+          <div>
+            <h2>Phân quyền hệ thống</h2>
+            <p>Quản lý role và ma trận quyền theo từng module một cách rõ ràng.</p>
+          </div>
+          <label className="search-wrap">
+            <Icon name="search" />
+            <input
+              onChange={(event) => setKeyword(event.target.value)}
+              placeholder="Tìm kiếm vai trò..."
+              type="search"
+              value={keyword}
+            />
+          </label>
+          </header>
+          {saveMessage ? <p className="permission-save-message">{saveMessage}</p> : null}
+
+          <div className="permission-overview">
+            <article>
+            <strong>{selectedRole}</strong>
+            <span>Vai trò đang chỉnh sửa</span>
+            </article>
+            <article>
+            <strong>Yêu cầu bảo mật</strong>
+            <span>Mọi thay đổi cần nhập lại ADMINID để lưu</span>
+            </article>
+            <article>
+            <strong>Gợi ý thao tác</strong>
+            <span>Chọn vai trò bên trái, bật/tắt quyền rồi bấm Lưu thay đổi</span>
+            </article>
+          </div>
+
+          <div className="permission-grid">
+            <article className="permission-card panel">
+                <h3>Vai trò (Roles)</h3>
+                <p>Danh sách các nhóm quyền trong hệ thống</p>
+
+            <div className="role-list">
               {filteredRoles.map((role) => (
                 <button
-                  className={role.id === selectedRole.id ? 'selected' : ''}
-                  key={role.id}
-                  onClick={() => {
-                    setSelectedRoleId(role.id);
-                    setMessage('');
-                  }}
+                  className={selectedRole === role.name ? 'selected' : ''}
+                  key={role.name}
+                  onClick={() => setSelectedRole(role.name)}
                   type="button"
                 >
-                  <span>
+                  <div>
                     <strong>{role.name}</strong>
-                    <small>{role.status}</small>
-                  </span>
-                  <em>{role.description}</em>
-                  <small>{role.assignedUsers} user đang dùng</small>
+                    <span className={role.active ? 'badge active' : 'badge inactive'}>
+                      {role.active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  <small>{role.description}</small>
                 </button>
               ))}
             </div>
-          </div>
+            </article>
 
-          <div className="rbac-panel">
-            <div className="rbac-panel__heading rbac-panel__heading--row">
+            <article className="permission-card panel">
+            <div className="permission-matrix-head">
               <div>
-                <h2>Permission Matrix: {selectedRole.name}</h2>
-                <p>Flow 3 và 5: xem, chỉnh quyền View/Create/Edit/Delete.</p>
+                <h3>Ma trận phân quyền: {selectedRole}</h3>
+                <p>Chi tiết quyền hạn truy cập các module</p>
               </div>
-              <button onClick={handleSavePermissions} type="button">
-                Lưu quyền
-              </button>
+              <div className="permission-save-box">
+                <input
+                  onChange={(event) => setSaveCode(event.target.value)}
+                  placeholder="Nhập ADMINID để lưu"
+                  type="password"
+                  value={saveCode}
+                />
+                <button className="primary-button" onClick={handleSavePermissionChange} type="button">Lưu thay đổi</button>
+              </div>
             </div>
-            <div className="rbac-table-wrap">
-              <table className="rbac-table">
+
+            <div className="table-wrap">
+              <table>
                 <thead>
                   <tr>
-                    <th>Module</th>
-                    {permissionActions.map((action) => (
-                      <th key={action.key}>{action.label}</th>
-                    ))}
+                    <th>Tên module</th>
+                    <th>Xem</th>
+                    <th>Tạo</th>
+                    <th>Sửa</th>
+                    <th>Xóa</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {permissionModules.map((moduleItem) => (
-                    <tr key={moduleItem.key}>
-                      <td>
-                        <strong>{moduleItem.label}</strong>
-                        <span>{moduleItem.description}</span>
-                      </td>
-                      {permissionActions.map((action) => (
-                        <td key={action.key}>
-                          <input
-                            checked={selectedPermissions[moduleItem.key][action.key]}
-                            onChange={() => togglePermission(moduleItem.key, action.key)}
-                            type="checkbox"
-                          />
-                        </td>
-                      ))}
+                  {modulePermissions.map((moduleItem, moduleIndex) => (
+                    <tr className={moduleItem.highlight ? 'row-highlight' : ''} key={moduleItem.name}>
+                      <td>{moduleItem.name}</td>
+                      <td><input checked={moduleItem.permissions[0]} onChange={() => togglePermission(moduleIndex, 0)} type="checkbox" /></td>
+                      <td><input checked={moduleItem.permissions[1]} onChange={() => togglePermission(moduleIndex, 1)} type="checkbox" /></td>
+                      <td><input checked={moduleItem.permissions[2]} onChange={() => togglePermission(moduleIndex, 2)} type="checkbox" /></td>
+                      <td><input checked={moduleItem.permissions[3]} onChange={() => togglePermission(moduleIndex, 3)} type="checkbox" /></td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            </article>
           </div>
-        </section>
-
-        <section className="rbac-actions">
-          <form className="rbac-panel" onSubmit={handleCreateRole}>
-            <div className="rbac-panel__heading">
-              <h2>Tạo Role mới</h2>
-              <p>Flow 4: nhập tên, mô tả, Admin Code rồi lưu.</p>
-            </div>
-            <input placeholder="Tên Role" value={newRoleName} onChange={(event) => setNewRoleName(event.target.value)} />
-            <textarea
-              placeholder="Mô tả Role"
-              value={newRoleDescription}
-              onChange={(event) => setNewRoleDescription(event.target.value)}
-            />
-            <button type="submit">Tạo Role</button>
-          </form>
-
-          <div className="rbac-panel">
-            <div className="rbac-panel__heading">
-              <h2>Xóa Role</h2>
-              <p>Flow 6: kiểm tra role đang được gán trước khi xóa.</p>
-            </div>
-            <p>
-              Role đang chọn: <strong>{selectedRole.name}</strong>
-            </p>
-            <button className="danger" onClick={handleDeleteRole} type="button">
-              Xóa Role đang chọn
-            </button>
-          </div>
-
-          <div className="rbac-panel">
-            <div className="rbac-panel__heading">
-              <h2>Gán Role cho User</h2>
-              <p>Flow 7: chọn user, chọn role, nhập Admin Code rồi xác thực.</p>
-            </div>
-            <select value={selectedUserId} onChange={(event) => setSelectedUserId(event.target.value)}>
-              {users.map((user) => (
-                <option key={user.userId} value={user.userId}>
-                  {user.fullName} - {user.email}
-                </option>
-              ))}
-            </select>
-            <select value={assignRoleId} onChange={(event) => setAssignRoleId(event.target.value)}>
-              {roles.map((role) => (
-                <option key={role.id} value={role.id}>
-                  {role.name}
-                </option>
-              ))}
-            </select>
-            <button onClick={handleAssignRole} type="button">
-              Gán Role
-            </button>
-          </div>
-        </section>
-
-        <section className="rbac-bottom">
-          <label className="rbac-code">
-            Admin Code cho thao tác tạo/sửa/xóa/gán Role
-            <input
-              onChange={(event) => setOperationCode(event.target.value)}
-              placeholder="Nhập Admin Code trước khi lưu thao tác"
-              type="password"
-              value={operationCode}
-            />
-          </label>
-          <div className="rbac-log">
-            <h2>Security Log</h2>
-            {securityLogs.slice(0, 5).map((log) => (
-              <p key={log.id}>
-                <strong>{log.status}</strong> - {log.action}: {log.message}
-              </p>
-            ))}
-          </div>
+            </>
+          ) : null}
         </section>
       </main>
     </div>
