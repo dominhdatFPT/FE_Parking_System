@@ -114,7 +114,7 @@ export default function AuditLogPage() {
                     <span className="material-symbols-outlined text-sm">download</span>
                     Xuất CSV
                   </button>
-                  <button className="inline-flex items-center gap-2 rounded-3xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800" type="button" onClick={handleRefresh}>
+                  <button className="inline-flex items-center gap-2 rounded-3xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700" type="button" onClick={handleRefresh}>
                     <span className="material-symbols-outlined text-sm">refresh</span>
                     Làm mới
                   </button>

@@ -48,11 +48,11 @@ export default function MainLayout() {
         <div className="flex h-16 items-center gap-3 border-b border-[#e4eaf2] px-5">
           <img
             alt="Parking System Logo"
-            className="h-10 w-10 rounded-full object-cover"
+            className="h-10 w-10 object-contain"
             src="/parking-system-logo.png"
           />
           <div>
-            <p className="font-semibold text-[#101828]">Parking System</p>
+            <p className="font-bold text-xl text-[#0051d5] tracking-wide">Parking System</p>
             <p className="text-xs text-[#667085]">Admin workspace</p>
           </div>
         </div>

@@ -316,7 +316,7 @@ export default function SignupPage() {
               </label>
 
               <button
-                className="mt-0.5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#1e3a8a] p-[11px] text-base font-semibold leading-6 transition hover:bg-blue-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 max-sm:p-2.5 max-sm:text-sm max-sm:leading-5 shadow-sm"
+                className="mt-0.5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#1e3a8a] px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
                 type="submit"
                 disabled={loading}
               >

@@ -251,11 +251,11 @@ export default function AdminSignup() {
 
                             {/* Nút Đăng ký */}
                             <button
-                                className="mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#0051d5] p-2.5 text-[14px] font-bold leading-5 text-white shadow-[0_8px_16px_rgba(0,81,213,0.15)] transition hover:bg-[#003ea8] active:scale-[0.98]"
+                                className="mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#1e3a8a] px-3 py-2.5 text-sm font-semibold shadow-sm transition-colors hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
                                 type="submit"
                             >
-                                Đăng ký tài khoản
-                                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                                <span className="text-white">Đăng ký tài khoản</span>
+                                <span className="material-symbols-outlined text-[18px] text-white">arrow_forward</span>
                             </button>
                         </form>
 

@@ -36,8 +36,8 @@ export default function HomePage() {
           <button className="rounded-3xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50" type="button">
             Hôm nay: 24/05/2024
           </button>
-          <button className="rounded-3xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700" type="button">
-            Xuất báo cáo
+          <button className="rounded-3xl bg-[#1e3a8a] px-4 py-2 text-sm font-semibold shadow-sm transition hover:bg-blue-800" type="button">
+            <span className="text-white">Xuất báo cáo</span>
           </button>
         </div>
       </div>

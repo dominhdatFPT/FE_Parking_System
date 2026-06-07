@@ -62,12 +62,12 @@ const DriverBooking = () => {
   return (
     <div className="flex h-screen bg-[#f8fafc] text-slate-800 font-sans overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-100 flex flex-col hidden md:flex shrink-0">
+      <aside className="w-64 bg-[#131b2e] flex flex-col hidden md:flex text-white shrink-0">
         <div className="flex-1 overflow-y-auto">
           {/* Logo */}
           <div className="h-20 flex items-center px-6 gap-3">
             <img src="/parking-system-logo.png" alt="Parking System Logo" className="w-10 h-10 object-contain" />
-            <span className="font-bold text-xl text-[#1e3a8a] tracking-wide">
+            <span className="font-bold text-xl text-white tracking-wide">
               Parking System
             </span>
           </div>
@@ -77,8 +77,8 @@ const DriverBooking = () => {
             <button
               onClick={() => handleNavigate('/driver-dashboard')}
               className={`flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-200 ${isActive('/driver-dashboard')
-                  ? 'bg-[#6df0b2] text-[#065f46] font-bold shadow-sm'
-                  : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900 font-medium'
+                  ? 'bg-blue-600 text-white font-bold shadow-sm'
+                  : 'text-[#94a3b8] hover:bg-white/5 hover:text-white font-medium'
                 }`}
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -89,8 +89,8 @@ const DriverBooking = () => {
             <button
               onClick={() => handleNavigate('/driver-booking')}
               className={`flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-200 ${isActive('/driver-booking')
-                  ? 'bg-[#6df0b2] text-[#065f46] font-bold shadow-sm'
-                  : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900 font-medium'
+                  ? 'bg-blue-600 text-white font-bold shadow-sm'
+                  : 'text-[#94a3b8] hover:bg-white/5 hover:text-white font-medium'
                 }`}
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -104,8 +104,8 @@ const DriverBooking = () => {
             <button
               onClick={() => handleNavigate('/driver-history')}
               className={`flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-200 ${isActive('/driver-history')
-                  ? 'bg-[#6df0b2] text-[#065f46] font-bold shadow-sm'
-                  : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900 font-medium'
+                  ? 'bg-blue-600 text-white font-bold shadow-sm'
+                  : 'text-[#94a3b8] hover:bg-white/5 hover:text-white font-medium'
                 }`}
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -117,8 +117,8 @@ const DriverBooking = () => {
             <button
               onClick={() => handleNavigate('/driver-profile')}
               className={`flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-200 ${isActive('/driver-profile')
-                  ? 'bg-[#6df0b2] text-[#065f46] font-bold shadow-sm'
-                  : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900 font-medium'
+                  ? 'bg-blue-600 text-white font-bold shadow-sm'
+                  : 'text-[#94a3b8] hover:bg-white/5 hover:text-white font-medium'
                 }`}
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -129,8 +129,8 @@ const DriverBooking = () => {
           </nav>
         </div>
 
-        {/* Bottom Sidebar - Updated to horizontal layout */}
-        <div className="p-6 border-t border-gray-100 flex items-center gap-3 shrink-0 bg-white">
+        {/* Bottom Sidebar */}
+        <div className="p-6 border-t border-[#1e293b] flex items-center gap-3 shrink-0 bg-transparent">
           <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-[#1e3a8a] hover:bg-blue-800 rounded-lg transition-colors text-sm font-semibold shadow-sm">
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -140,10 +140,12 @@ const DriverBooking = () => {
           <button 
             title="Đăng xuất"
             onClick={() => handleNavigate('/login')}
-            className="flex-shrink-0 flex items-center justify-center p-2.5 text-red-500 hover:text-white hover:bg-red-500 bg-red-50 rounded-lg transition-all"
+            className="flex-shrink-0 flex items-center justify-center p-2.5 text-rose-600 hover:text-white hover:bg-rose-600 bg-rose-100 rounded-lg transition-all"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            <svg className="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
           </button>
         </div>

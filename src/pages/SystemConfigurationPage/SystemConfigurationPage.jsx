@@ -309,9 +309,9 @@ export default function SystemConfigurationPage() {
                         <button
                             type="button"
                             onClick={handleSave}
-                            className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            className="w-full rounded-lg bg-[#1e3a8a] px-4 py-2.5 text-sm font-medium transition hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
                         >
-                            Lưu cấu hình
+                            <span className="text-white">Lưu cấu hình</span>
                         </button>
                         <button
                             type="button"

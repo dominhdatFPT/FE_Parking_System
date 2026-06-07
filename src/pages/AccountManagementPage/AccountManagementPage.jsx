@@ -1,4 +1,4 @@
-﻿import Icon from '../../components/Icon';
+import Icon from '../../components/Icon';
 
 const users = [
   {
@@ -83,11 +83,11 @@ export default function AccountManagementPage() {
               Nhap danh sach
             </button>
             <button
-              className="inline-flex items-center gap-2 rounded-3xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+              className="inline-flex items-center gap-2 rounded-3xl bg-[#1e3a8a] px-5 py-3 text-sm font-semibold transition hover:bg-blue-800"
               type="button"
             >
-              <Icon name="person_add" />
-              Them tai khoan
+              <span className="text-white"><Icon name="person_add" /></span>
+              <span className="text-white">Thêm tài khoản</span>
             </button>
           </div>
         </div>
@@ -142,9 +142,9 @@ export default function AccountManagementPage() {
               </select>
             </label>
             <div className="flex items-end">
-              <button className="inline-flex w-full items-center justify-center gap-2 rounded-3xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700" type="button">
-                <Icon name="filter_alt" />
-                Ap dung
+              <button className="inline-flex w-full items-center justify-center gap-2 rounded-3xl bg-[#1e3a8a] px-5 py-3 text-sm font-semibold transition hover:bg-blue-800" type="button">
+                <span className="text-white"><Icon name="filter_alt" /></span>
+                <span className="text-white">Áp dụng</span>
               </button>
             </div>
           </div>

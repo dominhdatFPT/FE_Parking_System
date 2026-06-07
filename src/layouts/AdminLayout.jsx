@@ -29,11 +29,13 @@ export default function AdminLayout() {
         <div className="flex h-full flex-col p-4">
           <div>
             <div className="flex items-center gap-3 border-b border-slate-700 pb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded bg-blue-600">
-                <Icon name="local_parking" />
-              </div>
+              <img
+                alt="Parking System Logo"
+                className="h-10 w-10 object-contain"
+                src="/parking-system-logo.png"
+              />
               <div>
-                <h1 className="text-lg font-bold">Smart Parking AI</h1>
+                <h1 className="text-lg font-bold">Parking System</h1>
                 <p className="text-xs text-slate-400">Hệ thống quản trị</p>
               </div>
             </div>
@@ -57,21 +59,18 @@ export default function AdminLayout() {
             </nav>
           </div>
 
-          <div className="mt-auto border-t border-slate-700 pt-4 space-y-1">
-            <button
-              onClick={() => {}}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-slate-800/50 hover:text-white"
-            >
-              <Icon name="help" />
-              <span>Hỗ trợ</span>
+          <div className="mt-auto border-t border-slate-700 pt-4 flex items-center gap-3 shrink-0">
+            <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-[#1e3a8a] hover:bg-blue-800 rounded-lg transition-colors text-sm font-semibold shadow-sm">
+              <Icon name="help" className="text-white" />
+              <span className="text-white">Hỗ trợ</span>
             </button>
 
             <button
+              title="Đăng xuất"
               onClick={handleLogout}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-rose-300 hover:bg-slate-800/50 hover:text-rose-100"
+              className="flex-shrink-0 flex items-center justify-center p-2.5 text-rose-600 hover:text-white hover:bg-rose-600 bg-rose-100 rounded-lg transition-all"
             >
               <Icon name="logout" />
-              <span>Đăng xuất</span>
             </button>
           </div>
         </div>
