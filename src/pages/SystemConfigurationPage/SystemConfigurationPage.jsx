@@ -1,10 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { NavLink } from 'react-router';
-import { useAuth } from '../../contexts/AuthContext';
-import { ROUTES } from '../../constants/routes';
-import Icon from '../../components/Icon';
-import NotificationDropdown from '../../components/NotificationDropdown';
-import SettingsDropdown from '../../components/SettingsDropdown';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -26,13 +20,6 @@ const DEFAULT_CONFIG = {
     maintenanceWindow: '02:00 - 04:00',
 };
 
-const menuItems = [
-    { icon: 'dashboard',          label: 'Tổng quan',           href: ROUTES.ADMIN.DASHBOARD },
-    { icon: 'manage_accounts',    label: 'Quản lý tài khoản',   href: ROUTES.ADMIN.USERS },
-    { icon: 'security',           label: 'Quyền truy cập',      href: ROUTES.ADMIN.ROLES },
-    { icon: 'settings',           label: 'Cấu hình hệ thống',   href: ROUTES.ADMIN.SYSTEM_CONFIG },
-    { icon: 'history',            label: 'Nhật ký hệ thống',    href: ROUTES.ADMIN.AUDIT_LOG },
-];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -99,7 +86,6 @@ function ToggleRow({ label, checked, onChange }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SystemConfigurationPage() {
-    const { user, role } = useAuth();
     const [config, setConfig] = useState(DEFAULT_CONFIG);
     const [message, setMessage] = useState('');
 

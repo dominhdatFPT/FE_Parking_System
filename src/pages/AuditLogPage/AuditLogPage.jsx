@@ -2,12 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import DashboardShell from '../../components/DashboardShell';
 import { getSecurityLogs } from '../../features/admin/role-permissions/services/rolePermissionStorage';
 
-const STATUS_OPTIONS = ['All', 'Success', 'Failed', 'Blocked'];
-
 export default function AuditLogPage() {
   const [logs, setLogs] = useState([]);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
+  const [statusFilter] = useState('All');
 
   useEffect(() => {
     setLogs(getSecurityLogs());
@@ -54,11 +52,6 @@ export default function AuditLogPage() {
   function handleRefresh() {
     setLogs(getSecurityLogs());
   }
-
-  const totalLogs = logs.length;
-  const successCount = logs.filter((log) => log.status === 'Success').length;
-  const failedCount = logs.filter((log) => log.status === 'Failed').length;
-  const blockedCount = logs.filter((log) => log.status === 'Blocked').length;
 
   return (
     <DashboardShell title="Nhật ký hệ thống & Bảo mật" description="Theo dõi hoạt động người dùng và giám sát hệ thống trong Smart Parking AI.">

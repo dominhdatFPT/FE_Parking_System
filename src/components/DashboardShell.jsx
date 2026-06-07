@@ -1,5 +1,3 @@
-import { useAuth } from '../contexts/AuthContext';
-
 // DashboardShell now only renders the page content area (title/description/children).
 export default function DashboardShell({ title, description, children }) {
   return (

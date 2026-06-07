@@ -31,7 +31,7 @@ const getNavigationItems = (role) => {
   return baseItems;
 };
 
-export default function MainLayout({ children }) {
+export default function MainLayout() {
   const navigate = useNavigate();
   const { role } = useAuth();
   const navigationItems = getNavigationItems(role);
@@ -97,14 +97,6 @@ export default function MainLayout({ children }) {
           <div className="flex items-center gap-3">
             <button className="grid h-10 w-10 cursor-pointer place-items-center rounded border border-[#d9e2ee] bg-white text-[#475467] hover:text-[#0051d5]">
               <span className="material-symbols-outlined">notifications</span>
-            </button>
-            <button
-              className="hidden h-10 cursor-pointer items-center gap-2 rounded border border-[#d9e2ee] bg-white px-3 text-sm font-semibold text-[#475467] hover:text-[#0051d5] sm:inline-flex"
-              type="button"
-              onClick={handleLogout}
-            >
-              <span className="material-symbols-outlined text-[18px]">logout</span>
-              Đăng xuất
             </button>
           </div>
         </header>

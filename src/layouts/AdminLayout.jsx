@@ -4,8 +4,7 @@ import { ROUTES } from '../constants/routes';
 import { STORAGE_KEYS } from '../constants/storageKeys';
 import Icon from '../components/Icon';
 import NotificationDropdown from '../components/NotificationDropdown';
-import SettingsDropdown from '../components/SettingsDropdown';
-import { useAuth } from '../contexts/AuthContext';
+import UserProfileDropdown from '../components/UserProfileDropdown';
 
 const menuItems = [
   { icon: 'dashboard', label: 'Tổng quan', path: ROUTES.ADMIN.DASHBOARD },
@@ -17,7 +16,6 @@ const menuItems = [
 
 export default function AdminLayout() {
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   function handleLogout() {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
@@ -80,7 +78,7 @@ export default function AdminLayout() {
       </aside>
 
       <div className="flex-1 min-w-0">
-        <header className="border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
+        <header className="relative z-[999] overflow-visible border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4 flex-1">
               <div className="relative w-full max-w-md">
@@ -94,24 +92,11 @@ export default function AdminLayout() {
             </div>
 
             <div className="flex items-center gap-3">
-              <button className="w-10 h-10 flex items-center justify-center rounded-full bg-white border text-gray-600 hover:bg-gray-50">
-                <span className="material-symbols-outlined">notifications</span>
-              </button>
+              <NotificationDropdown />
 
-              <SettingsDropdown
-                trigger={
-                  <button className="flex items-center gap-2 rounded-lg p-2 transition hover:bg-gray-100">
-                    <span className="text-right">
-                      <strong className="block text-sm text-gray-900">{user?.fullName}</strong>
-                      <small className="text-xs text-gray-600">Quản trị viên</small>
-                    </span>
-                    <img
-                      alt="User profile"
-                      src={user?.avatarUrl}
-                      className="h-10 w-10 rounded-full object-cover"
-                    />
-                  </button>
-                }
+              <UserProfileDropdown
+                onViewProfile={() => navigate(ROUTES.SETTINGS.PROFILE)}
+                onLogout={handleLogout}
               />
             </div>
           </div>
