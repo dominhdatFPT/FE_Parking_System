@@ -10,15 +10,15 @@ export default function Sidebar() {
   return (
     <aside className="hidden lg:flex lg:w-72 lg:flex-col lg:justify-between bg-slate-950 text-white shadow-xl">
       <div className="px-6 py-8">
-        <div className="mb-10 flex items-center gap-3">
+        <div className="mb-10 flex items-center gap-3 cursor-pointer" onClick={() => window.location.reload()} title="Làm mới trang">
           <img
             alt="Parking System Logo"
             className="h-12 w-12 object-contain"
             src="/parking-system-logo.png"
           />
           <div>
-            <h1 className="text-lg font-semibold tracking-tight">Parking System</h1>
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Hệ thống quản trị</p>
+            <h1 className="text-xl font-bold text-white">Parking System</h1>
+            <p className="text-xs text-slate-400">Hệ thống quản trị</p>
           </div>
         </div>
 
