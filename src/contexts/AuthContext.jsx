@@ -16,10 +16,11 @@ function readInitialUser() {
     if (typeof window === 'undefined')
         return DEV_MODE_BYPASS_AUTH ? DEFAULT_USER : null;
     const stored = window.localStorage.getItem('smart-parking-user');
-    if (!stored)
+    if (!stored || stored === 'null' || stored === 'undefined')
         return DEV_MODE_BYPASS_AUTH ? DEFAULT_USER : null;
     try {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        return parsed ? parsed : (DEV_MODE_BYPASS_AUTH ? DEFAULT_USER : null);
     }
     catch {
         return DEV_MODE_BYPASS_AUTH ? DEFAULT_USER : null;
