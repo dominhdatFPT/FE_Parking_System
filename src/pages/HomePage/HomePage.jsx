@@ -136,8 +136,8 @@ export default function HomePage() {
               <h2 className="text-xl font-semibold text-slate-950">Hoạt động gần đây</h2>
               <p className="mt-1 text-sm text-slate-500">Danh sách thao tác xe & trạng thái ra/vào mới nhất.</p>
             </div>
-            <button className="inline-flex items-center gap-2 rounded-3xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800" type="button">
-              Xem tất cả
+            <button className="inline-flex items-center gap-2 rounded-3xl bg-gradient-to-r from-blue-500 to-blue-800 px-5 py-3 text-sm font-bold !text-white shadow-md transition-all hover:shadow-lg hover:from-blue-600 hover:to-blue-900" type="button">
+              <span className="!text-white">Xem tất cả</span>
             </button>
           </div>
           <div className="overflow-x-auto px-6 pb-6">
@@ -191,8 +191,8 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-          <button className="mt-6 w-full rounded-3xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800" type="button">
-            Chẩn đoán hệ thống
+          <button className="mt-6 w-full rounded-3xl bg-gradient-to-r from-blue-500 to-blue-800 px-5 py-3 text-sm font-bold !text-white shadow-md transition-all hover:shadow-lg hover:from-blue-600 hover:to-blue-900" type="button">
+            <span className="!text-white">Chẩn đoán hệ thống</span>
           </button>
         </section>
       </div>
