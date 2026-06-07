@@ -298,9 +298,9 @@ export default function RolePermissionPage() {
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex-1 px-4 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:bg-gray-400 transition"
+                            className="flex-1 px-4 py-3 rounded-lg bg-[#1e3a8a] font-semibold hover:bg-blue-800 disabled:bg-gray-400 transition"
                         >
-                            {isSubmitting ? 'Đang xác thực...' : 'Xác thực'}
+                            <span className="text-white">{isSubmitting ? 'Đang xác thực...' : 'Xác thực'}</span>
                         </button>
                     </div>
                 </form>
@@ -368,9 +368,9 @@ export default function RolePermissionPage() {
                             <button
                                 onClick={handleSavePermissions}
                                 type="button"
-                                className="rounded-lg bg-blue-600 px-6 py-2.5 font-semibold text-white transition hover:bg-blue-700 whitespace-nowrap"
+                                className="rounded-lg bg-[#1e3a8a] px-6 py-2.5 font-semibold transition hover:bg-blue-800 whitespace-nowrap"
                             >
-                                Lưu quyền
+                                <span className="text-white">Lưu quyền</span>
                             </button>
                         </div>
                         <PermissionMatrix
@@ -402,9 +402,9 @@ export default function RolePermissionPage() {
                         <button
                             onClick={handleDeleteRole}
                             type="button"
-                            className="w-full rounded-lg bg-red-600 px-4 py-2.5 font-semibold text-white transition hover:bg-red-700"
+                            className="w-full rounded-lg bg-[#dc2626] px-4 py-2.5 font-semibold transition hover:bg-[#b91c1c] shadow-sm"
                         >
-                            Xóa Role đang chọn
+                            <span className="text-white">Xóa Role đang chọn</span>
                         </button>
                     </div>
 

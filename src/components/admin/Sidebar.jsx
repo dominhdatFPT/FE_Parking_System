@@ -11,11 +11,13 @@ export default function Sidebar() {
     <aside className="hidden lg:flex lg:w-72 lg:flex-col lg:justify-between bg-slate-950 text-white shadow-xl">
       <div className="px-6 py-8">
         <div className="mb-10 flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-blue-600 text-white">
-            <span className="material-symbols-outlined text-2xl">local_parking</span>
-          </div>
+          <img
+            alt="Parking System Logo"
+            className="h-12 w-12 object-contain"
+            src="/parking-system-logo.png"
+          />
           <div>
-            <h1 className="text-lg font-semibold tracking-tight">Smart Parking AI</h1>
+            <h1 className="text-lg font-semibold tracking-tight">Parking System</h1>
             <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Hệ thống quản trị</p>
           </div>
         </div>
@@ -36,14 +38,15 @@ export default function Sidebar() {
         </nav>
       </div>
 
-      <div className="border-t border-slate-800 px-6 py-5">
-        <button className="flex w-full items-center gap-3 rounded-3xl px-4 py-3 text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white" type="button">
-          <span className="material-symbols-outlined text-lg">help</span>
-          Hỗ trợ
+      <div className="border-t border-slate-800 px-6 py-5 flex items-center gap-3 shrink-0">
+        <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-[#1e3a8a] hover:bg-blue-800 rounded-lg transition-colors text-sm font-semibold shadow-sm">
+          <span className="material-symbols-outlined text-lg text-white">help</span>
+          <span className="text-white">Hỗ trợ</span>
         </button>
-        <button className="mt-3 flex w-full items-center gap-3 rounded-3xl bg-slate-900 px-4 py-3 text-sm text-rose-300 transition hover:bg-slate-800" type="button">
+        <button 
+          title="Đăng xuất"
+          className="flex-shrink-0 flex items-center justify-center p-2.5 text-rose-600 hover:text-white hover:bg-rose-600 bg-rose-100 rounded-lg transition-all" type="button">
           <span className="material-symbols-outlined text-lg">logout</span>
-          Đăng xuất
         </button>
       </div>
     </aside>

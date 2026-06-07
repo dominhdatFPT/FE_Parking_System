@@ -22,9 +22,9 @@ export default function RoleForm({ newRoleName, setNewRoleName, newRoleDescripti
       />
       <button
         type="submit"
-        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 font-semibold text-white transition hover:bg-blue-700"
+        className="w-full rounded-lg bg-[#1e3a8a] px-4 py-2.5 font-semibold transition hover:bg-blue-800"
       >
-        Tạo Role
+        <span className="text-white">Tạo Role</span>
       </button>
     </form>
   );

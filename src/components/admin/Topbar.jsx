@@ -12,9 +12,9 @@ export default function Topbar() {
             <span className="material-symbols-outlined">calendar_today</span>
             Hôm nay: 24/05/2024
           </button>
-          <button className="inline-flex items-center gap-2 rounded-3xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700">
-            <span className="material-symbols-outlined">download</span>
-            Xuất báo cáo
+          <button className="inline-flex items-center gap-2 rounded-3xl bg-[#1e3a8a] px-4 py-3 text-sm font-semibold transition hover:bg-blue-800">
+            <span className="material-symbols-outlined text-white">download</span>
+            <span className="text-white">Xuất báo cáo</span>
           </button>
         </div>
       </div>
