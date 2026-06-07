@@ -19,11 +19,6 @@ function createEmptyMatrix() {
 function verifyAdminCode(code) {
     return code.trim() === ADMIN_CODE;
 }
-function Icon({ name }) {
-    return (<span className="material-symbols-outlined" aria-hidden="true">
-      {name}
-    </span>);
-}
 export default function RolePermissionPage() {
     const navigate = useNavigate();
     const [isVerified, setIsVerified] = useState(false);
@@ -74,15 +69,6 @@ export default function RolePermissionPage() {
         refreshLogs();
         setMessage(reason);
     }
-    function requireOperationCode(action) {
-        if (!verifyAdminCode(operationCode)) {
-            rejectOperation(action, 'Admin Code không hợp lệ. Thao tác đã bị từ chối và ghi log bảo mật.');
-            return false;
-        }
-        setOperationCode('');
-        return true;
-    }
-
     function openAdminModal(actionName, actionCallback) {
       setPendingAction(() => actionCallback);
       setPendingActionName(actionName);
@@ -105,7 +91,9 @@ export default function RolePermissionPage() {
       }
       // run the pending action
       try {
-        pendingAction == null ? null : pendingAction();
+        if (pendingAction) {
+          pendingAction();
+        }
       }
       catch (e) {
         // swallow errors locally and write log

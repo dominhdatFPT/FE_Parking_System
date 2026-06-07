@@ -78,10 +78,11 @@ export function AppRoutes() {
         <Route path={ROUTES.ADMIN.ROLES} element={<RolePermissionPage />} />
         <Route path={ROUTES.ADMIN.SYSTEM_CONFIG} element={<SystemConfigurationPage />} />
         <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AuditLogPage />} />
+        <Route path={ROUTES.ADMIN.NOTIFICATIONS.DETAIL} element={<NotificationDetailPage />} />
+        <Route path={ROUTES.FORBIDDEN} element={<ForbiddenPage />} />
       </Route>
       
       <Route element={<MainLayout />}>
-        <Route path={ROUTES.NOTIFICATIONS.DETAIL} element={<NotificationDetailPage />}/>
         <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />}/>
       </Route>
       

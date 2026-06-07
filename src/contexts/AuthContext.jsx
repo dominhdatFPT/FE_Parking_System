@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 const AuthContext = createContext(undefined);
 
@@ -38,10 +38,10 @@ export function AuthProvider({ children }) {
         }
     }, [user]);
 
-    const setRole = (nextRole) => {
+    const setRole = useCallback((nextRole) => {
         if (!user) return;
         setUser((currentUser) => ({ ...currentUser, role: nextRole }));
-    };
+    }, [user]);
 
     const value = useMemo(() => ({ 
         user, 
@@ -49,7 +49,7 @@ export function AuthProvider({ children }) {
         setUser, 
         setRole,
         isAuthenticated: !!user 
-    }), [user]);
+    }), [user, setRole]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
