@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Bell, ChevronDown, Lock, LogOut, Moon, Settings, User } from 'lucide-react';
 
@@ -79,9 +79,10 @@ export default function UserProfileDropdown({ onViewProfile, onLogout, profile }
                 <button
                   type="button"
                   onClick={onViewProfile}
-                  className="mt-4 flex w-full items-center justify-center rounded-2xl bg-[#2563EB] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1D4ED8]"
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-[#1e3a8a] px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-800"
                 >
-                  Xem hồ sơ
+                  <span className="material-symbols-outlined text-lg text-white">account_circle</span>
+                  <span className="text-white">Xem hồ sơ</span>
                 </button>
               </div>
 
