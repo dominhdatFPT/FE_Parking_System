@@ -2,26 +2,39 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AuthContext } from './AuthContextCore';
 
 function readInitialUser() {
-    if (typeof window === 'undefined')
-        return null;
-    const stored = window.localStorage.getItem('smart-parking-user');
-    if (!stored || stored === 'null' || stored === 'undefined')
-        return null;
-    try {
-        return JSON.parse(stored);
-    } catch {
-        return null;
+    if (typeof window === 'undefined') return null;
+
+    const sessionStored = window.sessionStorage.getItem('smart-parking-user');
+    if (sessionStored && sessionStored !== 'null' && sessionStored !== 'undefined') {
+        try { return JSON.parse(sessionStored); } catch {}
     }
+
+    const localStored = window.localStorage.getItem('smart-parking-user');
+    if (localStored && localStored !== 'null' && localStored !== 'undefined') {
+        try { return JSON.parse(localStored); } catch {}
+    }
+
+    return null;
 }
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(readInitialUser);
 
     useEffect(() => {
+        const rememberMe = window.localStorage.getItem('rememberMe') === 'true';
+        
         if (user) {
-            window.localStorage.setItem('smart-parking-user', JSON.stringify(user));
+            if (rememberMe) {
+                window.localStorage.setItem('smart-parking-user', JSON.stringify(user));
+                window.sessionStorage.removeItem('smart-parking-user');
+            } else {
+                window.sessionStorage.setItem('smart-parking-user', JSON.stringify(user));
+                window.localStorage.removeItem('smart-parking-user');
+            }
         } else {
             window.localStorage.removeItem('smart-parking-user');
+            window.sessionStorage.removeItem('smart-parking-user');
+            window.localStorage.removeItem('rememberMe');
         }
     }, [user]);
 

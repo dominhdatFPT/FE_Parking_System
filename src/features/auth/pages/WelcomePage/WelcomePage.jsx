@@ -9,18 +9,21 @@ const heroCards = [
     title: 'Tìm kiếm dễ dàng',
     description:
       'Hệ thống định vị thông minh giúp bạn tìm thấy vị trí đỗ xe trống gần nhất chỉ trong vài giây qua ứng dụng di động.',
+    path: '/login',
   },
   {
     icon: 'event_available',
     title: 'Đặt chỗ nhanh chóng',
     description:
       'Tính năng đặt chỗ trước đảm bảo bạn luôn có vị trí đỗ xe sẵn sàng, tiết kiệm thời gian trong giờ cao điểm.',
+    path: '/login',
   },
   {
     icon: 'qr_code_2',
     title: 'Vé điện tử tiện lợi',
     description:
       'Mọi thông tin lượt gửi và thanh toán đều được tích hợp trên mã QR bảo mật, không còn lo mất vé giấy.',
+    path: '/login',
   },
 ];
 
@@ -266,10 +269,18 @@ export default function WelcomePage() {
 
           <div className="grid grid-cols-3 gap-4 max-[980px]:grid-cols-1">
             {heroCards.map((card) => (
-              <article className={`${glassCardClass} rounded-lg border-l-4 border-l-[#0051d5] p-8`} key={card.title}>
-                <span className="material-symbols-outlined mb-4 text-[40px] text-[#0051d5]">{card.icon}</span>
+              <article 
+                className={`group ${glassCardClass} flex flex-col rounded-lg border-l-4 border-l-[#0051d5] p-8 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(0,81,213,0.15)]`} 
+                key={card.title}
+                onClick={() => navigate(card.path)}
+              >
+                <span className="material-symbols-outlined mb-4 text-[40px] text-[#0051d5] transition-transform duration-300 group-hover:scale-110">{card.icon}</span>
                 <h2 className="mb-2 text-lg leading-6 text-black">{card.title}</h2>
-                <p className="text-sm leading-5 text-[#45464d]">{card.description}</p>
+                <p className="flex-1 text-sm leading-5 text-[#45464d]">{card.description}</p>
+                <div className="mt-6 flex items-center gap-2 text-[#0051d5] font-semibold text-sm opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                  <span>Trải nghiệm ngay</span>
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </div>
               </article>
             ))}
           </div>

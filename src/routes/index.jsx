@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router';
+import { Navigate, Route, Routes, useLocation } from 'react-router';
 import { useAuth } from '../contexts/useAuth';
 import { ROUTES } from '../constants/routes';
 import MainLayout from '../layouts/MainLayout';
@@ -37,9 +37,10 @@ function RequireAuth({ children }) {
 
 function RequireAdminRole({ children }) {
   const { role, isAuthenticated } = useAuth();
+  const location = useLocation();
 
   if (!isAuthenticated) {
-    return <Navigate to={ROUTES.LOGIN} replace />;
+    return <Navigate to={ROUTES.ADMIN_LOGIN} replace state={{ from: location.pathname }} />;
   }
 
   if (role !== 'admin') {
