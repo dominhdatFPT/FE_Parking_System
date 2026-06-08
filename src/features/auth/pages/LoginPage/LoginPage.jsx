@@ -112,7 +112,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f7f9fb] text-[#191c1e]">
+    <div className="flex h-screen overflow-hidden flex-col bg-[#f7f9fb] text-[#191c1e]">
       <main className="grid min-h-[calc(100vh-64px)] flex-1 grid-cols-[minmax(0,1fr)_minmax(440px,1fr)] overflow-hidden max-[980px]:grid-cols-1">
         <section
           className="relative flex items-center justify-center overflow-hidden bg-[#131b2e] p-12 text-white max-[980px]:hidden"
