@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
+import { useAuth } from '../contexts/useAuth';
 import { ROUTES } from '../constants/routes';
 import { STORAGE_KEYS } from '../constants/storageKeys';
 import Icon from '../components/Icon';
@@ -16,11 +17,13 @@ const menuItems = [
 
 export default function AdminLayout() {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   function handleLogout() {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER);
-    navigate(ROUTES.LOGIN, { replace: true });
+    setUser(null);
+    navigate(ROUTES.ADMIN_LOGIN, { replace: true });
   }
 
   return (
