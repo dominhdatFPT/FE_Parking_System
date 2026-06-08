@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useAuth } from '../../../../contexts/AuthContext';
+import { useAuth } from '../../../../contexts/useAuth';
 import { login } from '../../../../services/modules/authService';
 import { ROUTES } from '../../../../constants/routes';
 import { STORAGE_KEYS } from '../../../../constants/storageKeys';
@@ -49,23 +49,29 @@ export default function UserLoginPage() {
     try {
       const response = await login(phone, password);
 
-      if (response.token) {
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
-        setUser({
-          id: 'u-004',
-          fullName: 'Driver User',
-          email: phone,
-          role: 'driver',
-          avatarUrl:
-            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=96&q=80',
-        });
-
-        if (rememberMe) {
-          localStorage.setItem('rememberMe', 'true');
-        }
-
-        navigate('/driver/welcome');
+      if (!response?.token) {
+        throw new Error('Không nhận được token từ máy chủ');
       }
+
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
+
+      const authenticatedUser = {
+        id: response.user?.id ?? response.id ?? phone,
+        fullName: response.user?.fullName ?? response.fullName ?? response.user?.name ?? 'Người dùng',
+        email: response.user?.email ?? response.email ?? phone,
+        role: response.user?.role ?? response.role ?? 'driver',
+        avatarUrl:
+          response.user?.avatarUrl ?? response.avatarUrl ??
+          'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=96&q=80',
+      };
+
+      setUser(authenticatedUser);
+
+      if (rememberMe) {
+        localStorage.setItem('rememberMe', 'true');
+      }
+
+      navigate('/driver/welcome');
     } catch (err) {
       setError('Số điện thoại hoặc mật khẩu không chính xác');
       console.error('Login error:', err);

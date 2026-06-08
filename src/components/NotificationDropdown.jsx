@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import Icon from './Icon';
 import { ROUTES } from '../constants/routes';
 import { getNotificationsForRole, getUnreadCount, markNotificationAsRead } from '../features/notifications/notifications';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 
 const typeStyles = {
   critical: {

@@ -1,12 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import ReportToolbar from '../../components/admin/ReportToolbar';
-
-const formatShortDate = (value) =>
-  new Intl.DateTimeFormat('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(new Date(value));
 
 const getSelectedRangeDates = (range) => {
   const now = new Date();
@@ -120,6 +113,12 @@ const devices = [
 ];
 
 export default function HomePage() {
+  const [selectedRange, setSelectedRange] = useState(initialRange);
+  const dashboardData = useMemo(
+    () => buildMockDashboardData(getSelectedRangeDates(selectedRange)),
+    [selectedRange]
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -131,12 +130,12 @@ export default function HomePage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <ReportToolbar />
+          <ReportToolbar onRangeChange={setSelectedRange} />
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((metric) => (
+        {dashboardData.metrics.map((metric) => (
           <article key={metric.label} className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm transition hover:border-blue-200">
             <div className="flex items-start justify-between gap-3">
               <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${metric.iconBg}`}>
@@ -167,7 +166,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-7 items-end gap-3 h-[240px]">
-            {[40, 65, 80, 95, 55, 85, 45].map((height, index) => (
+            {dashboardData.volume.map((height, index) => (
               <div key={index} className="flex flex-col items-center gap-3">
                 <div className="relative flex h-full w-full items-end rounded-3xl bg-slate-100">
                   <div className="absolute inset-x-0 bottom-0 rounded-3xl bg-blue-600 transition-all" style={{ height: `${height}%` }} />

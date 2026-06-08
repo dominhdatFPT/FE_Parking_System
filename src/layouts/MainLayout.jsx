@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { ROUTES } from '../constants/routes';
 import { STORAGE_KEYS } from '../constants/storageKeys';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 
 const getNavigationItems = (role) => {
   const baseItems = [

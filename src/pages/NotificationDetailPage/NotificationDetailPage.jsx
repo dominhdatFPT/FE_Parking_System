@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import Icon from '../../components/Icon';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/useAuth';
 import { getNotificationById, markNotificationAsUnread } from '../../features/notifications/notifications';
 
 const formatTypeLabel = (type) => {

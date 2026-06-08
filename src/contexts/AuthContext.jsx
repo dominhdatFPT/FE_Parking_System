@@ -1,29 +1,16 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-
-const AuthContext = createContext(undefined);
-
-// Bật cờ này thành true để bỏ qua bước đăng nhập trong quá trình code/test API
-const DEV_MODE_BYPASS_AUTH = true;
-
-const DEFAULT_USER = {
-    id: 'dev-bypass',
-    email: 'dev@parking.ai',
-    fullName: 'Developer Mode',
-    role: 'admin',
-};
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { AuthContext } from './AuthContextCore';
 
 function readInitialUser() {
     if (typeof window === 'undefined')
-        return DEV_MODE_BYPASS_AUTH ? DEFAULT_USER : null;
+        return null;
     const stored = window.localStorage.getItem('smart-parking-user');
     if (!stored || stored === 'null' || stored === 'undefined')
-        return DEV_MODE_BYPASS_AUTH ? DEFAULT_USER : null;
+        return null;
     try {
-        const parsed = JSON.parse(stored);
-        return parsed ? parsed : (DEV_MODE_BYPASS_AUTH ? DEFAULT_USER : null);
-    }
-    catch {
-        return DEV_MODE_BYPASS_AUTH ? DEFAULT_USER : null;
+        return JSON.parse(stored);
+    } catch {
+        return null;
     }
 }
 
@@ -54,9 +41,3 @@ export function AuthProvider({ children }) {
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
-    const ctx = useContext(AuthContext);
-    if (!ctx)
-        throw new Error('useAuth must be used within AuthProvider');
-    return ctx;
-}

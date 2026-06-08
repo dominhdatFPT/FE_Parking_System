@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import { ROUTES } from '../constants/routes';
 import MainLayout from '../layouts/MainLayout';
 import AdminLayout from '../layouts/AdminLayout';

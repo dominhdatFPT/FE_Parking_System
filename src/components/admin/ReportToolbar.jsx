@@ -60,7 +60,178 @@ const reportTypes = [
   { value: 'activity', label: 'Báo cáo hoạt động' },
 ];
 
-export default function ReportToolbar() {
+const reportStats = {
+  totalSlots: '1,250',
+  totalVehicles: '3,228',
+  revenue: '32,500,000 VNĐ',
+  occupancyRate: '86%',
+  averageAvailableSlots: '168',
+  motorcycles: '2,850',
+  cars: '320',
+  electricVehicles: '58',
+  peakHours: ['07:00 - 09:00', '17:00 - 19:00'],
+  exporter: 'Đỗ Minh Đạt',
+};
+
+const buildReportText = (dateLabel) => `PARKING MANAGEMENT SYSTEM
+BÁO CÁO HOẠT ĐỘNG BÃI XE
+
+Ngày xuất: ${dateLabel}
+
+-----------------------------------------
+
+1. THỐNG KÊ TỔNG QUAN
+
+Tổng số chỗ đỗ:        ${reportStats.totalSlots}
+Tổng lượt xe:          ${reportStats.totalVehicles}
+Doanh thu:             ${reportStats.revenue}
+Tỷ lệ lấp đầy:         ${reportStats.occupancyRate}
+Chỗ trống trung bình:  ${reportStats.averageAvailableSlots}
+
+-----------------------------------------
+
+2. PHÂN LOẠI PHƯƠNG TIỆN
+
+Xe máy:      ${reportStats.motorcycles}
+Ô tô:          ${reportStats.cars}
+Xe điện:        ${reportStats.electricVehicles}
+
+-----------------------------------------
+
+3. GIỜ CAO ĐIỂM
+
+${reportStats.peakHours.join('\n')}
+
+-----------------------------------------
+
+4. BIỂU ĐỒ LƯU LƯỢNG XE
+
+(Chart)
+
+-----------------------------------------
+
+Người xuất báo cáo:
+${reportStats.exporter}
+
+Parking System v1.0
+`;
+
+const downloadBlob = (content, filename, type) => {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+const buildCsvReport = (dateLabel) => [
+  ['PARKING MANAGEMENT SYSTEM'],
+  ['BÁO CÁO HOẠT ĐỘNG BÃI XE'],
+  ['Ngày xuất', dateLabel],
+  [],
+  ['THỐNG KÊ TỔNG QUAN'],
+  ['Tổng số chỗ đỗ', reportStats.totalSlots],
+  ['Tổng lượt xe', reportStats.totalVehicles],
+  ['Doanh thu', reportStats.revenue],
+  ['Tỷ lệ lấp đầy', reportStats.occupancyRate],
+  ['Chỗ trống trung bình', reportStats.averageAvailableSlots],
+  [],
+  ['PHÂN LOẠI PHƯƠNG TIỆN'],
+  ['Xe máy', reportStats.motorcycles],
+  ['Ô tô', reportStats.cars],
+  ['Xe điện', reportStats.electricVehicles],
+  [],
+  ['GIỜ CAO ĐIỂM'],
+  ...reportStats.peakHours.map((hour) => [hour]),
+  [],
+  ['Người xuất báo cáo', reportStats.exporter],
+  ['Parking System v1.0'],
+]
+  .map((row) => row.map((cell) => `"${String(cell ?? '').replaceAll('"', '""')}"`).join(','))
+  .join('\n');
+
+const buildExcelReport = (dateLabel) => `
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <table>
+      <tr><th colspan="2">PARKING MANAGEMENT SYSTEM</th></tr>
+      <tr><th colspan="2">BÁO CÁO HOẠT ĐỘNG BÃI XE</th></tr>
+      <tr><td>Ngày xuất</td><td>${dateLabel}</td></tr>
+      <tr></tr>
+      <tr><th colspan="2">1. THỐNG KÊ TỔNG QUAN</th></tr>
+      <tr><td>Tổng số chỗ đỗ</td><td>${reportStats.totalSlots}</td></tr>
+      <tr><td>Tổng lượt xe</td><td>${reportStats.totalVehicles}</td></tr>
+      <tr><td>Doanh thu</td><td>${reportStats.revenue}</td></tr>
+      <tr><td>Tỷ lệ lấp đầy</td><td>${reportStats.occupancyRate}</td></tr>
+      <tr><td>Chỗ trống trung bình</td><td>${reportStats.averageAvailableSlots}</td></tr>
+      <tr></tr>
+      <tr><th colspan="2">2. PHÂN LOẠI PHƯƠNG TIỆN</th></tr>
+      <tr><td>Xe máy</td><td>${reportStats.motorcycles}</td></tr>
+      <tr><td>Ô tô</td><td>${reportStats.cars}</td></tr>
+      <tr><td>Xe điện</td><td>${reportStats.electricVehicles}</td></tr>
+      <tr></tr>
+      <tr><th colspan="2">3. GIỜ CAO ĐIỂM</th></tr>
+      ${reportStats.peakHours.map((hour) => `<tr><td colspan="2">${hour}</td></tr>`).join('')}
+      <tr></tr>
+      <tr><th colspan="2">4. BIỂU ĐỒ LƯU LƯỢNG XE</th></tr>
+      <tr><td colspan="2">(Chart)</td></tr>
+      <tr></tr>
+      <tr><td>Người xuất báo cáo</td><td>${reportStats.exporter}</td></tr>
+      <tr><td colspan="2">Parking System v1.0</td></tr>
+    </table>
+  </body>
+</html>
+`;
+
+const printPdfReport = (dateLabel) => {
+  const reportWindow = window.open('', '_blank', 'noopener,noreferrer,width=820,height=900');
+
+  if (!reportWindow) {
+    downloadBlob(buildReportText(dateLabel), 'bao-cao-hoat-dong-bai-xe.txt', 'text/plain;charset=utf-8');
+    return;
+  }
+
+  reportWindow.document.write(`
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="UTF-8" />
+        <title>Báo cáo hoạt động bãi xe</title>
+        <style>
+          body {
+            color: #0f172a;
+            font-family: Arial, sans-serif;
+            margin: 40px;
+          }
+          pre {
+            font-family: "Courier New", monospace;
+            font-size: 14px;
+            line-height: 1.55;
+            white-space: pre-wrap;
+          }
+          @media print {
+            body { margin: 24px; }
+          }
+        </style>
+      </head>
+      <body>
+        <pre>${buildReportText(dateLabel)}</pre>
+      </body>
+    </html>
+  `);
+  reportWindow.document.close();
+  reportWindow.focus();
+  reportWindow.print();
+};
+
+export default function ReportToolbar({ onRangeChange }) {
   const [activeRange, setActiveRange] = useState('today');
   const [customFrom, setCustomFrom] = useState('2024-05-24');
   const [customTo, setCustomTo] = useState('2024-05-30');
@@ -72,7 +243,6 @@ export default function ReportToolbar() {
   const [toastText, setToastText] = useState('');
 
   const toolbarRef = useRef(null);
-  const exportMenuRef = useRef(null);
 
   const currentLabel = useMemo(
     () => buildRangeText(activeRange, customFrom, customTo),
@@ -109,18 +279,36 @@ export default function ReportToolbar() {
     }
 
     setActiveRange(key);
+    onRangeChange?.({ key });
     setDateDropdownOpen(false);
   };
 
   const handleExportSelect = (option) => {
     setExportDropdownOpen(false);
-    setToastText('Đang xuất báo cáo...');
-    setToastVisible(true);
+    const dateLabel = formatShortDate(new Date());
 
-    // Mô phỏng xuất báo cáo.
-    window.setTimeout(() => {
-      setToastVisible(false);
-    }, 1800);
+    if (option.key === 'pdf') {
+      printPdfReport(dateLabel);
+    }
+
+    if (option.key === 'excel') {
+      downloadBlob(
+        buildExcelReport(dateLabel),
+        'bao-cao-hoat-dong-bai-xe.xls',
+        'application/vnd.ms-excel;charset=utf-8'
+      );
+    }
+
+    if (option.key === 'csv') {
+      downloadBlob(
+        `\uFEFF${buildCsvReport(dateLabel)}`,
+        'bao-cao-hoat-dong-bai-xe.csv',
+        'text/csv;charset=utf-8'
+      );
+    }
+
+    setToastText(`Đã xuất ${option.label.toLowerCase()}`);
+    setToastVisible(true);
   };
 
   const handleApplyCustom = () => {
@@ -129,6 +317,7 @@ export default function ReportToolbar() {
     }
 
     setActiveRange('custom');
+    onRangeChange?.({ key: 'custom', from: customFrom, to: customTo });
     setCustomModalOpen(false);
     setDateDropdownOpen(false);
   };
