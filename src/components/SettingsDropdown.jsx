@@ -2,8 +2,8 @@ import { cloneElement, useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import Icon from './Icon';
 import { ROUTES } from '../constants/routes';
-import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/useAuth';
+import { useTheme } from '../contexts/useTheme';
 export default function SettingsDropdown({ trigger } = {}) {
     const { user, role } = useAuth();
     const { theme, toggleTheme } = useTheme();

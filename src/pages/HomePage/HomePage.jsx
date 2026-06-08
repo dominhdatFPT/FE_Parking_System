@@ -1,11 +1,102 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
+import ReportToolbar from '../../components/admin/ReportToolbar';
 
-const metrics = [
-  { label: 'Tổng chỗ đỗ', value: '1,250', icon: 'directions_car', badge: '+2.5%', badgeClass: 'bg-emerald-100 text-emerald-700', iconBg: 'bg-blue-100 text-blue-700' },
-  { label: 'Chỗ trống hiện tại', value: '184', icon: 'event_seat', badge: '85% Đầy', badgeClass: 'bg-slate-100 text-slate-700', iconBg: 'bg-slate-100 text-slate-700' },
-  { label: 'Doanh thu hôm nay', value: '42.5M', icon: 'payments', badge: '+12%', badgeClass: 'bg-emerald-100 text-emerald-700', iconBg: 'bg-cyan-100 text-cyan-700' },
-  { label: 'Lượt xe ra/vào', value: '3,892', icon: 'sync_alt', badge: '-0.8%', badgeClass: 'bg-rose-100 text-rose-700', iconBg: 'bg-slate-100 text-slate-700' },
-];
+const getSelectedRangeDates = (range) => {
+  const now = new Date();
+  const today = new Date(now);
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+
+  if (range.key === 'today') {
+    return { from: today, to: today };
+  }
+
+  if (range.key === 'yesterday') {
+    return { from: yesterday, to: yesterday };
+  }
+
+  if (range.key === 'past7') {
+    const from = new Date(now);
+    from.setDate(now.getDate() - 6);
+    return { from, to: today };
+  }
+
+  if (range.key === 'past30') {
+    const from = new Date(now);
+    from.setDate(now.getDate() - 29);
+    return { from, to: today };
+  }
+
+  if (range.key === 'custom' && range.from && range.to) {
+    return { from: new Date(range.from), to: new Date(range.to) };
+  }
+
+  return { from: today, to: today };
+};
+
+const buildMockDashboardData = ({ from, to }) => {
+  const diffDays = Math.max(
+    1,
+    Math.round((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)) + 1
+  );
+  const baseTraffic = 3200 + diffDays * 28;
+  const baseRevenue = 32 + diffDays * 0.55;
+  const availableBase = 170 - Math.min(80, diffDays * 2);
+  const carShare = 56 + ((diffDays % 5) - 2);
+  const bikeShare = 24 + ((diffDays % 4) - 1);
+  const evShare = Math.max(10, 100 - carShare - bikeShare);
+
+  const volume = Array.from({ length: 7 }, (_, index) => {
+    const variation = 35 + index * 7 + (diffDays % 6) * 3;
+    return Math.min(95, Math.max(20, variation));
+  });
+
+  return {
+    metrics: [
+      {
+        label: 'Tổng chỗ đỗ',
+        value: '1,250',
+        icon: 'directions_car',
+        badge: '+2.5%',
+        badgeClass: 'bg-emerald-100 text-emerald-700',
+        iconBg: 'bg-blue-100 text-blue-700',
+      },
+      {
+        label: 'Chỗ trống hiện tại',
+        value: `${Math.max(40, availableBase)}`,
+        icon: 'event_seat',
+        badge: diffDays > 14 ? '72% Đầy' : '85% Đầy',
+        badgeClass: 'bg-slate-100 text-slate-700',
+        iconBg: 'bg-slate-100 text-slate-700',
+      },
+      {
+        label: 'Doanh thu hôm nay',
+        value: `${baseRevenue.toFixed(1)}M`,
+        icon: 'payments',
+        badge: diffDays > 20 ? '+18%' : '+12%',
+        badgeClass: 'bg-emerald-100 text-emerald-700',
+        iconBg: 'bg-cyan-100 text-cyan-700',
+      },
+      {
+        label: 'Lượt xe ra/vào',
+        value: `${baseTraffic.toLocaleString('vi-VN')}`,
+        icon: 'sync_alt',
+        badge: diffDays > 20 ? '+5%' : '-0.8%',
+        badgeClass: diffDays > 20 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700',
+        iconBg: 'bg-slate-100 text-slate-700',
+      },
+    ],
+    volume,
+    distribution: [
+      { title: 'Ô tô', value: Math.max(45, Math.min(70, carShare)), statusClass: 'bg-blue-600' },
+      { title: 'Xe máy', value: Math.max(18, Math.min(35, bikeShare)), statusClass: 'bg-cyan-400' },
+      { title: 'Xe điện', value: Math.max(10, Math.min(25, evShare)), statusClass: 'bg-emerald-500' },
+    ],
+  };
+};
+
+const initialTodayDate = new Date().toISOString().slice(0, 10);
+const initialRange = { key: 'today', from: initialTodayDate, to: initialTodayDate };
 
 const activityRows = [
   { plate: '30F-123.45', time: '14:20:05', type: 'Vào', location: 'Tầng B1 - A05', status: 'Thành công', statusClass: 'bg-emerald-100 text-emerald-700' },
@@ -22,6 +113,12 @@ const devices = [
 ];
 
 export default function HomePage() {
+  const [selectedRange, setSelectedRange] = useState(initialRange);
+  const dashboardData = useMemo(
+    () => buildMockDashboardData(getSelectedRangeDates(selectedRange)),
+    [selectedRange]
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -33,17 +130,12 @@ export default function HomePage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <button className="rounded-3xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50" type="button">
-            Hôm nay: 24/05/2024
-          </button>
-          <button className="rounded-3xl bg-[#1e3a8a] px-4 py-2 text-sm font-semibold shadow-sm transition hover:bg-blue-800" type="button">
-            <span className="text-white">Xuất báo cáo</span>
-          </button>
+          <ReportToolbar onRangeChange={setSelectedRange} />
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((metric) => (
+        {dashboardData.metrics.map((metric) => (
           <article key={metric.label} className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm transition hover:border-blue-200">
             <div className="flex items-start justify-between gap-3">
               <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${metric.iconBg}`}>
@@ -74,7 +166,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-7 items-end gap-3 h-[240px]">
-            {[40, 65, 80, 95, 55, 85, 45].map((height, index) => (
+            {dashboardData.volume.map((height, index) => (
               <div key={index} className="flex flex-col items-center gap-3">
                 <div className="relative flex h-full w-full items-end rounded-3xl bg-slate-100">
                   <div className="absolute inset-x-0 bottom-0 rounded-3xl bg-blue-600 transition-all" style={{ height: `${height}%` }} />
