@@ -31,9 +31,9 @@ const DriverBooking = () => {
     if (isSelected) {
       baseClasses += "bg-[#6df0b2] border-[#4ce49f] text-slate-900 shadow-md transform scale-105";
     } else if (isBooked) {
-      baseClasses += "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed";
+      baseClasses += "bg-[#EF4444] border-[#EF4444] text-white cursor-not-allowed";
     } else {
-      baseClasses += "bg-white border-gray-200 text-slate-700 hover:border-slate-300 hover:shadow-sm";
+      baseClasses += "bg-white border-[#D1D5DB] text-slate-700 hover:border-slate-300 hover:shadow-sm";
     }
 
     return (
@@ -286,11 +286,11 @@ const DriverBooking = () => {
                     </div>
                     <div className="flex items-center gap-5 text-sm">
                       <div className="flex items-center gap-2">
-                        <div className="w-3.5 h-3.5 rounded bg-white border border-gray-300"></div>
+                        <div className="w-3.5 h-3.5 rounded bg-white border border-[#D1D5DB]"></div>
                         <span className="text-gray-500 font-medium">Trống</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-3.5 h-3.5 rounded bg-gray-200 border border-gray-300"></div>
+                        <div className="w-3.5 h-3.5 rounded bg-[#EF4444] border border-[#EF4444]"></div>
                         <span className="text-gray-500 font-medium">Đã đặt</span>
                       </div>
                       <div className="flex items-center gap-2">
