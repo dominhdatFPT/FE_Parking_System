@@ -83,7 +83,7 @@ export default function UserLoginPage() {
 
       navigate('/driver-dashboard');
     } catch (err) {
-      setError('Số điện thoại hoặc mật khẩu không chính xác');
+      setError('Email hoặc mật khẩu không chính xác');
       console.error('Login error:', err);
     } finally {
       setLoading(false);
@@ -196,13 +196,13 @@ export default function UserLoginPage() {
 
             <form className="grid gap-4" onSubmit={handleSubmit}>
               <label className={userFieldClass} htmlFor="resident-login">
-                <span className={userLabelClass}>Số điện thoại / Email</span>
+                <span className={userLabelClass}>Email</span>
                 <div className={userInputWrapClass}>
                   <span className={userInputIconClass}>person</span>
                   <input
                     className={userInputClass}
                     id="resident-login"
-                    placeholder="Nhập thông tin của bạn"
+                    placeholder="Nhập email của bạn"
                     type="text"
                     value={phone}
                     onChange={(event) => setPhone(event.target.value)}
