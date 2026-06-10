@@ -43,9 +43,9 @@ function RequireAdminRole({ children }) {
     return <Navigate to={ROUTES.ADMIN_LOGIN} replace state={{ from: location.pathname }} />;
   }
 
-  if (role !== 'admin') {
+if (role?.toLowerCase() !== 'admin') {
     return <Navigate to={ROUTES.FORBIDDEN} replace />;
-  }
+}
 
   return children;
 }

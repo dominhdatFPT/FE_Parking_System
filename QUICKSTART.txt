@@ -1,0 +1,48 @@
+# ====================================
+# Quick Start - Copy and paste to run!
+# ====================================
+
+# Windows - Run in Command Prompt or PowerShell
+docker-compose up -d --build
+
+# macOS / Linux - Run in Terminal
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f frontend
+
+# Access the app
+# Frontend: http://localhost:3000
+# Backend:  http://localhost:8080
+
+# Stop everything
+docker-compose down
+
+# ====================================
+# Using Make (Linux/macOS/Windows with MinGW)
+# ====================================
+
+make up              # Start
+make down            # Stop
+make logs            # View logs
+make shell-fe        # SSH into frontend
+
+# ====================================
+# Or use batch files (Windows only)
+# ====================================
+
+start.bat           # Start
+stop.bat            # Stop
+
+# ====================================
+# Environment Setup
+# ====================================
+
+# Copy .env.example to .env
+cp .env.example .env
+
+# Edit .env with your values
+nano .env
+
+# Then run
+docker-compose up -d --build

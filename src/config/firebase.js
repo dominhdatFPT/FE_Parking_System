@@ -3,12 +3,13 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 // TODO: Replace with your app's Firebase project configuration
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey : "AIzaSyCDaOUcNh4lW4K3Gmz0nzDqgqfqfEsyO2A" , 
+  authDomain : "smartparking-f628f.firebaseapp.com" , 
+  projectId : "smartparking-f628f" , 
+  storageBucket : "smartparking-f628f.firebasestorage.app" , 
+  messagingSenderId : "513359286602" , 
+  appId : "1:513359286602:web:e96c592069fc45d02771b3" , 
+  measurementId : "G-K8MJXDQ4CN"
 };
 
 // Initialize Firebase
