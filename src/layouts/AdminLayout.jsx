@@ -28,7 +28,14 @@ export default function AdminLayout() {
       <aside className="w-64 flex-shrink-0 bg-slate-900 text-white shadow-lg lg:sticky lg:top-0 lg:h-screen">
         <div className="flex h-full flex-col p-4">
           <div>
-            <div className="flex items-center gap-3 border-b border-slate-700 pb-4">
+            <div 
+              className="flex items-center gap-3 border-b border-slate-700 pb-4 cursor-pointer" 
+              onClick={() => {
+                navigate(ROUTES.ADMIN.DASHBOARD);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }} 
+              title="Trang chủ quản trị"
+            >
               <img
                 alt="Parking System Logo"
                 className="h-10 w-10 object-contain"

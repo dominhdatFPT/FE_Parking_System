@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-const ThemeContext = createContext(undefined);
+import React, { useEffect, useMemo, useState } from 'react';
+import { ThemeContext } from './ThemeContextCore';
 function getInitialTheme() {
     if (typeof window === 'undefined')
         return 'light';
@@ -22,11 +22,4 @@ export function ThemeProvider({ children }) {
         setTheme,
     }), [theme]);
     return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
-}
-export function useTheme() {
-    const context = useContext(ThemeContext);
-    if (!context) {
-        throw new Error('useTheme must be used within ThemeProvider');
-    }
-    return context;
 }

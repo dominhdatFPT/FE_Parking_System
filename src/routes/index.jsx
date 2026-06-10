@@ -1,5 +1,5 @@
-import { Navigate, Route, Routes } from 'react-router';
-import { useAuth } from '../contexts/AuthContext';
+import { Navigate, Route, Routes, useLocation } from 'react-router';
+import { useAuth } from '../contexts/useAuth';
 import { ROUTES } from '../constants/routes';
 import MainLayout from '../layouts/MainLayout';
 import AdminLayout from '../layouts/AdminLayout';
@@ -37,14 +37,15 @@ function RequireAuth({ children }) {
 
 function RequireAdminRole({ children }) {
   const { role, isAuthenticated } = useAuth();
+  const location = useLocation();
 
   if (!isAuthenticated) {
-    return <Navigate to={ROUTES.LOGIN} replace />;
+    return <Navigate to={ROUTES.ADMIN_LOGIN} replace state={{ from: location.pathname }} />;
   }
 
-  if (role !== 'admin') {
+if (role?.toLowerCase() !== 'admin') {
     return <Navigate to={ROUTES.FORBIDDEN} replace />;
-  }
+}
 
   return children;
 }

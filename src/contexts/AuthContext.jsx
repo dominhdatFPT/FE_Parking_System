@@ -1,40 +1,40 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-
-const AuthContext = createContext(undefined);
-
-// Bật cờ này thành true để bỏ qua bước đăng nhập trong quá trình code/test API
-const DEV_MODE_BYPASS_AUTH = true;
-
-const DEFAULT_USER = {
-    id: 'dev-bypass',
-    email: 'dev@parking.ai',
-    fullName: 'Developer Mode',
-    role: 'admin',
-};
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { AuthContext } from './AuthContextCore';
 
 function readInitialUser() {
-    if (typeof window === 'undefined')
-        return DEV_MODE_BYPASS_AUTH ? DEFAULT_USER : null;
-    const stored = window.localStorage.getItem('smart-parking-user');
-    if (!stored || stored === 'null' || stored === 'undefined')
-        return DEV_MODE_BYPASS_AUTH ? DEFAULT_USER : null;
-    try {
-        const parsed = JSON.parse(stored);
-        return parsed ? parsed : (DEV_MODE_BYPASS_AUTH ? DEFAULT_USER : null);
+    if (typeof window === 'undefined') return null;
+
+    const sessionStored = window.sessionStorage.getItem('smart-parking-user');
+    if (sessionStored && sessionStored !== 'null' && sessionStored !== 'undefined') {
+        try { return JSON.parse(sessionStored); } catch {}
     }
-    catch {
-        return DEV_MODE_BYPASS_AUTH ? DEFAULT_USER : null;
+
+    const localStored = window.localStorage.getItem('smart-parking-user');
+    if (localStored && localStored !== 'null' && localStored !== 'undefined') {
+        try { return JSON.parse(localStored); } catch {}
     }
+
+    return null;
 }
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(readInitialUser);
 
     useEffect(() => {
+        const rememberMe = window.localStorage.getItem('rememberMe') === 'true';
+        
         if (user) {
-            window.localStorage.setItem('smart-parking-user', JSON.stringify(user));
+            if (rememberMe) {
+                window.localStorage.setItem('smart-parking-user', JSON.stringify(user));
+                window.sessionStorage.removeItem('smart-parking-user');
+            } else {
+                window.sessionStorage.setItem('smart-parking-user', JSON.stringify(user));
+                window.localStorage.removeItem('smart-parking-user');
+            }
         } else {
             window.localStorage.removeItem('smart-parking-user');
+            window.sessionStorage.removeItem('smart-parking-user');
+            window.localStorage.removeItem('rememberMe');
         }
     }, [user]);
 
@@ -54,9 +54,3 @@ export function AuthProvider({ children }) {
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
-    const ctx = useContext(AuthContext);
-    if (!ctx)
-        throw new Error('useAuth must be used within AuthProvider');
-    return ctx;
-}

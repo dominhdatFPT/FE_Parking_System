@@ -9,41 +9,44 @@ const heroCards = [
     title: 'Tìm kiếm dễ dàng',
     description:
       'Hệ thống định vị thông minh giúp bạn tìm thấy vị trí đỗ xe trống gần nhất chỉ trong vài giây qua ứng dụng di động.',
+    path: '/login',
   },
   {
     icon: 'event_available',
     title: 'Đặt chỗ nhanh chóng',
     description:
       'Tính năng đặt chỗ trước đảm bảo bạn luôn có vị trí đỗ xe sẵn sàng, tiết kiệm thời gian trong giờ cao điểm.',
+    path: '/login',
   },
   {
     icon: 'qr_code_2',
     title: 'Vé điện tử tiện lợi',
     description:
       'Mọi thông tin lượt gửi và thanh toán đều được tích hợp trên mã QR bảo mật, không còn lo mất vé giấy.',
+    path: '/login',
   },
 ];
 
-const spots = [
-  ['A01', 'occupied'],
-  ['A02', 'occupied'],
-  ['A03', 'available'],
-  ['A04', 'available'],
-  ['A05', 'pending'],
-  ['A06', 'available'],
-  ['A07', 'occupied'],
-  ['A08', 'available'],
-  ['A09', 'available'],
-  ['A10', 'available'],
-  ['A11', 'available'],
-  ['A12', 'occupied'],
-  ['A13', 'available'],
-  ['A14', 'available'],
-  ['A15', 'occupied'],
-  ['A16', 'occupied'],
-  ['A17', 'pending'],
-  ['A18', 'available'],
-];
+const spotsByFloor = {
+  B1: [
+    ['A01', 'occupied'], ['A02', 'occupied'], ['A03', 'available'], ['A04', 'available'], ['A05', 'pending'],
+    ['A06', 'available'], ['A07', 'occupied'], ['A08', 'available'], ['A09', 'available'], ['A10', 'available'],
+    ['A11', 'available'], ['A12', 'occupied'], ['A13', 'available'], ['A14', 'available'], ['A15', 'occupied'],
+    ['A16', 'occupied'], ['A17', 'pending'], ['A18', 'available'],
+  ],
+  B2: [
+    ['B01', 'available'], ['B02', 'available'], ['B03', 'occupied'], ['B04', 'available'], ['B05', 'available'],
+    ['B06', 'occupied'], ['B07', 'occupied'], ['B08', 'pending'], ['B09', 'available'], ['B10', 'available'],
+    ['B11', 'occupied'], ['B12', 'available'], ['B13', 'available'], ['B14', 'pending'], ['B15', 'available'],
+    ['B16', 'available'], ['B17', 'occupied'], ['B18', 'available'],
+  ],
+  B3: [
+    ['C01', 'occupied'], ['C02', 'pending'], ['C03', 'available'], ['C04', 'occupied'], ['C05', 'available'],
+    ['C06', 'available'], ['C07', 'available'], ['C08', 'available'], ['C09', 'occupied'], ['C10', 'available'],
+    ['C11', 'pending'], ['C12', 'available'], ['C13', 'occupied'], ['C14', 'available'], ['C15', 'available'],
+    ['C16', 'occupied'], ['C17', 'available'], ['C18', 'pending'],
+  ]
+};
 
 const stats = [
   { label: 'Tổng vị trí', value: '450', icon: 'local_parking', tone: 'primary' },
@@ -53,32 +56,45 @@ const stats = [
 
 const announcements = [
   {
-    day: '15',
-    month: 'TH05',
-    badge: 'Khẩn cấp',
-    tone: 'danger',
+    day: '15', month: 'TH05', badge: 'Khẩn cấp', tone: 'danger',
     title: 'Bảo trì hệ thống thanh toán tự động',
-    description:
-      'Hệ thống thanh toán qua ví điện tử sẽ tạm ngưng hoạt động từ 00:00 đến 04:00 ngày 16/05 để nâng cấp bảo mật.',
+    description: 'Hệ thống thanh toán qua ví điện tử sẽ tạm ngưng hoạt động từ 00:00 đến 04:00 ngày 16/05 để nâng cấp bảo mật.',
   },
   {
-    day: '12',
-    month: 'TH05',
-    badge: 'Thông tin',
-    tone: 'info',
+    day: '12', month: 'TH05', badge: 'Thông tin', tone: 'info',
     title: 'Mở thêm khu vực đỗ xe máy tại Tầng B3',
-    description:
-      'Nhằm phục vụ nhu cầu tăng cao, khu vực B3-C đã được chuyển đổi thành bãi đỗ xe máy với sức chứa thêm 200 xe.',
+    description: 'Nhằm phục vụ nhu cầu tăng cao, khu vực B3-C đã được chuyển đổi thành bãi đỗ xe máy với sức chứa thêm 200 xe.',
   },
   {
-    day: '10',
-    month: 'TH05',
-    badge: 'Chính sách',
-    tone: 'policy',
+    day: '10', month: 'TH05', badge: 'Chính sách', tone: 'policy',
     title: 'Cập nhật biểu phí gửi xe tháng cho cư dân',
-    description:
-      'Bắt đầu từ tháng 06, biểu phí đăng ký thẻ tháng sẽ có sự điều chỉnh nhẹ. Vui lòng xem chi tiết tại văn phòng quản lý.',
+    description: 'Bắt đầu từ tháng 06, biểu phí đăng ký thẻ tháng sẽ có sự điều chỉnh nhẹ. Vui lòng xem chi tiết tại văn phòng quản lý.',
   },
+  {
+    day: '08', month: 'TH05', badge: 'Bảo trì', tone: 'maintenance',
+    title: 'Nâng cấp camera an ninh khu vực B1–B2',
+    description: 'Hệ thống camera tại tầng B1 và B2 sẽ được thay thế toàn bộ vào ngày 09/05. Hoạt động gửi xe vẫn bình thường.',
+  },
+  {
+    day: '05', month: 'TH05', badge: 'Thông tin', tone: 'info',
+    title: 'Lịch vệ sinh bãi xe định kỳ tháng 5',
+    description: 'Công tác vệ sinh định kỳ diễn ra vào mỗi thứ 7 hàng tuần trong tháng 5, từ 6:00 đến 8:00 sáng.',
+  },
+  {
+    day: '01', month: 'TH05', badge: 'Mới', tone: 'new',
+    title: 'Ra mắt tính năng đặt chỗ theo giờ',
+    description: 'Người dùng có thể đặt trước vị trí đỗ xe theo khung giờ cụ thể ngay trên ứng dụng di động từ ngày 01/05.',
+  },
+  {
+    day: '28', month: 'TH04', badge: 'Chính sách', tone: 'policy',
+    title: 'Quy định mới về xe quá khổ tại tầng hầm',
+    description: 'Xe có chiều cao trên 1.9m không được phép vào tầng B2 và B3. Vui lòng sử dụng bãi đỗ ngoài trời khu vực A.',
+  },
+  {
+    day: '20', month: 'TH04', badge: 'Khẩn cấp', tone: 'danger',
+    title: 'Sự cố mất điện cục bộ tầng B1 đã được khắc phục',
+    description: 'Sự cố mất điện xảy ra lúc 14:30 ngày 20/04 đã được xử lý hoàn toàn sau 45 phút. Hệ thống hoạt động bình thường.',
+  }
 ];
 
 const glassCardClass =
@@ -129,7 +145,11 @@ function badgeClass(tone) {
       ? 'bg-[#ffdad6] text-[#93000a]'
       : tone === 'info'
         ? 'bg-[#c9e6ff] text-[#001e2f]'
-        : 'bg-[#dbe1ff] text-[#00174b]';
+        : tone === 'maintenance'
+          ? 'bg-amber-100 text-amber-800'
+          : tone === 'new'
+            ? 'bg-emerald-100 text-emerald-800'
+            : 'bg-[#dbe1ff] text-[#00174b]';
 
   return `rounded px-2 py-0.5 text-[10px] font-bold uppercase ${toneClass}`;
 }
@@ -137,23 +157,65 @@ function badgeClass(tone) {
 export default function WelcomePage() {
   const navigate = useNavigate();
   const [selectedFloor, setSelectedFloor] = useState('B1');
+  const [activeTab, setActiveTab] = useState('trang-chu');
+  const [showAllAnnouncements, setShowAllAnnouncements] = useState(false);
+  const [announcementFilter, setAnnouncementFilter] = useState('Tất cả');
+
+  const filterOptions = ['Tất cả', 'Khẩn cấp', 'Thông tin', 'Chính sách', 'Bảo trì', 'Mới'];
+
+  const filteredAnnouncements = announcements.filter(item => 
+    announcementFilter === 'Tất cả' || item.badge === announcementFilter
+  );
+  
+  const displayedAnnouncements = showAllAnnouncements 
+    ? filteredAnnouncements 
+    : announcements.slice(0, 3);
+
+  const handleNavClick = (e, id) => {
+    e.preventDefault();
+    setActiveTab(id);
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#f7f9fb] text-[#191c1e]">
       <header className="fixed top-0 left-0 z-50 grid h-16 w-full grid-cols-[minmax(180px,1fr)_auto_minmax(280px,1fr)] items-center gap-6 border-b border-[#c6c6cd] bg-[#f7f9fb]/95 px-8 backdrop-blur max-[980px]:grid-cols-[1fr_auto] max-[720px]:h-auto max-[720px]:min-h-16 max-[720px]:px-4 max-[720px]:py-2.5">
-        <div className="flex items-center gap-4">
+        <div 
+          className="flex items-center gap-4 cursor-pointer" 
+          onClick={() => {
+            navigate('/');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setActiveTab('trang-chu');
+          }} 
+          title="Trang chủ"
+        >
           <img className="h-10 w-10 rounded-full object-cover" alt="Parking System Logo" src={logoUrl} />
           <span className="text-lg font-bold leading-6 text-[#0051d5]">Parking System</span>
         </div>
 
         <nav className="flex justify-center gap-8 max-[980px]:hidden" aria-label="Điều hướng trang chủ">
-          <a className="text-base font-semibold leading-6 text-[#0051d5] no-underline transition hover:text-[#0051d5]" href="#trang-chu">
+          <a 
+            className={`text-base font-semibold leading-6 no-underline transition hover:text-[#0051d5] ${activeTab === 'trang-chu' ? 'text-[#0051d5]' : 'text-[#45464d]'}`} 
+            href="#trang-chu"
+            onClick={(e) => handleNavClick(e, 'trang-chu')}
+          >
             Trang chủ
           </a>
-          <a className="text-base font-semibold leading-6 text-[#45464d] no-underline transition hover:text-[#0051d5]" href="#thong-tin-bai">
+          <a 
+            className={`text-base font-semibold leading-6 no-underline transition hover:text-[#0051d5] ${activeTab === 'thong-tin-bai' ? 'text-[#0051d5]' : 'text-[#45464d]'}`} 
+            href="#thong-tin-bai"
+            onClick={(e) => handleNavClick(e, 'thong-tin-bai')}
+          >
             Thông tin bãi
           </a>
-          <a className="text-base font-semibold leading-6 text-[#45464d] no-underline transition hover:text-[#0051d5]" href="#thong-bao">
+          <a 
+            className={`text-base font-semibold leading-6 no-underline transition hover:text-[#0051d5] ${activeTab === 'thong-bao' ? 'text-[#0051d5]' : 'text-[#45464d]'}`} 
+            href="#thong-bao"
+            onClick={(e) => handleNavClick(e, 'thong-bao')}
+          >
             Thông báo của Admin
           </a>
         </nav>
@@ -173,17 +235,11 @@ export default function WelcomePage() {
           >
             <span className="text-white">Đăng nhập</span>
           </button>
-          <button aria-label="Ngôn ngữ" className="grid min-h-9 w-9 cursor-pointer place-items-center rounded border-0 bg-transparent text-[#45464d] transition hover:bg-[#eceef0] hover:text-[#0051d5] active:scale-95 max-[720px]:hidden" type="button">
-            <span className="material-symbols-outlined">language</span>
-          </button>
-          <button aria-label="Trợ giúp" className="grid min-h-9 w-9 cursor-pointer place-items-center rounded border-0 bg-transparent text-[#45464d] transition hover:bg-[#eceef0] hover:text-[#0051d5] active:scale-95 max-[720px]:hidden" type="button">
-            <span className="material-symbols-outlined">help</span>
-          </button>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-7xl px-6 pt-24 pb-16 max-[720px]:px-4 max-[720px]:pb-12">
-        <section className="mb-20" id="trang-chu">
+        <section className="mb-20 scroll-mt-28" id="trang-chu">
           <div className="mb-16 grid grid-cols-[minmax(0,1fr)_minmax(420px,1fr)] items-center gap-12 max-[980px]:grid-cols-1">
             <div>
               <h1 className="mb-6 text-4xl font-bold leading-[44px] text-black max-[720px]:text-[30px] max-[720px]:leading-[38px]">
@@ -194,7 +250,11 @@ export default function WelcomePage() {
                 giúp tối ưu hóa không gian đỗ xe và nâng cao trải nghiệm người dùng với
                 tính chính xác tuyệt đối.
               </p>
-              <a className="inline-flex min-h-12 items-center gap-2 rounded bg-[#1e3a8a] px-8 py-3 text-xs font-bold uppercase tracking-[0.05em] no-underline hover:bg-blue-800 transition-colors" href="#thong-tin-bai">
+              <a 
+                className="inline-flex min-h-12 items-center gap-2 rounded bg-[#1e3a8a] px-8 py-3 text-xs font-bold uppercase tracking-[0.05em] no-underline hover:bg-blue-800 transition-colors" 
+                href="#thong-tin-bai"
+                onClick={(e) => handleNavClick(e, 'thong-tin-bai')}
+              >
                 <span className="text-white">Khám phá ngay</span>
                 <span className="material-symbols-outlined text-white">arrow_forward</span>
               </a>
@@ -209,16 +269,24 @@ export default function WelcomePage() {
 
           <div className="grid grid-cols-3 gap-4 max-[980px]:grid-cols-1">
             {heroCards.map((card) => (
-              <article className={`${glassCardClass} rounded-lg border-l-4 border-l-[#0051d5] p-8`} key={card.title}>
-                <span className="material-symbols-outlined mb-4 text-[40px] text-[#0051d5]">{card.icon}</span>
+              <article 
+                className={`group ${glassCardClass} flex flex-col rounded-lg border-l-4 border-l-[#0051d5] p-8 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(0,81,213,0.15)]`} 
+                key={card.title}
+                onClick={() => navigate(card.path)}
+              >
+                <span className="material-symbols-outlined mb-4 text-[40px] text-[#0051d5] transition-transform duration-300 group-hover:scale-110">{card.icon}</span>
                 <h2 className="mb-2 text-lg leading-6 text-black">{card.title}</h2>
-                <p className="text-sm leading-5 text-[#45464d]">{card.description}</p>
+                <p className="flex-1 text-sm leading-5 text-[#45464d]">{card.description}</p>
+                <div className="mt-6 flex items-center gap-2 text-[#0051d5] font-semibold text-sm opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                  <span>Trải nghiệm ngay</span>
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </div>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="mb-20" id="thong-tin-bai">
+        <section className="mb-20 scroll-mt-28" id="thong-tin-bai">
           <div className="mb-8 flex items-end justify-between gap-6 max-[980px]:flex-col max-[980px]:items-start">
             <div>
               <h2 className="m-0 text-2xl font-semibold leading-8 text-black">Tình Trạng Bãi Đỗ Xe</h2>
@@ -252,21 +320,21 @@ export default function WelcomePage() {
               </div>
 
               <div className="grid grid-cols-[repeat(10,40px)] gap-2 overflow-x-auto rounded-lg border border-[#c6c6cd] bg-[#f2f4f6] p-4">
-                {spots.slice(0, 5).map(([id, status]) => (
+                {spotsByFloor[selectedFloor].slice(0, 5).map(([id, status]) => (
                   <span className={spotClass(status)} key={id}>{id}</span>
                 ))}
                 <span className="h-[60px] w-10" />
-                {spots.slice(5, 9).map(([id, status]) => (
+                {spotsByFloor[selectedFloor].slice(5, 9).map(([id, status]) => (
                   <span className={spotClass(status)} key={id}>{id}</span>
                 ))}
                 <div className="col-span-full flex h-8 items-center justify-center border-y border-dashed border-[#76777d] text-[10px] font-bold uppercase tracking-[0.5em] text-[#76777d]">
                   Lối đi chính
                 </div>
-                {spots.slice(9, 14).map(([id, status]) => (
+                {spotsByFloor[selectedFloor].slice(9, 14).map(([id, status]) => (
                   <span className={spotClass(status)} key={id}>{id}</span>
                 ))}
                 <span className="h-[60px] w-10" />
-                {spots.slice(14).map(([id, status]) => (
+                {spotsByFloor[selectedFloor].slice(14).map(([id, status]) => (
                   <span className={spotClass(status)} key={id}>{id}</span>
                 ))}
               </div>
@@ -286,15 +354,40 @@ export default function WelcomePage() {
           </div>
         </section>
 
-        <section className="mb-20" id="thong-bao">
-          <div className="mb-8 flex items-center gap-3">
-            <span className="material-symbols-outlined text-[#0051d5]">campaign</span>
-            <h2 className="m-0 text-2xl font-semibold leading-8 text-black">Thông báo của Admin</h2>
+        <section className="mb-20 scroll-mt-28" id="thong-bao">
+          <div className="mb-8 flex items-center justify-between gap-6 max-[720px]:flex-col max-[720px]:items-start">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-[#0051d5]">campaign</span>
+              <div>
+                <h2 className="m-0 text-2xl font-semibold leading-8 text-black">Thông báo của Admin</h2>
+                {showAllAnnouncements && (
+                  <p className="mt-1 text-sm font-medium text-[#45464d]">{filteredAnnouncements.length} thông báo</p>
+                )}
+              </div>
+            </div>
+
+            {showAllAnnouncements && (
+              <div className="flex flex-wrap gap-2">
+                {filterOptions.map((filter) => (
+                  <button
+                    key={filter}
+                    onClick={() => setAnnouncementFilter(filter)}
+                    className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
+                      announcementFilter === filter
+                        ? 'bg-gradient-to-r from-emerald-400 to-green-500 text-black shadow-md'
+                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {filter}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="grid gap-4">
-            {announcements.map((item) => (
-              <article className={`${glassCardClass} grid cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-6 rounded-lg p-6 transition hover:border-[#0051d5] max-[720px]:grid-cols-[1fr_auto]`} key={item.title}>
+            {displayedAnnouncements.map((item) => (
+              <article className={`${glassCardClass} grid cursor-pointer grid-cols-[auto_minmax(0,1fr)] items-center gap-6 rounded-lg p-6 transition hover:border-[#0051d5] max-[720px]:grid-cols-[1fr]`} key={item.title}>
                 <div className="grid min-w-[72px] justify-items-center border-r border-[#c6c6cd] pr-4 max-[720px]:col-span-full max-[720px]:justify-items-start max-[720px]:border-r-0 max-[720px]:border-b max-[720px]:pb-3 max-[720px]:pr-0">
                   <strong className="text-2xl leading-8 text-[#0051d5]">{item.day}</strong>
                   <span className="text-xs font-bold">{item.month}</span>
@@ -306,14 +399,20 @@ export default function WelcomePage() {
                   </div>
                   <p className="m-0 text-sm leading-5 text-[#45464d]">{item.description}</p>
                 </div>
-                <span className="material-symbols-outlined">chevron_right</span>
               </article>
             ))}
           </div>
 
           <div className="mt-8 text-center">
-            <button className="cursor-pointer border-0 bg-transparent text-xs font-bold uppercase tracking-[0.05em] text-[#0051d5] hover:underline" type="button">
-              Xem tất cả thông báo
+            <button 
+              className="cursor-pointer border-0 bg-transparent text-xs font-bold uppercase tracking-[0.05em] text-[#0051d5] hover:underline" 
+              type="button"
+              onClick={() => {
+                setShowAllAnnouncements(!showAllAnnouncements);
+                if (showAllAnnouncements) setAnnouncementFilter('Tất cả');
+              }}
+            >
+              {showAllAnnouncements ? 'Thu gọn' : 'Xem tất cả thông báo'}
             </button>
           </div>
         </section>

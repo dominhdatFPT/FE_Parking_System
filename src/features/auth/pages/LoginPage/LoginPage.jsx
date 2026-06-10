@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useAuth } from '../../../../contexts/AuthContext';
+import { useAuth } from '../../../../contexts/useAuth';
 import { login } from '../../../../services/modules/authService';
 import { ROUTES } from '../../../../constants/routes';
 import { STORAGE_KEYS } from '../../../../constants/storageKeys';
@@ -52,57 +52,37 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
 
-  const SAMPLE_ADMIN_EMAIL = 'dat@example.com';
-  const SAMPLE_ADMIN_PASSWORD = 'admin2026';
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      if (
-        email.trim().toLowerCase() === SAMPLE_ADMIN_EMAIL &&
-        password === SAMPLE_ADMIN_PASSWORD
-      ) {
-        const sampleToken = 'sample-admin-token';
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, sampleToken);
-        setUser({
-          id: 'u-001',
-          fullName: 'Đỗ Minh Đạt',
-          email: SAMPLE_ADMIN_EMAIL,
-          role: 'admin',
-          avatarUrl:
-            'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=96&q=80',
-        });
-
-        if (rememberMe) {
-          localStorage.setItem('rememberMe', 'true');
-        }
-
-        navigate(ROUTES.ADMIN.DASHBOARD);
-        return;
-      }
-
       const response = await login(email, password);
 
-      if (response.token) {
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
-        setUser({
-          id: 'u-001',
-          fullName: 'Đỗ Minh Đạt',
-          email,
-          role: 'admin',
-          avatarUrl:
-            'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=96&q=80',
-        });
-
-        if (rememberMe) {
-          localStorage.setItem('rememberMe', 'true');
-        }
-
-        navigate(ROUTES.ADMIN.DASHBOARD);
+      if (!response?.token) {
+        throw new Error('Không nhận được token từ máy chủ');
       }
+
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
+
+      const authenticatedUser = {
+        id: response.user?.id ?? response.id ?? email,
+        fullName: response.user?.fullName ?? response.fullName ?? response.user?.name ?? 'Quản trị viên',
+        email: response.user?.email ?? response.email ?? email,
+        role: response.user?.role ?? response.role ?? 'admin',
+        avatarUrl:
+          response.user?.avatarUrl ?? response.avatarUrl ??
+          'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=96&q=80',
+      };
+
+      setUser(authenticatedUser);
+
+      if (rememberMe) {
+        localStorage.setItem('rememberMe', 'true');
+      }
+
+      navigate(ROUTES.ADMIN.DASHBOARD);
     } catch (err) {
       setError('Email hoặc mật khẩu không chính xác');
       console.error('Login error:', err);
@@ -112,7 +92,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f7f9fb] text-[#191c1e]">
+    <div className="flex h-screen overflow-hidden flex-col bg-[#f7f9fb] text-[#191c1e]">
       <main className="grid min-h-[calc(100vh-64px)] flex-1 grid-cols-[minmax(0,1fr)_minmax(440px,1fr)] overflow-hidden max-[980px]:grid-cols-1">
         <section
           className="relative flex items-center justify-center overflow-hidden bg-[#131b2e] p-12 text-white max-[980px]:hidden"
