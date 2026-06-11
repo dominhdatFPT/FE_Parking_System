@@ -62,10 +62,12 @@ export default function UserLoginPage() {
       }
 
       const authenticatedUser = {
-        id: response.user?.id ?? response.id ?? phone,
+        id: response.user?.id ?? response.userId ?? response.id ?? phone,
         fullName: response.user?.fullName ?? response.fullName ?? response.user?.name ?? 'Người dùng',
         email: response.user?.email ?? response.email ?? phone,
-        role: response.user?.role ?? response.role ?? 'driver',
+        role: (response.user?.role ?? response.role)?.toLowerCase() === 'user'
+          ? 'driver'
+          : response.user?.role ?? response.role ?? 'driver',
         avatarUrl:
           response.user?.avatarUrl ?? response.avatarUrl ??
           'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=96&q=80',
@@ -81,7 +83,7 @@ export default function UserLoginPage() {
 
       navigate('/driver-dashboard');
     } catch (err) {
-      setError('Số điện thoại hoặc mật khẩu không chính xác');
+      setError('Email hoặc mật khẩu không chính xác');
       console.error('Login error:', err);
     } finally {
       setLoading(false);
@@ -194,13 +196,13 @@ export default function UserLoginPage() {
 
             <form className="grid gap-4" onSubmit={handleSubmit}>
               <label className={userFieldClass} htmlFor="resident-login">
-                <span className={userLabelClass}>Số điện thoại / Email</span>
+                <span className={userLabelClass}>Email</span>
                 <div className={userInputWrapClass}>
                   <span className={userInputIconClass}>person</span>
                   <input
                     className={userInputClass}
                     id="resident-login"
-                    placeholder="Nhập thông tin của bạn"
+                    placeholder="Nhập email của bạn"
                     type="text"
                     value={phone}
                     onChange={(event) => setPhone(event.target.value)}
