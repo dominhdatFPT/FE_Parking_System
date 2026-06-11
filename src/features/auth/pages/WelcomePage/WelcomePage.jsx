@@ -6,148 +6,212 @@ import {
   BatteryCharging, Maximize, Bell, ChevronRight, ChevronDown, Info,
   TrendingUp, TrendingDown, Activity, BarChart3, Users, 
   LayoutDashboard, LogIn, UserPlus, Facebook, Github, Check,
-  AlertCircle
+  AlertCircle, Sparkles, Search, Filter, X
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 // --- DICTIONARY (i18n) ---
 const translations = {
   VN: {
-    nav: { home: "Trang chủ", dashboard: "Bảng điều khiển", notice: "Thông báo", pricing: "Biểu phí", login: "Đăng nhập", signup: "Đăng ký" },
+    nav: { home: "Trang chủ", dashboard: "Bảng điều khiển", notice: "Thông báo", explore: "Khám phá", login: "Đăng nhập", signup: "Đăng ký" },
     hero: { badge: "Hệ thống đang hoạt động 24/7", title1: "Quản lý bãi đỗ xe", title2: "tòa nhà thông minh", desc: "Nền tảng Smart Parking dành cho chung cư, văn phòng và trung tâm thương mại với nhận diện biển số LPR, đặt chỗ trước và thanh toán không chạm.", f1: "Thanh toán không chạm", f2: "Nhận diện biển số LPR", f3: "Theo dõi thời gian thực" },
     kpi: { 
-      c1: { title: "Chỗ trống hiện tại", unit: "chỗ" }, 
-      c2: { title: "Xe đang gửi", unit: "xe" }, 
-      c3: { title: "Tỷ lệ lấp đầy", unit: "%" },
+      c1: { title: "Tổng số Slot", unit: "chỗ" }, 
+      c2: { title: "Slot còn trống", unit: "chỗ" }, 
+      c3: { title: "Lượt xe hôm nay", unit: "lượt" },
+      c4: { title: "AI Dự báo cao điểm", unit: "" },
       vsYesterday: "so với hôm qua"
     },
     live: {
       liveStatus: "LIVE", lastUpdate: "Cập nhật lần cuối:"
     },
-    occupancy: {
-      title: "Tổng quan công suất bãi xe", systemOccupancy: "Toàn hệ thống", 
-      availableSlots: "Chỗ trống", totalCapacity: "Sức chứa"
-    },
-    alert: {
-      title: "Cảnh báo hệ thống"
-    },
     trend: {
       title: "Xu hướng sử dụng bãi xe"
     },
     floor: {
-      title: "Quản lý theo tầng", statusNormal: "Còn nhiều chỗ", statusMedium: "Trung bình", statusFull: "Gần đầy"
+      title: "Quản lý khu vực", statusNormal: "Còn nhiều chỗ", statusMedium: "Trung bình", statusFull: "Gần đầy"
     },
     mapOverview: {
-      title: "Sơ đồ bãi xe mô phỏng", empty: "Trống", occupied: "Có xe", reserved: "Đặt trước", floor: "Tầng", zone: "Tòa"
+      title: "Sơ đồ bãi xe thông minh", 
+      searchPlaceholder: "Tìm mã slot, ô tô, xe máy...",
+      filters: {
+        all: "Tất cả", available: "Trống", occupied: "Có xe", reserved: "Đặt trước", maintenance: "Bảo trì",
+        car: "Ô tô", moto: "Xe máy"
+      },
+      zone: "Khu",
+      floor: "Tầng",
+      empty: "Trống", occupied: "Có xe", reserved: "Đặt trước"
     },
-    realtime: {
-      title: "Trạng thái xe chi tiết", car: "Ô tô", moto: "Xe máy", ev: "Xe điện (Sạc)",
-      statusNormal: "Còn nhiều chỗ", statusMedium: "Trung bình", statusFull: "Gần đầy"
+    aiInsights: {
+      title: "AI Smart Insights", 
+      recommendation: "Đề xuất vận hành",
+      data: [
+        { id: 1, type: 'warning', title: 'Zone A sắp đầy (95%)', desc: 'Dự kiến hết chỗ trống trong 15 phút tới.', color: 'red' },
+        { id: 2, type: 'info', title: 'Lưu lượng xe tăng cao', desc: 'Lượng xe ô tô tăng 12% so với cùng kỳ tuần trước.', color: 'sky' },
+        { id: 3, type: 'action', title: 'Đề xuất phân luồng', desc: 'Nên điều hướng xe ô tô mới sang Zone B (còn 40 slot trống).', color: 'emerald' },
+        { id: 4, type: 'prediction', title: 'Dự báo cao điểm', desc: 'Khung giờ cao điểm tiếp theo: 17:00 - 19:00', color: 'orange' }
+      ]
     },
     notice: {
       title: "Thông báo từ Ban Quản Lý", viewAll: "Xem tất cả", readMore: "Đọc tiếp",
       data: [
-        { id: 1, date: '15/06 08:30', title: 'Bảo trì hệ thống thanh toán tự động', type: 'Khẩn cấp', tone: 'red', desc: 'Hệ thống thanh toán qua ví điện tử sẽ tạm ngưng hoạt động từ 00:00 đến 04:00 ngày 16/06 để nâng cấp bảo mật.' },
-        { id: 2, date: '12/06 14:00', title: 'Mở thêm khu vực đỗ xe máy tại Tầng B3', type: 'Thông tin', tone: 'sky', desc: 'Nhằm phục vụ nhu cầu tăng cao, khu vực B3-C đã được chuyển đổi thành bãi đỗ xe máy với sức chứa thêm 200 xe.' },
-        { id: 3, date: '10/06 09:15', title: 'Cập nhật biểu phí gửi xe tháng', type: 'Chính sách', tone: 'orange', desc: 'Bắt đầu từ tháng 07, biểu phí đăng ký thẻ tháng sẽ có sự điều chỉnh nhẹ.' }
+        { id: 1, date: '15/06 08:30', title: 'Bảo trì hệ thống camera tại Zone B', type: 'Thông tin', tone: 'orange', desc: 'Hệ thống LPR tại Zone B sẽ bảo trì từ 00:00 đến 04:00 ngày 16/06.', fullContent: 'Kính gửi quý khách,\n\nNhằm nâng cao chất lượng dịch vụ và độ chính xác của hệ thống nhận diện biển số (LPR), Ban Quản Lý sẽ tiến hành bảo trì định kỳ camera tại khu vực Zone B.\n\nThời gian bảo trì: Từ 00:00 đến 04:00 sáng ngày 16/06.\n\nTrong thời gian này, barie tự động có thể hoạt động chậm hơn bình thường. Quý khách vui lòng chuẩn bị thẻ từ để quẹt thủ công nếu hệ thống không tự động mở. Mong quý khách thông cảm vì sự bất tiện này.' },
+        { id: 2, date: '12/06 14:00', title: 'Mở thêm khu vực đỗ xe máy tại Zone C', type: 'Thông tin', tone: 'sky', desc: 'Nhằm phục vụ nhu cầu tăng cao, khu vực Zone C đã được mở rộng.', fullContent: 'Kính gửi quý khách,\n\nDo nhu cầu gửi xe máy tăng đột biến trong thời gian gần đây, Ban Quản Lý đã sắp xếp và mở rộng thêm 200 vị trí đỗ xe máy mới tại khu vực Zone C (Tầng hầm B2).\n\nKhu vực mới đã được trang bị đầy đủ hệ thống chiếu sáng và camera an ninh 24/7. Quý khách đi xe máy có thể di chuyển theo biển chỉ dẫn màu xanh mới được lắp đặt để đến khu vực này.' },
+        { id: 3, date: '10/06 09:15', title: 'Cập nhật biểu phí gửi xe tháng', type: 'Chính sách', tone: 'orange', desc: 'Bắt đầu từ tháng 07, biểu phí đăng ký thẻ tháng sẽ có sự điều chỉnh nhẹ.', fullContent: 'Kính báo toàn thể cư dân và khách thuê,\n\nCăn cứ vào quyết định số 45/QĐ-BQL, bắt đầu từ ngày 01/07/2026, biểu phí gửi xe tháng sẽ được điều chỉnh để bù đắp chi phí vận hành hệ thống Smart Parking mới:\n\n- Ô tô: Tăng từ 1.200.000đ/tháng lên 1.300.000đ/tháng.\n- Xe máy: Giữ nguyên mức phí 120.000đ/tháng.\n\nTrân trọng thông báo!' }
       ]
     },
-    pricing: {
-      title: "Biểu phí & Thanh toán", car: "Ô tô", carDesc: "Block 2 giờ đầu", moto: "Xe máy", motoDesc: "Block 4 giờ", ev: "Xe điện", evDesc: "Bao gồm sạc tiêu chuẩn", methods: "Phương thức thanh toán"
+    funFacts: {
+      title: "Có Thể Bạn Chưa Biết? 🤭",
+      f1Title: "Không Gian Cực Rộng 📏",
+      f1Desc: "Thiết kế phân làn thông minh, đường chạy 1 chiều chống kẹt xe hiệu quả.",
+      f2Title: "Trạm Sạc EV Siêu Tốc 🔋",
+      f2Desc: "Hỗ trợ các trụ sạc điện thông minh, vừa gửi xe vừa nạp đầy năng lượng!",
+      f3Title: "Luôn Xanh & Sạch Sẽ 🌿",
+      f3Desc: "Hệ thống thông gió công suất lớn, lọc khí liên tục, không lo ngột ngạt."
     },
-    map: {
-      title: "Bản đồ & Chỉ đường", name: "Tòa nhà Nexus Center", address: "123 Trần Phú, Quận 1, TP.HCM", openMap: "Mở Bản đồ"
+    features: {
+      title: "Điểm Nổi Bật Siêu Xịn ✨",
+      f1Title: "An toàn tuyệt đối 🛡️",
+      f1Desc: "Camera AI giám sát 24/7, nhận diện biển số chuẩn xác 99.9%!",
+      f2Title: "Siêu tốc độ ⚡",
+      f2Desc: "Ra vào không chạm, không cần chờ đợi lấy thẻ từ.",
+      f3Title: "Thanh toán cái vèo 💳",
+      f3Desc: "Quét mã QR hoặc ví điện tử siêu nhanh gọn, không cần tiền mặt.",
+      f4Title: "App cực xịn xò 📱",
+      f4Desc: "Đặt chỗ trước, tìm vị trí xe đậu dễ dàng ngay trên điện thoại!",
+      badge: "Hơn 10,000+ người dùng đã mê mẩn! 😍"
     },
     process: {
       title: "Quy trình đỗ xe",
       s1Title: "1. Nhận diện", s1Desc: "Hệ thống LPR nhận diện biển số.",
       s2Title: "2. Đỗ xe", s2Desc: "Theo dõi bảng điện tử để tìm chỗ trống.",
       s3Title: "3. Thanh toán", s3Desc: "Thanh toán không tiền mặt khi ra.",
-      rulesTitle: "Quy định", r1: "Cao: 2.2m", r2: "Tắt máy", r3: "Sạc đúng chỗ"
+      rulesTitle: "Quy định", r1: "Cao: 2.2m", r2: "Tắt máy", r3: "Đỗ đúng vạch"
     },
-    footer: { rights: "All rights reserved.", terms: "Điều khoản", privacy: "Bảo mật", support: "Hỗ trợ" }
+    footer: { 
+      desc: "Giải pháp đỗ xe thông minh hàng đầu dành cho khu đô thị, trung tâm thương mại và tòa nhà văn phòng.",
+      products: "Sản phẩm", support: "Hỗ trợ", helpCenter: "Trung tâm trợ giúp", apiDocs: "Tài liệu API", community: "Cộng đồng",
+      contact: "Liên hệ", addressLabel: "Địa chỉ", addressVal: "Tòa nhà Nexus, 123 Trần Phú, Q.1, TP.HCM",
+      rights: "All rights reserved.", terms: "Điều khoản", privacy: "Bảo mật", cookies: "Cookies" 
+    }
   },
   EN: {
-    nav: { home: "Home", dashboard: "Dashboard", notice: "Notices", pricing: "Pricing", login: "Login", signup: "Sign Up" },
+    nav: { home: "Home", dashboard: "Dashboard", notice: "Notices", explore: "Explore", login: "Login", signup: "Sign Up" },
     hero: { badge: "System running 24/7", title1: "Smart Building", title2: "Parking Management", desc: "Smart Parking platform for apartments, offices and commercial centers with LPR, booking and contactless payment.", f1: "Contactless Payment", f2: "LPR System", f3: "Real-time Tracking" },
     kpi: { 
-      c1: { title: "Available Slots", unit: "slots" }, 
-      c2: { title: "Parked Vehicles", unit: "vehicles" }, 
-      c3: { title: "Occupancy Rate", unit: "%" },
+      c1: { title: "Total Slots", unit: "slots" }, 
+      c2: { title: "Available Slots", unit: "slots" }, 
+      c3: { title: "Today Traffic", unit: "vehicles" },
+      c4: { title: "AI Peak Prediction", unit: "" },
       vsYesterday: "vs yesterday"
     },
     live: {
       liveStatus: "LIVE", lastUpdate: "Last update:"
     },
-    occupancy: {
-      title: "Occupancy Overview", systemOccupancy: "System Wide", 
-      availableSlots: "Available", totalCapacity: "Capacity"
-    },
-    alert: {
-      title: "System Alerts"
-    },
     trend: {
       title: "Usage Trend"
     },
     floor: {
-      title: "Floor Management", statusNormal: "Available", statusMedium: "Average", statusFull: "Nearly Full"
+      title: "Zone Management", statusNormal: "Available", statusMedium: "Average", statusFull: "Nearly Full"
     },
     mapOverview: {
-      title: "Mini Parking Map", empty: "Empty", occupied: "Occupied", reserved: "Reserved", floor: "Floor", zone: "Bldg"
+      title: "Smart Parking Map", 
+      searchPlaceholder: "Search slot, car, moto...",
+      filters: {
+        all: "All", available: "Available", occupied: "Occupied", reserved: "Reserved", maintenance: "Maintenance",
+        car: "Car", moto: "Motorbike"
+      },
+      zone: "Zone",
+      floor: "Floor",
+      empty: "Available", occupied: "Occupied", reserved: "Reserved"
     },
-    realtime: {
-      title: "Detailed Vehicle Status", car: "Car", moto: "Motorbike", ev: "EV",
-      statusNormal: "Available", statusMedium: "Average", statusFull: "Nearly Full"
+    aiInsights: {
+      title: "AI Smart Insights", 
+      recommendation: "Recommendation",
+      data: [
+        { id: 1, type: 'warning', title: 'Zone A almost full (95%)', desc: 'Expected to run out of slots in 15 mins.', color: 'red' },
+        { id: 2, type: 'info', title: 'High traffic detected', desc: 'Car traffic increased by 12% compared to last week.', color: 'sky' },
+        { id: 3, type: 'action', title: 'Routing suggestion', desc: 'Suggest routing new cars to Zone B (40 slots available).', color: 'emerald' },
+        { id: 4, type: 'prediction', title: 'Peak hour prediction', desc: 'Next peak hours: 17:00 - 19:00', color: 'orange' }
+      ]
     },
     notice: {
       title: "Management Notices", viewAll: "View All", readMore: "Read More",
       data: [
-        { id: 1, date: '15/06 08:30', title: 'Payment system maintenance', type: 'Urgent', tone: 'red', desc: 'E-wallet payment system will be temporarily suspended.' },
-        { id: 2, date: '12/06 14:00', title: 'New parking area at B3', type: 'Info', tone: 'sky', desc: 'B3-C area has been converted into motorbike parking.' },
-        { id: 3, date: '10/06 09:15', title: 'Monthly fee update', type: 'Policy', tone: 'orange', desc: 'Starting from July, the monthly fee will have a slight adjustment.' }
+        { id: 1, date: '15/06 08:30', title: 'Camera system maintenance at Zone B', type: 'Info', tone: 'orange', desc: 'LPR system at Zone B will be maintained.', fullContent: 'Dear customers,\n\nTo improve service quality and LPR system accuracy, the Management Board will conduct routine maintenance on cameras at Zone B.\n\nMaintenance time: From 00:00 to 04:00 AM on Jun 16.\n\nDuring this time, automatic barriers may operate slower than usual. Please have your parking card ready to swipe manually if needed. We apologize for the inconvenience.' },
+        { id: 2, date: '12/06 14:00', title: 'New parking area at Zone C', type: 'Info', tone: 'sky', desc: 'Zone C area has been expanded.', fullContent: 'Dear customers,\n\nDue to the sudden increase in motorbike parking demand recently, the Management Board has arranged and expanded 200 new motorbike parking spots at Zone C (Basement B2).\n\nThe new area is fully equipped with lighting and 24/7 security cameras. Motorbike drivers can follow the newly installed blue directional signs to reach this area.' },
+        { id: 3, date: '10/06 09:15', title: 'Monthly fee update', type: 'Policy', tone: 'orange', desc: 'Starting from July, the monthly fee will have a slight adjustment.', fullContent: 'Notice to all residents and tenants,\n\nBased on decision No. 45/QD-BQL, starting July 1st, 2026, monthly parking fees will be adjusted to cover the operating costs of the new Smart Parking system:\n\n- Cars: Increased from 1,200,000 VND/month to 1,300,000 VND/month.\n- Motorbikes: Remaining at 120,000 VND/month.\n\nSincerely!' }
       ]
     },
-    pricing: {
-      title: "Pricing & Payment", car: "Car", carDesc: "First 2 hours", moto: "Motorbike", motoDesc: "4 hours block", ev: "EV", evDesc: "Standard charging included", methods: "Payment Methods"
+    funFacts: {
+      title: "Did You Know? 🤭",
+      f1Title: "Extra Spacious 📏",
+      f1Desc: "Smart lane design, one-way routes to prevent traffic jams efficiently.",
+      f2Title: "Fast EV Charging 🔋",
+      f2Desc: "Supports smart charging stations, charge your car while parking!",
+      f3Title: "Green & Clean 🌿",
+      f3Desc: "High-capacity ventilation system, continuous air filtering."
     },
-    map: {
-      title: "Map & Directions", name: "Nexus Center", address: "123 Tran Phu, Dist 1, HCMC", openMap: "Open Map"
+    features: {
+      title: "Awesome Highlights ✨",
+      f1Title: "Absolute Safety 🛡️",
+      f1Desc: "24/7 AI Camera monitoring, 99.9% accurate LPR!",
+      f2Title: "Lightning Fast ⚡",
+      f2Desc: "Contactless entry/exit, no need to wait for cards.",
+      f3Title: "Quick Payment 💳",
+      f3Desc: "Scan QR code or use e-wallets fast, cash-free.",
+      f4Title: "Smart App 📱",
+      f4Desc: "Pre-book slots, find your parking spot easily on your phone!",
+      badge: "Over 10,000+ happy users! 😍"
     },
     process: {
       title: "Parking Process",
       s1Title: "1. Detect", s1Desc: "LPR system recognizes plate.",
       s2Title: "2. Park", s2Desc: "Follow boards to available spot.",
       s3Title: "3. Pay", s3Desc: "Cashless payment upon exit.",
-      rulesTitle: "Rules", r1: "Height: 2.2m", r2: "Engine off", r3: "Charge in designated spots"
+      rulesTitle: "Rules", r1: "Height: 2.2m", r2: "Engine off", r3: "Park within lines"
     },
-    footer: { rights: "All rights reserved.", terms: "Terms", privacy: "Privacy", support: "Support" }
+    footer: { 
+      desc: "Leading smart parking solution for urban areas, commercial centers, and office buildings.",
+      products: "Products", support: "Support", helpCenter: "Help Center", apiDocs: "API Documentation", community: "Community",
+      contact: "Contact", addressLabel: "Address", addressVal: "Nexus Building, 123 Tran Phu, Dist 1, HCMC",
+      rights: "All rights reserved.", terms: "Terms", privacy: "Privacy", cookies: "Cookies" 
+    }
   }
 };
 
 // --- MOCK DATA ---
 const trendData = [
-  { time: '06h', value: 20 },
-  { time: '08h', value: 65 },
-  { time: '10h', value: 85 },
-  { time: '12h', value: 95 },
-  { time: '14h', value: 75 },
-  { time: '16h', value: 80 },
-  { time: '18h', value: 98 },
-  { time: '20h', value: 60 },
-  { time: '22h', value: 30 },
+  { time: '06h', value: 120 },
+  { time: '08h', value: 850 },
+  { time: '10h', value: 920 },
+  { time: '12h', value: 750 },
+  { time: '14h', value: 680 },
+  { time: '16h', value: 890 },
+  { time: '18h', value: 1100 },
+  { time: '20h', value: 450 },
+  { time: '22h', value: 150 },
 ];
 
-const floorData = [
-  { id: 'B1', name: 'Tầng B1 (EV & Ô tô)', occupied: 95, total: 100 },
-  { id: 'B2', name: 'Tầng B2 (Ô tô)', occupied: 72, total: 100 },
-  { id: 'B3', name: 'Tầng B3 (Xe máy)', occupied: 120, total: 300 },
+const zoneData = [
+  { id: 'A', name: 'Zone A (Ô tô)', occupied: 95, total: 100 },
+  { id: 'B', name: 'Zone B (Ô tô)', occupied: 60, total: 100 },
+  { id: 'C', name: 'Zone C (Xe máy)', occupied: 48, total: 120 },
 ];
 
-const mapGrid = Array.from({ length: 48 }, (_, i) => {
-  if ([2, 5, 8, 12, 15, 22, 28, 33, 40].includes(i)) return 'empty';
-  if ([1, 10, 25].includes(i)) return 'reserved';
-  return 'occupied';
-});
+const generateMapGrid = (zone, floor = 'B1') => {
+  return Array.from({ length: 48 }, (_, i) => {
+    const type = zone === 'C' ? 'M' : 'C'; // Zone C is Motorbike
+    const floorDigit = floor.replace('B', '');
+    const id = `${type}-${zone}${floorDigit}${String(i + 1).padStart(2, '0')}`;
+    const rand = Math.random();
+    let status = 'occupied';
+    if (rand > 0.75) status = 'available';
+    else if (rand > 0.65) status = 'reserved';
+    else if (rand > 0.95) status = 'maintenance';
+    return { id, type, status };
+  });
+};
 
 // --- HELPER HOOK ---
 const useScrollSpy = (ids, offset = 100) => {
@@ -176,7 +240,7 @@ const useScrollSpy = (ids, offset = 100) => {
 
 const Navbar = ({ lang, setLang, t }) => {
   const navigate = useNavigate();
-  const activeSection = useScrollSpy(['hero', 'dashboard', 'thong-bao', 'bieu-phi'], 200);
+  const activeSection = useScrollSpy(['hero', 'dashboard', 'thong-bao', 'kham-pha'], 200);
   
   const handleScrollToSection = (e, id) => {
     e.preventDefault();
@@ -221,8 +285,8 @@ const Navbar = ({ lang, setLang, t }) => {
             <a href="#thong-bao" onClick={(e) => handleScrollToSection(e, 'thong-bao')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeSection === 'thong-bao' ? 'text-sky-700 bg-sky-50' : 'text-slate-500 hover:text-sky-600 hover:bg-slate-50'}`}>
               {t.nav.notice}
             </a>
-            <a href="#bieu-phi" onClick={(e) => handleScrollToSection(e, 'bieu-phi')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeSection === 'bieu-phi' ? 'text-sky-700 bg-sky-50' : 'text-slate-500 hover:text-sky-600 hover:bg-slate-50'}`}>
-              {t.nav.pricing}
+            <a href="#kham-pha" onClick={(e) => handleScrollToSection(e, 'kham-pha')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeSection === 'kham-pha' ? 'text-sky-700 bg-sky-50' : 'text-slate-500 hover:text-sky-600 hover:bg-slate-50'}`}>
+              {t.nav.explore}
             </a>
           </nav>
         </div>
@@ -257,14 +321,34 @@ const Navbar = ({ lang, setLang, t }) => {
 };
 
 const HeroSection = ({ t }) => {
+  const [currentBg, setCurrentBg] = useState(0);
+
+  const backgrounds = [
+    "https://www.honolulu.gov/dts/wp-content/uploads/sites/45/2023/10/Parking-Lot-1024x585.jpg",
+    "https://static01.nyt.com/images/2026/02/12/multimedia/12BACKING-IN-kvtb/12BACKING-IN-kvtb-articleLarge.jpg?quality=75&auto=webp&disable=upscale",
+    "https://kps.com.vn/upload/product/C5-gioi-thieu-car-parking-tu-dong-99774237_p2.jpg",
+    "https://aozoom.com.vn/storage/uploads/content/images/2023/thang-8/b%C3%A3i%20g%E1%BB%ADi%20xe%20%C3%B4%20t%C3%B4%20tphcm/bai-gui-xe-quan-binh-tan.jpg",
+    "https://image.luatvietnam.vn/uploaded/twebp/images/original/2021/09/23/dieu-kien-kinh-doanh-bai-do-xe_2309144305.jpeg"
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentBg((prev) => (prev + 1) % backgrounds.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [backgrounds.length]);
+
   return (
     <section id="hero" className="relative pt-20 pb-24 px-4 sm:px-6 lg:px-8 flex items-center justify-center min-h-[400px]">
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        <img 
-          src="https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?auto=format&fit=crop&w=1920&q=80" 
-          alt="Parking Background" 
-          className="w-full h-full object-cover scale-105"
-        />
+      <div className="absolute inset-0 z-0 overflow-hidden bg-slate-900">
+        {backgrounds.map((bg, idx) => (
+          <img 
+            key={idx}
+            src={bg} 
+            alt={`Parking Background ${idx + 1}`} 
+            className={`absolute inset-0 w-full h-full object-cover scale-105 transition-opacity duration-1000 ease-in-out ${currentBg === idx ? 'opacity-100' : 'opacity-0'}`}
+          />
+        ))}
         <div className="absolute inset-0 bg-gradient-to-r from-slate-900/95 via-slate-900/80 to-sky-900/80"></div>
       </div>
 
@@ -330,22 +414,25 @@ const RealtimeStatusBar = ({ t }) => {
 
 // --- DASHBOARD WRAPPER ---
 const MainDashboard = ({ t }) => {
+  const [zone, setZone] = useState('A');
+  const [floor, setFloor] = useState('B1');
+
   return (
     <section id="dashboard" className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative z-20 py-12 space-y-8">
-      {/* 1. KPI Dashboard */}
-      <KPIDashboard t={t} />
+      {/* 1. KPI Row */}
+      <KPIDashboard t={t} zone={zone} floor={floor} />
 
-      {/* 2. Occupancy Overview & Alert Center */}
+      {/* 2. Main Section & Side Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <OccupancyOverview t={t} />
-        </div>
         <div className="lg:col-span-2">
-          <AlertCenter t={t} />
+          <SmartParkingMap t={t} zone={zone} setZone={setZone} floor={floor} setFloor={setFloor} />
+        </div>
+        <div className="lg:col-span-1">
+          <AISmartInsights t={t} />
         </div>
       </div>
 
-      {/* 3. Trend Chart & Floor Management */}
+      {/* 3. Phân tích & Vận hành */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <ParkingTrendChart t={t} />
@@ -354,143 +441,238 @@ const MainDashboard = ({ t }) => {
           <FloorManagement t={t} />
         </div>
       </div>
-
-      {/* 4. Map Overview & Vehicle Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <ParkingMapOverview t={t} />
-        </div>
-        <div className="lg:col-span-2">
-          <VehicleStatus t={t} />
-        </div>
-      </div>
     </section>
   );
 };
 
-const KPIDashboard = ({ t }) => {
+const KPIDashboard = ({ t, zone, floor }) => {
+  // Generate data dynamically based on zone and floor
+  const baseTotal = zone === 'C' ? 120 : 100;
+  const floorMult = floor === 'B1' ? 1 : floor === 'B2' ? 0.8 : 0.6;
+  const totalSlots = Math.round(baseTotal * floorMult);
+  
+  const occupiedRatio = zone === 'A' ? 0.85 : zone === 'B' ? 0.6 : 0.4;
+  const occupied = Math.round(totalSlots * occupiedRatio * floorMult);
+  const availableSlots = totalSlots - occupied;
+  
+  const availableProgress = totalSlots > 0 ? Math.round((availableSlots / totalSlots) * 100) : 0;
+  
+  const todayTraffic = Math.round(totalSlots * 3.5 * floorMult);
+  
+  const peakStart = zone === 'A' ? 17 : zone === 'B' ? 18 : 16;
+  const peakEnd = peakStart + 2;
+
   const kpis = [
-    { id: 1, title: t.kpi.c1.title, value: '142', unit: t.kpi.c1.unit, trend: '+12%', trendDir: 'up', icon: LayoutDashboard, color: 'emerald', progress: 32 },
-    { id: 2, title: t.kpi.c2.title, value: '358', unit: t.kpi.c2.unit, trend: '-5%', trendDir: 'down', icon: Car, color: 'sky', progress: 68 },
-    { id: 3, title: t.kpi.c3.title, value: '71.6', unit: t.kpi.c3.unit, trend: '+2.4%', trendDir: 'up', icon: Activity, color: 'orange', progress: 71.6 },
+    { id: 1, title: t.kpi.c1.title, value: totalSlots.toString(), unit: t.kpi.c1.unit, trend: '', trendDir: '', icon: LayoutDashboard, color: 'slate', progress: 100 },
+    { id: 2, title: t.kpi.c2.title, value: availableSlots.toString(), unit: t.kpi.c2.unit, trend: '-5%', trendDir: 'down', icon: Car, color: 'emerald', progress: availableProgress },
+    { id: 3, title: t.kpi.c3.title, value: todayTraffic.toString(), unit: t.kpi.c3.unit, trend: '+12%', trendDir: 'up', icon: Activity, color: 'sky', progress: 85 },
+    { id: 4, title: t.kpi.c4.title, value: `${peakStart}:00`, unit: `- ${peakEnd}:00`, trend: '', trendDir: '', icon: Sparkles, color: 'orange', progress: 0 },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {kpis.map((kpi) => (
         <div key={kpi.id} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-xl transition-all group cursor-default">
           <div className="flex justify-between items-start mb-4">
             <div className={`p-3.5 rounded-xl bg-${kpi.color}-50 text-${kpi.color}-600 group-hover:scale-110 transition-transform`}>
               <kpi.icon className="w-6 h-6" />
             </div>
-            <div className={`flex items-center gap-1 text-sm font-bold px-2.5 py-1 rounded-full ${kpi.trendDir === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-              {kpi.trendDir === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-              {kpi.trend}
-            </div>
+            {kpi.trend && (
+              <div className={`flex items-center gap-1 text-sm font-bold px-2.5 py-1 rounded-full ${kpi.trendDir === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+                {kpi.trendDir === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                {kpi.trend}
+              </div>
+            )}
           </div>
           <p className="text-slate-500 font-bold mb-1 text-sm">{kpi.title}</p>
           <div className="flex items-baseline gap-1 mb-4">
-            <span className="text-4xl font-black text-slate-800 tracking-tight">{kpi.value}</span>
+            <span className="text-3xl font-black text-slate-800 tracking-tight">{kpi.value}</span>
             <span className="text-sm font-bold text-slate-400">{kpi.unit}</span>
           </div>
           {/* Mini progress */}
-          <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-            <div className={`h-1.5 rounded-full bg-${kpi.color}-500`} style={{ width: `${kpi.progress}%` }}></div>
-          </div>
-          <p className="text-xs font-semibold text-slate-400 mt-3">{t.kpi.vsYesterday}</p>
+          {kpi.progress > 0 && (
+            <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+              <div className={`h-1.5 rounded-full bg-${kpi.color}-500`} style={{ width: `${kpi.progress}%` }}></div>
+            </div>
+          )}
         </div>
       ))}
     </div>
   );
 };
 
-const OccupancyOverview = ({ t }) => {
-  const percentage = 72; // mock 72%
-  const radius = 60;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (percentage / 100) * circumference;
+const SmartParkingMap = ({ t, zone, setZone, floor, setFloor }) => {
+  const [grid, setGrid] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState('all'); // all, available, occupied, reserved, maintenance, car, moto
+
+  useEffect(() => {
+    setGrid(generateMapGrid(zone, floor));
+  }, [zone, floor]);
+
+  const zoneOptions = [
+    { value: 'A', label: `${t.mapOverview.zone} A` },
+    { value: 'B', label: `${t.mapOverview.zone} B` },
+    { value: 'C', label: `${t.mapOverview.zone} C` }
+  ];
+
+  const floorOptions = [
+    { value: 'B1', label: `${t.mapOverview.floor} B1` },
+    { value: 'B2', label: `${t.mapOverview.floor} B2` },
+    { value: 'B3', label: `${t.mapOverview.floor} B3` }
+  ];
 
   return (
-    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm h-full flex flex-col items-center justify-center">
-      <h3 className="font-bold text-slate-800 self-start mb-6 w-full flex items-center justify-between">
-        {t.occupancy.title}
-        <Info className="w-4 h-4 text-slate-400" />
-      </h3>
-      
-      <div className="relative flex items-center justify-center w-48 h-48 mb-6">
-        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 140 140">
-          <circle cx="70" cy="70" r={radius} fill="transparent" stroke="#f1f5f9" strokeWidth="16" />
-          <circle 
-            cx="70" cy="70" r={radius} fill="transparent" stroke="#0ea5e9" strokeWidth="16"
-            strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
-            className="transition-all duration-1000 ease-out"
-          />
-        </svg>
-        <div className="absolute flex flex-col items-center justify-center">
-          <span className="text-4xl font-black text-slate-800">{percentage}%</span>
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">{t.occupancy.systemOccupancy}</span>
+    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 h-full flex flex-col">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
+          <MapPin className="text-sky-500 w-5 h-5" /> {t.mapOverview.title}
+        </h3>
+        <div className="flex items-center gap-3">
+          <CustomSelect value={floor} options={floorOptions} onChange={setFloor} />
+          <CustomSelect value={zone} options={zoneOptions} onChange={setZone} />
         </div>
       </div>
-      
-      <div className="w-full grid grid-cols-2 gap-4 mt-auto">
-        <div className="bg-slate-50 rounded-xl p-3 text-center border border-slate-100">
-          <p className="text-xs font-bold text-slate-500 mb-1">{t.occupancy.availableSlots}</p>
-          <p className="text-xl font-black text-emerald-500">142</p>
+
+      {/* Smart Search Toolbar */}
+      <div className="flex flex-wrap items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 mb-6">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input 
+            type="text" 
+            placeholder={t.mapOverview.searchPlaceholder}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors"
+          />
         </div>
-        <div className="bg-slate-50 rounded-xl p-3 text-center border border-slate-100">
-          <p className="text-xs font-bold text-slate-500 mb-1">{t.occupancy.totalCapacity}</p>
-          <p className="text-xl font-black text-slate-700">500</p>
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar">
+          <Filter className="w-4 h-4 text-slate-400 hidden sm:block" />
+          {['all', 'available', 'occupied', 'reserved', 'maintenance', 'car', 'moto'].map(filterKey => (
+            <button
+              key={filterKey}
+              onClick={() => setActiveFilter(filterKey)}
+              className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                activeFilter === filterKey 
+                ? 'bg-sky-500 text-white shadow-sm' 
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              {t.mapOverview.filters[filterKey]}
+            </button>
+          ))}
         </div>
+      </div>
+
+      {/* Map Grid */}
+      <div className="flex-1 bg-slate-100 rounded-xl border border-slate-200 p-4 mb-4 grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 content-start">
+        {grid.map((slot, i) => {
+          let bg = "bg-emerald-50 border-emerald-200 text-emerald-700"; // available
+          if(slot.status === 'occupied') bg = "bg-red-50 border-red-200 text-red-700 shadow-inner";
+          if(slot.status === 'reserved') bg = "bg-sky-50 border-sky-200 text-sky-700";
+          if(slot.status === 'maintenance') bg = "bg-slate-200 border-slate-300 text-slate-500 opacity-50";
+
+          // Lọc Logic
+          let isMatch = true;
+          const sq = searchQuery.toLowerCase().trim();
+          
+          if (sq) {
+            let matchQuery = false;
+            // Tìm theo ID slot
+            if (slot.id.toLowerCase().includes(sq)) matchQuery = true;
+            
+            // Tìm ngữ nghĩa thông minh: "xe máy", "ô tô", "trống"
+            const isMotoQuery = sq.includes('xe máy') || sq.includes('moto') || sq.includes('xe may');
+            const isCarQuery = sq.includes('ô tô') || sq.includes('oto') || sq.includes('car') || sq.includes('xe hơi');
+            const isEmptyQuery = sq.includes('trống') || sq.includes('empty') || sq.includes('còn');
+
+            // Khi người dùng chỉ nhập loại xe, ưu tiên hiển thị những chỗ CÒN TRỐNG để họ gửi xe.
+            if (isMotoQuery && slot.type === 'M' && slot.status === 'available') matchQuery = true;
+            if (isCarQuery && slot.type === 'C' && slot.status === 'available') matchQuery = true;
+            // Nếu chỉ nhập "trống" thì hiện mọi slot trống
+            if (isEmptyQuery && slot.status === 'available') matchQuery = true;
+
+            if (!matchQuery) isMatch = false;
+          }
+
+          if (activeFilter !== 'all') {
+            if (activeFilter === 'available' && slot.status !== 'available') isMatch = false;
+            if (activeFilter === 'occupied' && slot.status !== 'occupied') isMatch = false;
+            if (activeFilter === 'reserved' && slot.status !== 'reserved') isMatch = false;
+            if (activeFilter === 'maintenance' && slot.status !== 'maintenance') isMatch = false;
+            if (activeFilter === 'car' && slot.type !== 'C') isMatch = false;
+            if (activeFilter === 'moto' && slot.type !== 'M') isMatch = false;
+          }
+
+          return (
+            <div 
+              key={slot.id} 
+              className={`aspect-[4/3] rounded-lg border-2 ${bg} transition-all duration-300 flex flex-col items-center justify-center relative ${
+                isMatch ? 'opacity-100 scale-100 shadow-sm' : 'opacity-20 scale-95'
+              }`}
+            >
+              <span className={`text-[10px] sm:text-xs font-extrabold tracking-tight`}>
+                {slot.id}
+              </span>
+              {slot.type === 'C' ? <Car className="w-3 h-3 mt-1 opacity-70" /> : <Bike className="w-3 h-3 mt-1 opacity-70" />}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      <div className="flex flex-wrap justify-between items-center text-[10px] font-bold text-slate-500 px-2">
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-emerald-100 border border-emerald-300 rounded-sm"></div> {t.mapOverview.empty}</div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-red-100 border border-red-300 rounded-sm"></div> {t.mapOverview.occupied}</div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-sky-100 border border-sky-300 rounded-sm"></div> {t.mapOverview.reserved}</div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-slate-200 border border-slate-300 rounded-sm"></div> {t.mapOverview.filters.maintenance}</div>
       </div>
     </div>
   );
 };
 
-const AlertCenter = ({ t }) => {
+const AISmartInsights = ({ t }) => {
+  const getIcon = (type) => {
+    if (type === 'warning') return AlertTriangle;
+    if (type === 'info') return Users;
+    if (type === 'action') return Sparkles;
+    if (type === 'prediction') return Clock;
+    return Info;
+  };
+
+  const insightsData = t.aiInsights.data.map(item => ({
+    ...item,
+    IconComponent: getIcon(item.type)
+  }));
+
   return (
-    <div className="bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-800 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-bold text-white flex items-center gap-2">
-          <AlertCircle className="text-red-500 w-5 h-5" /> {t.alert.title}
+    <div className="bg-gradient-to-br from-indigo-50 to-white rounded-2xl p-6 shadow-sm border border-indigo-100 h-full flex flex-col relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-0 right-0 -mr-8 -mt-8 text-indigo-100 opacity-50">
+        <Sparkles className="w-32 h-32" />
+      </div>
+
+      <div className="flex items-center justify-between mb-6 relative z-10">
+        <h3 className="text-lg font-bold text-indigo-900 flex items-center gap-2">
+          <Sparkles className="text-indigo-500 w-5 h-5" /> {t.aiInsights.title}
         </h3>
-        <span className="bg-red-500/20 text-red-400 px-3 py-1 text-xs font-bold rounded-full border border-red-500/30">
-          3 Active
+        <span className="bg-indigo-500/10 text-indigo-600 px-3 py-1 text-xs font-bold rounded-full border border-indigo-200 flex items-center gap-1">
+          <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div> Active
         </span>
       </div>
 
-      <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex gap-4">
-          <div className="bg-red-500/20 p-2 rounded-lg h-fit">
-            <AlertTriangle className="w-5 h-5 text-red-400" />
+      <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar relative z-10">
+        {insightsData.map(insight => (
+          <div key={insight.id} className={`bg-white border border-${insight.color}-200 rounded-xl p-4 flex gap-4 shadow-sm hover:shadow-md transition-shadow`}>
+            <div className={`bg-${insight.color}-50 p-2.5 rounded-lg h-fit border border-${insight.color}-100`}>
+              <insight.IconComponent className={`w-5 h-5 text-${insight.color}-500`} />
+            </div>
+            <div>
+              <h4 className={`font-bold text-slate-800 text-sm mb-1`}>{insight.title}</h4>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">{insight.desc}</p>
+            </div>
           </div>
-          <div>
-            <h4 className="font-bold text-red-400 text-sm mb-1">Tầng B1 sắp đầy (95%)</h4>
-            <p className="text-xs text-slate-400 font-medium leading-relaxed">Hệ thống sẽ tự động điều hướng xe mới xuống tầng B2 trong 5 phút tới.</p>
-          </div>
-          <span className="text-xs text-slate-500 font-bold ml-auto whitespace-nowrap">Vừa xong</span>
-        </div>
-
-        <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-4 flex gap-4">
-          <div className="bg-orange-500/20 p-2 rounded-lg h-fit">
-            <Zap className="w-5 h-5 text-orange-400" />
-          </div>
-          <div>
-            <h4 className="font-bold text-orange-400 text-sm mb-1">Khu sạc EV chỉ còn 2 chỗ</h4>
-            <p className="text-xs text-slate-400 font-medium leading-relaxed">Nhu cầu sạc xe điện đang tăng cao so với ngày hôm qua (+40%).</p>
-          </div>
-          <span className="text-xs text-slate-500 font-bold ml-auto whitespace-nowrap">10m trước</span>
-        </div>
-
-        <div className="bg-sky-500/10 border border-sky-500/20 rounded-xl p-4 flex gap-4">
-          <div className="bg-sky-500/20 p-2 rounded-lg h-fit">
-            <TrendingUp className="w-5 h-5 text-sky-400" />
-          </div>
-          <div>
-            <h4 className="font-bold text-sky-400 text-sm mb-1">Lưu lượng xe tăng đột biến</h4>
-            <p className="text-xs text-slate-400 font-medium leading-relaxed">Lượng xe vào bãi tăng 18% so với cùng kỳ giờ sáng qua.</p>
-          </div>
-          <span className="text-xs text-slate-500 font-bold ml-auto whitespace-nowrap">1h trước</span>
-        </div>
+        ))}
       </div>
     </div>
   );
@@ -499,7 +681,9 @@ const AlertCenter = ({ t }) => {
 const ParkingTrendChart = ({ t }) => {
   return (
     <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm h-full">
-      <h3 className="font-bold text-slate-800 mb-6">{t.trend.title}</h3>
+      <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
+        <BarChart3 className="w-5 h-5 text-sky-500" /> {t.trend.title}
+      </h3>
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={trendData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
@@ -513,7 +697,7 @@ const ParkingTrendChart = ({ t }) => {
             <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8', fontWeight: 'bold' }} dy={10} />
             <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8', fontWeight: 'bold' }} />
             <Tooltip 
-              contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }}
+              contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }}
               labelStyle={{ color: '#64748b' }}
             />
             <Area type="monotone" dataKey="value" stroke="#0ea5e9" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
@@ -533,21 +717,23 @@ const FloorManagement = ({ t }) => {
 
   return (
     <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm h-full">
-      <h3 className="font-bold text-slate-800 mb-6">{t.floor.title}</h3>
+      <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
+        <MapPin className="w-5 h-5 text-sky-500" /> {t.floor.title}
+      </h3>
       <div className="space-y-6">
-        {floorData.map(f => {
-          const pct = Math.round((f.occupied / f.total) * 100);
+        {zoneData.map(z => {
+          const pct = Math.round((z.occupied / z.total) * 100);
           const badge = getBadge(pct);
           return (
-            <div key={f.id}>
+            <div key={z.id}>
               <div className="flex justify-between items-center mb-2">
-                <span className="font-bold text-slate-700 text-sm">{f.name}</span>
+                <span className="font-bold text-slate-700 text-sm">{z.name}</span>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md bg-${badge.color}-50 text-${badge.color}-600 border border-${badge.color}-200`}>
                   {badge.text}
                 </span>
               </div>
               <div className="flex justify-between items-end mb-2">
-                <div className="text-xl font-black text-slate-800">{f.occupied}<span className="text-sm text-slate-400">/{f.total}</span></div>
+                <div className="text-xl font-black text-slate-800">{z.occupied}<span className="text-sm text-slate-400">/{z.total}</span></div>
                 <div className="text-xs font-bold text-slate-500">{pct}%</div>
               </div>
               <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
@@ -611,121 +797,9 @@ const CustomSelect = ({ value, options, onChange }) => {
   );
 };
 
-const ParkingMapOverview = ({ t }) => {
-  const [zone, setZone] = useState('A');
-  const [floor, setFloor] = useState('B1');
-  const [grid, setGrid] = useState(mapGrid);
-
-  useEffect(() => {
-    // Generate new random grid layout when zone or floor changes
-    const newGrid = Array.from({ length: 48 }, () => {
-      const rand = Math.random();
-      if (rand > 0.75) return 'empty';
-      if (rand > 0.65) return 'reserved';
-      return 'occupied';
-    });
-    setGrid(newGrid);
-  }, [zone, floor]);
-
-  const zoneOptions = [
-    { value: 'A', label: `${t.mapOverview.zone} A` },
-    { value: 'B', label: `${t.mapOverview.zone} B` },
-    { value: 'C', label: `${t.mapOverview.zone} C` }
-  ];
-
-  const floorOptions = [
-    { value: 'B1', label: `${t.mapOverview.floor} B1` },
-    { value: 'B2', label: `${t.mapOverview.floor} B2` },
-    { value: 'B3', label: `${t.mapOverview.floor} B3` }
-  ];
-
-  return (
-    <div className="bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-800 h-full flex flex-col">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <h3 className="font-bold text-white">{t.mapOverview.title}</h3>
-        <div className="flex items-center gap-3">
-          <CustomSelect value={zone} options={zoneOptions} onChange={setZone} />
-          <CustomSelect value={floor} options={floorOptions} onChange={setFloor} />
-        </div>
-      </div>
-
-      <div className="flex-1 bg-slate-800/50 rounded-xl border border-slate-700 p-4 mb-4 grid grid-cols-8 gap-1.5 content-start">
-        {grid.map((status, i) => {
-          let bg = "bg-emerald-500/20 border-emerald-500/50 shadow-[inset_0_0_8px_rgba(16,185,129,0.2)]"; // empty
-          let textColor = "text-white/90";
-          if(status === 'occupied') {
-            bg = "bg-red-500/20 border-red-500/50 shadow-[inset_0_0_8px_rgba(239,68,68,0.2)]";
-          }
-          if(status === 'reserved') {
-            bg = "bg-sky-500/20 border-sky-500/50 shadow-[inset_0_0_8px_rgba(14,165,233,0.2)]";
-          }
-          
-          return (
-            <div key={i} className={`aspect-square rounded-md border ${bg} transition-all duration-500 flex items-center justify-center`}>
-              <span className={`text-[10px] sm:text-xs font-bold ${textColor}`}>
-                {zone}{i + 1}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="flex justify-between items-center text-[10px] font-bold text-slate-400">
-        <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 bg-emerald-500/40 border border-emerald-500 rounded-sm"></div> {t.mapOverview.empty}</div>
-        <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 bg-red-500/40 border border-red-500 rounded-sm"></div> {t.mapOverview.occupied}</div>
-        <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 bg-sky-500/40 border border-sky-500 rounded-sm"></div> {t.mapOverview.reserved}</div>
-      </div>
-    </div>
-  );
-};
-
-const VehicleStatus = ({ t }) => {
-  const parkingStatus = [
-    { id: 1, type: t.realtime.car, occupied: 75, total: 120, icon: Car },
-    { id: 2, type: t.realtime.moto, occupied: 211, total: 300, icon: Bike },
-    { id: 3, type: t.realtime.ev, occupied: 18, total: 20, icon: Zap },
-  ];
-
-  const getBadge = (pct) => {
-    if (pct < 60) return { color: 'emerald', text: t.realtime.statusNormal };
-    if (pct < 85) return { color: 'orange', text: t.realtime.statusMedium };
-    return { color: 'red', text: t.realtime.statusFull };
-  };
-
-  return (
-    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm h-full">
-      <h3 className="font-bold text-slate-800 mb-6">{t.realtime.title}</h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {parkingStatus.map((item) => {
-          const pct = Math.round((item.occupied / item.total) * 100);
-          const badge = getBadge(pct);
-          return (
-            <div key={item.id} className={`p-4 rounded-xl border-2 border-slate-100 hover:border-${badge.color}-200 transition-colors`}>
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl bg-slate-50 text-slate-600 shadow-sm border border-slate-200`}>
-                  <item.icon className="w-6 h-6" />
-                </div>
-                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md bg-${badge.color}-50 text-${badge.color}-600 border border-${badge.color}-200`}>
-                  {badge.text}
-                </span>
-              </div>
-              <p className="font-bold text-slate-700 mb-1 text-sm">{item.type}</p>
-              <div className="flex items-end justify-between mb-2">
-                <div className="text-2xl font-black text-slate-800">{item.occupied}<span className="text-sm font-bold text-slate-400">/{item.total}</span></div>
-                <div className="text-xs font-bold text-slate-500">{pct}%</div>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                <div className={`h-1.5 rounded-full bg-${badge.color}-500 transition-all duration-1000`} style={{ width: `${pct}%` }}></div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
 const NotificationCenter = ({ t }) => {
+  const [selectedNotice, setSelectedNotice] = useState(null);
+
   const getBadgeColor = (tone) => {
     if(tone === 'red') return 'bg-red-50 text-red-600 border-red-200';
     if(tone === 'sky') return 'bg-sky-50 text-sky-600 border-sky-200';
@@ -734,7 +808,7 @@ const NotificationCenter = ({ t }) => {
   };
 
   return (
-    <section id="thong-bao" className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-16">
+    <section id="thong-bao" className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-16 relative">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
           <Bell className="text-sky-600 w-6 h-6" /> {t.notice.title}
@@ -746,7 +820,11 @@ const NotificationCenter = ({ t }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {t.notice.data.map((ann) => (
-          <div key={ann.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition-all cursor-pointer flex flex-col h-full group">
+          <div 
+            key={ann.id} 
+            onClick={() => setSelectedNotice(ann)}
+            className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition-all cursor-pointer flex flex-col h-full group"
+          >
             <div className="flex items-center justify-between mb-4">
               <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${getBadgeColor(ann.tone)} uppercase tracking-wider`}>
                 {ann.type}
@@ -763,96 +841,151 @@ const NotificationCenter = ({ t }) => {
           </div>
         ))}
       </div>
+
+      {/* Modal */}
+      {selectedNotice && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg border ${getBadgeColor(selectedNotice.tone)}`}>
+                  <Bell className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-800">{selectedNotice.type}</h3>
+                  <p className="text-xs font-bold text-slate-400">{selectedNotice.date}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedNotice(null)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[60vh] custom-scrollbar">
+              <h2 className="text-xl font-extrabold text-slate-800 mb-4">{selectedNotice.title}</h2>
+              <div className="text-slate-600 text-sm font-medium leading-relaxed whitespace-pre-wrap">
+                {selectedNotice.fullContent || selectedNotice.desc}
+              </div>
+            </div>
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+              <button 
+                onClick={() => setSelectedNotice(null)}
+                className="px-6 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-lg transition-colors"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
 
 const PricingAndMap = ({ t }) => {
   return (
-    <div id="bieu-phi" className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-16">
-      <section className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200 flex flex-col">
-        <h2 className="text-2xl font-extrabold text-slate-800 mb-6 flex items-center gap-2">
-          <CreditCard className="text-sky-600 w-6 h-6" /> {t.pricing.title}
+    <div id="kham-pha" className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-16">
+      <section className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl p-6 sm:p-8 shadow-sm border border-indigo-100 flex flex-col relative overflow-hidden group">
+        <div className="absolute -top-10 -left-10 text-indigo-100 opacity-50 group-hover:rotate-12 transition-transform duration-700">
+          <Sparkles className="w-40 h-40" />
+        </div>
+        
+        <h2 className="text-2xl font-extrabold text-slate-800 mb-6 flex items-center gap-2 relative z-10">
+          <div className="p-2 bg-indigo-100 text-indigo-500 rounded-xl">
+            <Info className="w-6 h-6 animate-bounce" />
+          </div>
+          {t.funFacts.title}
         </h2>
         
-        <div className="space-y-4 mb-8 flex-1">
-          <div className="flex items-center justify-between p-5 bg-slate-50 rounded-xl border border-slate-100 hover:border-sky-200 transition-colors">
-            <div className="flex items-center gap-4">
-              <div className="bg-white p-2 rounded-lg shadow-sm border border-slate-100 text-slate-600">
-                <Car className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-800">{t.pricing.car}</h3>
-                <p className="text-sm text-slate-500 font-medium">{t.pricing.carDesc}</p>
-              </div>
+        <div className="space-y-4 flex-1 relative z-10">
+          <div className="flex items-start gap-4 p-4 bg-white/80 backdrop-blur-md rounded-xl border border-indigo-50 hover:shadow-md hover:border-indigo-200 transition-all duration-300 hover:translate-x-1">
+            <div className="bg-indigo-100 p-2.5 rounded-full text-indigo-600 shadow-inner">
+              <Maximize className="w-5 h-5" />
             </div>
-            <div className="text-right">
-              <span className="text-xl font-extrabold text-slate-800">30.000đ</span>
+            <div>
+              <h3 className="font-bold text-slate-800 text-base mb-1">{t.funFacts.f1Title}</h3>
+              <p className="text-sm text-slate-500 font-medium">{t.funFacts.f1Desc}</p>
             </div>
           </div>
           
-          <div className="flex items-center justify-between p-5 bg-slate-50 rounded-xl border border-slate-100 hover:border-sky-200 transition-colors">
-            <div className="flex items-center gap-4">
-              <div className="bg-white p-2 rounded-lg shadow-sm border border-slate-100 text-slate-600">
-                <Bike className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-800">{t.pricing.moto}</h3>
-                <p className="text-sm text-slate-500 font-medium">{t.pricing.motoDesc}</p>
-              </div>
+          <div className="flex items-start gap-4 p-4 bg-white/80 backdrop-blur-md rounded-xl border border-purple-50 hover:shadow-md hover:border-purple-200 transition-all duration-300 hover:translate-x-1">
+            <div className="bg-purple-100 p-2.5 rounded-full text-purple-600 shadow-inner">
+              <BatteryCharging className="w-5 h-5" />
             </div>
-            <div className="text-right">
-              <span className="text-xl font-extrabold text-slate-800">5.000đ</span>
+            <div>
+              <h3 className="font-bold text-slate-800 text-base mb-1">{t.funFacts.f2Title}</h3>
+              <p className="text-sm text-slate-500 font-medium">{t.funFacts.f2Desc}</p>
             </div>
           </div>
-        </div>
 
-        <div>
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">{t.pricing.methods}</h3>
-          <div className="flex flex-wrap gap-3">
-            <span className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-600 shadow-sm flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-pink-500" /> MoMo
-            </span>
-            <span className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-600 shadow-sm flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-blue-500" /> VNPAY
-            </span>
-            <span className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-600 shadow-sm flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-orange-500" /> Visa/Master
-            </span>
-            <span className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-600 shadow-sm flex items-center gap-2">
-              <Car className="w-4 h-4 text-emerald-500" /> ePass/VETC
-            </span>
+          <div className="flex items-start gap-4 p-4 bg-white/80 backdrop-blur-md rounded-xl border border-sky-50 hover:shadow-md hover:border-sky-200 transition-all duration-300 hover:translate-x-1">
+            <div className="bg-sky-100 p-2.5 rounded-full text-sky-600 shadow-inner">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-800 text-base mb-1">{t.funFacts.f3Title}</h3>
+              <p className="text-sm text-slate-500 font-medium">{t.funFacts.f3Desc}</p>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200 flex flex-col">
-        <h2 className="text-2xl font-extrabold text-slate-800 mb-6 flex items-center gap-2">
-          <MapPin className="text-sky-600 w-6 h-6" /> {t.map.title}
-        </h2>
-        
-        <div className="relative flex-1 bg-slate-100 rounded-xl overflow-hidden mb-6 min-h-[260px] border border-slate-200 shadow-inner">
-          <iframe 
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1m2!1s0x31752f241a7d6ab3%3A0x6bda19a9f5d17dd3!2zMTIzIMSQxrDhu51uZyBUcuG6p24gUGjDuiwgUXXhuq1uIDEsIFRow6BuaCBwaOG7kSBI4buTIENow60gTWluaA!5e0!3m2!1svi!2s!4v1700000000000!5m2!1svi!2s" 
-            width="100%" 
-            height="100%" 
-            style={{ border: 0 }} 
-            allowFullScreen="" 
-            loading="lazy" 
-            referrerPolicy="no-referrer-when-downgrade"
-            className="absolute inset-0"
-            title="Google Maps Location"
-          ></iframe>
+      <section className="bg-gradient-to-br from-pink-50 via-white to-orange-50 rounded-2xl p-6 sm:p-8 shadow-sm border border-pink-200 flex flex-col relative overflow-hidden group">
+        {/* Cute Background Decor */}
+        <div className="absolute top-0 right-0 -mr-8 -mt-8 text-pink-200 opacity-50 group-hover:rotate-12 transition-transform duration-500">
+          <Sparkles className="w-32 h-32" />
+        </div>
+        <div className="absolute bottom-0 left-0 -ml-6 -mb-6 text-orange-200 opacity-50 group-hover:-rotate-12 transition-transform duration-500">
+          <Sparkles className="w-24 h-24" />
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <h3 className="font-bold text-slate-800">{t.map.name}</h3>
-            <p className="text-sm text-slate-500 font-medium">{t.map.address}</p>
+        <h2 className="text-2xl font-extrabold text-slate-800 mb-6 flex items-center gap-2 relative z-10">
+          <div className="p-2 bg-pink-100 text-pink-500 rounded-xl">
+            <Sparkles className="w-6 h-6 animate-pulse" />
           </div>
-          <button className="flex items-center justify-center gap-2 bg-sky-50 text-sky-600 border border-sky-200 hover:bg-sky-100 px-6 py-3 rounded-xl font-bold transition-colors">
-            <MapPin className="w-5 h-5" /> {t.map.openMap}
-          </button>
+          {t.features.title}
+        </h2>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10 flex-1">
+          <div className="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-pink-100 hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300">
+            <div className="bg-pink-100 text-pink-600 w-10 h-10 rounded-full flex items-center justify-center mb-3 shadow-inner">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <h3 className="font-bold text-slate-800 mb-1">{t.features.f1Title}</h3>
+            <p className="text-xs font-medium text-slate-500">{t.features.f1Desc}</p>
+          </div>
+          
+          <div className="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-orange-100 hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300">
+            <div className="bg-orange-100 text-orange-600 w-10 h-10 rounded-full flex items-center justify-center mb-3 shadow-inner">
+              <Zap className="w-5 h-5" />
+            </div>
+            <h3 className="font-bold text-slate-800 mb-1">{t.features.f2Title}</h3>
+            <p className="text-xs font-medium text-slate-500">{t.features.f2Desc}</p>
+          </div>
+
+          <div className="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-sky-100 hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300">
+            <div className="bg-sky-100 text-sky-600 w-10 h-10 rounded-full flex items-center justify-center mb-3 shadow-inner">
+              <CreditCard className="w-5 h-5" />
+            </div>
+            <h3 className="font-bold text-slate-800 mb-1">{t.features.f3Title}</h3>
+            <p className="text-xs font-medium text-slate-500">{t.features.f3Desc}</p>
+          </div>
+
+          <div className="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-emerald-100 hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300">
+            <div className="bg-emerald-100 text-emerald-600 w-10 h-10 rounded-full flex items-center justify-center mb-3 shadow-inner">
+              <Smartphone className="w-5 h-5" />
+            </div>
+            <h3 className="font-bold text-slate-800 mb-1">{t.features.f4Title}</h3>
+            <p className="text-xs font-medium text-slate-500">{t.features.f4Desc}</p>
+          </div>
+        </div>
+
+        <div className="mt-6 text-center relative z-10 flex justify-center">
+          <div className="flex items-center gap-2 text-sm font-bold text-pink-600 bg-white/90 shadow-sm px-5 py-2.5 rounded-full border border-pink-200 hover:scale-105 transition-transform cursor-default">
+            {t.features.badge}
+          </div>
         </div>
       </section>
     </div>
@@ -932,7 +1065,7 @@ const Footer = ({ t }) => {
               <span className="text-xl font-extrabold text-slate-800 tracking-tight">SmartParking</span>
             </div>
             <p className="text-slate-500 text-sm font-medium leading-relaxed mb-6">
-              Giải pháp đỗ xe thông minh hàng đầu dành cho khu đô thị, trung tâm thương mại và tòa nhà văn phòng.
+              {t.footer.desc}
             </p>
             <div className="flex gap-4">
               <a href="#" className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-sky-100 hover:text-sky-600 transition-colors">
@@ -945,7 +1078,7 @@ const Footer = ({ t }) => {
           </div>
           
           <div>
-            <h4 className="font-bold text-slate-800 mb-4">Sản phẩm</h4>
+            <h4 className="font-bold text-slate-800 mb-4">{t.footer.products}</h4>
             <ul className="space-y-3 text-sm font-medium text-slate-500">
               <li><a href="#" className="hover:text-sky-600 transition-colors">Enterprise Dashboard</a></li>
               <li><a href="#" className="hover:text-sky-600 transition-colors">Mobile App</a></li>
@@ -955,31 +1088,31 @@ const Footer = ({ t }) => {
           </div>
           
           <div>
-            <h4 className="font-bold text-slate-800 mb-4">Hỗ trợ</h4>
+            <h4 className="font-bold text-slate-800 mb-4">{t.footer.support}</h4>
             <ul className="space-y-3 text-sm font-medium text-slate-500">
-              <li><a href="#" className="hover:text-sky-600 transition-colors">Trung tâm trợ giúp</a></li>
-              <li><a href="#" className="hover:text-sky-600 transition-colors">Tài liệu API</a></li>
-              <li><a href="#" className="hover:text-sky-600 transition-colors">Cộng đồng</a></li>
-              <li><a href="#" className="hover:text-sky-600 transition-colors">Liên hệ</a></li>
+              <li><a href="#" className="hover:text-sky-600 transition-colors">{t.footer.helpCenter}</a></li>
+              <li><a href="#" className="hover:text-sky-600 transition-colors">{t.footer.apiDocs}</a></li>
+              <li><a href="#" className="hover:text-sky-600 transition-colors">{t.footer.community}</a></li>
+              <li><a href="#" className="hover:text-sky-600 transition-colors">{t.footer.contact}</a></li>
             </ul>
           </div>
           
           <div>
-            <h4 className="font-bold text-slate-800 mb-4">Liên hệ</h4>
+            <h4 className="font-bold text-slate-800 mb-4">{t.footer.contact}</h4>
             <ul className="space-y-3 text-sm font-medium text-slate-500">
               <li>Email: contact@smartparking.vn</li>
               <li>Hotline: 1900 1234</li>
-              <li>Địa chỉ: Tòa nhà Nexus, 123 Trần Phú, Q.1, TP.HCM</li>
+              <li>{t.footer.addressLabel}: {t.footer.addressVal}</li>
             </ul>
           </div>
         </div>
         
         <div className="border-t border-slate-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <span className="text-sm text-slate-500 font-medium">© 2024 SmartParking SaaS. {t.footer.rights}</span>
+          <span className="text-sm text-slate-500 font-medium">© 2026 SmartParking SaaS. {t.footer.rights}</span>
           <div className="flex gap-6 text-sm font-bold text-slate-500">
             <a href="#" className="hover:text-sky-600 transition-colors">{t.footer.terms}</a>
             <a href="#" className="hover:text-sky-600 transition-colors">{t.footer.privacy}</a>
-            <a href="#" className="hover:text-sky-600 transition-colors">Cookies</a>
+            <a href="#" className="hover:text-sky-600 transition-colors">{t.footer.cookies}</a>
           </div>
         </div>
       </div>
