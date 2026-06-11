@@ -16,6 +16,7 @@ import DriverBooking from '../features/driver/pages/DriverBooking';
 import DriverPayment from '../features/driver/pages/DriverPayment';
 import DriverHistory from '../features/driver/pages/DriverHistory';
 import DriverProfile from '../features/driver/pages/DriverProfile/DriverProfile';
+import MyParkingOrders from '../pages/MyParkingOrders';
 import NotFoundPage from '../pages/NotFoundPage';
 import ForbiddenPage from '../pages/ForbiddenPage';
 import AccountManagementPage from '../pages/AccountManagementPage';
@@ -71,6 +72,7 @@ export function AppRoutes() {
       <Route path="/driver-booking" element={<DriverBooking />} />
       <Route path="/driver-payment" element={<DriverPayment />} />
       <Route path="/driver-history" element={<DriverHistory />} />
+      <Route path="/driver/active-session" element={<MyParkingOrders />} />
       <Route path="/driver-profile" element={<DriverProfile />} />
       
       <Route element={<RequireAdminRole><AdminLayout /></RequireAdminRole>}>

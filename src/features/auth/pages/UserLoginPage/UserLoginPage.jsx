@@ -69,8 +69,7 @@ export default function UserLoginPage() {
           ? 'driver'
           : response.user?.role ?? response.role ?? 'driver',
         avatarUrl:
-          response.user?.avatarUrl ?? response.avatarUrl ??
-          'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=96&q=80',
+          response.user?.avatarUrl ?? response.avatarUrl ?? '',
       };
 
       localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
@@ -107,9 +106,7 @@ export default function UserLoginPage() {
           fullName: response.fullName,
           customerId: response.customerId,
           employeeId: response.employeeId,
-          avatarUrl:
-            response.avatarUrl ??
-            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=96&q=80',
+          avatarUrl: response.avatarUrl ?? '',
         };
 
         localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);

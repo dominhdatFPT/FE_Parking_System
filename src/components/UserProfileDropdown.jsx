@@ -18,10 +18,10 @@ export default function UserProfileDropdown({ onViewProfile, onLogout, profile }
   const dropdownRef = useRef(null);
 
   const profileData = {
-    name: profile?.name ?? 'Đỗ Minh Đạt',
-    role: profile?.role ?? 'Quản trị viên',
-    email: profile?.email ?? 'dat.dominh@parking.ai',
-    avatar: profile?.avatar ?? defaultAvatar,
+    name: profile?.name ?? 'Người dùng',
+    role: profile?.role ?? 'Người dùng',
+    email: profile?.email ?? '',
+    avatar: profile?.avatar || defaultAvatar,
   };
 
   useEffect(() => {
