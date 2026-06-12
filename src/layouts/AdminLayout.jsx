@@ -3,7 +3,6 @@ import { NavLink, Outlet, useNavigate } from 'react-router';
 import { useAuth } from '../contexts/useAuth';
 import { ROUTES } from '../constants/routes';
 import { STORAGE_KEYS } from '../constants/storageKeys';
-import { useAuth } from '../contexts/useAuth';
 import Icon from '../components/Icon';
 import NotificationDropdown from '../components/NotificationDropdown';
 import UserProfileDropdown from '../components/UserProfileDropdown';

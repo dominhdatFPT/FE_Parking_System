@@ -378,6 +378,6 @@ export default function DriverBooking() {
           </div>
         </main>
       </div>
-    </div>
+    </DriverPageShell>
   );
 }
