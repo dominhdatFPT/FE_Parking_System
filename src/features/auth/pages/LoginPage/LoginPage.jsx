@@ -67,13 +67,12 @@ export default function LoginPage() {
       localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
 
       const authenticatedUser = {
-        id: response.user?.id ?? response.id ?? email,
-        fullName: response.user?.fullName ?? response.fullName ?? response.user?.name ?? 'Quản trị viên',
+        id: response.user?.id ?? response.userId ?? email,
+        fullName: response.user?.fullName ?? response.fullName ?? response.user?.name ?? 'Người dùng',
         email: response.user?.email ?? response.email ?? email,
         role: response.user?.role ?? response.role ?? 'admin',
         avatarUrl:
-          response.user?.avatarUrl ?? response.avatarUrl ??
-          'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=96&q=80',
+          response.user?.avatarUrl ?? response.avatarUrl ?? '',
       };
 
       setUser(authenticatedUser);

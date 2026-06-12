@@ -6,12 +6,20 @@ function readInitialUser() {
 
     const sessionStored = window.sessionStorage.getItem('smart-parking-user');
     if (sessionStored && sessionStored !== 'null' && sessionStored !== 'undefined') {
-        try { return JSON.parse(sessionStored); } catch {}
+        try {
+            return JSON.parse(sessionStored);
+        } catch {
+            window.sessionStorage.removeItem('smart-parking-user');
+        }
     }
 
     const localStored = window.localStorage.getItem('smart-parking-user');
     if (localStored && localStored !== 'null' && localStored !== 'undefined') {
-        try { return JSON.parse(localStored); } catch {}
+        try {
+            return JSON.parse(localStored);
+        } catch {
+            window.localStorage.removeItem('smart-parking-user');
+        }
     }
 
     return null;

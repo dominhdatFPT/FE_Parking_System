@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router';
+import DriverPageShell, { EmptyState } from '../../components/DriverPageShell';
 
-const DriverBooking = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+export default function DriverBooking() {
+  const [form, setForm] = useState({
+    licensePlate: '',
+    bookingDate: '',
+    startTime: '',
+    endTime: '',
+  });
 
   // Fake state for spot selection
   const [selectedSpot, setSelectedSpot] = useState('A05');
@@ -59,97 +63,59 @@ const DriverBooking = () => {
     );
   };
 
+  const updateField = (field) => (event) => {
+    setForm((current) => ({ ...current, [field]: event.target.value }));
+  };
+
   return (
-    <div className="flex h-screen bg-[#f8fafc] text-slate-800 font-sans overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-64 bg-[#131b2e] flex flex-col hidden md:flex text-white shrink-0">
-        <div className="flex-1 overflow-y-auto">
-          {/* Logo */}
-          <div className="h-20 flex items-center px-6 gap-3">
-            <img src="/parking-system-logo.png" alt="Parking System Logo" className="w-10 h-10 object-contain" />
-            <span className="font-bold text-xl text-white tracking-wide">
-              Parking System
-            </span>
+    <DriverPageShell
+      title="Đặt chỗ đỗ xe"
+      subtitle="Form này đã bỏ dữ liệu mẫu. Danh sách chỗ đỗ sẽ hiển thị khi backend có bảng/API parking slots hợp lệ."
+    >
+      <section className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+        <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-bold text-slate-800">Thông tin đặt chỗ</h2>
+          <div className="mt-6 grid gap-5 md:grid-cols-2">
+            <label className="grid gap-2 text-sm">
+              <span className="font-semibold text-slate-600">Ngày đỗ xe</span>
+              <input type="date" value={form.bookingDate} onChange={updateField('bookingDate')} className="rounded-lg border border-slate-200 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+            </label>
+            <label className="grid gap-2 text-sm">
+              <span className="font-semibold text-slate-600">Biển số xe</span>
+              <input type="text" value={form.licensePlate} onChange={updateField('licensePlate')} placeholder="Nhập biển số xe" className="rounded-lg border border-slate-200 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+            </label>
+            <label className="grid gap-2 text-sm">
+              <span className="font-semibold text-slate-600">Giờ vào dự kiến</span>
+              <input type="time" value={form.startTime} onChange={updateField('startTime')} className="rounded-lg border border-slate-200 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+            </label>
+            <label className="grid gap-2 text-sm">
+              <span className="font-semibold text-slate-600">Giờ ra dự kiến</span>
+              <input type="time" value={form.endTime} onChange={updateField('endTime')} className="rounded-lg border border-slate-200 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+            </label>
           </div>
-
-          {/* Nav Items */}
-          <nav className="mt-4 flex flex-col gap-2 px-4">
-            <button
-              onClick={() => handleNavigate('/driver-dashboard')}
-              className={`flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-200 ${isActive('/driver-dashboard')
-                  ? 'bg-blue-600 text-white font-bold shadow-sm'
-                  : 'text-[#94a3b8] hover:bg-white/5 hover:text-white font-medium'
-                }`}
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h4a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM14 5a1 1 0 011-1h4a1 1 0 011 1v6a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM14 17a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1v-2z" />
-              </svg>
-              Trang chủ
-            </button>
-            <button
-              onClick={() => handleNavigate('/driver-booking')}
-              className={`flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-200 ${isActive('/driver-booking')
-                  ? 'bg-blue-600 text-white font-bold shadow-sm'
-                  : 'text-[#94a3b8] hover:bg-white/5 hover:text-white font-medium'
-                }`}
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7 4a2 2 0 00-2 2v2a2 2 0 010 4v2a2 2 0 002 2h10a2 2 0 002-2v-2a2 2 0 010-4V6a2 2 0 00-2-2H7z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 9h6" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 15h6" />
-              </svg>
-              Đặt chỗ
-            </button>
-            <button
-              onClick={() => handleNavigate('/driver-history')}
-              className={`flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-200 ${isActive('/driver-history')
-                  ? 'bg-blue-600 text-white font-bold shadow-sm'
-                  : 'text-[#94a3b8] hover:bg-white/5 hover:text-white font-medium'
-                }`}
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 10a8 8 0 101.46-4.93L3 7m0 3h3" />
-              </svg>
-              Lịch sử
-            </button>
-            <button
-              onClick={() => handleNavigate('/driver-profile')}
-              className={`flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-200 ${isActive('/driver-profile')
-                  ? 'bg-blue-600 text-white font-bold shadow-sm'
-                  : 'text-[#94a3b8] hover:bg-white/5 hover:text-white font-medium'
-                }`}
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              Hồ sơ
-            </button>
-          </nav>
         </div>
 
-        {/* Bottom Sidebar */}
-        <div className="p-6 border-t border-[#1e293b] flex items-center gap-3 shrink-0 bg-transparent">
-          <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-[#1e3a8a] hover:bg-blue-800 rounded-lg transition-colors text-sm font-semibold shadow-sm">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="text-white">Hỗ trợ</span>
-          </button>
-          <button 
-            title="Đăng xuất"
-            onClick={() => handleNavigate('/login')}
-            className="flex-shrink-0 flex items-center justify-center p-2.5 text-rose-600 hover:text-white hover:bg-rose-600 bg-rose-100 rounded-lg transition-all"
-          >
-            <svg className="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
+        <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-bold text-slate-800">Tóm tắt</h2>
+          <dl className="mt-5 space-y-3 text-sm">
+            <div className="flex justify-between gap-4">
+              <dt className="text-slate-500">Biển số</dt>
+              <dd className="font-semibold text-slate-800">{form.licensePlate || '-'}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-slate-500">Ngày</dt>
+              <dd className="font-semibold text-slate-800">{form.bookingDate || '-'}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-slate-500">Thời gian</dt>
+              <dd className="font-semibold text-slate-800">{form.startTime && form.endTime ? `${form.startTime} - ${form.endTime}` : '-'}</dd>
+            </div>
+          </dl>
+          <button type="button" disabled className="mt-6 w-full rounded-lg bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-500">
+            Chưa thể đặt chỗ
           </button>
         </div>
-      </aside>
+      </section>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
@@ -414,6 +380,4 @@ const DriverBooking = () => {
       </div>
     </div>
   );
-};
-
-export default DriverBooking;
+}
