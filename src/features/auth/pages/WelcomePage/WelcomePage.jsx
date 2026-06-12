@@ -19,7 +19,7 @@ const translations = {
       c1: { title: "Tổng số Slot", unit: "chỗ" }, 
       c2: { title: "Slot còn trống", unit: "chỗ" }, 
       c3: { title: "Lượt xe hôm nay", unit: "lượt" },
-      c4: { title: "AI Dự báo cao điểm", unit: "" },
+      c4: { title: "Hệ thống dự báo cao điểm", unit: "" },
       vsYesterday: "so với hôm qua"
     },
     live: {
@@ -38,7 +38,7 @@ const translations = {
         all: "Tất cả", available: "Trống", occupied: "Có xe", reserved: "Đặt trước", maintenance: "Bảo trì",
         car: "Ô tô", moto: "Xe máy"
       },
-      zone: "Khu",
+      zone: "Toà",
       floor: "Tầng",
       empty: "Trống", occupied: "Có xe", reserved: "Đặt trước"
     },
@@ -102,7 +102,7 @@ const translations = {
       c1: { title: "Total Slots", unit: "slots" }, 
       c2: { title: "Available Slots", unit: "slots" }, 
       c3: { title: "Today Traffic", unit: "vehicles" },
-      c4: { title: "AI Peak Prediction", unit: "" },
+      c4: { title: "Peak Prediction System", unit: "" },
       vsYesterday: "vs yesterday"
     },
     live: {
@@ -121,7 +121,7 @@ const translations = {
         all: "All", available: "Available", occupied: "Occupied", reserved: "Reserved", maintenance: "Maintenance",
         car: "Car", moto: "Motorbike"
       },
-      zone: "Zone",
+      zone: "Building",
       floor: "Floor",
       empty: "Available", occupied: "Occupied", reserved: "Reserved"
     },
@@ -503,8 +503,7 @@ const KPIDashboard = ({ t, zone, floor }) => {
 
 const SmartParkingMap = ({ t, zone, setZone, floor, setFloor }) => {
   const [grid, setGrid] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all'); // all, available, occupied, reserved, maintenance, car, moto
+  const [activeFilter, setActiveFilter] = useState('all'); // all, available, occupied, maintenance, car, moto
 
   useEffect(() => {
     setGrid(generateMapGrid(zone, floor));
@@ -536,19 +535,9 @@ const SmartParkingMap = ({ t, zone, setZone, floor, setFloor }) => {
 
       {/* Smart Search Toolbar */}
       <div className="flex flex-wrap items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 mb-6">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder={t.mapOverview.searchPlaceholder}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors"
-          />
-        </div>
         <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar">
           <Filter className="w-4 h-4 text-slate-400 hidden sm:block" />
-          {['all', 'available', 'occupied', 'reserved', 'maintenance', 'car', 'moto'].map(filterKey => (
+          {['all', 'available', 'occupied', 'maintenance', 'car', 'moto'].map(filterKey => (
             <button
               key={filterKey}
               onClick={() => setActiveFilter(filterKey)}
@@ -574,26 +563,6 @@ const SmartParkingMap = ({ t, zone, setZone, floor, setFloor }) => {
 
           // Lọc Logic
           let isMatch = true;
-          const sq = searchQuery.toLowerCase().trim();
-          
-          if (sq) {
-            let matchQuery = false;
-            // Tìm theo ID slot
-            if (slot.id.toLowerCase().includes(sq)) matchQuery = true;
-            
-            // Tìm ngữ nghĩa thông minh: "xe máy", "ô tô", "trống"
-            const isMotoQuery = sq.includes('xe máy') || sq.includes('moto') || sq.includes('xe may');
-            const isCarQuery = sq.includes('ô tô') || sq.includes('oto') || sq.includes('car') || sq.includes('xe hơi');
-            const isEmptyQuery = sq.includes('trống') || sq.includes('empty') || sq.includes('còn');
-
-            // Khi người dùng chỉ nhập loại xe, ưu tiên hiển thị những chỗ CÒN TRỐNG để họ gửi xe.
-            if (isMotoQuery && slot.type === 'M' && slot.status === 'available') matchQuery = true;
-            if (isCarQuery && slot.type === 'C' && slot.status === 'available') matchQuery = true;
-            // Nếu chỉ nhập "trống" thì hiện mọi slot trống
-            if (isEmptyQuery && slot.status === 'available') matchQuery = true;
-
-            if (!matchQuery) isMatch = false;
-          }
 
           if (activeFilter !== 'all') {
             if (activeFilter === 'available' && slot.status !== 'available') isMatch = false;
@@ -621,10 +590,9 @@ const SmartParkingMap = ({ t, zone, setZone, floor, setFloor }) => {
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap justify-between items-center text-[10px] font-bold text-slate-500 px-2">
+      <div className="flex flex-wrap gap-4 items-center text-[10px] font-bold text-slate-500 px-2 mt-auto pt-4 border-t border-slate-100">
         <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-emerald-100 border border-emerald-300 rounded-sm"></div> {t.mapOverview.empty}</div>
         <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-red-100 border border-red-300 rounded-sm"></div> {t.mapOverview.occupied}</div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-sky-100 border border-sky-300 rounded-sm"></div> {t.mapOverview.reserved}</div>
         <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-slate-200 border border-slate-300 rounded-sm"></div> {t.mapOverview.filters.maintenance}</div>
       </div>
     </div>
@@ -886,108 +854,62 @@ const NotificationCenter = ({ t }) => {
 
 const PricingAndMap = ({ t }) => {
   return (
-    <div id="kham-pha" className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-16">
-      <section className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl p-6 sm:p-8 shadow-sm border border-indigo-100 flex flex-col relative overflow-hidden group">
-        <div className="absolute -top-10 -left-10 text-indigo-100 opacity-50 group-hover:rotate-12 transition-transform duration-700">
-          <Sparkles className="w-40 h-40" />
+    <div id="kham-pha" className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-16">
+      <div className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-3xl p-6 sm:p-10 shadow-lg border border-indigo-100 flex flex-col lg:flex-row items-center gap-10">
+        {/* Image Side */}
+        <div className="w-full lg:w-1/2 h-[400px] rounded-2xl overflow-hidden shadow-2xl relative group">
+          <img 
+            src="https://images.unsplash.com/photo-1506521781263-d8422e82f27a?q=80&w=2070&auto=format&fit=crop" 
+            alt="Smart Parking Technology" 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
+          <div className="absolute bottom-6 left-6 right-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-sm font-bold mb-3">
+              <ScanLine className="w-4 h-4" /> Công nghệ thông minh
+            </div>
+            <h3 className="text-white font-bold text-xl drop-shadow-md">Nhận diện biển số và thanh toán chạm cực mượt mà</h3>
+          </div>
         </div>
         
-        <h2 className="text-2xl font-extrabold text-slate-800 mb-6 flex items-center gap-2 relative z-10">
-          <div className="p-2 bg-indigo-100 text-indigo-500 rounded-xl">
-            <Info className="w-6 h-6 animate-bounce" />
-          </div>
-          {t.funFacts.title}
-        </h2>
-        
-        <div className="space-y-4 flex-1 relative z-10">
-          <div className="flex items-start gap-4 p-4 bg-white/80 backdrop-blur-md rounded-xl border border-indigo-50 hover:shadow-md hover:border-indigo-200 transition-all duration-300 hover:translate-x-1">
-            <div className="bg-indigo-100 p-2.5 rounded-full text-indigo-600 shadow-inner">
-              <Maximize className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-800 text-base mb-1">{t.funFacts.f1Title}</h3>
-              <p className="text-sm text-slate-500 font-medium">{t.funFacts.f1Desc}</p>
-            </div>
+        {/* Info Side */}
+        <div className="w-full lg:w-1/2 space-y-8">
+          <div>
+            <h2 className="text-3xl font-extrabold text-slate-800 mb-4 flex items-center gap-3">
+              <div className="p-2 bg-indigo-100 text-indigo-500 rounded-xl">
+                <Sparkles className="w-7 h-7" />
+              </div>
+              {t.features.title}
+            </h2>
+            <p className="text-slate-500 font-medium text-lg leading-relaxed">
+              Khám phá những công nghệ đột phá giúp bãi đỗ xe của chúng tôi trở nên thông minh và khác biệt so với phần còn lại.
+            </p>
           </div>
           
-          <div className="flex items-start gap-4 p-4 bg-white/80 backdrop-blur-md rounded-xl border border-purple-50 hover:shadow-md hover:border-purple-200 transition-all duration-300 hover:translate-x-1">
-            <div className="bg-purple-100 p-2.5 rounded-full text-purple-600 shadow-inner">
-              <BatteryCharging className="w-5 h-5" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="bg-white p-4 rounded-xl border border-indigo-50 shadow-sm hover:shadow-md transition-shadow">
+              <ShieldCheck className="w-6 h-6 text-indigo-500 mb-3" />
+              <h4 className="font-bold text-slate-800 mb-1">{t.features.f1Title}</h4>
+              <p className="text-sm text-slate-500">{t.features.f1Desc}</p>
             </div>
-            <div>
-              <h3 className="font-bold text-slate-800 text-base mb-1">{t.funFacts.f2Title}</h3>
-              <p className="text-sm text-slate-500 font-medium">{t.funFacts.f2Desc}</p>
+            <div className="bg-white p-4 rounded-xl border border-indigo-50 shadow-sm hover:shadow-md transition-shadow">
+              <Zap className="w-6 h-6 text-orange-500 mb-3" />
+              <h4 className="font-bold text-slate-800 mb-1">{t.features.f2Title}</h4>
+              <p className="text-sm text-slate-500">{t.features.f2Desc}</p>
             </div>
-          </div>
-
-          <div className="flex items-start gap-4 p-4 bg-white/80 backdrop-blur-md rounded-xl border border-sky-50 hover:shadow-md hover:border-sky-200 transition-all duration-300 hover:translate-x-1">
-            <div className="bg-sky-100 p-2.5 rounded-full text-sky-600 shadow-inner">
-              <CheckCircle2 className="w-5 h-5" />
+            <div className="bg-white p-4 rounded-xl border border-indigo-50 shadow-sm hover:shadow-md transition-shadow">
+              <CreditCard className="w-6 h-6 text-sky-500 mb-3" />
+              <h4 className="font-bold text-slate-800 mb-1">{t.features.f3Title}</h4>
+              <p className="text-sm text-slate-500">{t.features.f3Desc}</p>
             </div>
-            <div>
-              <h3 className="font-bold text-slate-800 text-base mb-1">{t.funFacts.f3Title}</h3>
-              <p className="text-sm text-slate-500 font-medium">{t.funFacts.f3Desc}</p>
+            <div className="bg-white p-4 rounded-xl border border-indigo-50 shadow-sm hover:shadow-md transition-shadow">
+              <Smartphone className="w-6 h-6 text-emerald-500 mb-3" />
+              <h4 className="font-bold text-slate-800 mb-1">{t.features.f4Title}</h4>
+              <p className="text-sm text-slate-500">{t.features.f4Desc}</p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-gradient-to-br from-pink-50 via-white to-orange-50 rounded-2xl p-6 sm:p-8 shadow-sm border border-pink-200 flex flex-col relative overflow-hidden group">
-        {/* Cute Background Decor */}
-        <div className="absolute top-0 right-0 -mr-8 -mt-8 text-pink-200 opacity-50 group-hover:rotate-12 transition-transform duration-500">
-          <Sparkles className="w-32 h-32" />
-        </div>
-        <div className="absolute bottom-0 left-0 -ml-6 -mb-6 text-orange-200 opacity-50 group-hover:-rotate-12 transition-transform duration-500">
-          <Sparkles className="w-24 h-24" />
-        </div>
-
-        <h2 className="text-2xl font-extrabold text-slate-800 mb-6 flex items-center gap-2 relative z-10">
-          <div className="p-2 bg-pink-100 text-pink-500 rounded-xl">
-            <Sparkles className="w-6 h-6 animate-pulse" />
-          </div>
-          {t.features.title}
-        </h2>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10 flex-1">
-          <div className="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-pink-100 hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300">
-            <div className="bg-pink-100 text-pink-600 w-10 h-10 rounded-full flex items-center justify-center mb-3 shadow-inner">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold text-slate-800 mb-1">{t.features.f1Title}</h3>
-            <p className="text-xs font-medium text-slate-500">{t.features.f1Desc}</p>
-          </div>
-          
-          <div className="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-orange-100 hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300">
-            <div className="bg-orange-100 text-orange-600 w-10 h-10 rounded-full flex items-center justify-center mb-3 shadow-inner">
-              <Zap className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold text-slate-800 mb-1">{t.features.f2Title}</h3>
-            <p className="text-xs font-medium text-slate-500">{t.features.f2Desc}</p>
-          </div>
-
-          <div className="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-sky-100 hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300">
-            <div className="bg-sky-100 text-sky-600 w-10 h-10 rounded-full flex items-center justify-center mb-3 shadow-inner">
-              <CreditCard className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold text-slate-800 mb-1">{t.features.f3Title}</h3>
-            <p className="text-xs font-medium text-slate-500">{t.features.f3Desc}</p>
-          </div>
-
-          <div className="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-emerald-100 hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300">
-            <div className="bg-emerald-100 text-emerald-600 w-10 h-10 rounded-full flex items-center justify-center mb-3 shadow-inner">
-              <Smartphone className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold text-slate-800 mb-1">{t.features.f4Title}</h3>
-            <p className="text-xs font-medium text-slate-500">{t.features.f4Desc}</p>
           </div>
         </div>
-
-        <div className="mt-6 text-center relative z-10 flex justify-center">
-          <div className="flex items-center gap-2 text-sm font-bold text-pink-600 bg-white/90 shadow-sm px-5 py-2.5 rounded-full border border-pink-200 hover:scale-105 transition-transform cursor-default">
-            {t.features.badge}
-          </div>
-        </div>
-      </section>
+      </div>
     </div>
   );
 };

@@ -17,14 +17,25 @@ const menuItems = [
 
 export default function AdminLayout() {
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { user, setUser } = useAuth();
 
   function handleLogout() {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER);
+    localStorage.removeItem('smart-parking-user');
+    localStorage.removeItem('rememberMe');
     setUser(null);
     navigate(ROUTES.ADMIN_LOGIN, { replace: true });
   }
+
+  const profile = user
+    ? {
+        name: user.fullName || user.name || 'Người dùng',
+        role: user.role || 'Người dùng',
+        email: user.email || '',
+        avatar: user.avatarUrl || user.avatar || '',
+      }
+    : null;
 
   return (
     <div className="min-h-screen bg-gray-100 lg:flex">
@@ -104,6 +115,7 @@ export default function AdminLayout() {
               <NotificationDropdown />
 
               <UserProfileDropdown
+                profile={profile}
                 onViewProfile={() => navigate(ROUTES.SETTINGS.PROFILE)}
                 onLogout={handleLogout}
               />
