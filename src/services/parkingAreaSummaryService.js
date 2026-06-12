@@ -1,0 +1,23 @@
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+export const parkingAreaSummaryService = {
+  getAreas: async ({ buildingCode, floorNumber } = {}) => {
+    const response = await api.get('/api/v1/parking-area-summary', {
+      params: {
+        buildingCode,
+        floorNumber,
+      },
+    });
+
+    return response.data;
+  },
+};

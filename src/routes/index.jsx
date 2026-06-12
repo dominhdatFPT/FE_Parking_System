@@ -6,6 +6,7 @@ import AdminLayout from '../layouts/AdminLayout';
 import LoginPage from '../features/auth/pages/LoginPage';
 import UserLoginPage from '../features/auth/pages/UserLoginPage/UserLoginPage';
 import HomePage from '../pages/HomePage';
+import ParkingMapPage from '../pages/ParkingMapPage';
 import WelcomePage from '../features/auth/pages/WelcomePage';
 import AccountRecovery from '../features/auth/pages/AccountRecovery';
 import ResetPassword from '../features/auth/pages/ResetPassword';
@@ -65,6 +66,12 @@ export function AppRoutes() {
       <Route path="/home" element={
           <RequireAuth>
             <HomePage />
+          </RequireAuth>
+        }
+      />
+      <Route path="/parking-map" element={
+          <RequireAuth>
+            <ParkingMapPage />
           </RequireAuth>
         }
       />

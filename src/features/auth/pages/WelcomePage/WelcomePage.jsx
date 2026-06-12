@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router';
-import { 
+import {
   Car, Bike, Zap, MapPin, CreditCard, Globe, ScanLine, CalendarDays,
-  Smartphone, CheckCircle2, AlertTriangle, Clock, ShieldCheck, 
+  Smartphone, CheckCircle2, AlertTriangle, Clock, ShieldCheck,
   BatteryCharging, Maximize, Bell, ChevronRight, ChevronDown, Info,
-  TrendingUp, TrendingDown, Activity, BarChart3, Users, 
+  TrendingUp, TrendingDown, Activity, BarChart3, Users,
   LayoutDashboard, LogIn, UserPlus, Facebook, Github, Check,
-  AlertCircle, Sparkles, Search, Filter, X
+  AlertCircle, Sparkles, X
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { parkingAreaSummaryService } from '../../../../services/parkingAreaSummaryService';
 
 // --- DICTIONARY (i18n) ---
 const translations = {
@@ -194,23 +195,72 @@ const trendData = [
 ];
 
 const zoneData = [
-  { id: 'A', name: 'Zone A (Ô tô)', occupied: 95, total: 100 },
-  { id: 'B', name: 'Zone B (Ô tô)', occupied: 60, total: 100 },
-  { id: 'C', name: 'Zone C (Xe máy)', occupied: 48, total: 120 },
+  { id: 'A', name: 'Khu A', vehicle: 'Ô tô', occupied: 40, total: 100 },
+  { id: 'B', name: 'Khu B', vehicle: 'Ô tô', occupied: 72, total: 100 },
+  { id: 'C', name: 'Khu C', vehicle: 'Xe máy', occupied: 28, total: 100 },
+  { id: 'D', name: 'Khu D', vehicle: 'Xe máy', occupied: 91, total: 100 },
 ];
 
-const generateMapGrid = (zone, floor = 'B1') => {
-  return Array.from({ length: 48 }, (_, i) => {
-    const type = zone === 'C' ? 'M' : 'C'; // Zone C is Motorbike
-    const floorDigit = floor.replace('B', '');
-    const id = `${type}-${zone}${floorDigit}${String(i + 1).padStart(2, '0')}`;
-    const rand = Math.random();
-    let status = 'occupied';
-    if (rand > 0.75) status = 'available';
-    else if (rand > 0.65) status = 'reserved';
-    else if (rand > 0.95) status = 'maintenance';
-    return { id, type, status };
+const buildingOptions = [
+  { value: 'LK', label: 'Long Khánh' },
+  { value: 'TCM', label: 'Toàn Cẩm Mỹ' },
+  { value: 'BH', label: 'Biên Hòa' },
+];
+
+const floorOptions = [
+  { value: '1', label: 'Tầng 1' },
+  { value: '2', label: 'Tầng 2' },
+  { value: '3', label: 'Tầng 3' },
+];
+
+const generateParkingAreas = (buildingCode, floor = '1') => {
+  const building = buildingOptions.find((item) => item.value === buildingCode) || buildingOptions[0];
+  const areaSeed = {
+    LK: [18, 21, 9, 14],
+    TCM: [11, 16, 20, 7],
+    BH: [22, 12, 15, 19],
+  };
+  const baseCounts = areaSeed[building.value] || areaSeed.LK;
+  const floorBoost = Number(floor) - 1;
+
+  return ['A', 'B', 'C', 'D'].map((areaCode, index) => {
+    const vehicleType = index < 2 ? 'car' : 'moto';
+    const capacity = 25;
+    const occupied = Math.min(capacity, baseCounts[index] + floorBoost);
+
+    return {
+      id: `${building.value}-${floor}-${areaCode}`,
+      areaCode,
+      name: `Khu ${areaCode}`,
+      buildingName: building.label,
+      floor,
+      vehicleType,
+      occupied,
+      capacity,
+    };
   });
+};
+
+const getAreaTone = (percent) => {
+  if (percent < 55) {
+    return {
+      label: 'Còn nhiều chỗ',
+      card: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+      meter: 'bg-emerald-500',
+    };
+  }
+  if (percent < 85) {
+    return {
+      label: 'Trung bình',
+      card: 'bg-amber-50 border-amber-200 text-amber-800',
+      meter: 'bg-amber-500',
+    };
+  }
+  return {
+    label: 'Gần đầy',
+    card: 'bg-rose-50 border-rose-200 text-rose-800',
+    meter: 'bg-rose-500',
+  };
 };
 
 // --- HELPER HOOK ---
@@ -414,8 +464,8 @@ const RealtimeStatusBar = ({ t }) => {
 
 // --- DASHBOARD WRAPPER ---
 const MainDashboard = ({ t }) => {
-  const [zone, setZone] = useState('A');
-  const [floor, setFloor] = useState('B1');
+  const [zone, setZone] = useState('LK');
+  const [floor, setFloor] = useState('1');
 
   return (
     <section id="dashboard" className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative z-20 py-12 space-y-8">
@@ -502,24 +552,63 @@ const KPIDashboard = ({ t, zone, floor }) => {
 };
 
 const SmartParkingMap = ({ t, zone, setZone, floor, setFloor }) => {
-  const [grid, setGrid] = useState([]);
-  const [activeFilter, setActiveFilter] = useState('all'); // all, available, occupied, maintenance, car, moto
+  const [areas, setAreas] = useState([]);
+  const [loadingAreas, setLoadingAreas] = useState(true);
+  const [areaError, setAreaError] = useState('');
 
   useEffect(() => {
-    setGrid(generateMapGrid(zone, floor));
+    let active = true;
+
+    const fetchAreas = async () => {
+      setLoadingAreas(true);
+      setAreaError('');
+
+      try {
+        const data = await parkingAreaSummaryService.getAreas({
+          buildingCode: zone,
+          floorNumber: Number(floor),
+        });
+
+        if (!active) return;
+
+        const mappedAreas = (Array.isArray(data) ? data : []).map((area) => {
+          const vehicleType = area.vehicleType === 'CAR' ? 'car' : 'moto';
+
+          return {
+            id: area.id,
+            areaCode: area.areaCode,
+            name: `Khu ${area.areaCode}`,
+            buildingName: area.buildingName,
+            floor: String(area.floorNumber),
+            vehicleType,
+            occupied: Number(area.currentVehicleCount || 0),
+            capacity: Number(area.capacity || 25),
+          };
+        });
+
+        setAreas(mappedAreas);
+      } catch (error) {
+        console.error('Error fetching parking area summary:', error);
+        if (active) {
+          setAreas([]);
+          setAreaError('Không tải được dữ liệu bãi xe từ BE');
+        }
+      } finally {
+        if (active) {
+          setLoadingAreas(false);
+        }
+      }
+    };
+
+    fetchAreas();
+
+    return () => {
+      active = false;
+    };
   }, [zone, floor]);
 
-  const zoneOptions = [
-    { value: 'A', label: `${t.mapOverview.zone} A` },
-    { value: 'B', label: `${t.mapOverview.zone} B` },
-    { value: 'C', label: `${t.mapOverview.zone} C` }
-  ];
-
-  const floorOptions = [
-    { value: 'B1', label: `${t.mapOverview.floor} B1` },
-    { value: 'B2', label: `${t.mapOverview.floor} B2` },
-    { value: 'B3', label: `${t.mapOverview.floor} B3` }
-  ];
+  const totalOccupied = areas.reduce((sum, area) => sum + area.occupied, 0);
+  const totalCapacity = areas.reduce((sum, area) => sum + area.capacity, 0);
 
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 h-full flex flex-col">
@@ -529,61 +618,74 @@ const SmartParkingMap = ({ t, zone, setZone, floor, setFloor }) => {
         </h3>
         <div className="flex items-center gap-3">
           <CustomSelect value={floor} options={floorOptions} onChange={setFloor} />
-          <CustomSelect value={zone} options={zoneOptions} onChange={setZone} />
+          <CustomSelect value={zone} options={buildingOptions} onChange={setZone} />
         </div>
       </div>
 
-      {/* Smart Search Toolbar */}
-      <div className="flex flex-wrap items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 mb-6">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar">
-          <Filter className="w-4 h-4 text-slate-400 hidden sm:block" />
-          {['all', 'available', 'occupied', 'maintenance', 'car', 'moto'].map(filterKey => (
-            <button
-              key={filterKey}
-              onClick={() => setActiveFilter(filterKey)}
-              className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-                activeFilter === filterKey 
-                ? 'bg-sky-500 text-white shadow-sm' 
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              {t.mapOverview.filters[filterKey]}
-            </button>
-          ))}
+      <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 flex items-center justify-between">
+        <div>
+          <p className="text-xs font-black text-slate-400 uppercase tracking-wide">Tổng xe trong bãi</p>
+          <p className="text-2xl font-black text-slate-900">{totalOccupied}<span className="text-sm text-slate-500">/{totalCapacity} xe</span></p>
+        </div>
+        <div className="text-right">
+          <p className="text-xs font-bold text-slate-500">Quản lý theo khu</p>
+          <p className="text-sm font-black text-slate-700">Không gán vị trí cụ thể</p>
         </div>
       </div>
 
-      {/* Map Grid */}
-      <div className="flex-1 bg-slate-100 rounded-xl border border-slate-200 p-4 mb-4 grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 content-start">
-        {grid.map((slot, i) => {
-          let bg = "bg-emerald-50 border-emerald-200 text-emerald-700"; // available
-          if(slot.status === 'occupied') bg = "bg-red-50 border-red-200 text-red-700 shadow-inner";
-          if(slot.status === 'reserved') bg = "bg-sky-50 border-sky-200 text-sky-700";
-          if(slot.status === 'maintenance') bg = "bg-slate-200 border-slate-300 text-slate-500 opacity-50";
+      {/* Area Grid */}
+      <div className="flex-1 bg-slate-100 rounded-xl border border-slate-200 p-4 mb-4 grid grid-cols-2 sm:grid-cols-4 gap-3 content-start">
+        {loadingAreas && (
+          <div className="col-span-full min-h-[156px] rounded-xl border border-slate-200 bg-white flex items-center justify-center text-sm font-bold text-slate-500">
+            Đang tải dữ liệu từ BE...
+          </div>
+        )}
 
-          // Lọc Logic
-          let isMatch = true;
+        {!loadingAreas && areaError && (
+          <div className="col-span-full min-h-[156px] rounded-xl border border-rose-200 bg-rose-50 flex items-center justify-center text-sm font-bold text-rose-600">
+            {areaError}
+          </div>
+        )}
 
-          if (activeFilter !== 'all') {
-            if (activeFilter === 'available' && slot.status !== 'available') isMatch = false;
-            if (activeFilter === 'occupied' && slot.status !== 'occupied') isMatch = false;
-            if (activeFilter === 'reserved' && slot.status !== 'reserved') isMatch = false;
-            if (activeFilter === 'maintenance' && slot.status !== 'maintenance') isMatch = false;
-            if (activeFilter === 'car' && slot.type !== 'C') isMatch = false;
-            if (activeFilter === 'moto' && slot.type !== 'M') isMatch = false;
-          }
+        {!loadingAreas && !areaError && areas.length === 0 && (
+          <div className="col-span-full min-h-[156px] rounded-xl border border-slate-200 bg-white flex items-center justify-center text-sm font-bold text-slate-500">
+            Chưa có dữ liệu cho tòa và tầng này
+          </div>
+        )}
 
+        {!loadingAreas && !areaError && areas.map((area) => {
+          const percent = Math.round((area.occupied / area.capacity) * 100);
+          const tone = getAreaTone(percent);
           return (
-            <div 
-              key={slot.id} 
-              className={`aspect-[4/3] rounded-lg border-2 ${bg} transition-all duration-300 flex flex-col items-center justify-center relative ${
-                isMatch ? 'opacity-100 scale-100 shadow-sm' : 'opacity-20 scale-95'
-              }`}
+            <div
+              key={area.id}
+              className={`min-h-[156px] rounded-xl border-2 p-4 transition-all duration-300 flex flex-col justify-between shadow-sm ${tone.card}`}
             >
-              <span className={`text-[10px] sm:text-xs font-extrabold tracking-tight`}>
-                {slot.id}
-              </span>
-              {slot.type === 'C' ? <Car className="w-3 h-3 mt-1 opacity-70" /> : <Bike className="w-3 h-3 mt-1 opacity-70" />}
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-sm font-black text-slate-800">{area.name}</p>
+                  <p className="text-[11px] font-bold text-slate-500">
+                    {area.buildingName} - Tầng {area.floor}
+                  </p>
+                  <p className="text-[11px] font-bold text-slate-500">
+                    {area.vehicleType === 'car' ? 'Dành cho ô tô' : 'Dành cho xe máy'}
+                  </p>
+                </div>
+                {area.vehicleType === 'car'
+                  ? <Car className="w-4 h-4 opacity-70" />
+                  : <Bike className="w-4 h-4 opacity-70" />}
+              </div>
+
+              <div>
+                <div className="flex items-end justify-between mb-2">
+                  <p className="text-2xl font-black">{area.occupied}<span className="text-xs opacity-60">/{area.capacity}</span></p>
+                  <span className="text-[10px] font-black opacity-70">{percent}%</span>
+                </div>
+                <div className="h-2 rounded-full bg-white/70 overflow-hidden">
+                  <div className={`h-full rounded-full ${tone.meter}`} style={{ width: `${percent}%` }} />
+                </div>
+                <p className="mt-1 text-[10px] font-bold opacity-70">{tone.label}</p>
+              </div>
             </div>
           );
         })}
@@ -591,9 +693,9 @@ const SmartParkingMap = ({ t, zone, setZone, floor, setFloor }) => {
 
       {/* Legend */}
       <div className="flex flex-wrap gap-4 items-center text-[10px] font-bold text-slate-500 px-2 mt-auto pt-4 border-t border-slate-100">
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-emerald-100 border border-emerald-300 rounded-sm"></div> {t.mapOverview.empty}</div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-red-100 border border-red-300 rounded-sm"></div> {t.mapOverview.occupied}</div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-slate-200 border border-slate-300 rounded-sm"></div> {t.mapOverview.filters.maintenance}</div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-emerald-100 border border-emerald-300 rounded-sm"></div> Còn nhiều chỗ</div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-amber-100 border border-amber-300 rounded-sm"></div> Trung bình</div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-rose-100 border border-rose-300 rounded-sm"></div> Gần đầy</div>
       </div>
     </div>
   );
@@ -678,38 +780,70 @@ const ParkingTrendChart = ({ t }) => {
 
 const FloorManagement = ({ t }) => {
   const getBadge = (pct) => {
-    if (pct < 60) return { color: 'emerald', text: t.floor.statusNormal };
-    if (pct < 85) return { color: 'orange', text: t.floor.statusMedium };
-    return { color: 'red', text: t.floor.statusFull };
+    if (pct < 60) {
+      return {
+        text: t.floor.statusNormal,
+        card: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+        badge: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+        bar: 'bg-emerald-500',
+      };
+    }
+    if (pct < 85) {
+      return {
+        text: t.floor.statusMedium,
+        card: 'bg-amber-50 border-amber-200 text-amber-800',
+        badge: 'bg-amber-100 text-amber-700 border-amber-200',
+        bar: 'bg-amber-500',
+      };
+    }
+    return {
+      text: t.floor.statusFull,
+      card: 'bg-rose-50 border-rose-200 text-rose-800',
+      badge: 'bg-rose-100 text-rose-700 border-rose-200',
+      bar: 'bg-rose-500',
+    };
   };
+  const totalOccupied = zoneData.reduce((sum, zone) => sum + zone.occupied, 0);
+  const totalCapacity = zoneData.reduce((sum, zone) => sum + zone.total, 0);
+  const totalPct = Math.round((totalOccupied / totalCapacity) * 100);
 
   return (
     <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm h-full">
       <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
         <MapPin className="w-5 h-5 text-sky-500" /> {t.floor.title}
       </h3>
-      <div className="space-y-6">
+      <div className="relative grid grid-cols-2 gap-3">
         {zoneData.map(z => {
           const pct = Math.round((z.occupied / z.total) * 100);
           const badge = getBadge(pct);
           return (
-            <div key={z.id}>
-              <div className="flex justify-between items-center mb-2">
-                <span className="font-bold text-slate-700 text-sm">{z.name}</span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md bg-${badge.color}-50 text-${badge.color}-600 border border-${badge.color}-200`}>
+            <div key={z.id} className={`rounded-xl border p-4 min-h-[128px] ${badge.card}`}>
+              <div className="flex justify-between items-start gap-2 mb-4">
+                <div>
+                  <p className="font-black text-lg">{z.name}</p>
+                  <p className="text-xs font-bold opacity-70">{z.vehicle}</p>
+                </div>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${badge.badge}`}>
                   {badge.text}
                 </span>
               </div>
-              <div className="flex justify-between items-end mb-2">
-                <div className="text-xl font-black text-slate-800">{z.occupied}<span className="text-sm text-slate-400">/{z.total}</span></div>
-                <div className="text-xs font-bold text-slate-500">{pct}%</div>
+              <div className="flex justify-between items-end mb-3">
+                <div className="text-2xl font-black">{z.occupied}<span className="text-sm opacity-60">/{z.total}</span></div>
+                <div className="text-xs font-black opacity-70">{pct}%</div>
               </div>
-              <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                <div className={`h-2 rounded-full bg-${badge.color}-500 transition-all duration-1000`} style={{ width: `${pct}%` }}></div>
+              <div className="w-full bg-white/70 rounded-full h-2 overflow-hidden">
+                <div className={`h-2 rounded-full ${badge.bar} transition-all duration-1000`} style={{ width: `${pct}%` }}></div>
               </div>
             </div>
           );
         })}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-32 h-32 rounded-full bg-white border border-slate-200 shadow-xl flex flex-col items-center justify-center text-center">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wide">Đang đỗ</span>
+            <span className="text-3xl font-black text-slate-900 leading-none">{totalOccupied}</span>
+            <span className="text-xs font-bold text-slate-500">xe / {totalPct}%</span>
+          </div>
+        </div>
       </div>
     </div>
   );
