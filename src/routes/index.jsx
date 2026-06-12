@@ -4,13 +4,11 @@ import { ROUTES } from '../constants/routes';
 import MainLayout from '../layouts/MainLayout';
 import AdminLayout from '../layouts/AdminLayout';
 import LoginPage from '../features/auth/pages/LoginPage';
-import UserLoginPage from '../features/auth/pages/UserLoginPage/UserLoginPage';
 import HomePage from '../pages/HomePage';
 import WelcomePage from '../features/auth/pages/WelcomePage';
 import AccountRecovery from '../features/auth/pages/AccountRecovery';
 import ResetPassword from '../features/auth/pages/ResetPassword';
 import SignupPage from '../features/auth/pages/SignupPage';
-import AdminSignup from '../features/auth/pages/AdminSignup';
 import DriverDashboard from '../features/driver/pages/DriverDashboard';
 import DriverBooking from '../features/driver/pages/DriverBooking';
 import DriverPayment from '../features/driver/pages/DriverPayment';
@@ -41,7 +39,7 @@ function RequireAdminRole({ children }) {
   const location = useLocation();
 
   if (!isAuthenticated) {
-    return <Navigate to={ROUTES.ADMIN_LOGIN} replace state={{ from: location.pathname }} />;
+    return <Navigate to={ROUTES.LOGIN} replace state={{ from: location.pathname }} />;
   }
 
 if (role?.toLowerCase() !== 'admin') {
@@ -55,10 +53,9 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path={ROUTES.HOME} element={<WelcomePage />} />
-      <Route path={ROUTES.LOGIN} element={<UserLoginPage />} />
-      <Route path={ROUTES.ADMIN_LOGIN} element={<LoginPage />} />
+      <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+      <Route path={ROUTES.ADMIN_LOGIN} element={<Navigate to={ROUTES.LOGIN} replace />} />
       <Route path={ROUTES.SIGNUP} element={<SignupPage />} />
-      <Route path="/admin/signup" element={<AdminSignup />} />
       <Route path="/recovery" element={<AccountRecovery />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       
