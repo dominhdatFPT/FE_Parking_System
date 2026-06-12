@@ -33,12 +33,13 @@ const getNavigationItems = (role) => {
 
 export default function MainLayout() {
   const navigate = useNavigate();
-  const { role } = useAuth();
+  const { role, setUser } = useAuth();
   const navigationItems = getNavigationItems(role);
 
   const handleLogout = () => {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER);
+    setUser(null);
     navigate(ROUTES.LOGIN, { replace: true });
   };
 

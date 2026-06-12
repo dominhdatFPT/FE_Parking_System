@@ -1,8 +1,8 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
+import { useAuth } from '../contexts/useAuth';
 import { ROUTES } from '../constants/routes';
 import { STORAGE_KEYS } from '../constants/storageKeys';
-import { useAuth } from '../contexts/useAuth';
 import Icon from '../components/Icon';
 import NotificationDropdown from '../components/NotificationDropdown';
 import UserProfileDropdown from '../components/UserProfileDropdown';
@@ -17,14 +17,15 @@ const menuItems = [
 
 export default function AdminLayout() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
 
   function handleLogout() {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER);
     localStorage.removeItem('smart-parking-user');
     localStorage.removeItem('rememberMe');
-    navigate(ROUTES.LOGIN, { replace: true });
+    setUser(null);
+    navigate(ROUTES.ADMIN_LOGIN, { replace: true });
   }
 
   const profile = user

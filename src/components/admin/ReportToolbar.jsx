@@ -325,14 +325,14 @@ export default function ReportToolbar({ onRangeChange, reportStats = defaultRepo
       <div className="relative">
         <button
           type="button"
-          className="inline-flex items-center gap-2 rounded-full bg-[#1e3a8a] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800"
+          className="inline-flex items-center gap-2 rounded-full bg-[#1e3a8a] px-4 py-2 text-sm font-semibold shadow-sm transition hover:bg-blue-800"
           onClick={() => {
             setExportDropdownOpen((prev) => !prev);
             setDateDropdownOpen(false);
           }}
         >
-          <span className="material-symbols-outlined text-base">download</span>
-          Xuất báo cáo
+          <span className="material-symbols-outlined text-base text-white">download</span>
+          <span className="text-white">Xuất báo cáo</span>
         </button>
 
         {exportDropdownOpen && (
