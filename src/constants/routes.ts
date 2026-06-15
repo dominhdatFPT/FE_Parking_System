@@ -55,13 +55,13 @@ export const ROUTES = {
   },
 
   DRIVER: {
-    HOME: '/driver',
-    PARKING_INFO: '/driver/parking-info',
-    RESERVATIONS: '/driver/reservations',
+    DASHBOARD: '/driver-dashboard',
+    BOOKING: '/driver-booking',
+    HISTORY: '/driver-history',
+    PAYMENT: '/driver-payment',
+    NOTIFICATIONS: '/driver-notifications',
+    SUPPORT: '/driver-support',
+    PROFILE: '/driver-profile',
     ACTIVE_SESSION: '/driver/active-session',
-    PAYMENTS: '/driver/payments',
-    HISTORY: '/driver/history',
-    PROFILE: '/driver/profile',
-    SUPPORT: '/driver/support',
   },
 } as const;

@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/useAuth';
 import { ROUTES } from '../constants/routes';
 import MainLayout from '../layouts/MainLayout';
 import AdminLayout from '../layouts/AdminLayout';
+import DriverLayout from '../layouts/DriverLayout';
 import LoginPage from '../features/auth/pages/LoginPage';
 import HomePage from '../pages/HomePage';
 import ParkingMapPage from '../pages/ParkingMapPage';
@@ -14,6 +15,8 @@ import DriverDashboard from '../features/driver/pages/DriverDashboard';
 import DriverBooking from '../features/driver/pages/DriverBooking';
 import DriverPayment from '../features/driver/pages/DriverPayment';
 import DriverHistory from '../features/driver/pages/DriverHistory';
+import DriverNotifications from '../features/driver/pages/DriverNotifications';
+import DriverSupport from '../features/driver/pages/DriverSupport';
 import DriverProfile from '../features/driver/pages/DriverProfile/DriverProfile';
 import MyParkingOrders from '../pages/MyParkingOrders';
 import NotFoundPage from '../pages/NotFoundPage';
@@ -45,7 +48,7 @@ function RequireAdminRole({ children }) {
 
 if (role?.toLowerCase() !== 'admin') {
     return <Navigate to={ROUTES.FORBIDDEN} replace />;
-}
+  }
 
   return children;
 }
@@ -72,12 +75,18 @@ export function AppRoutes() {
           </RequireAuth>
         }
       />
-      <Route path="/driver-dashboard" element={<DriverDashboard />} />
-      <Route path="/driver-booking" element={<DriverBooking />} />
-      <Route path="/driver-payment" element={<DriverPayment />} />
-      <Route path="/driver-history" element={<DriverHistory />} />
-      <Route path="/driver/active-session" element={<MyParkingOrders />} />
-      <Route path="/driver-profile" element={<DriverProfile />} />
+
+      {/* Driver Portal Routes */}
+      <Route element={<DriverLayout />}>
+        <Route path={ROUTES.DRIVER.DASHBOARD} element={<DriverDashboard />} />
+        <Route path={ROUTES.DRIVER.BOOKING} element={<DriverBooking />} />
+        <Route path={ROUTES.DRIVER.HISTORY} element={<DriverHistory />} />
+        <Route path={ROUTES.DRIVER.PAYMENT} element={<DriverPayment />} />
+        <Route path={ROUTES.DRIVER.NOTIFICATIONS} element={<DriverNotifications />} />
+        <Route path={ROUTES.DRIVER.SUPPORT} element={<DriverSupport />} />
+        <Route path={ROUTES.DRIVER.PROFILE} element={<DriverProfile />} />
+        <Route path={ROUTES.DRIVER.ACTIVE_SESSION} element={<MyParkingOrders />} />
+      </Route>
       
       <Route element={<RequireAdminRole><AdminLayout /></RequireAdminRole>}>
         <Route path={ROUTES.ADMIN.DASHBOARD} element={<HomePage />} />
