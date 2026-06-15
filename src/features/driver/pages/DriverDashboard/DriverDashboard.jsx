@@ -1,120 +1,165 @@
-import React from 'react';
-import dayjs from 'dayjs';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/useAuth';
-import { useActiveParkingOrders } from '../../../../hooks/useActiveParkingOrders';
-import DriverPageShell, { EmptyState } from '../../components/DriverPageShell';
-
-function groupActiveOrdersByFloor(orders) {
-  return orders.reduce((acc, order) => {
-    const floorName = order.floorName || 'Chưa xác định';
-    acc[floorName] = (acc[floorName] || 0) + 1;
-    return acc;
-  }, {});
-}
+import { bookingService } from '../../../../services/bookingService';
+import { ROUTES } from '../../../../constants/routes';
+import PageHeader from '../../components/PageHeader';
+import StatCard from '../../components/StatCard';
+import Button from '../../components/Button';
+import BookingFlowWidget from '../../components/BookingFlowWidget';
+import ParkingLotCard from '../../components/ParkingLotCard';
+import CurrentBookingPanel from '../../components/CurrentBookingPanel';
+import NotificationPanel from '../../components/NotificationPanel';
+import ParkingAvailabilityMap from '../../components/ParkingAvailabilityMap';
 
 export default function DriverDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { orders, loading, error, refetch } = useActiveParkingOrders();
-  const activeOrders = Array.isArray(orders) ? orders : [];
-  const floorCounts = groupActiveOrdersByFloor(activeOrders);
-  const displayName = user?.fullName || user?.name || 'Bạn';
+  const { t } = useTranslation();
+  const displayName = user?.fullName || user?.name || 'Driver';
+  const [summary, setSummary] = useState(null);
+  const [areas, setAreas] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [areasLoading, setAreasLoading] = useState(true);
+  const [selectedArea, setSelectedArea] = useState(null);
+  const [selectedFloors, setSelectedFloors] = useState([]);
+
+  const fetchDashboard = useCallback(async () => {
+    setLoading(true);
+    const [summaryRes, bookingsRes] = await Promise.all([
+      bookingService.getDashboardSummary(),
+      bookingService.getMyBookings(),
+    ]);
+    setSummary(summaryRes.data);
+    setBookings(Array.isArray(bookingsRes.data) ? bookingsRes.data : []);
+    setLoading(false);
+  }, []);
+
+  const fetchAreas = useCallback(async () => {
+    setAreasLoading(true);
+    const { data } = await bookingService.getParkingAreas();
+    setAreas(Array.isArray(data) ? data : []);
+    setAreasLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchDashboard();
+    fetchAreas();
+  }, [fetchDashboard, fetchAreas]);
+
+  const latestBooking = bookings[0] || null;
+
+  const handleSelectArea = useCallback(async (area) => {
+    setSelectedArea(area);
+    const { data } = await bookingService.getFloorsByArea(area.id);
+    setSelectedFloors(Array.isArray(data) ? data : []);
+  }, []);
+
+  const handleBookingCreated = useCallback(() => {
+    fetchDashboard();
+  }, [fetchDashboard]);
 
   return (
-    <DriverPageShell
-      title={`Xin chào, ${displayName}`}
-      subtitle="Thông tin bên dưới được lấy từ backend theo tài khoản đang đăng nhập."
-    >
-      {loading ? (
-        <section className="rounded-xl border border-slate-100 bg-white p-6 text-sm text-slate-500 shadow-sm">
-          Đang tải thông tin xe đang gửi...
-        </section>
-      ) : error ? (
-        <section className="rounded-xl border border-red-100 bg-white p-6 shadow-sm">
-          <p className="font-semibold text-red-600">Không thể tải dữ liệu xe đang gửi</p>
-          <p className="mt-1 text-sm text-slate-500">{error}</p>
-          <button type="button" onClick={refetch} className="mt-4 rounded-lg bg-[#1e3a8a] px-4 py-2 text-sm font-semibold text-white">
-            Thử lại
-          </button>
-        </section>
-      ) : activeOrders.length === 0 ? (
-        <EmptyState
-          title="Không có xe đang gửi"
-          description="Backend trả về danh sách trống cho tài khoản hiện tại. Khi có parking order ACTIVE, dữ liệu sẽ xuất hiện tại đây."
-          actionLabel="Đặt chỗ"
-          onAction={() => navigate('/driver-booking')}
-        />
-      ) : (
-        <section className="space-y-4">
-          {activeOrders.slice(0, 3).map((order) => (
-            <article key={order.orderId} className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
-              <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <h2 className="text-2xl font-bold text-slate-800">{order.licensePlate || 'Chưa có biển số'}</h2>
-                    <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-                      {order.parkingStatus || 'ACTIVE'}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-slate-500">{order.vehicleTypeName || 'Chưa có loại xe'}</p>
-                </div>
+    <div className="space-y-6">
+      <PageHeader
+        title={t('dashboard.title')}
+        subtitle={`${t('header.greeting')} ${displayName}!`}
+        icon="dashboard"
+      />
 
-                <dl className="grid gap-4 text-sm sm:grid-cols-3">
-                  <div>
-                    <dt className="text-xs font-bold uppercase tracking-wide text-slate-400">Vị trí</dt>
-                    <dd className="mt-1 font-semibold text-slate-800">{order.parkingName || '-'}</dd>
-                    <dd className="text-slate-500">{order.floorName || ''}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs font-bold uppercase tracking-wide text-slate-400">Thời gian vào</dt>
-                    <dd className="mt-1 font-semibold text-slate-800">
-                      {order.entryTime ? dayjs(order.entryTime).format('HH:mm') : '-'}
-                    </dd>
-                    <dd className="text-slate-500">{order.entryTime ? dayjs(order.entryTime).format('DD/MM/YYYY') : ''}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs font-bold uppercase tracking-wide text-slate-400">Phí tạm tính</dt>
-                    <dd className="mt-1 text-lg font-bold text-[#1e3a8a]">
-                      {Number(order.calculatedFee || 0).toLocaleString('vi-VN')} VNĐ
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-            </article>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0EA5E9] via-[#0891B2] to-[#06B6D4] p-6 shadow-xl shadow-sky-300/40 sm:p-8">
+        <div className="relative z-10 max-w-lg">
+          <h2 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+            {t('dashboard.heroTitle')}
+          </h2>
+          <p className="mt-2.5 text-sm leading-relaxed text-white/80 sm:text-base">
+            {t('dashboard.heroSubtitle')}
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button
+              variant="ghost"
+              size="lg"
+              icon="add_circle"
+              className="!bg-white !text-sky-600 !font-bold !shadow-lg !shadow-sky-700/20 hover:!shadow-xl"
+              onClick={() => document.getElementById('booking-widget')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              {t('dashboard.bookNow')}
+            </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              icon="receipt_long"
+              className="!bg-white/10 !text-white !border-2 !border-white/30 !backdrop-blur-sm hover:!bg-white/20"
+              onClick={() => navigate(ROUTES.DRIVER.HISTORY)}
+            >
+              {t('dashboard.viewBookings')}
+            </Button>
+          </div>
+        </div>
+        <div className="absolute -bottom-8 -right-8 opacity-10 sm:opacity-15">
+          <span className="material-symbols-outlined text-[180px]">directions_car</span>
+        </div>
+        <div className="absolute right-20 top-4 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+        <div className="absolute -left-6 bottom-0 h-24 w-24 rounded-full bg-cyan-200/15 blur-2xl" />
+      </section>
+
+      {/* Stat Cards */}
+      {loading ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-24 animate-pulse rounded-2xl bg-white shadow-sm" />
           ))}
-        </section>
+        </div>
+      ) : summary && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard icon="local_parking" value={summary.openParkingLots} label={t('dashboard.openLots')} accent="sky" trend="+1" trendUp />
+          <StatCard icon="slot_available" value={summary.availableSlots} label={t('dashboard.availableSlots')} accent="emerald" trend="+12" trendUp />
+          <StatCard icon="pending" value={summary.pendingBookings} label={t('dashboard.pendingBookings')} accent="amber" />
+          <StatCard icon="check_circle" value={summary.confirmedBookings} label={t('dashboard.confirmedBookings')} accent="violet" />
+        </div>
       )}
 
-      <section className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-        <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-800">Tình trạng theo dữ liệu hiện có</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            DB hiện chưa có bảng `parking_slots`, nên FE không thể tính số chỗ trống thật. Phần này chỉ thống kê xe ACTIVE theo tầng từ parking orders.
-          </p>
-          <div className="mt-5 space-y-3">
-            {Object.keys(floorCounts).length === 0 ? (
-              <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500">Chưa có dữ liệu tầng.</p>
+      {/* Main Grid */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <div id="booking-widget">
+            <BookingFlowWidget onBookingCreated={handleBookingCreated} />
+          </div>
+
+          {/* Parking Lots */}
+          <div>
+            <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#0EA5E9] to-[#06B6D4] text-white shadow-sm">
+                <span className="material-symbols-outlined text-[16px]">apartment</span>
+              </span>
+              {t('dashboard.nearbyParkingLots')}
+            </h3>
+            {areasLoading ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {[1, 2].map((i) => (
+                  <div key={i} className="h-56 animate-pulse rounded-2xl bg-white shadow-sm" />
+                ))}
+              </div>
             ) : (
-              Object.entries(floorCounts).map(([floor, count]) => (
-                <div key={floor} className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3">
-                  <span className="font-semibold text-slate-700">{floor}</span>
-                  <span className="text-sm font-bold text-[#1e3a8a]">{count} xe đang gửi</span>
-                </div>
-              ))
+              <div className="grid gap-4 sm:grid-cols-2">
+                {areas.map((area) => (
+                  <ParkingLotCard key={area.id} area={area} onSelect={handleSelectArea} />
+                ))}
+              </div>
             )}
           </div>
+
+          <ParkingAvailabilityMap selectedArea={selectedArea} floors={selectedFloors} />
         </div>
 
-        <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-800">Dữ liệu chưa có API</h2>
-          <div className="mt-4 space-y-3 text-sm text-slate-500">
-            <p className="rounded-lg bg-slate-50 px-3 py-2">Biểu phí gửi xe chưa có endpoint backend.</p>
-            <p className="rounded-lg bg-slate-50 px-3 py-2">Thông báo người dùng chưa có endpoint backend.</p>
-            <p className="rounded-lg bg-slate-50 px-3 py-2">Sức chứa/chỗ trống cần bảng hoặc API slot hợp lệ.</p>
-          </div>
+        <div className="space-y-6">
+          <CurrentBookingPanel booking={latestBooking} loading={loading} />
+          <NotificationPanel />
         </div>
-      </section>
-    </DriverPageShell>
+      </div>
+    </div>
   );
 }
