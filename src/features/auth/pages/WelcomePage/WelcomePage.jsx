@@ -19,7 +19,7 @@ const translations = {
     kpi: { 
       c1: { title: "Tổng số Slot", unit: "chỗ" }, 
       c2: { title: "Slot còn trống", unit: "chỗ" }, 
-      c3: { title: "Lượt xe hôm nay", unit: "lượt" },
+     // xoá
       c4: { title: "Hệ thống dự báo cao điểm", unit: "" },
       vsYesterday: "so với hôm qua"
     },
@@ -43,16 +43,7 @@ const translations = {
       floor: "Tầng",
       empty: "Trống", occupied: "Có xe", reserved: "Đặt trước"
     },
-    aiInsights: {
-      title: "AI Smart Insights", 
-      recommendation: "Đề xuất vận hành",
-      data: [
-        { id: 1, type: 'warning', title: 'Zone A sắp đầy (95%)', desc: 'Dự kiến hết chỗ trống trong 15 phút tới.', color: 'red' },
-        { id: 2, type: 'info', title: 'Lưu lượng xe tăng cao', desc: 'Lượng xe ô tô tăng 12% so với cùng kỳ tuần trước.', color: 'sky' },
-        { id: 3, type: 'action', title: 'Đề xuất phân luồng', desc: 'Nên điều hướng xe ô tô mới sang Zone B (còn 40 slot trống).', color: 'emerald' },
-        { id: 4, type: 'prediction', title: 'Dự báo cao điểm', desc: 'Khung giờ cao điểm tiếp theo: 17:00 - 19:00', color: 'orange' }
-      ]
-    },
+
     notice: {
       title: "Thông báo từ Ban Quản Lý", viewAll: "Xem tất cả", readMore: "Đọc tiếp",
       data: [
@@ -126,16 +117,7 @@ const translations = {
       floor: "Floor",
       empty: "Available", occupied: "Occupied", reserved: "Reserved"
     },
-    aiInsights: {
-      title: "AI Smart Insights", 
-      recommendation: "Recommendation",
-      data: [
-        { id: 1, type: 'warning', title: 'Zone A almost full (95%)', desc: 'Expected to run out of slots in 15 mins.', color: 'red' },
-        { id: 2, type: 'info', title: 'High traffic detected', desc: 'Car traffic increased by 12% compared to last week.', color: 'sky' },
-        { id: 3, type: 'action', title: 'Routing suggestion', desc: 'Suggest routing new cars to Zone B (40 slots available).', color: 'emerald' },
-        { id: 4, type: 'prediction', title: 'Peak hour prediction', desc: 'Next peak hours: 17:00 - 19:00', color: 'orange' }
-      ]
-    },
+    
     notice: {
       title: "Management Notices", viewAll: "View All", readMore: "Read More",
       data: [
@@ -435,33 +417,6 @@ const HeroSection = ({ t }) => {
   );
 };
 
-// --- REALTIME STATUS BAR ---
-const RealtimeStatusBar = ({ t }) => {
-  const [time, setTime] = useState(new Date().toLocaleTimeString());
-  
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTime(new Date().toLocaleTimeString());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="bg-slate-900 border-b border-slate-800 text-slate-300 py-2.5 px-4 sm:px-6 lg:px-8 flex justify-between items-center text-sm font-bold sticky top-16 z-40 shadow-sm">
-      <div className="max-w-7xl mx-auto w-full flex justify-between items-center">
-        <div className="flex items-center gap-2 text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-md border border-emerald-500/20">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-          {t.live.liveStatus}
-        </div>
-        <div className="flex items-center gap-2 text-slate-400">
-          <Clock className="w-4 h-4" />
-          <span>{t.live.lastUpdate} <span className="text-white ml-1">{time}</span></span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // --- DASHBOARD WRAPPER ---
 const MainDashboard = ({ t }) => {
   const [zone, setZone] = useState('LK');
@@ -477,18 +432,15 @@ const MainDashboard = ({ t }) => {
         <div className="lg:col-span-2">
           <SmartParkingMap t={t} zone={zone} setZone={setZone} floor={floor} setFloor={setFloor} />
         </div>
-        <div className="lg:col-span-1">
-          <AISmartInsights t={t} />
+         <div className="lg:col-span-1">
+          <FloorManagement t={t} />
         </div>
       </div>
 
       {/* 3. Phân tích & Vận hành */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div>
+        <div>
           <ParkingTrendChart t={t} />
-        </div>
-        <div className="lg:col-span-1">
-          <FloorManagement t={t} />
         </div>
       </div>
     </section>
@@ -515,12 +467,12 @@ const KPIDashboard = ({ t, zone, floor }) => {
   const kpis = [
     { id: 1, title: t.kpi.c1.title, value: totalSlots.toString(), unit: t.kpi.c1.unit, trend: '', trendDir: '', icon: LayoutDashboard, color: 'slate', progress: 100 },
     { id: 2, title: t.kpi.c2.title, value: availableSlots.toString(), unit: t.kpi.c2.unit, trend: '-5%', trendDir: 'down', icon: Car, color: 'emerald', progress: availableProgress },
-    { id: 3, title: t.kpi.c3.title, value: todayTraffic.toString(), unit: t.kpi.c3.unit, trend: '+12%', trendDir: 'up', icon: Activity, color: 'sky', progress: 85 },
+      // xoá 
     { id: 4, title: t.kpi.c4.title, value: `${peakStart}:00`, unit: `- ${peakEnd}:00`, trend: '', trendDir: '', icon: Sparkles, color: 'orange', progress: 0 },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {kpis.map((kpi) => (
         <div key={kpi.id} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-xl transition-all group cursor-default">
           <div className="flex justify-between items-start mb-4">
@@ -701,52 +653,6 @@ const SmartParkingMap = ({ t, zone, setZone, floor, setFloor }) => {
   );
 };
 
-const AISmartInsights = ({ t }) => {
-  const getIcon = (type) => {
-    if (type === 'warning') return AlertTriangle;
-    if (type === 'info') return Users;
-    if (type === 'action') return Sparkles;
-    if (type === 'prediction') return Clock;
-    return Info;
-  };
-
-  const insightsData = t.aiInsights.data.map(item => ({
-    ...item,
-    IconComponent: getIcon(item.type)
-  }));
-
-  return (
-    <div className="bg-gradient-to-br from-indigo-50 to-white rounded-2xl p-6 shadow-sm border border-indigo-100 h-full flex flex-col relative overflow-hidden">
-      {/* Background Decor */}
-      <div className="absolute top-0 right-0 -mr-8 -mt-8 text-indigo-100 opacity-50">
-        <Sparkles className="w-32 h-32" />
-      </div>
-
-      <div className="flex items-center justify-between mb-6 relative z-10">
-        <h3 className="text-lg font-bold text-indigo-900 flex items-center gap-2">
-          <Sparkles className="text-indigo-500 w-5 h-5" /> {t.aiInsights.title}
-        </h3>
-        <span className="bg-indigo-500/10 text-indigo-600 px-3 py-1 text-xs font-bold rounded-full border border-indigo-200 flex items-center gap-1">
-          <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div> Active
-        </span>
-      </div>
-
-      <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar relative z-10">
-        {insightsData.map(insight => (
-          <div key={insight.id} className={`bg-white border border-${insight.color}-200 rounded-xl p-4 flex gap-4 shadow-sm hover:shadow-md transition-shadow`}>
-            <div className={`bg-${insight.color}-50 p-2.5 rounded-lg h-fit border border-${insight.color}-100`}>
-              <insight.IconComponent className={`w-5 h-5 text-${insight.color}-500`} />
-            </div>
-            <div>
-              <h4 className={`font-bold text-slate-800 text-sm mb-1`}>{insight.title}</h4>
-              <p className="text-xs text-slate-500 font-medium leading-relaxed">{insight.desc}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 const ParkingTrendChart = ({ t }) => {
   return (
@@ -1185,7 +1091,6 @@ export default function WelcomePage() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800 selection:bg-sky-200">
       <Navbar lang={lang} setLang={setLang} t={t} />
-      <RealtimeStatusBar t={t} />
       <main>
         <HeroSection t={t} />
         <MainDashboard t={t} />

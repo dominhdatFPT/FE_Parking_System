@@ -3,6 +3,9 @@ export const API_ENDPOINTS = {
     LOGIN: '/api/v1/auth/login',
     GOOGLE_LOGIN: '/api/v1/auth/google-login',
     REGISTER: '/api/v1/auth/register',
+    FORGOT_PASSWORD: '/api/v1/auth/forgot-password',
+    VERIFY_RESET_OTP: '/api/v1/auth/verify-reset-otp',
+    RESET_PASSWORD: '/api/v1/auth/reset-password',
   },
   PARKING: {
     ACTIVE_ORDERS: '/api/customer/parking-orders/active',
