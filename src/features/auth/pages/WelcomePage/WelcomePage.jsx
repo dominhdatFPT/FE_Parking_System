@@ -515,41 +515,37 @@ const SmartParkingMap = ({ t, zone, setZone, floor, setFloor }) => {
       setLoadingAreas(true);
       setAreaError('');
 
-      try {
-        const data = await parkingAreaSummaryService.getAreas({
-          buildingCode: zone,
-          floorNumber: Number(floor),
-        });
+      const result = await parkingAreaSummaryService.getAreas({
+        buildingCode: zone,
+        floorNumber: floor,
+      });
 
-        if (!active) return;
+      if (!active) return;
 
-        const mappedAreas = (Array.isArray(data) ? data : []).map((area) => {
-          const vehicleType = area.vehicleType === 'CAR' ? 'car' : 'moto';
-
-          return {
-            id: area.id,
-            areaCode: area.areaCode,
-            name: `Khu ${area.areaCode}`,
-            buildingName: area.buildingName,
-            floor: String(area.floorNumber),
-            vehicleType,
-            occupied: Number(area.currentVehicleCount || 0),
-            capacity: Number(area.capacity || 25),
-          };
-        });
-
-        setAreas(mappedAreas);
-      } catch (error) {
-        console.error('Error fetching parking area summary:', error);
-        if (active) {
-          setAreas([]);
-          setAreaError('Không tải được dữ liệu bãi xe từ BE');
-        }
-      } finally {
-        if (active) {
-          setLoadingAreas(false);
-        }
+      if (result.error) {
+        setAreas([]);
+        setAreaError('Không thể tải dữ liệu bãi đỗ xe');
+        setLoadingAreas(false);
+        return;
       }
+
+      const mappedAreas = (result.data || []).map((area) => {
+        const vehicleType = area.vehicleType === 'CAR' ? 'car' : 'moto';
+
+        return {
+          id: area.id,
+          areaCode: area.areaCode,
+          name: `Khu ${area.areaCode}`,
+          buildingName: area.buildingName,
+          floor: String(area.floorNumber),
+          vehicleType,
+          occupied: Number(area.currentVehicleCount || 0),
+          capacity: Number(area.capacity || 25),
+        };
+      });
+
+      setAreas(mappedAreas);
+      setLoadingAreas(false);
     };
 
     fetchAreas();
@@ -660,7 +656,7 @@ const ParkingTrendChart = ({ t }) => {
       <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
         <BarChart3 className="w-5 h-5 text-sky-500" /> {t.trend.title}
       </h3>
-      <div className="h-64 w-full">
+      <div className="w-full h-[300px] min-h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={trendData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
             <defs>
