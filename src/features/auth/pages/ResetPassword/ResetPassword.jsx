@@ -1,301 +1,663 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import i18n from 'i18next';
+import { initReactI18next, useTranslation } from 'react-i18next';
+import { Link, useNavigate } from 'react-router';
 import {
   ArrowLeft,
+  ArrowRight,
+  Camera,
+  Car,
   Check,
   CheckCircle2,
+  CircleAlert,
+  Cloud,
   Eye,
   EyeOff,
-  Headphones,
+  Globe,
   KeyRound,
-  LoaderCircle,
   LockKeyhole,
+  LogIn,
   Mail,
+  RadioTower,
   ShieldCheck,
-  Timer,
-  TriangleAlert,
 } from 'lucide-react';
-import { useNavigate } from 'react-router';
+import { ROUTES } from '../../../../constants/routes';
+import { requestPasswordResetApi, resetPasswordApi, verifyResetOtpApi } from '../../services/authApi';
 
-const DEMO_OTP = '123456';
+const LANGUAGE_KEY = 'smartparking-language';
+const OTP_LENGTH = 6;
 
-const featureCards = [
-  {
-    icon: ShieldCheck,
-    title: 'Bảo mật cao',
-    description: 'Mã OTP được xác thực trước khi cho phép đổi mật khẩu.',
+const resources = {
+  VN: {
+    translation: {
+      nav: { login: 'Đăng nhập' },
+      steps: {
+        email: 'Email',
+        otp: 'Xác thực OTP',
+        password: 'Mật khẩu mới',
+      },
+      email: {
+        title: 'Quên mật khẩu?',
+        desc: 'Nhập email đã đăng ký để nhận mã OTP xác thực.',
+        label: 'Email',
+        placeholder: 'yourname@company.com',
+        button: 'Tiếp tục',
+        loading: 'Đang gửi mã...',
+      },
+      otp: {
+        title: 'Xác thực OTP',
+        desc: 'Mã OTP đã được gửi đến email của bạn.',
+        sentTo: 'Mã OTP đã gửi tới',
+        button: 'Xác nhận OTP',
+        loading: 'Đang xác thực...',
+        resend: 'Gửi lại mã',
+        countdownPrefix: 'Có thể gửi lại sau',
+      },
+      password: {
+        title: 'Tạo mật khẩu mới',
+        desc: 'Tạo mật khẩu đủ mạnh để bảo vệ tài khoản SmartParking.',
+        newLabel: 'Mật khẩu mới',
+        confirmLabel: 'Xác nhận mật khẩu',
+        placeholder: 'Ít nhất 8 ký tự',
+        confirmPlaceholder: 'Nhập lại mật khẩu mới',
+        button: 'Cập nhật mật khẩu',
+        loading: 'Đang cập nhật...',
+        strength: 'Độ mạnh mật khẩu',
+        weak: 'Yếu',
+        medium: 'Trung bình',
+        strong: 'Mạnh',
+        show: 'Hiện mật khẩu',
+        hide: 'Ẩn mật khẩu',
+      },
+      done: {
+        title: 'Đặt lại mật khẩu thành công',
+        desc: 'Bạn có thể đăng nhập bằng mật khẩu mới.',
+        button: 'Đăng nhập ngay',
+      },
+      messages: {
+        otpSent: 'Mã OTP đã được gửi. Vui lòng kiểm tra hộp thư của bạn.',
+        otpResent: 'Mã OTP mới đã được gửi lại.',
+        otpValid: 'OTP hợp lệ. Vui lòng tạo mật khẩu mới.',
+        passwordUpdated: 'Mật khẩu mới đã được cập nhật thành công.',
+      },
+      errors: {
+        emailRequired: 'Vui lòng nhập email đã đăng ký.',
+        emailInvalid: 'Email chưa đúng định dạng. Vui lòng kiểm tra lại.',
+        otpRequired: 'Vui lòng nhập đủ 6 chữ số OTP.',
+        otpInvalid: 'Mã OTP không chính xác. Vui lòng thử lại.',
+        passwordLength: 'Mật khẩu mới phải có ít nhất 8 ký tự.',
+        passwordMismatch: 'Mật khẩu xác nhận không khớp.',
+      },
+      trust: {
+        otp: 'Xác thực OTP bảo mật',
+        encryption: 'Mã hóa dữ liệu',
+        cloud: 'Hạ tầng Cloud an toàn',
+        account: 'Bảo vệ tài khoản SmartParking',
+      },
+      background: {
+        secure: 'Secure recovery',
+        email: 'Email verification',
+        cloud: 'Cloud security',
+        access: 'Smart access control',
+      },
+      back: {
+        login: 'Quay lại đăng nhập',
+        previous: 'Quay lại bước trước',
+      },
+    },
   },
-  {
-    icon: Timer,
-    title: 'Khôi phục nhanh',
-    description: 'Nhận mã xác thực qua email chỉ trong vài phút.',
-  },
-  {
-    icon: Headphones,
-    title: 'Hỗ trợ 24/7',
-    description: 'Luôn có đội ngũ hỗ trợ khi bạn cần trợ giúp.',
-  },
-];
-
-const stepCopy = {
-  email: {
-    title: 'Quên mật khẩu?',
-    description: 'Nhập email của bạn, chúng tôi sẽ gửi mã OTP để xác thực tài khoản.',
-    button: 'Gửi mã OTP',
-  },
-  otp: {
-    title: 'Nhập mã OTP',
-    description: 'Mã xác thực đã được gửi tới email của bạn. Vui lòng nhập mã gồm 6 chữ số.',
-    button: 'Xác thực OTP',
-  },
-  password: {
-    title: 'Tạo mật khẩu mới',
-    description: 'Chọn mật khẩu mới đủ mạnh để bảo vệ tài khoản Parking System của bạn.',
-    button: 'Đổi mật khẩu',
-  },
-  done: {
-    title: 'Đổi mật khẩu thành công',
-    description: 'Bạn có thể quay lại trang đăng nhập bằng mật khẩu mới.',
-    button: 'Quay lại đăng nhập',
+  EN: {
+    translation: {
+      nav: { login: 'Login' },
+      steps: {
+        email: 'Email',
+        otp: 'OTP Verification',
+        password: 'New password',
+      },
+      email: {
+        title: 'Forgot password?',
+        desc: 'Enter your registered email to receive a verification OTP.',
+        label: 'Email',
+        placeholder: 'yourname@company.com',
+        button: 'Continue',
+        loading: 'Sending code...',
+      },
+      otp: {
+        title: 'Verify OTP',
+        desc: 'The OTP code has been sent to your email.',
+        sentTo: 'OTP sent to',
+        button: 'Verify OTP',
+        loading: 'Verifying...',
+        resend: 'Resend code',
+        countdownPrefix: 'Resend available in',
+      },
+      password: {
+        title: 'Create a new password',
+        desc: 'Create a strong password to protect your SmartParking account.',
+        newLabel: 'New password',
+        confirmLabel: 'Confirm password',
+        placeholder: 'At least 8 characters',
+        confirmPlaceholder: 'Re-enter new password',
+        button: 'Update password',
+        loading: 'Updating...',
+        strength: 'Password strength',
+        weak: 'Weak',
+        medium: 'Medium',
+        strong: 'Strong',
+        show: 'Show password',
+        hide: 'Hide password',
+      },
+      done: {
+        title: 'Password reset successful',
+        desc: 'You can now log in with your new password.',
+        button: 'Login now',
+      },
+      messages: {
+        otpSent: 'OTP has been sent. Please check your inbox.',
+        otpResent: 'A new OTP has been sent.',
+        otpValid: 'OTP verified. Please create a new password.',
+        passwordUpdated: 'Your new password has been updated successfully.',
+      },
+      errors: {
+        emailRequired: 'Please enter your registered email.',
+        emailInvalid: 'Email format is invalid. Please check again.',
+        otpRequired: 'Please enter all 6 OTP digits.',
+        otpInvalid: 'OTP code is incorrect. Please try again.',
+        passwordLength: 'New password must be at least 8 characters.',
+        passwordMismatch: 'Password confirmation does not match.',
+      },
+      trust: {
+        otp: 'Secure OTP verification',
+        encryption: 'Encrypted data',
+        cloud: 'Safe Cloud infrastructure',
+        account: 'SmartParking account protection',
+      },
+      background: {
+        secure: 'Secure recovery',
+        email: 'Email verification',
+        cloud: 'Cloud security',
+        access: 'Smart access control',
+      },
+      back: {
+        login: 'Back to login',
+        previous: 'Back to previous step',
+      },
+    },
   },
 };
+
+const getInitialLanguage = () => {
+  if (typeof window === 'undefined') return 'VN';
+  return window.localStorage.getItem(LANGUAGE_KEY) === 'EN' ? 'EN' : 'VN';
+};
+
+if (!i18n.isInitialized) {
+  i18n.use(initReactI18next).init({
+    resources,
+    lng: getInitialLanguage(),
+    fallbackLng: 'VN',
+    interpolation: { escapeValue: false },
+  });
+} else {
+  i18n.addResourceBundle('VN', 'translation', resources.VN.translation, true, true);
+  i18n.addResourceBundle('EN', 'translation', resources.EN.translation, true, true);
+}
+
+const stepOrder = ['email', 'otp', 'password'];
 
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-function StepIndicator({ currentStep }) {
-  const steps = [
-    { key: 'email', label: 'Email' },
-    { key: 'otp', label: 'OTP' },
-    { key: 'password', label: 'Mật khẩu' },
-  ];
-  const currentIndex = Math.max(
-    0,
-    steps.findIndex((step) => step.key === currentStep),
+function getApiErrorMessage(error, fallback) {
+  return error?.response?.data?.message || error?.response?.data?.error || error?.message || fallback;
+}
+
+function BrandLogo() {
+  return (
+    <Link className="flex items-center gap-3" to={ROUTES.WELCOME} aria-label="SmartParking">
+      <div className="bg-sky-600 p-1.5 rounded-lg shadow-sm shadow-sky-600/20">
+        <Car className="text-white w-6 h-6" />
+      </div>
+      <span className="text-xl font-extrabold text-slate-800 tracking-tight">
+        Smart<span className="text-sky-600">Parking</span>
+      </span>
+    </Link>
   );
+}
+
+function TopNavigation({ currentLanguage, onLanguageChange, t }) {
+  const nextLanguage = currentLanguage === 'VN' ? 'EN' : 'VN';
 
   return (
-    <div className="mb-6 grid grid-cols-3 gap-2" aria-label="Tiến trình khôi phục mật khẩu">
-      {steps.map((step, index) => {
-        const isComplete = currentStep === 'done' || index < currentIndex;
-        const isActive = step.key === currentStep;
+    <header className="absolute inset-x-0 top-0 z-20 bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 transition-all">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        <BrandLogo />
+        <div className="flex items-center gap-4">
+          <button
+            className="flex items-center gap-1.5 text-sm font-bold text-slate-600 hover:text-sky-600 transition-colors bg-slate-100 px-3 py-1.5 rounded-lg"
+            type="button"
+            onClick={() => onLanguageChange(nextLanguage)}
+            aria-label={nextLanguage}
+          >
+            <Globe className="w-4 h-4" />
+            <span>{currentLanguage}</span>
+          </button>
+          <div className="h-5 w-px bg-slate-200 hidden sm:block"></div>
+          <Link
+            className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 hover:text-sky-600 hover:bg-slate-50 rounded-lg transition-colors"
+            to={ROUTES.LOGIN}
+          >
+            <LogIn className="w-4 h-4" />
+            {t('nav.login')}
+          </Link>
+        </div>
+      </nav>
+    </header>
+  );
+}
 
-        return (
-          <div
-            className={`h-1.5 rounded-full transition ${
-              isComplete || isActive ? 'bg-[#0EA5E9]' : 'bg-slate-200'
-            }`}
-            key={step.key}
-            title={step.label}
-          />
-        );
-      })}
+function SecurityBackground({ t }) {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden text-slate-900" aria-hidden="true">
+      <div className="absolute left-[-5rem] top-24 h-80 w-80 rounded-full border border-sky-200/60" />
+      <div className="absolute bottom-[-8rem] right-[-6rem] h-[26rem] w-[26rem] rounded-full border border-emerald-200/70" />
+      <svg className="absolute left-8 top-28 h-[430px] w-[520px] opacity-[0.13]" viewBox="0 0 520 430" fill="none">
+        <rect x="78" y="82" width="190" height="126" rx="28" stroke="currentColor" strokeWidth="3" />
+        <path d="M104 120L174 166L244 120" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <rect x="322" y="70" width="78" height="106" rx="22" stroke="currentColor" strokeWidth="3" />
+        <path d="M346 112H376M346 140H366" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
+        <path d="M268 148C298 148 300 124 322 124" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeDasharray="7 10" />
+        <path d="M134 282C146 232 214 216 250 254C276 220 344 234 350 286C390 290 416 316 416 352C416 388 386 408 350 408H146C108 408 78 378 78 340C78 306 102 282 134 282Z" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M166 342H318M166 372H254" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
+        <path d="M220 208V250M310 176V238" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeDasharray="7 10" />
+      </svg>
+      <svg className="absolute right-8 top-24 hidden h-[420px] w-[520px] opacity-[0.13] lg:block" viewBox="0 0 520 420" fill="none">
+        <path d="M260 66L378 112V204C378 284 322 342 260 364C198 342 142 284 142 204V112L260 66Z" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
+        <rect x="216" y="180" width="88" height="70" rx="18" stroke="currentColor" strokeWidth="3" />
+        <path d="M232 180V152C232 136 244 124 260 124C276 124 288 136 288 152V180" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+        <circle cx="260" cy="216" r="8" stroke="currentColor" strokeWidth="2.6" />
+        <path d="M260 224V238" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
+        <rect x="64" y="264" width="116" height="58" rx="16" stroke="currentColor" strokeWidth="3" />
+        <rect x="340" y="264" width="116" height="58" rx="16" stroke="currentColor" strokeWidth="3" />
+        <path d="M180 294H216M304 294H340" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeDasharray="7 10" />
+        <path d="M88 294H154M364 294H430" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
+      </svg>
+      <div className="absolute left-12 bottom-24 hidden rounded-2xl border border-slate-300/70 bg-white/45 px-4 py-3 text-xs font-semibold text-slate-700 opacity-[0.15] shadow-sm md:block">
+        <div className="mb-2 flex items-center gap-2">
+          <Mail className="h-4 w-4" />
+          {t('background.email')}
+        </div>
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4" />
+          {t('background.secure')}
+        </div>
+      </div>
+      <div className="absolute right-20 bottom-28 hidden rounded-2xl border border-slate-300/70 bg-white/45 px-4 py-3 text-xs font-semibold text-slate-700 opacity-[0.15] shadow-sm lg:block">
+        <div className="mb-2 flex items-center gap-2">
+          <Cloud className="h-4 w-4" />
+          {t('background.cloud')}
+        </div>
+        <div className="flex items-center gap-2">
+          <RadioTower className="h-4 w-4" />
+          {t('background.access')}
+        </div>
+      </div>
+      <div className="absolute bottom-20 left-1/2 hidden -translate-x-1/2 items-center gap-8 opacity-[0.12] md:flex">
+        <Mail className="h-12 w-12" strokeWidth={1.4} />
+        <KeyRound className="h-12 w-12" strokeWidth={1.4} />
+        <ShieldCheck className="h-14 w-14" strokeWidth={1.4} />
+        <Cloud className="h-14 w-14" strokeWidth={1.4} />
+        <Camera className="h-12 w-12" strokeWidth={1.4} />
+      </div>
+    </div>
+  );
+}
+
+function StepIndicator({ currentStep, t }) {
+  const currentIndex = currentStep === 'done' ? stepOrder.length : stepOrder.indexOf(currentStep);
+
+  return (
+    <div className="mb-3 overflow-hidden pb-1" aria-label="Password reset progress">
+      <div className="grid w-full grid-cols-[1fr_1fr_1fr] items-center gap-1 sm:gap-2">
+        {stepOrder.map((stepKey, index) => {
+          const isComplete = index < currentIndex || currentStep === 'done';
+          const isActive = stepKey === currentStep;
+
+          return (
+            <div className="relative flex items-center" key={stepKey}>
+              {index > 0 && (
+                <span className={`absolute right-1/2 top-4 h-0.5 w-full ${index <= currentIndex ? 'bg-sky-500' : 'bg-slate-200'}`} />
+              )}
+              <div className="relative z-10 mx-auto flex flex-col items-center gap-1.5">
+                <span
+                  className={`grid h-8 w-8 place-items-center rounded-full border text-xs font-bold transition ${
+                    isComplete
+                      ? 'border-sky-500 bg-sky-500 text-white'
+                      : isActive
+                        ? 'border-sky-500 bg-sky-50 text-sky-600'
+                        : 'border-slate-200 bg-white text-slate-400'
+                  }`}
+                >
+                  {isComplete ? <Check className="h-4 w-4" /> : index + 1}
+                </span>
+                <span className={`max-w-full truncate text-[10px] font-bold sm:text-xs ${isActive || isComplete ? 'text-sky-700' : 'text-slate-400'}`}>
+                  {t(`steps.${stepKey}`)}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function PasswordStrength({ password, t }) {
+  const score = useMemo(() => {
+    let value = 0;
+    if (password.length >= 8) value += 1;
+    if (/[A-Z]/.test(password) && /[a-z]/.test(password)) value += 1;
+    if (/\d/.test(password) || /[^A-Za-z0-9]/.test(password)) value += 1;
+    return value;
+  }, [password]);
+
+  const label = score <= 1 ? t('password.weak') : score === 2 ? t('password.medium') : t('password.strong');
+  const color = score <= 1 ? 'bg-rose-500' : score === 2 ? 'bg-amber-500' : 'bg-emerald-500';
+
+  return (
+    <div className="rounded-2xl bg-slate-50 px-4 py-3">
+      <div className="mb-2 flex items-center justify-between text-xs font-semibold text-slate-600">
+        <span>{t('password.strength')}</span>
+        <span>{password ? label : '-'}</span>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {[0, 1, 2].map((item) => (
+          <span className={`h-1.5 rounded-full ${password && item < score ? color : 'bg-slate-200'}`} key={item} />
+        ))}
+      </div>
     </div>
   );
 }
 
 export default function ResetPassword() {
+  const { t, i18n: resetI18n } = useTranslation();
   const [step, setStep] = useState('email');
   const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
+  const [otpDigits, setOtpDigits] = useState(Array(OTP_LENGTH).fill(''));
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [countdown, setCountdown] = useState(59);
+  const otpRefs = useRef([]);
   const navigate = useNavigate();
+  const currentLanguage = resetI18n.language === 'EN' ? 'EN' : 'VN';
 
-  const copy = stepCopy[step];
-  const maskedEmail = useMemo(() => email.trim(), [email]);
+  const otp = otpDigits.join('');
+  const maskedEmail = email.trim();
 
-  const runWithLoading = (callback) => {
-    setLoading(true);
-    window.setTimeout(() => {
-      callback();
-      setLoading(false);
-    }, 700);
+  useEffect(() => {
+    localStorage.setItem(LANGUAGE_KEY, currentLanguage);
+  }, [currentLanguage]);
+
+  useEffect(() => {
+    if (step !== 'otp') return undefined;
+    setCountdown(59);
+    const intervalId = window.setInterval(() => {
+      setCountdown((value) => (value > 0 ? value - 1 : 0));
+    }, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [step, message]);
+
+  const handleLanguageChange = (nextLanguage) => {
+    resetI18n.changeLanguage(nextLanguage);
+    localStorage.setItem(LANGUAGE_KEY, nextLanguage);
   };
 
-  const handleEmailSubmit = (event) => {
+  const handleEmailSubmit = async (event) => {
     event.preventDefault();
     setError('');
     setMessage('');
 
     const trimmedEmail = email.trim();
-
     if (!trimmedEmail) {
-      setError('Vui lòng nhập email đã đăng ký.');
+      setError(t('errors.emailRequired'));
       return;
     }
-
     if (!isValidEmail(trimmedEmail)) {
-      setError('Email chưa đúng định dạng. Vui lòng kiểm tra lại.');
+      setError(t('errors.emailInvalid'));
       return;
     }
 
-    runWithLoading(() => {
+    setLoading(true);
+    try {
+      await requestPasswordResetApi(trimmedEmail);
       setEmail(trimmedEmail);
       setStep('otp');
-      setMessage('Mã OTP đã được gửi. Vui lòng kiểm tra hộp thư của bạn.');
+      setMessage(t('messages.otpSent'));
+      window.setTimeout(() => otpRefs.current[0]?.focus(), 50);
+    } catch (submitError) {
+      setError(getApiErrorMessage(submitError, t('errors.emailInvalid')));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fillOtpFromIndex = (startIndex, rawValue) => {
+    const digits = rawValue.replace(/\D/g, '').slice(0, OTP_LENGTH - startIndex);
+    const nextOtp = [...otpDigits];
+
+    if (!digits) {
+      nextOtp[startIndex] = '';
+      setOtpDigits(nextOtp);
+      return;
+    }
+
+    digits.split('').forEach((digit, offset) => {
+      nextOtp[startIndex + offset] = digit;
+    });
+
+    setOtpDigits(nextOtp);
+    setError('');
+
+    const nextFocusIndex = Math.min(startIndex + digits.length, OTP_LENGTH - 1);
+    window.requestAnimationFrame(() => {
+      otpRefs.current[nextFocusIndex]?.focus();
+      otpRefs.current[nextFocusIndex]?.select();
     });
   };
 
-  const handleOtpSubmit = (event) => {
+  const handleOtpChange = (index, event) => {
+    const digits = event.target.value.replace(/\D/g, '');
+    if (!digits) {
+      const nextOtp = [...otpDigits];
+      nextOtp[index] = '';
+      setOtpDigits(nextOtp);
+      return;
+    }
+
+    if (index === 0 && digits.length === OTP_LENGTH) {
+      fillOtpFromIndex(0, digits);
+      return;
+    }
+
+    const nextOtp = [...otpDigits];
+    nextOtp[index] = digits.slice(-1);
+    setOtpDigits(nextOtp);
+    setError('');
+
+    if (index < OTP_LENGTH - 1) {
+      window.requestAnimationFrame(() => {
+        otpRefs.current[index + 1]?.focus();
+        otpRefs.current[index + 1]?.select();
+      });
+    }
+  };
+
+  const handleOtpKeyDown = (index, event) => {
+    if (event.key === 'Backspace') {
+      event.preventDefault();
+      const nextOtp = [...otpDigits];
+
+      if (nextOtp[index]) {
+        nextOtp[index] = '';
+        setOtpDigits(nextOtp);
+        return;
+      }
+
+      if (index > 0) {
+        nextOtp[index - 1] = '';
+        setOtpDigits(nextOtp);
+        otpRefs.current[index - 1]?.focus();
+      }
+    }
+
+    if (event.key === 'ArrowLeft' && index > 0) {
+      event.preventDefault();
+      otpRefs.current[index - 1]?.focus();
+    }
+
+    if (event.key === 'ArrowRight' && index < OTP_LENGTH - 1) {
+      event.preventDefault();
+      otpRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (index, event) => {
+    event.preventDefault();
+    fillOtpFromIndex(index, event.clipboardData.getData('text'));
+  };
+
+  const handleOtpSubmit = async (event) => {
     event.preventDefault();
     setError('');
     setMessage('');
 
-    if (otp.length !== 6) {
-      setError('Vui lòng nhập đủ 6 chữ số OTP.');
+    if (otpDigits.some((digit) => !digit)) {
+      setError(t('errors.otpRequired'));
       return;
     }
 
-    runWithLoading(() => {
-      if (otp !== DEMO_OTP) {
-        setError('Mã OTP không chính xác. Vui lòng thử lại.');
-        return;
-      }
-
+    setLoading(true);
+    try {
+      await verifyResetOtpApi({ email: maskedEmail, otp });
       setStep('password');
-      setMessage('OTP hợp lệ. Vui lòng tạo mật khẩu mới.');
-    });
+      setMessage(t('messages.otpValid'));
+    } catch (submitError) {
+      setError(getApiErrorMessage(submitError, t('errors.otpInvalid')));
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handlePasswordSubmit = (event) => {
+  const handlePasswordSubmit = async (event) => {
     event.preventDefault();
     setError('');
     setMessage('');
 
     if (password.length < 8) {
-      setError('Mật khẩu mới phải có ít nhất 8 ký tự.');
+      setError(t('errors.passwordLength'));
       return;
     }
-
     if (password !== confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp.');
+      setError(t('errors.passwordMismatch'));
       return;
     }
 
-    runWithLoading(() => {
+    setLoading(true);
+    try {
+      await resetPasswordApi({
+        email: maskedEmail,
+        otp,
+        newPassword: password,
+        confirmPassword,
+      });
       setStep('done');
-      setMessage('Mật khẩu mới đã được cập nhật thành công.');
-    });
+      setMessage(t('messages.passwordUpdated'));
+    } catch (submitError) {
+      setError(getApiErrorMessage(submitError, t('errors.passwordLength')));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBack = () => {
     if (step === 'email' || step === 'done') {
-      navigate('/login');
+      navigate(ROUTES.LOGIN);
       return;
     }
-
     setError('');
     setMessage('');
     setStep(step === 'password' ? 'otp' : 'email');
   };
 
+  const handleResendOtp = async () => {
+    if (countdown > 0 || loading) return;
+    setLoading(true);
+    setError('');
+    setMessage('');
+
+    try {
+      await requestPasswordResetApi(maskedEmail);
+      setMessage(t('messages.otpResent'));
+      setCountdown(59);
+      setOtpDigits(Array(OTP_LENGTH).fill(''));
+      window.setTimeout(() => otpRefs.current[0]?.focus(), 50);
+    } catch (submitError) {
+      setError(getApiErrorMessage(submitError, t('errors.emailInvalid')));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <main className="min-h-screen overflow-hidden bg-[linear-gradient(135deg,#07111f_0%,#0f172a_45%,#111827_100%)] text-[#e5eefb]">
-      <section className="grid min-h-screen w-full grid-cols-1 overflow-hidden lg:grid-cols-[0.46fr_0.54fr]">
-        <aside
-          className="relative hidden min-h-screen flex-col justify-between overflow-hidden bg-[#263241] px-6 py-7 text-white md:flex lg:px-8 lg:py-8"
-          aria-label="Khôi phục tài khoản Parking System"
-        >
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center opacity-20" />
-          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(38,50,65,0.96)_0%,rgba(15,23,42,0.88)_52%,rgba(2,132,199,0.42)_100%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(14,165,233,0.20),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(2,132,199,0.20),_transparent_32%)]" />
+    <main className="relative h-screen overflow-hidden bg-[#F8FAFC] text-slate-950">
+      <SecurityBackground t={t} />
+      <TopNavigation currentLanguage={currentLanguage} onLanguageChange={handleLanguageChange} t={t} />
 
-          <div className="relative z-10 flex h-full flex-col justify-center gap-7">
-            <div className="flex w-fit items-center gap-3 rounded-full border border-white/10 bg-white/8 px-3 py-2 shadow-[0_8px_30px_rgba(15,23,42,0.35)] backdrop-blur-md lg:px-4">
-              <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-white/95 shadow-inner">
-                <img alt="Parking System Logo" className="h-full w-full object-cover" src="/parking-system-logo.png" />
-              </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.35em] text-sky-100/80">Parking System</p>
-                <p className="text-sm text-white/85">Quản lý bãi đỗ xe thông minh</p>
-              </div>
-            </div>
+      <section className="relative z-10 flex h-full items-center justify-center px-4 pb-3 pt-20 sm:px-6 lg:px-10">
+        <div className="w-full max-w-[580px]">
+          <StepIndicator currentStep={step} t={t} />
 
-            <div className="max-w-xl space-y-3">
-              <p className="text-[10px] uppercase tracking-[0.35em] text-sky-100/80">Truy cập an toàn</p>
-              <h1 className="max-w-md text-3xl font-semibold leading-tight text-white sm:text-4xl">
-                Khôi phục tài khoản
+          <section className="rounded-[28px] border border-white/80 bg-white/95 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/70 backdrop-blur-xl sm:p-5">
+            <div className="text-center">
+              <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-sky-600 text-white shadow-lg shadow-sky-500/20">
+                {step === 'done' ? <Check className="h-7 w-7" /> : step === 'otp' ? <KeyRound className="h-7 w-7" /> : <LockKeyhole className="h-7 w-7" />}
+              </div>
+              <h1 className="mt-3 text-[26px] font-semibold leading-tight tracking-normal text-slate-950 sm:text-[32px]">
+                {t(`${step}.title`)}
               </h1>
-              <p className="max-w-md text-sm leading-6 text-slate-200/90 sm:text-[15px]">
-                Nhập email đã đăng ký, xác thực OTP và tạo mật khẩu mới chỉ trong vài bước.
+              <p className="mx-auto mt-1.5 max-w-md text-sm font-medium leading-5 text-slate-500">
+                {t(`${step}.desc`)}
               </p>
             </div>
 
-            <div className="grid max-w-md gap-3">
-              {featureCards.map((feature) => {
-                const Icon = feature.icon;
-
-                return (
-                  <article
-                    className="rounded-2xl border border-white/10 bg-white/8 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.35)] backdrop-blur-md"
-                    key={feature.title}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-sky-400 to-[#0284C7] text-white shadow-[0_10px_25px_rgba(14,165,233,0.25)]">
-                        <Icon className="h-5 w-5" aria-hidden="true" />
-                      </div>
-                      <div>
-                        <h2 className="flex items-center gap-2 text-[14px] font-semibold text-white">
-                          <Check className="h-4 w-4 text-sky-200" aria-hidden="true" />
-                          {feature.title}
-                        </h2>
-                        <p className="mt-1 text-[12px] leading-5 text-slate-200/85">{feature.description}</p>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-        </aside>
-
-        <section className="flex min-h-screen items-center justify-center overflow-y-auto bg-[#F3F4F6] px-4 py-8 sm:px-6 lg:px-8">
-          <div className="w-full max-w-md rounded-[32px] border border-slate-200/80 bg-white/95 p-5 text-black shadow-[0_28px_70px_rgba(15,23,42,0.14)] backdrop-blur-md sm:p-7 lg:p-8">
-            <StepIndicator currentStep={step} />
-
-            <div className="mb-6 text-center">
-              <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-3xl bg-gradient-to-br from-[#0284C7] to-[#0EA5E9] text-white shadow-[0_14px_30px_rgba(14,165,233,0.28)]">
-                {step === 'otp' ? <KeyRound className="h-8 w-8" aria-hidden="true" /> : <LockKeyhole className="h-8 w-8" aria-hidden="true" />}
-              </div>
-              <p className="text-[10px] uppercase tracking-[0.35em] text-[#0EA5E9]">Parking System</p>
-              <h2 className="mt-3 text-2xl font-semibold text-black sm:text-3xl">{copy.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-700">{copy.description}</p>
-            </div>
-
-            {message && (
-              <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-sm">
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" aria-hidden="true" />
-                  <p className="leading-5">{message}</p>
-                </div>
+            {message && step !== 'done' && (
+              <div className="mt-3 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+                <p className="leading-5">{message}</p>
               </div>
             )}
-
             {error && (
-              <div className="mb-4 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm">
-                <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-500" aria-hidden="true" />
+              <div className="mt-3 flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700">
+                <CircleAlert className="mt-0.5 h-5 w-5 shrink-0" />
                 <p className="leading-5">{error}</p>
               </div>
             )}
 
             {step === 'email' && (
-              <form className="grid gap-4" onSubmit={handleEmailSubmit} noValidate>
+              <form className="mt-4 grid gap-3" onSubmit={handleEmailSubmit} noValidate>
                 <label className="grid gap-1.5 text-left" htmlFor="reset-email">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.05em] text-black">Email</span>
-                  <div className="relative">
-                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#76777d]" aria-hidden="true" />
+                  <span className="text-sm font-medium text-slate-700">{t('email.label')}</span>
+                  <span className="relative block">
+                    <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                     <input
-                      className={`min-h-12 w-full rounded-xl border bg-[#f2f4f6] py-3 pr-3.5 pl-10 text-sm leading-5 text-[#111827] outline-none transition placeholder:text-slate-400 focus:bg-white focus:shadow-[0_0_0_3px_rgba(14,165,233,0.12)] ${
-                        error ? 'border-red-300 focus:border-red-400' : 'border-[#c6c6cd] focus:border-[#0EA5E9]'
-                      }`}
+                      className="h-11 w-full rounded-[15px] border border-[#E2E8F0] bg-[#F8FAFC] py-2.5 pl-12 pr-4 text-[15px] text-slate-950 outline-none transition duration-200 placeholder:text-slate-400 hover:border-sky-200 hover:bg-white focus:border-[#0EA5E9] focus:bg-white focus:shadow-[0_0_0_4px_rgba(14,165,233,0.14)]"
                       id="reset-email"
-                      name="email"
-                      placeholder="yourname@gmail.com"
+                      placeholder={t('email.placeholder')}
                       type="email"
                       value={email}
                       onChange={(event) => {
@@ -303,157 +665,105 @@ export default function ResetPassword() {
                         if (error) setError('');
                       }}
                       disabled={loading}
-                      aria-invalid={!!error}
                     />
-                  </div>
+                  </span>
                 </label>
-
-                <button
-                  className="inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#0EA5E9] px-4 text-[15px] font-semibold text-white shadow-[0_14px_26px_rgba(14,165,233,0.25)] transition hover:bg-[#0284C7] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-65"
-                  type="submit"
-                  disabled={loading}
-                >
-                  {loading && <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />}
-                  {loading ? 'Đang gửi mã...' : copy.button}
+                <button className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)] disabled:cursor-not-allowed disabled:opacity-70" type="submit" disabled={loading}>
+                  {loading ? t('email.loading') : t('email.button')}
+                  {!loading && <ArrowRight className="h-5 w-5" />}
                 </button>
               </form>
             )}
 
             {step === 'otp' && (
-              <form className="grid gap-4" onSubmit={handleOtpSubmit} noValidate>
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-sm text-slate-600">
-                  Mã OTP đã gửi tới <span className="font-semibold text-slate-900">{maskedEmail}</span>
+              <form className="mt-4 grid gap-3" onSubmit={handleOtpSubmit} noValidate>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-center text-sm text-slate-600">
+                  {t('otp.sentTo')} <span className="font-semibold text-slate-900">{maskedEmail}</span>
                 </div>
-
-                <label className="grid gap-1.5 text-left" htmlFor="reset-otp">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.05em] text-black">Mã OTP</span>
-                  <input
-                    className={`min-h-14 w-full rounded-xl border bg-[#f2f4f6] px-4 text-center text-2xl font-semibold tracking-[0.45em] text-[#111827] outline-none transition placeholder:tracking-normal placeholder:text-slate-400 focus:bg-white focus:shadow-[0_0_0_3px_rgba(14,165,233,0.12)] ${
-                      error ? 'border-red-300 focus:border-red-400' : 'border-[#c6c6cd] focus:border-[#0EA5E9]'
-                    }`}
-                    id="reset-otp"
-                    inputMode="numeric"
-                    maxLength={6}
-                    placeholder="123456"
-                    value={otp}
-                    onChange={(event) => {
-                      setOtp(event.target.value.replace(/\D/g, '').slice(0, 6));
-                      if (error) setError('');
-                    }}
-                    disabled={loading}
-                    aria-invalid={!!error}
-                  />
-                </label>
-
-                <button
-                  className="inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#0EA5E9] px-4 text-[15px] font-semibold text-white shadow-[0_14px_26px_rgba(14,165,233,0.25)] transition hover:bg-[#0284C7] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-65"
-                  type="submit"
-                  disabled={loading}
-                >
-                  {loading && <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />}
-                  {loading ? 'Đang xác thực...' : copy.button}
-                </button>
-
-                <button
-                  className="text-sm font-semibold text-[#0EA5E9] transition hover:text-[#0284C7]"
-                  type="button"
-                  onClick={() => {
-                    setOtp('');
-                    setMessage('Mã OTP mới đã được gửi lại.');
-                  }}
-                >
-                  Gửi lại mã OTP
+                <div className="grid grid-cols-6 gap-2 sm:gap-3">
+                  {otpDigits.map((digit, index) => (
+                    <input
+                      className="h-11 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] text-center text-lg font-bold text-slate-950 outline-none transition focus:border-[#0EA5E9] focus:bg-white focus:shadow-[0_0_0_4px_rgba(14,165,233,0.14)]"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                      key={`otp-${index}`}
+                      maxLength={1}
+                      ref={(node) => {
+                        otpRefs.current[index] = node;
+                      }}
+                      value={digit}
+                      onChange={(event) => handleOtpChange(index, event)}
+                      onKeyDown={(event) => handleOtpKeyDown(index, event)}
+                      onPaste={(event) => handleOtpPaste(index, event)}
+                      onFocus={(event) => event.target.select()}
+                      disabled={loading}
+                      aria-label={`OTP digit ${index + 1}`}
+                    />
+                  ))}
+                </div>
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <button className="font-bold text-sky-600 transition hover:text-sky-700 disabled:cursor-not-allowed disabled:text-slate-400" type="button" onClick={handleResendOtp} disabled={countdown > 0 || loading}>
+                    {t('otp.resend')}
+                  </button>
+                  <span className="font-medium text-slate-500">
+                    {countdown > 0 ? `${t('otp.countdownPrefix')} 00:${String(countdown).padStart(2, '0')}` : '00:00'}
+                  </span>
+                </div>
+                <button className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)] disabled:cursor-not-allowed disabled:opacity-70" type="submit" disabled={loading}>
+                  {loading ? t('otp.loading') : t('otp.button')}
                 </button>
               </form>
             )}
 
             {step === 'password' && (
-              <form className="grid gap-4" onSubmit={handlePasswordSubmit} noValidate>
+              <form className="mt-4 grid gap-3" onSubmit={handlePasswordSubmit} noValidate>
                 <label className="grid gap-1.5 text-left" htmlFor="new-password">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.05em] text-black">Mật khẩu mới</span>
-                  <div className="relative">
-                    <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#76777d]" aria-hidden="true" />
-                    <input
-                      className="min-h-12 w-full rounded-xl border border-[#c6c6cd] bg-[#f2f4f6] py-3 pr-11 pl-10 text-sm leading-5 text-[#111827] outline-none transition placeholder:text-slate-400 focus:border-[#0EA5E9] focus:bg-white focus:shadow-[0_0_0_3px_rgba(14,165,233,0.12)]"
-                      id="new-password"
-                      placeholder="Ít nhất 8 ký tự"
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(event) => {
-                        setPassword(event.target.value);
-                        if (error) setError('');
-                      }}
-                      disabled={loading}
-                    />
-                    <button
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-[#0EA5E9]"
-                      type="button"
-                      onClick={() => setShowPassword((value) => !value)}
-                      aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-                    >
-                      {showPassword ? <EyeOff className="h-[18px] w-[18px]" /> : <Eye className="h-[18px] w-[18px]" />}
+                  <span className="text-sm font-medium text-slate-700">{t('password.newLabel')}</span>
+                  <span className="relative block">
+                    <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                    <input className="h-11 w-full rounded-[15px] border border-[#E2E8F0] bg-[#F8FAFC] py-2.5 pl-12 pr-12 text-[15px] text-slate-950 outline-none transition duration-200 placeholder:text-slate-400 hover:border-sky-200 hover:bg-white focus:border-[#0EA5E9] focus:bg-white focus:shadow-[0_0_0_4px_rgba(14,165,233,0.14)]" id="new-password" placeholder={t('password.placeholder')} type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} disabled={loading} />
+                    <button className="absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? t('password.hide') : t('password.show')}>
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
-                  </div>
+                  </span>
                 </label>
-
                 <label className="grid gap-1.5 text-left" htmlFor="confirm-new-password">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.05em] text-black">Xác nhận mật khẩu</span>
-                  <div className="relative">
-                    <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#76777d]" aria-hidden="true" />
-                    <input
-                      className="min-h-12 w-full rounded-xl border border-[#c6c6cd] bg-[#f2f4f6] py-3 pr-3.5 pl-10 text-sm leading-5 text-[#111827] outline-none transition placeholder:text-slate-400 focus:border-[#0EA5E9] focus:bg-white focus:shadow-[0_0_0_3px_rgba(14,165,233,0.12)]"
-                      id="confirm-new-password"
-                      placeholder="Nhập lại mật khẩu mới"
-                      type={showPassword ? 'text' : 'password'}
-                      value={confirmPassword}
-                      onChange={(event) => {
-                        setConfirmPassword(event.target.value);
-                        if (error) setError('');
-                      }}
-                      disabled={loading}
-                    />
-                  </div>
+                  <span className="text-sm font-medium text-slate-700">{t('password.confirmLabel')}</span>
+                  <span className="relative block">
+                    <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                    <input className="h-11 w-full rounded-[15px] border border-[#E2E8F0] bg-[#F8FAFC] py-2.5 pl-12 pr-4 text-[15px] text-slate-950 outline-none transition duration-200 placeholder:text-slate-400 hover:border-sky-200 hover:bg-white focus:border-[#0EA5E9] focus:bg-white focus:shadow-[0_0_0_4px_rgba(14,165,233,0.14)]" id="confirm-new-password" placeholder={t('password.confirmPlaceholder')} type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} disabled={loading} />
+                  </span>
                 </label>
-
-                <button
-                  className="inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#0EA5E9] px-4 text-[15px] font-semibold text-white shadow-[0_14px_26px_rgba(14,165,233,0.25)] transition hover:bg-[#0284C7] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-65"
-                  type="submit"
-                  disabled={loading}
-                >
-                  {loading && <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />}
-                  {loading ? 'Đang cập nhật...' : copy.button}
+                <PasswordStrength password={password} t={t} />
+                <button className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)] disabled:cursor-not-allowed disabled:opacity-70" type="submit" disabled={loading}>
+                  {loading ? t('password.loading') : t('password.button')}
                 </button>
               </form>
             )}
 
             {step === 'done' && (
-              <button
-                className="inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#0EA5E9] px-4 text-[15px] font-semibold text-white shadow-[0_14px_26px_rgba(14,165,233,0.25)] transition hover:bg-[#0284C7] active:scale-[0.99]"
-                type="button"
-                onClick={() => navigate('/login')}
-              >
-                {copy.button}
-              </button>
+              <div className="mt-4 grid gap-3 text-center">
+                <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
+                  <Check className="h-8 w-8" />
+                </div>
+                <p className="text-sm font-medium leading-6 text-slate-500">{message || t('messages.passwordUpdated')}</p>
+                <button className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)]" type="button" onClick={() => navigate(ROUTES.LOGIN)}>
+                  {t('done.button')}
+                </button>
+              </div>
             )}
 
             {step !== 'done' && (
-              <button
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 border-t border-slate-200 pt-5 text-sm font-semibold text-slate-700 transition hover:text-[#0EA5E9]"
-                type="button"
-                onClick={handleBack}
-              >
-                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                {step === 'email' ? 'Quay lại đăng nhập' : 'Quay lại bước trước'}
+              <button className="mt-4 inline-flex w-full items-center justify-center gap-2 border-t border-slate-200 pt-3 text-sm font-bold text-slate-600 transition hover:text-sky-600" type="button" onClick={handleBack}>
+                <ArrowLeft className="h-4 w-4" />
+                {step === 'email' ? t('back.login') : t('back.previous')}
               </button>
             )}
+          </section>
 
-            {step === 'otp' && (
-              <p className="mt-3 text-center text-xs text-slate-500">
-                Mã OTP demo hiện tại: <span className="font-semibold text-slate-700">{DEMO_OTP}</span>
-              </p>
-            )}
-          </div>
-        </section>
+        </div>
       </section>
     </main>
   );

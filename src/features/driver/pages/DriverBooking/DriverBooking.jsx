@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import DriverPageShell, { EmptyState } from '../../components/DriverPageShell';
+import { useNavigate } from 'react-router';
+import DriverPageShell from '../../components/DriverPageShell';
 
 export default function DriverBooking() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     licensePlate: '',
     bookingDate: '',
@@ -14,10 +16,6 @@ export default function DriverBooking() {
 
   const handleNavigate = (path) => {
     navigate(path);
-  };
-
-  const isActive = (path) => {
-    return location.pathname === path;
   };
 
   const aSpots = ['A01', 'A02', 'A03', 'A04', 'A05', 'A06', 'A07'];
