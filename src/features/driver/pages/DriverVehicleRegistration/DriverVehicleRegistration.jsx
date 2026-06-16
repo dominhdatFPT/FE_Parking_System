@@ -167,6 +167,12 @@ export default function DriverVehicleRegistration() {
   const completedSteps = [cccdFrontFile, cccdBackFile, driverLicenseFile, vehicleDocsFile, licensePlateFile].filter(Boolean).length;
   const completionPercentage = Math.round((completedSteps / totalSteps) * 100);
 
+  const getFormStatus = () => {
+    if (submitted) return 'Chờ duyệt';
+    if (completedSteps === totalSteps) return 'Sẵn sàng gửi duyệt';
+    return 'Đang hoàn thiện';
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -324,65 +330,106 @@ export default function DriverVehicleRegistration() {
           </div>
         </div>
 
-        {/* Right Side: Checklist and Visual State */}
+        {/* Right Side: Summary Card */}
         <div className="lg:col-span-2 flex flex-col justify-start">
           <div className="sticky top-6 space-y-4">
             
-            {/* Visual Smart Card Container */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-tr from-slate-900 via-slate-800 to-sky-950 p-6 text-white shadow-xl min-h-[220px] transition-all duration-300 hover:shadow-2xl">
-              <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:14px_24px] pointer-events-none" />
-              
-              <div className="relative z-10 flex flex-col justify-between h-full">
-                
-                {/* Card Top Row */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 backdrop-blur-md">
-                      <span className="material-symbols-outlined text-[20px] text-sky-400">smart_card</span>
-                    </div>
-                    <div>
-                      <h4 className="text-[12px] font-black tracking-wide uppercase text-white/90">SmartParking Card</h4>
-                      <p className="text-[8px] font-bold text-sky-400/80 tracking-widest uppercase">Member Pass</p>
-                    </div>
-                  </div>
-
-                  <span className={`rounded-full px-2.5 py-0.5 text-[8px] font-black uppercase tracking-wider ${
-                    submitted ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
-                  }`}>
-                    {submitted ? 'Chờ duyệt' : 'Đang tải hồ sơ'}
-                  </span>
-                </div>
-
-                {/* Center Content: Progress ring or checklist indicator */}
-                <div className="mt-4 flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase">Trạng thái hồ sơ</p>
-                    <p className="text-sm font-black text-white">
-                      {completedSteps === totalSteps ? 'Hoàn thành hồ sơ' : `Đang tải: ${completedSteps}/${totalSteps} ảnh`}
-                    </p>
-                  </div>
-                  <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-slate-800 border-2 border-slate-700 font-bold text-xs">
-                    {completionPercentage}%
-                  </div>
-                </div>
-
-                {/* Plan Info Card if Selected */}
-                <div className="mt-5 flex items-end justify-between text-[10px] border-t border-white/10 pt-4">
-                  <div>
-                    <p className="text-[8px] font-bold text-slate-400 uppercase">Chủ tài khoản</p>
-                    <p className="font-extrabold tracking-wide text-white">
-                      {user?.username || user?.fullName || 'driver_user'}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[8px] font-bold text-slate-400 uppercase">Loại xe</p>
-                    <p className="font-extrabold text-sky-400">
-                      {vehicleType === 'CAR' ? 'Ô TÔ' : 'XE MÁY'}
-                    </p>
-                  </div>
-                </div>
-
+            {/* Tóm tắt hồ sơ đăng ký Card */}
+            <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-3 mb-4">
+                <span className="material-symbols-outlined text-[#0EA5E9] text-[20px] font-bold">assignment</span>
+                <h4 className="text-xs font-bold text-slate-700">Tóm tắt hồ sơ đăng ký</h4>
               </div>
+
+              {completedSteps === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <span className="material-symbols-outlined text-slate-300 text-[40px] mb-2">description</span>
+                  <p className="text-xs text-slate-400 font-medium px-4 leading-relaxed">
+                    Hồ sơ sẽ được tóm tắt tại đây sau khi bạn tải ảnh minh chứng.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {/* General Info */}
+                  <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-50">
+                    <span className="text-slate-500 font-medium">Loại phương tiện</span>
+                    <span className="font-bold text-slate-700">
+                      {vehicleType === 'CAR' ? 'Ô tô' : 'Xe máy'}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-50">
+                    <span className="text-slate-500 font-medium">Gói đăng ký đã chọn</span>
+                    <span className="font-bold text-slate-700 text-right max-w-[150px] truncate">
+                      {selectedPlans.length > 0
+                        ? selectedPlans.map((m) => `Gói ${m} tháng`).join(', ')
+                        : 'Chưa chọn gói'}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-50">
+                    <span className="text-slate-500 font-medium">Trạng thái hồ sơ</span>
+                    <span>
+                      {getFormStatus() === 'Chờ duyệt' && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200">
+                          Chờ duyệt
+                        </span>
+                      )}
+                      {getFormStatus() === 'Sẵn sàng gửi duyệt' && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                          Sẵn sàng gửi duyệt
+                        </span>
+                      )}
+                      {getFormStatus() === 'Đang hoàn thiện' && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-0.5 text-[10px] font-bold text-sky-700 border border-sky-200">
+                          Đang hoàn thiện
+                        </span>
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-50 pb-3">
+                    <span className="text-slate-500 font-medium">Số ảnh đã tải</span>
+                    <span className="font-bold text-slate-700">
+                      {completedSteps}/{totalSteps}
+                    </span>
+                  </div>
+
+                  {/* OCR/eKYC Section */}
+                  <div className="pt-2">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                      <span className="material-symbols-outlined text-[14px]">psychology</span>
+                      Thông tin nhận diện OCR/eKYC
+                    </div>
+                    <div className="rounded-xl bg-slate-50/70 p-3 space-y-2 border border-slate-100">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-slate-500">Họ tên</span>
+                        <span className={`font-bold ${cccdFrontFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
+                          {cccdFrontFile ? (user?.fullName || 'NGUYỄN VĂN A') : 'Chờ quét CCCD...'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-slate-500">Số CCCD</span>
+                        <span className={`font-bold ${cccdFrontFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
+                          {cccdFrontFile ? '037198001234' : 'Chờ quét CCCD...'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-slate-500">Hạng GPLX</span>
+                        <span className={`font-bold ${driverLicenseFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
+                          {driverLicenseFile ? (vehicleType === 'CAR' ? 'B2' : 'A1') : 'Chờ quét GPLX...'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-slate-500">Biển số xe</span>
+                        <span className={`font-bold ${licensePlateFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
+                          {licensePlateFile ? (vehicleType === 'CAR' ? '30F-567.89' : '29-D1 123.45') : 'Chờ quét biển số...'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Selected Packages Details & Invoice summary */}
@@ -406,27 +453,6 @@ export default function DriverVehicleRegistration() {
                 </div>
               </div>
             )}
-
-            {/* Checklist of Uploaded Docs */}
-            <div className="rounded-2xl border border-slate-100 bg-white p-5 space-y-3">
-              <h4 className="text-xs font-bold text-slate-700">Tiến trình hồ sơ của bạn</h4>
-              <div className="space-y-2.5">
-                {[
-                  { name: 'Mặt trước CCCD', uploaded: !!cccdFrontFile },
-                  { name: 'Mặt sau CCCD', uploaded: !!cccdBackFile },
-                  { name: 'Bằng lái xe', uploaded: !!driverLicenseFile },
-                  { name: 'Ảnh đăng ký xe', uploaded: !!vehicleDocsFile },
-                  { name: 'Ảnh biển số xe', uploaded: !!licensePlateFile }
-                ].map((item, index) => (
-                  <div key={index} className="flex items-center justify-between text-xs font-semibold">
-                    <span className={item.uploaded ? 'text-slate-700' : 'text-slate-400'}>{item.name}</span>
-                    <span className={`material-symbols-outlined text-[16px] ${item.uploaded ? 'text-emerald-500 font-bold' : 'text-slate-200'}`}>
-                      {item.uploaded ? 'check_circle' : 'radio_button_unchecked'}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
 
           </div>
         </div>
