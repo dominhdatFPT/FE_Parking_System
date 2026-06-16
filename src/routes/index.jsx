@@ -28,6 +28,12 @@ import NotificationDetailPage from '../pages/NotificationDetailPage';
 import RolePermissionPage from '../features/admin/role-permissions/pages/RolePermissionPage';
 import SystemConfigurationPage from '../pages/SystemConfigurationPage';
 import AuditLogPage from '../pages/AuditLogPage';
+import StaffDashboard from '../features/staff/pages/StaffDashboard';
+import StaffBookingReview from '../features/staff/pages/StaffBookingReview';
+import StaffVehicleEntry from '../features/staff/pages/StaffVehicleEntry';
+import StaffVehicleExit from '../features/staff/pages/StaffVehicleExit';
+import StaffSessions from '../features/staff/pages/StaffSessions';
+import StaffExceptions from '../features/staff/pages/StaffExceptions';
 
 function RequireAuth({ children }) {
   const { isAuthenticated } = useAuth();
@@ -39,15 +45,16 @@ function RequireAuth({ children }) {
   return children;
 }
 
-function RequireAdminRole({ children }) {
+function RequireBackOfficeRole({ children }) {
   const { role, isAuthenticated } = useAuth();
   const location = useLocation();
+  const normalizedRole = role?.toLowerCase();
 
   if (!isAuthenticated) {
     return <Navigate to={ROUTES.LOGIN} replace state={{ from: location.pathname }} />;
   }
 
-if (role?.toLowerCase() !== 'admin') {
+  if (!['admin', 'staff'].includes(normalizedRole)) {
     return <Navigate to={ROUTES.FORBIDDEN} replace />;
   }
 
@@ -90,7 +97,7 @@ export function AppRoutes() {
         <Route path={ROUTES.DRIVER.ACTIVE_SESSION} element={<MyParkingOrders />} />
       </Route>
       
-      <Route element={<RequireAdminRole><AdminLayout /></RequireAdminRole>}>
+      <Route element={<RequireBackOfficeRole><AdminLayout /></RequireBackOfficeRole>}>
         <Route path={ROUTES.ADMIN.DASHBOARD} element={<HomePage />} />
         <Route path={ROUTES.ADMIN.USERS} element={<AccountManagementPage />} />
         <Route path={ROUTES.ADMIN.ROLES} element={<RolePermissionPage />} />
@@ -98,6 +105,12 @@ export function AppRoutes() {
         <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AuditLogPage />} />
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.DETAIL} element={<NotificationDetailPage />} />
         <Route path={ROUTES.FORBIDDEN} element={<ForbiddenPage />} />
+        <Route path={ROUTES.STAFF.DASHBOARD} element={<StaffDashboard />} />
+        <Route path={ROUTES.STAFF.BOOKINGS} element={<StaffBookingReview />} />
+        <Route path={ROUTES.STAFF.VEHICLE_ENTRY} element={<StaffVehicleEntry />} />
+        <Route path={ROUTES.STAFF.VEHICLE_EXIT} element={<StaffVehicleExit />} />
+        <Route path={ROUTES.STAFF.SESSIONS} element={<StaffSessions />} />
+        <Route path={ROUTES.STAFF.EXCEPTIONS} element={<StaffExceptions />} />
       </Route>
       
       <Route element={<MainLayout />}>

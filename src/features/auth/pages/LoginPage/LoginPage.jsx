@@ -181,6 +181,10 @@ function getDashboardPath(role) {
     return ROUTES.ADMIN.DASHBOARD;
   }
 
+  if (normalizedRole === 'staff') {
+    return ROUTES.STAFF.DASHBOARD;
+  }
+
   return '/driver-dashboard';
 }
 
