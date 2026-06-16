@@ -64,5 +64,6 @@ export const ROUTES = {
     PROFILE: '/driver-profile',
     ACTIVE_SESSION: '/driver/active-session',
     VEHICLE_REGISTRATION: '/driver-vehicle-registration',
+    FEE_PLANS: '/driver-fee-plans',
   },
 } as const;
