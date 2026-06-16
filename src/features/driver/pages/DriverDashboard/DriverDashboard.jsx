@@ -5,26 +5,19 @@ import { useAuth } from '../../../../contexts/useAuth';
 import { bookingService } from '../../../../services/bookingService';
 import { ROUTES } from '../../../../constants/routes';
 import PageHeader from '../../components/PageHeader';
-import StatCard from '../../components/StatCard';
 import Button from '../../components/Button';
-import BookingFlowWidget from '../../components/BookingFlowWidget';
-import ParkingLotCard from '../../components/ParkingLotCard';
-import CurrentBookingPanel from '../../components/CurrentBookingPanel';
-import NotificationPanel from '../../components/NotificationPanel';
-import ParkingAvailabilityMap from '../../components/ParkingAvailabilityMap';
 
 export default function DriverDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useTranslation();
-  const displayName = user?.fullName || user?.name || 'Driver';
+  const displayName = user?.fullName || user?.name || 'Tài xế';
+  
   const [summary, setSummary] = useState(null);
   const [areas, setAreas] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [areasLoading, setAreasLoading] = useState(true);
-  const [selectedArea, setSelectedArea] = useState(null);
-  const [selectedFloors, setSelectedFloors] = useState([]);
 
   const fetchDashboard = useCallback(async () => {
     setLoading(true);
@@ -49,116 +42,236 @@ export default function DriverDashboard() {
     fetchAreas();
   }, [fetchDashboard, fetchAreas]);
 
-  const latestBooking = bookings[0] || null;
+  // Find active booking: CONFIRMED or PENDING
+  const activeBooking = bookings.find(b => b.status === 'CONFIRMED' || b.status === 'PENDING') || null;
 
-  const handleSelectArea = useCallback(async (area) => {
-    setSelectedArea(area);
-    const { data } = await bookingService.getFloorsByArea(area.id);
-    setSelectedFloors(Array.isArray(data) ? data : []);
-  }, []);
+  // Recent history: exclude the active booking if it is shown, show next 2-3 bookings
+  const historyBookings = bookings
+    .filter(b => b.id !== activeBooking?.id)
+    .slice(0, 3);
 
-  const handleBookingCreated = useCallback(() => {
-    fetchDashboard();
-  }, [fetchDashboard]);
+  // Suggested parking lots: top 2 open parking lots
+  const suggestedAreas = areas
+    .filter(a => a.status === 'OPEN')
+    .slice(0, 2);
+
+  const getStatusText = () => {
+    if (!activeBooking) return 'Bạn chưa có đặt chỗ nào';
+    if (activeBooking.status === 'PENDING') return 'Bạn đang có 1 yêu cầu đặt chỗ đang chờ duyệt';
+    return 'Bạn đang có 1 chỗ đỗ xe đang hoạt động';
+  };
+
+  const handleExtend = () => {
+    alert('Đã gửi yêu cầu gia hạn thời gian đỗ xe lên hệ thống.');
+  };
+
+  const handleEnd = async (id) => {
+    if (confirm('Bạn có chắc chắn muốn kết thúc phiên gửi xe này?')) {
+      await bookingService.cancelBooking(id);
+      fetchDashboard();
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t('dashboard.title')}
-        subtitle={`${t('header.greeting')} ${displayName}!`}
-        icon="dashboard"
-      />
-
-      {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0EA5E9] via-[#0891B2] to-[#06B6D4] p-6 shadow-xl shadow-sky-300/40 sm:p-8">
-        <div className="relative z-10 max-w-lg">
-          <h2 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-            {t('dashboard.heroTitle')}
-          </h2>
-          <p className="mt-2.5 text-sm leading-relaxed text-white/80 sm:text-base">
-            {t('dashboard.heroSubtitle')}
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Button
-              variant="ghost"
-              size="lg"
-              icon="add_circle"
-              className="!bg-white !text-sky-600 !font-bold !shadow-lg !shadow-sky-700/20 hover:!shadow-xl"
-              onClick={() => document.getElementById('booking-widget')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              {t('dashboard.bookNow')}
-            </Button>
-            <Button
-              variant="ghost"
-              size="lg"
-              icon="receipt_long"
-              className="!bg-white/10 !text-white !border-2 !border-white/30 !backdrop-blur-sm hover:!bg-white/20"
-              onClick={() => navigate(ROUTES.DRIVER.HISTORY)}
-            >
-              {t('dashboard.viewBookings')}
-            </Button>
+      
+      {/* Greeting and Quick Status Header */}
+      <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-2xl font-black text-slate-800 tracking-tight">Xin chào, {displayName}!</h1>
+          <div className="mt-1 flex items-center gap-2 text-sm font-semibold text-slate-500">
+            <span className={`inline-block h-2.5 w-2.5 rounded-full ${activeBooking ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+            <span>{getStatusText()}</span>
           </div>
         </div>
-        <div className="absolute -bottom-8 -right-8 opacity-10 sm:opacity-15">
-          <span className="material-symbols-outlined text-[180px]">directions_car</span>
-        </div>
-        <div className="absolute right-20 top-4 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute -left-6 bottom-0 h-24 w-24 rounded-full bg-cyan-200/15 blur-2xl" />
-      </section>
+      </div>
 
-      {/* Stat Cards */}
-      {loading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-24 animate-pulse rounded-2xl bg-white shadow-sm" />
-          ))}
-        </div>
-      ) : summary && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard icon="local_parking" value={summary.openParkingLots} label={t('dashboard.openLots')} accent="sky" trend="+1" trendUp />
-          <StatCard icon="slot_available" value={summary.availableSlots} label={t('dashboard.availableSlots')} accent="emerald" trend="+12" trendUp />
-          <StatCard icon="pending" value={summary.pendingBookings} label={t('dashboard.pendingBookings')} accent="amber" />
-          <StatCard icon="check_circle" value={summary.confirmedBookings} label={t('dashboard.confirmedBookings')} accent="violet" />
-        </div>
-      )}
-
-      {/* Main Grid */}
+      {/* Main Responsive Grid Layout */}
       <div className="grid gap-6 lg:grid-cols-3">
+        
+        {/* Left Side: Current Booking / Quick Book & Suggested Lots */}
         <div className="space-y-6 lg:col-span-2">
-          <div id="booking-widget">
-            <BookingFlowWidget onBookingCreated={handleBookingCreated} />
+          
+          {/* Current Booking Card / Call to Action */}
+          <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+            <h3 className="mb-4 text-xs font-black uppercase tracking-wider text-slate-400">Đặt chỗ hiện tại</h3>
+            
+            {loading ? (
+              <div className="h-44 animate-pulse rounded-2xl bg-slate-50" />
+            ) : activeBooking ? (
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-tr from-slate-900 via-slate-800 to-sky-950 p-6 text-white shadow-lg">
+                <div className="absolute right-0 top-0 -mr-12 -mt-12 h-36 w-36 rounded-full bg-sky-500/10 blur-2xl" />
+                <div className="relative z-10 flex flex-col justify-between h-full gap-4">
+                  
+                  {/* Booking details top row */}
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-sky-400">Mã Booking: #{activeBooking.id}</span>
+                      <h4 className="text-lg font-black text-white mt-1 leading-snug">{activeBooking.parkingAreaName}</h4>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider ${
+                      activeBooking.status === 'PENDING' 
+                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' 
+                        : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    }`}>
+                      {activeBooking.status === 'PENDING' ? 'Chờ duyệt' : 'Đang hoạt động'}
+                    </span>
+                  </div>
+
+                  {/* Floor / Position Details */}
+                  <div className="grid grid-cols-3 gap-4 border-y border-white/10 py-4 my-2 text-center">
+                    <div>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase">Tầng</p>
+                      <p className="text-base font-extrabold text-white">Tầng {activeBooking.floorNumber}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase">Vị trí (Dự kiến)</p>
+                      <p className="text-base font-extrabold text-white">Khu vực {activeBooking.vehicleType === 'CAR' ? 'Ô tô' : 'Xe máy'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase">Thời gian còn lại</p>
+                      <p className="text-base font-extrabold text-sky-300">
+                        {activeBooking.status === 'PENDING' ? '--:--' : '01h 45m'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Actions Row */}
+                  <div className="flex justify-end gap-3 pt-2">
+                    {activeBooking.status === 'CONFIRMED' && (
+                      <button
+                        onClick={handleExtend}
+                        className="rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2 text-xs font-bold text-white transition-all active:scale-[0.98]"
+                      >
+                        Gia hạn
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleEnd(activeBooking.id)}
+                      className="rounded-xl bg-red-600 hover:bg-red-700 !text-white px-4 py-2 text-xs font-bold transition-all active:scale-[0.98]"
+                    >
+                      {activeBooking.status === 'PENDING' ? 'Hủy yêu cầu' : 'Kết thúc'}
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-sky-50 text-[#0EA5E9] shadow-inner">
+                  <span className="material-symbols-outlined text-[32px]">local_parking</span>
+                </div>
+                <h4 className="text-base font-bold text-slate-700">Chưa tìm thấy đặt chỗ đỗ xe nào</h4>
+                <p className="mt-1.5 text-xs text-slate-400 max-w-sm">
+                  Hãy đăng ký giữ chỗ đỗ xe ngay để đảm bảo vị trí đỗ thuận tiện nhất khi bạn đến tòa nhà.
+                </p>
+                <Button
+                  variant="primary"
+                  className="mt-5 w-full max-w-xs justify-center"
+                  icon="add_circle"
+                  onClick={() => navigate(ROUTES.DRIVER.BOOKING)}
+                >
+                  Đặt chỗ ngay
+                </Button>
+              </div>
+            )}
           </div>
 
-          {/* Parking Lots */}
-          <div>
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#0EA5E9] to-[#06B6D4] text-white shadow-sm">
-                <span className="material-symbols-outlined text-[16px]">apartment</span>
-              </span>
-              {t('dashboard.nearbyParkingLots')}
-            </h3>
+          {/* Suggested Parking Lots */}
+          <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Bãi xe gần nhất</h3>
+            </div>
+            
             {areasLoading ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 {[1, 2].map((i) => (
-                  <div key={i} className="h-56 animate-pulse rounded-2xl bg-white shadow-sm" />
+                  <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-50" />
                 ))}
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
-                {areas.map((area) => (
-                  <ParkingLotCard key={area.id} area={area} onSelect={handleSelectArea} />
+                {suggestedAreas.map((area) => (
+                  <div
+                    key={area.id}
+                    className="group flex flex-col justify-between rounded-2xl border border-slate-100 p-4 transition-all duration-300 hover:border-sky-100 hover:shadow-lg hover:shadow-sky-100/10 cursor-pointer"
+                    onClick={() => navigate(ROUTES.DRIVER.BOOKING)}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[170px]">{area.name}</h4>
+                        <p className="text-[10px] text-slate-400 mt-1 leading-normal line-clamp-1">{area.address}</p>
+                      </div>
+                      <span className="material-symbols-outlined text-[18px] text-sky-500">location_on</span>
+                    </div>
+
+                    <div className="mt-4 flex items-baseline justify-between border-t border-slate-50 pt-3">
+                      <span className="text-[10px] font-bold text-slate-500">Chỗ trống còn lại:</span>
+                      <span className="text-sm font-black text-sky-600">
+                        {area.availableSlots} / {area.totalSlots}
+                      </span>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
           </div>
 
-          <ParkingAvailabilityMap selectedArea={selectedArea} floors={selectedFloors} />
         </div>
 
+        {/* Right Side: Recent History */}
         <div className="space-y-6">
-          <CurrentBookingPanel booking={latestBooking} loading={loading} />
-          <NotificationPanel />
+          <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+            <div className="mb-5 flex items-center justify-between border-b border-slate-50 pb-3">
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Lịch sử gần đây</h3>
+              <button
+                onClick={() => navigate(ROUTES.DRIVER.HISTORY)}
+                className="text-xs font-black text-[#0EA5E9] hover:underline"
+              >
+                Xem tất cả
+              </button>
+            </div>
+
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-14 animate-pulse rounded-xl bg-slate-50" />
+                ))}
+              </div>
+            ) : historyBookings.length > 0 ? (
+              <div className="space-y-3">
+                {historyBookings.map((b) => (
+                  <div
+                    key={b.id}
+                    className="flex items-center justify-between rounded-xl border border-slate-100 p-3 hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="space-y-0.5">
+                      <p className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[150px]">{b.parkingAreaName}</p>
+                      <p className="text-[10px] text-slate-400 font-semibold">
+                        {new Date(b.createdAt).toLocaleDateString('vi-VN')}
+                      </p>
+                    </div>
+
+                    <span className={`rounded-lg px-2 py-0.5 text-[9px] font-bold border ${
+                      b.status === 'CONFIRMED'
+                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                        : b.status === 'CANCELLED'
+                          ? 'bg-slate-50 text-slate-500 border-slate-100'
+                          : 'bg-rose-50 text-rose-600 border-rose-100'
+                    }`}>
+                      {b.status === 'CONFIRMED' ? 'Hoàn thành' : b.status === 'CANCELLED' ? 'Đã hủy' : 'Bị từ chối'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-6 text-center text-xs font-semibold text-slate-400">
+                Chưa có lịch sử giao dịch
+              </div>
+            )}
+          </div>
         </div>
+
       </div>
     </div>
   );

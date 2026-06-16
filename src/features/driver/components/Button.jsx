@@ -1,12 +1,12 @@
 const variants = {
   primary:
-    'bg-gradient-to-r from-[#0EA5E9] to-[#06B6D4] text-white font-semibold shadow-md shadow-sky-300/40 hover:shadow-lg hover:shadow-sky-400/50 hover:-translate-y-0.5 active:scale-[0.98]',
+    'bg-[#0EA5E9] hover:bg-[#0284c7] !text-white font-semibold shadow-md shadow-sky-500/20 hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98]',
   secondary:
     'bg-white border border-sky-200/60 text-slate-700 font-medium hover:bg-sky-50 hover:border-sky-300 hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.98]',
   danger:
-    'bg-gradient-to-r from-red-500 to-rose-500 text-white font-semibold shadow-md shadow-red-200/60 hover:shadow-lg hover:shadow-red-300/60 hover:-translate-y-0.5 active:scale-[0.98]',
+    'bg-gradient-to-r from-red-500 to-rose-500 !text-white font-semibold shadow-md shadow-red-200/60 hover:shadow-lg hover:shadow-red-300/60 hover:-translate-y-0.5 active:scale-[0.98]',
   success:
-    'bg-gradient-to-r from-emerald-500 to-green-500 text-white font-semibold shadow-md shadow-emerald-200/60 hover:shadow-lg hover:shadow-emerald-300/60 hover:-translate-y-0.5 active:scale-[0.98]',
+    'bg-gradient-to-r from-emerald-500 to-green-500 !text-white font-semibold shadow-md shadow-emerald-200/60 hover:shadow-lg hover:shadow-emerald-300/60 hover:-translate-y-0.5 active:scale-[0.98]',
   ghost:
     'bg-transparent text-slate-700 font-medium hover:bg-sky-50 hover:text-sky-600 active:scale-[0.98]',
 };

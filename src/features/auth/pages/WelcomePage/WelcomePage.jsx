@@ -772,7 +772,7 @@ const CustomSelect = ({ value, options, onChange }) => {
       <button 
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between gap-2 bg-slate-700 hover:bg-slate-600 text-base !font-bold !text-white border border-slate-500 rounded-lg px-3 py-2 outline-none cursor-pointer transition-colors min-w-[120px]"
+        className="flex items-center justify-between gap-2 bg-[#0EA5E9] hover:bg-[#0284c7] text-base !font-bold !text-white border border-[#0ea5e9] rounded-lg px-3 py-2 outline-none cursor-pointer transition-colors min-w-[120px]"
         style={{ color: '#ffffff' }}
       >
         <span className="!text-white !font-bold">{selectedOption?.label}</span>

@@ -63,5 +63,6 @@ export const ROUTES = {
     SUPPORT: '/driver-support',
     PROFILE: '/driver-profile',
     ACTIVE_SESSION: '/driver/active-session',
+    VEHICLE_REGISTRATION: '/driver-vehicle-registration',
   },
 } as const;

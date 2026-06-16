@@ -29,7 +29,9 @@
     "notifications": "Notifications",
     "support": "Support Center",
     "profile": "Profile",
-    "logout": "Logout"
+    "logout": "Logout",
+    "registerVehicle": "Register Vehicle",
+    "vehiclePricing": "Vehicle Card Fees"
   },
   "header": {
     "searchPlaceholder": "Search parking lots, bookings...",

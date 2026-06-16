@@ -4,20 +4,25 @@ import { ROUTES } from '../../../constants/routes';
 
 const navItems = [
   { key: 'dashboard', path: ROUTES.DRIVER.DASHBOARD, icon: 'dashboard' },
-  { key: 'booking', path: ROUTES.DRIVER.BOOKING, icon: 'confirmation_number' },
-  { key: 'myBookings', path: ROUTES.DRIVER.HISTORY, icon: 'receipt_long' },
+  { key: 'registerVehicle', path: ROUTES.DRIVER.VEHICLE_REGISTRATION, icon: 'assignment_ind' },
+  { key: 'vehiclePricing', path: '#pricing', icon: 'sell' },
   { key: 'payments', path: ROUTES.DRIVER.PAYMENT, icon: 'payments' },
   { key: 'notifications', path: ROUTES.DRIVER.NOTIFICATIONS, icon: 'notifications' },
   { key: 'support', path: ROUTES.DRIVER.SUPPORT, icon: 'help' },
 ];
 
-export default function DriverSidebar({ isOpen, onClose }) {
+export default function DriverSidebar({ isOpen, onClose, onShowPricing }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
 
-  const handleNav = (path) => {
-    navigate(path);
+  const handleNav = (item) => {
+    if (item.key === 'vehiclePricing') {
+      onShowPricing?.();
+      onClose?.();
+      return;
+    }
+    navigate(item.path);
     onClose?.();
   };
 
@@ -61,7 +66,7 @@ export default function DriverSidebar({ isOpen, onClose }) {
               <button
                 key={item.path}
                 type="button"
-                onClick={() => handleNav(item.path)}
+                onClick={() => handleNav(item)}
                 className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium transition-all duration-300 ${
                   active
                     ? 'bg-gradient-to-r from-[#0EA5E9] to-[#06B6D4] text-white shadow-lg shadow-sky-400/40'

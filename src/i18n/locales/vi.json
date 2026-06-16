@@ -29,7 +29,9 @@
     "notifications": "Thông báo",
     "support": "Hỗ trợ",
     "profile": "Hồ sơ cá nhân",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "registerVehicle": "Đăng ký thẻ xe",
+    "vehiclePricing": "Biểu phí thẻ xe"
   },
   "header": {
     "searchPlaceholder": "Tìm bãi xe, booking...",

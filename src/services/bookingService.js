@@ -385,6 +385,13 @@ export const bookingService = {
     return { data: { id: 'SUP001', ...payload, status: 'SUBMITTED', createdAt: new Date().toISOString() }, error: null };
   },
 
+  registerVehicleCard: async (payload) => {
+    await delay(800);
+    console.log('Sending registration request for username:', payload.username, payload);
+    addNotification('info', 'Yêu cầu đăng ký thẻ xe đã gửi', `Yêu cầu đăng ký thẻ xe của ${payload.username} đang được xử lý.`);
+    return { data: { id: `VREG${Date.now()}`, status: 'PENDING', ...payload }, error: null };
+  },
+
   resetData: () => {
     bookings = getInitialBookings();
     payments = getInitialPayments();
