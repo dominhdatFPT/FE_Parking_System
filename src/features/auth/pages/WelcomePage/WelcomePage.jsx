@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router';
+import i18n from 'i18next';
 import {
   Car, Bike, Zap, MapPin, CreditCard, Globe, ScanLine, CalendarDays,
   Smartphone, CheckCircle2, AlertTriangle, Clock, ShieldCheck,
@@ -13,7 +14,7 @@ import { parkingAreaSummaryService } from '../../../../services/parkingAreaSumma
 
 // --- DICTIONARY (i18n) ---
 const translations = {
-  VN: {
+  vi: {
     nav: { home: "Trang chủ", dashboard: "Bảng điều khiển", notice: "Thông báo", explore: "Khám phá", login: "Đăng nhập", signup: "Đăng ký" },
     hero: { badge: "Hệ thống đang hoạt động 24/7", title1: "Quản lý bãi đỗ xe", title2: "tòa nhà thông minh", desc: "Nền tảng Smart Parking dành cho chung cư, văn phòng và trung tâm thương mại với nhận diện biển số LPR, đặt chỗ trước và thanh toán không chạm.", f1: "Thanh toán không chạm", f2: "Nhận diện biển số LPR", f3: "Theo dõi thời gian thực" },
     kpi: { 
@@ -85,9 +86,32 @@ const translations = {
       products: "Sản phẩm", support: "Hỗ trợ", helpCenter: "Trung tâm trợ giúp", apiDocs: "Tài liệu API", community: "Cộng đồng",
       contact: "Liên hệ", addressLabel: "Địa chỉ", addressVal: "Tòa nhà Nexus, 123 Trần Phú, Q.1, TP.HCM",
       rights: "All rights reserved.", terms: "Điều khoản", privacy: "Bảo mật", cookies: "Cookies" 
+    },
+    vehicleLog: {
+      title: "Lịch sử Xe Ra / Vào",
+      plate: "Biển số",
+      vehicle: "Phương tiện",
+      checkIn: "Giờ vào",
+      checkOut: "Giờ ra",
+      status: "Trạng thái",
+      inParking: "Đang đỗ",
+      completed: "Đã hoàn thành",
+      car: "Ô tô",
+      motorbike: "Xe máy"
+    },
+    gateControl: {
+      title: "Kiểm soát Cổng",
+      entrance: "Cổng vào",
+      exit: "Cổng ra",
+      open: "Mở",
+      processing: "Đang xử lý",
+      lastPlate: "Biển số cuối",
+      vehiclesInside: "Xe trong bãi",
+      capacity: "Sức chứa",
+      occupancy: "Hiệu suất"
     }
   },
-  EN: {
+  en: {
     nav: { home: "Home", dashboard: "Dashboard", notice: "Notices", explore: "Explore", login: "Login", signup: "Sign Up" },
     hero: { badge: "System running 24/7", title1: "Smart Building", title2: "Parking Management", desc: "Smart Parking platform for apartments, offices and commercial centers with LPR, booking and contactless payment.", f1: "Contactless Payment", f2: "LPR System", f3: "Real-time Tracking" },
     kpi: { 
@@ -159,6 +183,29 @@ const translations = {
       products: "Products", support: "Support", helpCenter: "Help Center", apiDocs: "API Documentation", community: "Community",
       contact: "Contact", addressLabel: "Address", addressVal: "Nexus Building, 123 Tran Phu, Dist 1, HCMC",
       rights: "All rights reserved.", terms: "Terms", privacy: "Privacy", cookies: "Cookies" 
+    },
+    vehicleLog: {
+      title: "Vehicle In / Out History",
+      plate: "Plate",
+      vehicle: "Vehicle",
+      checkIn: "Check In",
+      checkOut: "Check Out",
+      status: "Status",
+      inParking: "In Parking",
+      completed: "Completed",
+      car: "Car",
+      motorbike: "Motorbike"
+    },
+    gateControl: {
+      title: "Gate Control",
+      entrance: "Entrance Gate",
+      exit: "Exit Gate",
+      open: "Open",
+      processing: "Processing",
+      lastPlate: "Last Plate",
+      vehiclesInside: "Vehicles Inside",
+      capacity: "Capacity",
+      occupancy: "Occupancy"
     }
   }
 };
@@ -325,11 +372,11 @@ const Navbar = ({ lang, setLang, t }) => {
 
         <div className="flex items-center gap-4">
           <button 
-            onClick={() => setLang(lang === 'VN' ? 'EN' : 'VN')}
+            onClick={() => setLang(lang === 'vi' ? 'en' : 'vi')}
             className="flex items-center gap-1.5 text-sm font-bold text-slate-600 hover:text-sky-600 transition-colors bg-slate-100 px-3 py-1.5 rounded-lg"
           >
             <Globe className="w-4 h-4" />
-            <span>{lang}</span>
+            <span>{lang === 'vi' ? 'VN' : 'EN'}</span>
           </button>
           <div className="h-5 w-px bg-slate-200 hidden sm:block"></div>
           <button 
@@ -430,10 +477,10 @@ const MainDashboard = ({ t }) => {
       {/* 2. Main Section & Side Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <SmartParkingMap t={t} zone={zone} setZone={setZone} floor={floor} setFloor={setFloor} />
+          <VehicleInOutLog t={t} />
         </div>
          <div className="lg:col-span-1">
-          <FloorManagement t={t} />
+          <GateControlPanel t={t} />
         </div>
       </div>
 
@@ -503,147 +550,55 @@ const KPIDashboard = ({ t, zone, floor }) => {
   );
 };
 
-const SmartParkingMap = ({ t, zone, setZone, floor, setFloor }) => {
-  const [areas, setAreas] = useState([]);
-  const [loadingAreas, setLoadingAreas] = useState(true);
-  const [areaError, setAreaError] = useState('');
-
-  useEffect(() => {
-    let active = true;
-
-    const fetchAreas = async () => {
-      setLoadingAreas(true);
-      setAreaError('');
-
-      const result = await parkingAreaSummaryService.getAreas({
-        buildingCode: zone,
-        floorNumber: floor,
-      });
-
-      if (!active) return;
-
-      if (result.error) {
-        setAreas([]);
-        setAreaError('Không thể tải dữ liệu bãi đỗ xe');
-        setLoadingAreas(false);
-        return;
-      }
-
-      const mappedAreas = (result.data || []).map((area) => {
-        const vehicleType = area.vehicleType === 'CAR' ? 'car' : 'moto';
-
-        return {
-          id: area.id,
-          areaCode: area.areaCode,
-          name: `Khu ${area.areaCode}`,
-          buildingName: area.buildingName,
-          floor: String(area.floorNumber),
-          vehicleType,
-          occupied: Number(area.currentVehicleCount || 0),
-          capacity: Number(area.capacity || 25),
-        };
-      });
-
-      setAreas(mappedAreas);
-      setLoadingAreas(false);
-    };
-
-    fetchAreas();
-
-    return () => {
-      active = false;
-    };
-  }, [zone, floor]);
-
-  const totalOccupied = areas.reduce((sum, area) => sum + area.occupied, 0);
-  const totalCapacity = areas.reduce((sum, area) => sum + area.capacity, 0);
+const VehicleInOutLog = ({ t }) => {
+  const mockLogs = [
+    { plate: '51A-12345', vehicle: 'Car', checkIn: '08:15', checkOut: '--', status: 'In Parking' },
+    { plate: '59B-45678', vehicle: 'Motorbike', checkIn: '09:20', checkOut: '10:05', status: 'Completed' },
+    { plate: '30F-888.88', vehicle: 'Car', checkIn: '10:30', checkOut: '--', status: 'In Parking' },
+    { plate: '43A-999.99', vehicle: 'Car', checkIn: '11:15', checkOut: '12:30', status: 'Completed' },
+    { plate: '75B-111.22', vehicle: 'Motorbike', checkIn: '12:00', checkOut: '--', status: 'In Parking' },
+    { plate: '92C-333.44', vehicle: 'Car', checkIn: '12:45', checkOut: '13:50', status: 'Completed' },
+    { plate: '29A-555.66', vehicle: 'Car', checkIn: '14:15', checkOut: '--', status: 'In Parking' },
+    { plate: '36D-777.88', vehicle: 'Motorbike', checkIn: '14:30', checkOut: '15:10', status: 'Completed' },
+  ];
 
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 h-full flex flex-col">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="flex items-center justify-between gap-4 mb-6">
         <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
-          <MapPin className="text-sky-500 w-5 h-5" /> {t.mapOverview.title}
+          <Activity className="text-sky-500 w-5 h-5" /> {t.vehicleLog.title}
         </h3>
-        <div className="flex items-center gap-3">
-          <CustomSelect value={floor} options={floorOptions} onChange={setFloor} />
-          <CustomSelect value={zone} options={buildingOptions} onChange={setZone} />
-        </div>
       </div>
 
-      <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 flex items-center justify-between">
-        <div>
-          <p className="text-xs font-black text-slate-400 uppercase tracking-wide">Tổng xe trong bãi</p>
-          <p className="text-2xl font-black text-slate-900">{totalOccupied}<span className="text-sm text-slate-500">/{totalCapacity} xe</span></p>
-        </div>
-        <div className="text-right">
-          <p className="text-xs font-bold text-slate-500">Quản lý theo khu</p>
-          <p className="text-sm font-black text-slate-700">Không gán vị trí cụ thể</p>
-        </div>
-      </div>
-
-      {/* Area Grid */}
-      <div className="flex-1 bg-slate-100 rounded-xl border border-slate-200 p-4 mb-4 grid grid-cols-2 sm:grid-cols-4 gap-3 content-start">
-        {loadingAreas && (
-          <div className="col-span-full min-h-[156px] rounded-xl border border-slate-200 bg-white flex items-center justify-center text-sm font-bold text-slate-500">
-            Đang tải dữ liệu từ BE...
-          </div>
-        )}
-
-        {!loadingAreas && areaError && (
-          <div className="col-span-full min-h-[156px] rounded-xl border border-rose-200 bg-rose-50 flex items-center justify-center text-sm font-bold text-rose-600">
-            {areaError}
-          </div>
-        )}
-
-        {!loadingAreas && !areaError && areas.length === 0 && (
-          <div className="col-span-full min-h-[156px] rounded-xl border border-slate-200 bg-white flex items-center justify-center text-sm font-bold text-slate-500">
-            Chưa có dữ liệu cho tòa và tầng này
-          </div>
-        )}
-
-        {!loadingAreas && !areaError && areas.map((area) => {
-          const percent = Math.round((area.occupied / area.capacity) * 100);
-          const tone = getAreaTone(percent);
-          return (
-            <div
-              key={area.id}
-              className={`min-h-[156px] rounded-xl border-2 p-4 transition-all duration-300 flex flex-col justify-between shadow-sm ${tone.card}`}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-sm font-black text-slate-800">{area.name}</p>
-                  <p className="text-[11px] font-bold text-slate-500">
-                    {area.buildingName} - Tầng {area.floor}
-                  </p>
-                  <p className="text-[11px] font-bold text-slate-500">
-                    {area.vehicleType === 'car' ? 'Dành cho ô tô' : 'Dành cho xe máy'}
-                  </p>
-                </div>
-                {area.vehicleType === 'car'
-                  ? <Car className="w-4 h-4 opacity-70" />
-                  : <Bike className="w-4 h-4 opacity-70" />}
-              </div>
-
-              <div>
-                <div className="flex items-end justify-between mb-2">
-                  <p className="text-2xl font-black">{area.occupied}<span className="text-xs opacity-60">/{area.capacity}</span></p>
-                  <span className="text-[10px] font-black opacity-70">{percent}%</span>
-                </div>
-                <div className="h-2 rounded-full bg-white/70 overflow-hidden">
-                  <div className={`h-full rounded-full ${tone.meter}`} style={{ width: `${percent}%` }} />
-                </div>
-                <p className="mt-1 text-[10px] font-bold opacity-70">{tone.label}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Legend */}
-      <div className="flex flex-wrap gap-4 items-center text-[10px] font-bold text-slate-500 px-2 mt-auto pt-4 border-t border-slate-100">
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-emerald-100 border border-emerald-300 rounded-sm"></div> Còn nhiều chỗ</div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-amber-100 border border-amber-300 rounded-sm"></div> Trung bình</div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-rose-100 border border-rose-300 rounded-sm"></div> Gần đầy</div>
+      <div className="flex-1 overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b border-slate-100 text-slate-400 text-xs font-bold uppercase tracking-wider">
+              <th className="py-3 px-4">{t.vehicleLog.plate}</th>
+              <th className="py-3 px-4">{t.vehicleLog.vehicle}</th>
+              <th className="py-3 px-4">{t.vehicleLog.checkIn}</th>
+              <th className="py-3 px-4">{t.vehicleLog.checkOut}</th>
+              <th className="py-3 px-4">{t.vehicleLog.status}</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 text-sm font-semibold text-slate-700">
+            {mockLogs.map((log, index) => (
+              <tr key={index} className="hover:bg-slate-50 transition-colors">
+                <td className="py-3.5 px-4 font-mono font-bold text-slate-800">{log.plate}</td>
+                <td className="py-3.5 px-4">{log.vehicle === 'Car' ? t.vehicleLog.car : t.vehicleLog.motorbike}</td>
+                <td className="py-3.5 px-4">{log.checkIn}</td>
+                <td className="py-3.5 px-4">{log.checkOut}</td>
+                <td className="py-3.5 px-4">
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
+                    log.status === 'In Parking' ? 'bg-emerald-100 text-emerald-700' : 'bg-sky-100 text-sky-700'
+                  }`}>
+                    {log.status === 'In Parking' ? t.vehicleLog.inParking : t.vehicleLog.completed}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -680,71 +635,63 @@ const ParkingTrendChart = ({ t }) => {
   );
 };
 
-const FloorManagement = ({ t }) => {
-  const getBadge = (pct) => {
-    if (pct < 60) {
-      return {
-        text: t.floor.statusNormal,
-        card: 'bg-emerald-50 border-emerald-200 text-emerald-800',
-        badge: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-        bar: 'bg-emerald-500',
-      };
-    }
-    if (pct < 85) {
-      return {
-        text: t.floor.statusMedium,
-        card: 'bg-amber-50 border-amber-200 text-amber-800',
-        badge: 'bg-amber-100 text-amber-700 border-amber-200',
-        bar: 'bg-amber-500',
-      };
-    }
-    return {
-      text: t.floor.statusFull,
-      card: 'bg-rose-50 border-rose-200 text-rose-800',
-      badge: 'bg-rose-100 text-rose-700 border-rose-200',
-      bar: 'bg-rose-500',
-    };
-  };
-  const totalOccupied = zoneData.reduce((sum, zone) => sum + zone.occupied, 0);
-  const totalCapacity = zoneData.reduce((sum, zone) => sum + zone.total, 0);
-  const totalPct = Math.round((totalOccupied / totalCapacity) * 100);
-
+const GateControlPanel = ({ t }) => {
   return (
-    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm h-full">
-      <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
-        <MapPin className="w-5 h-5 text-sky-500" /> {t.floor.title}
-      </h3>
-      <div className="relative grid grid-cols-2 gap-3">
-        {zoneData.map(z => {
-          const pct = Math.round((z.occupied / z.total) * 100);
-          const badge = getBadge(pct);
-          return (
-            <div key={z.id} className={`rounded-xl border p-4 min-h-[128px] ${badge.card}`}>
-              <div className="flex justify-between items-start gap-2 mb-4">
-                <div>
-                  <p className="font-black text-lg">{z.name}</p>
-                  <p className="text-xs font-bold opacity-70">{z.vehicle}</p>
-                </div>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${badge.badge}`}>
-                  {badge.text}
-                </span>
-              </div>
-              <div className="flex justify-between items-end mb-3">
-                <div className="text-2xl font-black">{z.occupied}<span className="text-sm opacity-60">/{z.total}</span></div>
-                <div className="text-xs font-black opacity-70">{pct}%</div>
-              </div>
-              <div className="w-full bg-white/70 rounded-full h-2 overflow-hidden">
-                <div className={`h-2 rounded-full ${badge.bar} transition-all duration-1000`} style={{ width: `${pct}%` }}></div>
-              </div>
+    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm h-full flex flex-col justify-between">
+      <div>
+        <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-lg">
+          <ShieldCheck className="w-5 h-5 text-sky-500" /> {t.gateControl.title}
+        </h3>
+        
+        <div className="space-y-4 mb-6">
+          {/* Entrance Gate */}
+          <div className="rounded-xl border border-slate-200 p-4 bg-slate-50">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-bold text-slate-700">{t.gateControl.entrance}</span>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
+                {t.gateControl.open}
+              </span>
             </div>
-          );
-        })}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-32 h-32 rounded-full bg-white border border-slate-200 shadow-xl flex flex-col items-center justify-center text-center">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wide">Đang đỗ</span>
-            <span className="text-3xl font-black text-slate-900 leading-none">{totalOccupied}</span>
-            <span className="text-xs font-bold text-slate-500">xe / {totalPct}%</span>
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-slate-400 font-bold uppercase">{t.gateControl.lastPlate}</span>
+              <span className="font-mono font-bold text-slate-800">51A-12345</span>
+            </div>
           </div>
+
+          {/* Exit Gate */}
+          <div className="rounded-xl border border-slate-200 p-4 bg-slate-50">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-bold text-slate-700">{t.gateControl.exit}</span>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
+                {t.gateControl.processing}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-slate-400 font-bold uppercase">{t.gateControl.lastPlate}</span>
+              <span className="font-mono font-bold text-slate-800">59B-45678</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Summary Card */}
+      <div className="rounded-xl border border-slate-200 p-4 bg-white shadow-sm mt-auto">
+        <div className="grid grid-cols-2 gap-4 mb-3">
+          <div>
+            <p className="text-xs font-bold text-slate-400 uppercase">{t.gateControl.vehiclesInside}</p>
+            <p className="text-xl font-black text-slate-800">154</p>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-slate-400 uppercase">{t.gateControl.capacity}</p>
+            <p className="text-xl font-black text-slate-800">300</p>
+          </div>
+        </div>
+        <div className="flex justify-between items-center text-xs font-bold text-slate-500 mb-1.5">
+          <span>{t.gateControl.occupancy}</span>
+          <span className="text-sky-600">51%</span>
+        </div>
+        <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+          <div className="h-full bg-sky-500 rounded-full" style={{ width: '51%' }}></div>
         </div>
       </div>
     </div>
@@ -1081,8 +1028,28 @@ const Footer = ({ t }) => {
 // --- MAIN PAGE COMPONENT ---
 
 export default function WelcomePage() {
-  const [lang, setLang] = useState('VN');
+  const getInitialLang = () => {
+    const current = i18n.language || localStorage.getItem('language') || 'vi';
+    return current.startsWith('en') ? 'en' : 'vi';
+  };
+
+  const [lang, setLangState] = useState(getInitialLang);
   const t = translations[lang];
+
+  const setLang = (newLang) => {
+    setLangState(newLang);
+    i18n.changeLanguage(newLang);
+  };
+
+  useEffect(() => {
+    const handleLangChange = (lng) => {
+      setLangState(lng.startsWith('en') ? 'en' : 'vi');
+    };
+    i18n.on('languageChanged', handleLangChange);
+    return () => {
+      i18n.off('languageChanged', handleLangChange);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800 selection:bg-sky-200">
