@@ -12,4 +12,3 @@ export { default as BookingFlowWidget } from './BookingFlowWidget';
 export { default as CurrentBookingPanel } from './CurrentBookingPanel';
 export { default as NotificationPanel } from './NotificationPanel';
 export { default as ParkingAvailabilityMap } from './ParkingAvailabilityMap';
-export { default as VehicleCardPricingModal } from './VehicleCardPricingModal';

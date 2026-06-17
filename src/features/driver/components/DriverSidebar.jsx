@@ -5,23 +5,18 @@ import { ROUTES } from '../../../constants/routes';
 const navItems = [
   { key: 'dashboard', path: ROUTES.DRIVER.DASHBOARD, icon: 'dashboard' },
   { key: 'registerVehicle', path: ROUTES.DRIVER.VEHICLE_REGISTRATION, icon: 'assignment_ind' },
-  { key: 'vehiclePricing', path: '#pricing', icon: 'sell' },
+  { key: 'vehiclePricing', path: ROUTES.DRIVER.FEE_PLANS, icon: 'sell' },
   { key: 'payments', path: ROUTES.DRIVER.PAYMENT, icon: 'payments' },
   { key: 'notifications', path: ROUTES.DRIVER.NOTIFICATIONS, icon: 'notifications' },
   { key: 'support', path: ROUTES.DRIVER.SUPPORT, icon: 'help' },
 ];
 
-export default function DriverSidebar({ isOpen, onClose, onShowPricing }) {
+export default function DriverSidebar({ isOpen, onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
 
   const handleNav = (item) => {
-    if (item.key === 'vehiclePricing') {
-      onShowPricing?.();
-      onClose?.();
-      return;
-    }
     navigate(item.path);
     onClose?.();
   };

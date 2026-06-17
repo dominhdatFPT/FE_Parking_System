@@ -17,6 +17,55 @@ export default function DriverPayment() {
   const [paymentMethod, setPaymentMethod] = useState('MoMo');
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(null);
+  const [pendingFeePlan, setPendingFeePlan] = useState(null);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [qrMethod, setQrMethod] = useState('MoMo');
+
+  useEffect(() => {
+    const raw = localStorage.getItem('pending_fee_plan_request');
+    if (raw) {
+      try {
+        setPendingFeePlan(JSON.parse(raw));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
+  const handlePayFeePlan = (plan) => {
+    setQrMethod('MoMo');
+    setShowQrModal(true);
+  };
+
+  const handleConfirmFeePlanPayment = async () => {
+    if (!pendingFeePlan) return;
+    setProcessing(true);
+    
+    // Simulate delay
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    
+    const mockPaymentRecord = {
+      id: pendingFeePlan.id,
+      bookingId: `SUB-${pendingFeePlan.id}`,
+      amount: pendingFeePlan.amount,
+      method: qrMethod,
+      status: 'PAID',
+      createdAt: new Date().toISOString()
+    };
+
+    setProcessing(false);
+    setSuccess(mockPaymentRecord);
+    setShowQrModal(false);
+    
+    // Clear request
+    localStorage.removeItem('pending_fee_plan_request');
+    setPendingFeePlan(null);
+
+    // Add payment to list
+    setPayments((prev) => [mockPaymentRecord, ...prev]);
+    
+    setTimeout(() => setSuccess(null), 3000);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -90,6 +139,42 @@ export default function DriverPayment() {
           <p className="mt-1 text-2xl font-bold text-red-500">{totalFailed.toLocaleString('vi-VN')} VNĐ</p>
         </div>
       </div>
+
+      {pendingFeePlan && (
+        <div className="rounded-2xl border border-sky-100 bg-sky-50/20 p-5 ring-1 ring-sky-100/50 space-y-3">
+          <h3 className="flex items-center gap-2 text-sm font-bold text-slate-800">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100 text-[#0EA5E9]">
+              <span className="material-symbols-outlined text-[16px]">assignment_turned_in</span>
+            </span>
+            Đơn gửi yêu cầu thanh toán vé tháng định kỳ
+          </h3>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-100 text-[#0EA5E9]">
+                <span className="material-symbols-outlined text-[20px]">sell</span>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-slate-800">Gói vé tháng - Biển số {pendingFeePlan.licensePlate}</p>
+                <p className="text-xs text-slate-500">
+                  Gói {pendingFeePlan.selectedPlan} tháng ({pendingFeePlan.vehicleType === 'CAR' ? 'Ô tô' : 'Xe máy'}) • Ngày bắt đầu: {dayjs(pendingFeePlan.startDate).format('DD/MM/YYYY')}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+              <p className="text-sm font-black text-sky-600">{pendingFeePlan.amount.toLocaleString('vi-VN')} đ</p>
+              <Button
+                variant="primary"
+                size="sm"
+                icon="qr_code"
+                className="bg-[#0EA5E9] hover:bg-[#0284c7] !text-white text-white shadow-md shadow-sky-500/20"
+                onClick={() => handlePayFeePlan(pendingFeePlan)}
+              >
+                Thanh toán ngay
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {unpaidBookings.length > 0 && (
         <div>
@@ -226,6 +311,71 @@ export default function DriverPayment() {
               className="mt-6 w-full justify-center"
             >
               {t('payment.confirmPayment')}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {showQrModal && pendingFeePlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowQrModal(false)}>
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-slate-800">Thanh toán quét mã QR vé tháng</h3>
+              <Button variant="ghost" size="icon-sm" icon="close" onClick={() => setShowQrModal(false)} />
+            </div>
+
+            <div className="rounded-xl bg-slate-50 p-4 space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Biển số xe</span>
+                <span className="font-bold text-slate-800">{pendingFeePlan.licensePlate}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Gói đăng ký</span>
+                <span className="font-bold text-slate-800">{pendingFeePlan.selectedPlan} tháng</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Tổng thanh toán</span>
+                <span className="font-black text-sky-600">{pendingFeePlan.amount.toLocaleString('vi-VN')} đ</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-[10px] font-bold text-slate-400 uppercase">Chọn cổng thanh toán</p>
+              <div className="grid grid-cols-3 gap-2">
+                {['MoMo', 'VNPay', 'ZaloPay'].map((method) => (
+                  <button
+                    key={method}
+                    type="button"
+                    onClick={() => setQrMethod(method)}
+                    className={`rounded-xl border p-2 text-center text-xs font-bold transition-all ${
+                      qrMethod === method ? 'border-sky-500 bg-sky-50 text-sky-600' : 'border-slate-200 text-slate-500 hover:border-sky-300'
+                    }`}
+                  >
+                    {method}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center justify-center p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+              <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                <span className="material-symbols-outlined text-[72px] text-slate-700 font-light">qr_code_2</span>
+              </div>
+              <p className="text-[10px] text-slate-400 text-center font-medium leading-relaxed">
+                Mở ứng dụng {qrMethod} quét mã QR này để tiến hành thanh toán vé đỗ xe định kỳ.
+              </p>
+            </div>
+
+            <Button
+              variant="primary"
+              size="md"
+              icon="check_circle"
+              loading={processing}
+              disabled={processing}
+              onClick={handleConfirmFeePlanPayment}
+              className="w-full justify-center bg-[#0EA5E9] hover:bg-[#0284c7] !text-white text-white shadow-md shadow-sky-500/25 py-2.5 rounded-xl text-xs"
+            >
+              Xác nhận đã quét & thanh toán
             </Button>
           </div>
         </div>

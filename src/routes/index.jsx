@@ -19,6 +19,7 @@ import DriverNotifications from '../features/driver/pages/DriverNotifications';
 import DriverSupport from '../features/driver/pages/DriverSupport';
 import DriverProfile from '../features/driver/pages/DriverProfile/DriverProfile';
 import DriverVehicleRegistration from '../features/driver/pages/DriverVehicleRegistration';
+import DriverFeePlans from '../features/driver/pages/DriverFeePlans';
 import MyParkingOrders from '../pages/MyParkingOrders';
 import NotFoundPage from '../pages/NotFoundPage';
 import ForbiddenPage from '../pages/ForbiddenPage';
@@ -90,6 +91,7 @@ export function AppRoutes() {
         <Route path={ROUTES.DRIVER.BOOKING} element={<DriverBooking />} />
         <Route path={ROUTES.DRIVER.HISTORY} element={<DriverHistory />} />
         <Route path={ROUTES.DRIVER.VEHICLE_REGISTRATION} element={<DriverVehicleRegistration />} />
+        <Route path={ROUTES.DRIVER.FEE_PLANS} element={<DriverFeePlans />} />
         <Route path={ROUTES.DRIVER.PAYMENT} element={<DriverPayment />} />
         <Route path={ROUTES.DRIVER.NOTIFICATIONS} element={<DriverNotifications />} />
         <Route path={ROUTES.DRIVER.SUPPORT} element={<DriverSupport />} />
