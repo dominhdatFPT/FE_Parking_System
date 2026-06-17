@@ -48,6 +48,7 @@ export const ROUTES = {
 
   STAFF: {
     DASHBOARD: '/staff',
+    BOOKINGS: '/staff/bookings',
     VEHICLE_ENTRY: '/staff/vehicle-entry',
     VEHICLE_EXIT: '/staff/vehicle-exit',
     SESSIONS: '/staff/sessions',

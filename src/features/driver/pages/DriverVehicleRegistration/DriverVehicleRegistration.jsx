@@ -18,6 +18,9 @@ export default function DriverVehicleRegistration() {
   // Form Fields State
   const [vehicleType, setVehicleType] = useState(preselectedType);
   const [selectedPlans, setSelectedPlans] = useState(preselectedPlans);
+  const [licensePlate, setLicensePlate] = useState('');
+  const [brand, setBrand] = useState('');
+  const [color, setColor] = useState('');
 
   // File Upload State (CCCD requires 2 sides)
   const [cccdFrontFile, setCccdFrontFile] = useState(null);
@@ -57,9 +60,22 @@ export default function DriverVehicleRegistration() {
     setSelectedPlans((prev) => prev.filter((m) => m !== months));
   };
 
+  const fileToBase64 = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     setError('');
+
+    if (!licensePlate.trim()) {
+      setError('Vui lòng nhập biển số xe.');
+      return;
+    }
 
     if (!cccdFrontFile) {
       setError('Vui lòng tải lên ảnh Mặt trước CCCD.');
@@ -83,26 +99,30 @@ export default function DriverVehicleRegistration() {
     }
 
     setSubmitting(true);
+    try {
     const payload = {
-      username: user?.username || user?.fullName || 'driver_user',
-      vehicleType,
-      selectedPlans,
-      cccdFront: cccdFrontFile.name,
-      cccdBack: cccdBackFile.name,
-      driverLicenseFile: driverLicenseFile.name,
-      vehicleDocsFile: vehicleDocsFile.name,
-      licensePlateFile: licensePlateFile.name,
+      vehicleTypeId: vehicleType === 'CAR' ? 1 : 2,
+      licensePlate: licensePlate.trim().toUpperCase(),
+      brand: brand.trim(),
+      color: color.trim(),
+      cccdFrontImage: await fileToBase64(cccdFrontFile),
+      cccdBackImage: await fileToBase64(cccdBackFile),
+      licenseImage: await fileToBase64(driverLicenseFile),
+      plateImage: await fileToBase64(licensePlateFile),
     };
 
-    const { error: err } = await bookingService.registerVehicleCard(payload);
-    setSubmitting(false);
-
+    const { error: err, message } = await bookingService.registerVehicleCard(payload);
     if (err) {
-      setError('Đăng ký thất bại. Vui lòng thử lại.');
+      setError(message || 'Đăng ký thất bại. Vui lòng thử lại.');
       return;
     }
 
     setSubmitted(true);
+    } catch {
+      setError('Không thể đọc ảnh tải lên. Vui lòng thử lại.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const renderFileDropzone = (label, file, setter) => {
@@ -210,6 +230,9 @@ export default function DriverVehicleRegistration() {
                       setVehicleDocsFile(null);
                       setLicensePlateFile(null);
                       setSelectedPlans([]);
+                      setLicensePlate('');
+                      setBrand('');
+                      setColor('');
                     }}
                   >
                     Đăng ký hồ sơ khác
@@ -262,6 +285,39 @@ export default function DriverVehicleRegistration() {
                       <span className="material-symbols-outlined text-[16px]">directions_car</span>
                       Ô tô
                     </button>
+                  </div>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="sm:col-span-1">
+                    <label className="mb-1.5 block text-xs font-bold text-slate-500">Bien so xe *</label>
+                    <input
+                      type="text"
+                      value={licensePlate}
+                      onChange={(e) => setLicensePlate(e.target.value)}
+                      placeholder="VD: 51F-12345"
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold uppercase text-slate-700 outline-none transition-all focus:border-[#0EA5E9] focus:ring-2 focus:ring-sky-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-bold text-slate-500">Hang xe</label>
+                    <input
+                      type="text"
+                      value={brand}
+                      onChange={(e) => setBrand(e.target.value)}
+                      placeholder="Honda, Toyota..."
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-[#0EA5E9] focus:ring-2 focus:ring-sky-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-bold text-slate-500">Mau xe</label>
+                    <input
+                      type="text"
+                      value={color}
+                      onChange={(e) => setColor(e.target.value)}
+                      placeholder="Den, trang..."
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-[#0EA5E9] focus:ring-2 focus:ring-sky-100"
+                    />
                   </div>
                 </div>
 
