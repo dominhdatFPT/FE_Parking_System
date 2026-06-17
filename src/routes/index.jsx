@@ -35,6 +35,8 @@ import StaffVehicleEntry from '../features/staff/pages/StaffVehicleEntry';
 import StaffVehicleExit from '../features/staff/pages/StaffVehicleExit';
 import StaffSessions from '../features/staff/pages/StaffSessions';
 import StaffExceptions from '../features/staff/pages/StaffExceptions';
+import VehicleEntryPage from '../pages/VehicleEntryPage';
+import ParkingSessionsPage from '../pages/ParkingSessionsPage';
 
 function RequireAuth({ children }) {
   const { isAuthenticated } = useAuth();
@@ -101,6 +103,8 @@ export function AppRoutes() {
       
       <Route element={<RequireBackOfficeRole><AdminLayout /></RequireBackOfficeRole>}>
         <Route path={ROUTES.ADMIN.DASHBOARD} element={<HomePage />} />
+        <Route path={ROUTES.ADMIN.VEHICLE_ENTRY} element={<VehicleEntryPage />} />
+        <Route path={ROUTES.ADMIN.PARKING_SESSIONS} element={<ParkingSessionsPage />} />
         <Route path={ROUTES.ADMIN.USERS} element={<AccountManagementPage />} />
         <Route path={ROUTES.ADMIN.ROLES} element={<RolePermissionPage />} />
         <Route path={ROUTES.ADMIN.SYSTEM_CONFIG} element={<SystemConfigurationPage />} />

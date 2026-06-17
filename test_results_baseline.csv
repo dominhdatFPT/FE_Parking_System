@@ -1,0 +1,8 @@
+﻿test_id,method,endpoint,url,status_code,response_preview
+TC01,POST,/pet,https://petstore.swagger.io/v2/pet,200,"{""id"":123456,""name"":""doggie"",""photoUrls"":[],""tags"":[],""status"":""available""}"
+TC02,GET,/pet/{petId},https://petstore.swagger.io/v2/pet/123456,200,"{""id"":123456,""name"":""doggie"",""photoUrls"":[],""tags"":[],""status"":""available""}"
+TC03,GET,/pet/{petId},https://petstore.swagger.io/v2/pet/-1,404,"{""code"":1,""type"":""error"",""message"":""Pet not found""}"
+TC04,DELETE,/pet/{petId},https://petstore.swagger.io/v2/pet/123456,200,"{""code"":200,""type"":""unknown"",""message"":""123456""}"
+TC05,POST,/store/order,https://petstore.swagger.io/v2/store/order,200,"{""id"":999,""petId"":123456,""quantity"":1,""shipDate"":""2026-06-15T10:00:00.000+0000"",""status"":""placed"",""complete"":true}"
+TC06,GET,/store/order/{orderId},https://petstore.swagger.io/v2/store/order/999,200,"{""id"":999,""petId"":123456,""quantity"":1,""shipDate"":""2026-06-15T10:00:00.000+0000"",""status"":""placed"",""complete"":true}"
+TC07,GET,/store/order/{orderId},https://petstore.swagger.io/v2/store/order/-1,404,"{""code"":1,""type"":""error"",""message"":""Order not found""}"

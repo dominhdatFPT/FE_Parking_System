@@ -9,6 +9,8 @@ export const ROUTES = {
 
   ADMIN: {
     DASHBOARD: '/admin',
+    VEHICLE_ENTRY: '/admin/vehicle-entry',
+    PARKING_SESSIONS: '/admin/parking-sessions',
     USERS: '/admin/users',
     ROLES: '/admin/roles',
     SYSTEM_CONFIG: '/admin/system-configuration',
