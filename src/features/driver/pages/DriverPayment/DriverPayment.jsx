@@ -146,7 +146,7 @@ export default function DriverPayment() {
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100 text-[#0EA5E9]">
               <span className="material-symbols-outlined text-[16px]">assignment_turned_in</span>
             </span>
-            Đơn gửi yêu cầu thanh toán vé tháng định kỳ
+            {t('payment.pendingRequestTitle')}
           </h3>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
             <div className="flex items-center gap-3">
@@ -154,9 +154,13 @@ export default function DriverPayment() {
                 <span className="material-symbols-outlined text-[20px]">sell</span>
               </div>
               <div>
-                <p className="text-sm font-bold text-slate-800">Gói vé tháng - Biển số {pendingFeePlan.licensePlate}</p>
+                <p className="text-sm font-bold text-slate-800">{t('payment.monthlyTicketLabel', { plate: pendingFeePlan.licensePlate })}</p>
                 <p className="text-xs text-slate-500">
-                  Gói {pendingFeePlan.selectedPlan} tháng ({pendingFeePlan.vehicleType === 'CAR' ? 'Ô tô' : 'Xe máy'}) • Ngày bắt đầu: {dayjs(pendingFeePlan.startDate).format('DD/MM/YYYY')}
+                  {t('payment.monthlyTicketDesc', {
+                    months: pendingFeePlan.selectedPlan,
+                    type: pendingFeePlan.vehicleType === 'CAR' ? t('booking.car') : t('booking.motorcycle'),
+                    date: dayjs(pendingFeePlan.startDate).format('DD/MM/YYYY')
+                  })}
                 </p>
               </div>
             </div>
@@ -169,7 +173,7 @@ export default function DriverPayment() {
                 className="bg-[#0EA5E9] hover:bg-[#0284c7] !text-white text-white shadow-md shadow-sky-500/20"
                 onClick={() => handlePayFeePlan(pendingFeePlan)}
               >
-                Thanh toán ngay
+                {t('payment.payNow')}
               </Button>
             </div>
           </div>
@@ -320,27 +324,27 @@ export default function DriverPayment() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowQrModal(false)}>
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-slate-800">Thanh toán quét mã QR vé tháng</h3>
+              <h3 className="text-base font-bold text-slate-800">{t('payment.qrTitle')}</h3>
               <Button variant="ghost" size="icon-sm" icon="close" onClick={() => setShowQrModal(false)} />
             </div>
 
             <div className="rounded-xl bg-slate-50 p-4 space-y-2 text-xs">
               <div className="flex justify-between">
-                <span className="text-slate-500">Biển số xe</span>
+                <span className="text-slate-500">{t('payment.qrPlate')}</span>
                 <span className="font-bold text-slate-800">{pendingFeePlan.licensePlate}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Gói đăng ký</span>
-                <span className="font-bold text-slate-800">{pendingFeePlan.selectedPlan} tháng</span>
+                <span className="text-slate-500">{t('payment.qrPlan')}</span>
+                <span className="font-bold text-slate-800">{t('payment.qrPlanVal', { months: pendingFeePlan.selectedPlan })}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Tổng thanh toán</span>
+                <span className="text-slate-500">{t('payment.qrTotal')}</span>
                 <span className="font-black text-sky-600">{pendingFeePlan.amount.toLocaleString('vi-VN')} đ</span>
               </div>
             </div>
 
             <div className="space-y-2">
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Chọn cổng thanh toán</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase">{t('payment.selectGateway')}</p>
               <div className="grid grid-cols-3 gap-2">
                 {['MoMo', 'VNPay', 'ZaloPay'].map((method) => (
                   <button
@@ -362,7 +366,7 @@ export default function DriverPayment() {
                 <span className="material-symbols-outlined text-[72px] text-slate-700 font-light">qr_code_2</span>
               </div>
               <p className="text-[10px] text-slate-400 text-center font-medium leading-relaxed">
-                Mở ứng dụng {qrMethod} quét mã QR này để tiến hành thanh toán vé đỗ xe định kỳ.
+                {t('payment.qrInstruction', { method: qrMethod })}
               </p>
             </div>
 
@@ -375,7 +379,7 @@ export default function DriverPayment() {
               onClick={handleConfirmFeePlanPayment}
               className="w-full justify-center bg-[#0EA5E9] hover:bg-[#0284c7] !text-white text-white shadow-md shadow-sky-500/25 py-2.5 rounded-xl text-xs"
             >
-              Xác nhận đã quét & thanh toán
+              {t('payment.qrConfirmBtn')}
             </Button>
           </div>
         </div>
