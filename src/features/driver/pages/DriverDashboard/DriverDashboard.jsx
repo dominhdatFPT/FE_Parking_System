@@ -11,7 +11,7 @@ export default function DriverDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useTranslation();
-  const displayName = user?.fullName || user?.name || 'Tài xế';
+  const displayName = user?.fullName || user?.name || t('driverDashboard.driver');
   
   const [summary, setSummary] = useState(null);
   const [areas, setAreas] = useState([]);
@@ -56,17 +56,17 @@ export default function DriverDashboard() {
     .slice(0, 2);
 
   const getStatusText = () => {
-    if (!activeBooking) return 'Bạn chưa có đặt chỗ nào';
-    if (activeBooking.status === 'PENDING') return 'Bạn đang có 1 yêu cầu đặt chỗ đang chờ duyệt';
-    return 'Bạn đang có 1 chỗ đỗ xe đang hoạt động';
+    if (!activeBooking) return t('driverDashboard.noBooking');
+    if (activeBooking.status === 'PENDING') return t('driverDashboard.onePending');
+    return t('driverDashboard.oneActive');
   };
 
   const handleExtend = () => {
-    alert('Đã gửi yêu cầu gia hạn thời gian đỗ xe lên hệ thống.');
+    alert(t('driverDashboard.extendAlert'));
   };
 
   const handleEnd = async (id) => {
-    if (confirm('Bạn có chắc chắn muốn kết thúc phiên gửi xe này?')) {
+    if (confirm(t('driverDashboard.endConfirm'))) {
       await bookingService.cancelBooking(id);
       fetchDashboard();
     }
@@ -78,7 +78,7 @@ export default function DriverDashboard() {
       {/* Greeting and Quick Status Header */}
       <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">Xin chào, {displayName}!</h1>
+          <h1 className="text-2xl font-black text-slate-800 tracking-tight">{t('driverDashboard.greeting', { name: displayName })}</h1>
           <div className="mt-1 flex items-center gap-2 text-sm font-semibold text-slate-500">
             <span className={`inline-block h-2.5 w-2.5 rounded-full ${activeBooking ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
             <span>{getStatusText()}</span>
@@ -94,7 +94,7 @@ export default function DriverDashboard() {
           
           {/* Current Booking Card / Call to Action */}
           <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-            <h3 className="mb-4 text-xs font-black uppercase tracking-wider text-slate-400">Đặt chỗ hiện tại</h3>
+            <h3 className="mb-4 text-xs font-black uppercase tracking-wider text-slate-400">{t('driverDashboard.currentBooking')}</h3>
             
             {loading ? (
               <div className="h-44 animate-pulse rounded-2xl bg-slate-50" />
@@ -106,7 +106,7 @@ export default function DriverDashboard() {
                   {/* Booking details top row */}
                   <div className="flex items-start justify-between">
                     <div>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-sky-400">Mã Booking: #{activeBooking.id}</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-sky-400">{t('driverDashboard.bookingId')}: #{activeBooking.id}</span>
                       <h4 className="text-lg font-black text-white mt-1 leading-snug">{activeBooking.parkingAreaName}</h4>
                     </div>
                     <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider ${
@@ -114,22 +114,22 @@ export default function DriverDashboard() {
                         ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' 
                         : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                     }`}>
-                      {activeBooking.status === 'PENDING' ? 'Chờ duyệt' : 'Đang hoạt động'}
+                      {activeBooking.status === 'PENDING' ? t('driverDashboard.pending') : t('driverDashboard.active')}
                     </span>
                   </div>
 
                   {/* Floor / Position Details */}
                   <div className="grid grid-cols-3 gap-4 border-y border-white/10 py-4 my-2 text-center">
                     <div>
-                      <p className="text-[9px] font-bold text-slate-400 uppercase">Tầng</p>
-                      <p className="text-base font-extrabold text-white">Tầng {activeBooking.floorNumber}</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase">{t('driverDashboard.floor')}</p>
+                      <p className="text-base font-extrabold text-white">{t('driverDashboard.floorVal', { floor: activeBooking.floorNumber })}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-bold text-slate-400 uppercase">Vị trí (Dự kiến)</p>
-                      <p className="text-base font-extrabold text-white">Khu vực {activeBooking.vehicleType === 'CAR' ? 'Ô tô' : 'Xe máy'}</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase">{t('driverDashboard.vehicleType')}</p>
+                      <p className="text-base font-extrabold text-white">{activeBooking.vehicleType === 'CAR' ? t('driverDashboard.carArea') : t('driverDashboard.motoArea')}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-bold text-slate-400 uppercase">Thời gian còn lại</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase">{t('driverDashboard.timeRemaining')}</p>
                       <p className="text-base font-extrabold text-sky-300">
                         {activeBooking.status === 'PENDING' ? '--:--' : '01h 45m'}
                       </p>
@@ -143,14 +143,14 @@ export default function DriverDashboard() {
                         onClick={handleExtend}
                         className="rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2 text-xs font-bold text-white transition-all active:scale-[0.98]"
                       >
-                        Gia hạn
+                        {t('driverDashboard.extend')}
                       </button>
                     )}
                     <button
                       onClick={() => handleEnd(activeBooking.id)}
                       className="rounded-xl bg-red-600 hover:bg-red-700 !text-white px-4 py-2 text-xs font-bold transition-all active:scale-[0.98]"
                     >
-                      {activeBooking.status === 'PENDING' ? 'Hủy yêu cầu' : 'Kết thúc'}
+                      {activeBooking.status === 'PENDING' ? t('driverDashboard.cancelRequest') : t('driverDashboard.end')}
                     </button>
                   </div>
 
@@ -161,9 +161,9 @@ export default function DriverDashboard() {
                 <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-sky-50 text-[#0EA5E9] shadow-inner">
                   <span className="material-symbols-outlined text-[32px]">local_parking</span>
                 </div>
-                <h4 className="text-base font-bold text-slate-700">Chưa tìm thấy đặt chỗ đỗ xe nào</h4>
+                <h4 className="text-base font-bold text-slate-700">{t('driverDashboard.noBookingsFound')}</h4>
                 <p className="mt-1.5 text-xs text-slate-400 max-w-sm">
-                  Hãy đăng ký giữ chỗ đỗ xe ngay để đảm bảo vị trí đỗ thuận tiện nhất khi bạn đến tòa nhà.
+                  {t('driverDashboard.bookNowDesc')}
                 </p>
                 <Button
                   variant="primary"
@@ -171,7 +171,7 @@ export default function DriverDashboard() {
                   icon="add_circle"
                   onClick={() => navigate(ROUTES.DRIVER.BOOKING)}
                 >
-                  Đặt chỗ ngay
+                  {t('driverDashboard.bookNow')}
                 </Button>
               </div>
             )}
@@ -180,7 +180,7 @@ export default function DriverDashboard() {
           {/* Suggested Parking Lots */}
           <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Bãi xe gần nhất</h3>
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">{t('driverDashboard.nearestLots')}</h3>
             </div>
             
             {areasLoading ? (
@@ -206,7 +206,7 @@ export default function DriverDashboard() {
                     </div>
 
                     <div className="mt-4 flex items-baseline justify-between border-t border-slate-50 pt-3">
-                      <span className="text-[10px] font-bold text-slate-500">Chỗ trống còn lại:</span>
+                      <span className="text-[10px] font-bold text-slate-500">{t('driverDashboard.availableSlotsLabel')}</span>
                       <span className="text-sm font-black text-sky-600">
                         {area.availableSlots} / {area.totalSlots}
                       </span>
@@ -223,12 +223,12 @@ export default function DriverDashboard() {
         <div className="space-y-6">
           <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
             <div className="mb-5 flex items-center justify-between border-b border-slate-50 pb-3">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Lịch sử gần đây</h3>
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">{t('driverDashboard.recentHistory')}</h3>
               <button
                 onClick={() => navigate(ROUTES.DRIVER.HISTORY)}
                 className="text-xs font-black text-[#0EA5E9] hover:underline"
               >
-                Xem tất cả
+                {t('driverDashboard.viewAll')}
               </button>
             </div>
 
@@ -248,7 +248,7 @@ export default function DriverDashboard() {
                     <div className="space-y-0.5">
                       <p className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[150px]">{b.parkingAreaName}</p>
                       <p className="text-[10px] text-slate-400 font-semibold">
-                        {new Date(b.createdAt).toLocaleDateString('vi-VN')}
+                        {new Date(b.createdAt).toLocaleDateString()}
                       </p>
                     </div>
 
@@ -259,14 +259,14 @@ export default function DriverDashboard() {
                           ? 'bg-slate-50 text-slate-500 border-slate-100'
                           : 'bg-rose-50 text-rose-600 border-rose-100'
                     }`}>
-                      {b.status === 'CONFIRMED' ? 'Hoàn thành' : b.status === 'CANCELLED' ? 'Đã hủy' : 'Bị từ chối'}
+                      {b.status === 'CONFIRMED' ? t('driverDashboard.completed') : b.status === 'CANCELLED' ? t('driverDashboard.cancelled') : t('driverDashboard.rejected')}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="py-6 text-center text-xs font-semibold text-slate-400">
-                Chưa có lịch sử giao dịch
+                {t('driverDashboard.noHistory')}
               </div>
             )}
           </div>
