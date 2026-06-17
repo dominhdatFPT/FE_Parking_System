@@ -62,23 +62,23 @@ export default function DriverVehicleRegistration() {
     setError('');
 
     if (!cccdFrontFile) {
-      setError('Vui lòng tải lên ảnh Mặt trước CCCD.');
+      setError(t('vehicleRegistration.errorCccdFront'));
       return;
     }
     if (!cccdBackFile) {
-      setError('Vui lòng tải lên ảnh Mặt sau CCCD.');
+      setError(t('vehicleRegistration.errorCccdBack'));
       return;
     }
     if (!driverLicenseFile) {
-      setError('Vui lòng tải lên bằng lái xe.');
+      setError(t('vehicleRegistration.errorDriverLicense'));
       return;
     }
     if (!vehicleDocsFile) {
-      setError('Vui lòng tải lên giấy tờ đăng ký xe.');
+      setError(t('vehicleRegistration.errorVehicleDocs'));
       return;
     }
     if (!licensePlateFile) {
-      setError('Vui lòng tải lên ảnh biển số xe.');
+      setError(t('vehicleRegistration.errorLicensePlate'));
       return;
     }
 
@@ -98,7 +98,7 @@ export default function DriverVehicleRegistration() {
     setSubmitting(false);
 
     if (err) {
-      setError('Đăng ký thất bại. Vui lòng thử lại.');
+      setError(t('vehicleRegistration.errorGeneric'));
       return;
     }
 
@@ -143,7 +143,7 @@ export default function DriverVehicleRegistration() {
           ) : (
             <div className="flex items-center gap-1.5 py-1">
               <span className="material-symbols-outlined text-[16px] text-slate-400">add_photo_alternate</span>
-              <span className="text-[11px] font-semibold text-slate-500">Tải ảnh lên</span>
+              <span className="text-[11px] font-semibold text-slate-500">{t('vehicleRegistration.uploadPhoto')}</span>
             </div>
           )}
         </div>
@@ -168,16 +168,16 @@ export default function DriverVehicleRegistration() {
   const completionPercentage = Math.round((completedSteps / totalSteps) * 100);
 
   const getFormStatus = () => {
-    if (submitted) return 'Chờ duyệt';
-    if (completedSteps === totalSteps) return 'Sẵn sàng gửi duyệt';
-    return 'Đang hoàn thiện';
+    if (submitted) return t('vehicleRegistration.statusPending');
+    if (completedSteps === totalSteps) return t('vehicleRegistration.statusReady');
+    return t('vehicleRegistration.statusIncomplete');
   };
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Đăng ký thẻ xe"
-        subtitle="Cung cấp hồ sơ ảnh chụp minh chứng để đăng ký thẻ xe tháng"
+        title={t('vehicleRegistration.title')}
+        subtitle={t('vehicleRegistration.subtitle')}
         icon="assignment_ind"
       />
 
@@ -194,9 +194,9 @@ export default function DriverVehicleRegistration() {
                   </div>
                   <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#0EA5E9] text-white text-[12px] font-bold ring-4 ring-white">1</span>
                 </div>
-                <h3 className="text-xl font-extrabold text-slate-800">Yêu cầu đang chờ duyệt</h3>
+                <h3 className="text-xl font-extrabold text-slate-800">{t('vehicleRegistration.submittedTitle')}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-slate-500 max-w-md">
-                  Thông tin hồ sơ đăng ký thẻ xe của bạn đã được gửi lên hệ thống. Trạng thái hiện tại là <span className="font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">CHỜ DUYỆT</span>. Nhân viên sẽ tiến hành trích xuất thông tin từ ảnh chụp để xác minh hồ sơ và kích hoạt gói đăng ký cho bạn trong vòng 24h.
+                  {t('vehicleRegistration.submittedDesc')}
                 </p>
                 <div className="mt-6 flex flex-col sm:flex-row gap-3 w-full max-w-xs justify-center">
                   <Button
@@ -212,7 +212,7 @@ export default function DriverVehicleRegistration() {
                       setSelectedPlans([]);
                     }}
                   >
-                    Đăng ký hồ sơ khác
+                    {t('vehicleRegistration.registerOther')}
                   </Button>
                 </div>
               </div>
@@ -220,17 +220,17 @@ export default function DriverVehicleRegistration() {
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
                   <div>
-                    <h3 className="text-base font-extrabold text-slate-800">Hồ Sơ Minh Chứng</h3>
-                    <p className="text-xs text-slate-400">Tải ảnh chụp rõ nét để hệ thống tự động nhận diện</p>
+                    <h3 className="text-base font-extrabold text-slate-800">{t('vehicleRegistration.formTitle')}</h3>
+                    <p className="text-xs text-slate-400">{t('vehicleRegistration.formDesc')}</p>
                   </div>
                   <span className="text-xs font-bold text-sky-600 bg-sky-50 px-2 py-1 rounded">
-                    Tài khoản: {user?.username || user?.fullName || 'Driver'}
+                    {t('vehicleRegistration.accountLabel')} {user?.username || user?.fullName || 'Driver'}
                   </span>
                 </div>
 
                 {/* Vehicle Type Select */}
                 <div>
-                  <label className="mb-1.5 block text-xs font-bold text-slate-500">Loại phương tiện</label>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-500">{t('vehicleRegistration.vehicleType')}</label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
@@ -245,7 +245,7 @@ export default function DriverVehicleRegistration() {
                       }`}
                     >
                       <span className="material-symbols-outlined text-[16px]">two_wheeler</span>
-                      Xe máy
+                      {t('vehicleRegistration.motorbike')}
                     </button>
                     <button
                       type="button"
@@ -260,14 +260,14 @@ export default function DriverVehicleRegistration() {
                       }`}
                     >
                       <span className="material-symbols-outlined text-[16px]">directions_car</span>
-                      Ô tô
+                      {t('vehicleRegistration.car')}
                     </button>
                   </div>
                 </div>
 
                 {/* Selected Plans List */}
                 <div>
-                  <label className="mb-1.5 block text-xs font-bold text-slate-500">Các gói đăng ký đã chọn</label>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-500">{t('vehicleRegistration.selectedPlans')}</label>
                   {selectedPlans.length > 0 ? (
                     <div className="flex flex-wrap gap-2 rounded-xl bg-slate-50 border border-slate-200 p-3">
                       {selectedPlans.map((months) => (
@@ -275,7 +275,7 @@ export default function DriverVehicleRegistration() {
                           key={months}
                           className="flex items-center gap-1.5 bg-[#0EA5E9] text-white px-2.5 py-1 rounded-lg text-xs font-bold animate-in zoom-in-95 duration-150"
                         >
-                          <span>Gói {months} tháng</span>
+                          <span>{t('vehicleRegistration.planMonths', { months })}</span>
                           <button
                             type="button"
                             onClick={() => handleRemovePlan(months)}
@@ -288,7 +288,7 @@ export default function DriverVehicleRegistration() {
                     </div>
                   ) : (
                     <div className="flex h-[38px] items-center justify-between rounded-xl bg-slate-50 border border-slate-200 px-4 text-xs text-slate-400 font-semibold">
-                      Chưa chọn gói (Mua trực tiếp tại bãi)
+                      {t('vehicleRegistration.noPlansSelected')}
                     </div>
                   )}
                 </div>
@@ -296,14 +296,14 @@ export default function DriverVehicleRegistration() {
                 <div className="h-px bg-slate-100 my-2" />
 
                 {/* Document Uploads */}
-                <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-400">Hình ảnh minh chứng yêu cầu</h4>
+                <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-400">{t('vehicleRegistration.requiredDocs')}</h4>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {renderFileDropzone("Mặt trước CCCD *", cccdFrontFile, setCccdFrontFile)}
-                  {renderFileDropzone("Mặt sau CCCD *", cccdBackFile, setCccdBackFile)}
-                  {renderFileDropzone("Bằng lái xe (Mặt trước) *", driverLicenseFile, setDriverLicenseFile)}
-                  {renderFileDropzone("Ảnh đăng ký / Cà vẹt xe *", vehicleDocsFile, setVehicleDocsFile)}
+                  {renderFileDropzone(t('vehicleRegistration.cccdFront'), cccdFrontFile, setCccdFrontFile)}
+                  {renderFileDropzone(t('vehicleRegistration.cccdBack'), cccdBackFile, setCccdBackFile)}
+                  {renderFileDropzone(t('vehicleRegistration.driverLicense'), driverLicenseFile, setDriverLicenseFile)}
+                  {renderFileDropzone(t('vehicleRegistration.vehicleDocs'), vehicleDocsFile, setVehicleDocsFile)}
                   <div className="sm:col-span-2">
-                    {renderFileDropzone("Ảnh biển số xe thực tế *", licensePlateFile, setLicensePlateFile)}
+                    {renderFileDropzone(t('vehicleRegistration.licensePlate'), licensePlateFile, setLicensePlateFile)}
                   </div>
                 </div>
 
@@ -322,7 +322,7 @@ export default function DriverVehicleRegistration() {
                     disabled={submitting}
                     className="w-full justify-center py-3 rounded-xl"
                   >
-                    Gửi yêu cầu xét duyệt
+                    {t('vehicleRegistration.submit')}
                   </Button>
                 </div>
               </form>
@@ -338,58 +338,58 @@ export default function DriverVehicleRegistration() {
             <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3 mb-4">
                 <span className="material-symbols-outlined text-[#0EA5E9] text-[20px] font-bold">assignment</span>
-                <h4 className="text-xs font-bold text-slate-700">Tóm tắt hồ sơ đăng ký</h4>
+                <h4 className="text-xs font-bold text-slate-700">{t('vehicleRegistration.summaryTitle')}</h4>
               </div>
 
               {completedSteps === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <span className="material-symbols-outlined text-slate-300 text-[40px] mb-2">description</span>
                   <p className="text-xs text-slate-400 font-medium px-4 leading-relaxed">
-                    Hồ sơ sẽ được tóm tắt tại đây sau khi bạn tải ảnh minh chứng.
+                    {t('vehicleRegistration.summaryDesc')}
                   </p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {/* General Info */}
                   <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-50">
-                    <span className="text-slate-500 font-medium">Loại phương tiện</span>
+                    <span className="text-slate-500 font-medium">{t('vehicleRegistration.vehicleType')}</span>
                     <span className="font-bold text-slate-700">
-                      {vehicleType === 'CAR' ? 'Ô tô' : 'Xe máy'}
+                      {vehicleType === 'CAR' ? t('vehicleRegistration.car') : t('vehicleRegistration.motorbike')}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-50">
-                    <span className="text-slate-500 font-medium">Gói đăng ký đã chọn</span>
+                    <span className="text-slate-500 font-medium">{t('vehicleRegistration.selectedPlans')}</span>
                     <span className="font-bold text-slate-700 text-right max-w-[150px] truncate">
                       {selectedPlans.length > 0
-                        ? selectedPlans.map((m) => `Gói ${m} tháng`).join(', ')
-                        : 'Chưa chọn gói'}
+                        ? selectedPlans.map((m) => t('vehicleRegistration.planMonths', { months: m })).join(', ')
+                        : t('vehicleRegistration.noPlansSelected')}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-50">
-                    <span className="text-slate-500 font-medium">Trạng thái hồ sơ</span>
+                    <span className="text-slate-500 font-medium">{t('vehicleRegistration.summaryStatus')}</span>
                     <span>
-                      {getFormStatus() === 'Chờ duyệt' && (
+                      {getFormStatus() === t('vehicleRegistration.statusPending') && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200">
-                          Chờ duyệt
+                          {t('vehicleRegistration.statusPending')}
                         </span>
                       )}
-                      {getFormStatus() === 'Sẵn sàng gửi duyệt' && (
+                      {getFormStatus() === t('vehicleRegistration.statusReady') && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
-                          Sẵn sàng gửi duyệt
+                          {t('vehicleRegistration.statusReady')}
                         </span>
                       )}
-                      {getFormStatus() === 'Đang hoàn thiện' && (
+                      {getFormStatus() === t('vehicleRegistration.statusIncomplete') && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-0.5 text-[10px] font-bold text-sky-700 border border-sky-200">
-                          Đang hoàn thiện
+                          {t('vehicleRegistration.statusIncomplete')}
                         </span>
                       )}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-50 pb-3">
-                    <span className="text-slate-500 font-medium">Số ảnh đã tải</span>
+                    <span className="text-slate-500 font-medium">{t('vehicleRegistration.uploadedPhotos')}</span>
                     <span className="font-bold text-slate-700">
                       {completedSteps}/{totalSteps}
                     </span>
@@ -399,31 +399,31 @@ export default function DriverVehicleRegistration() {
                   <div className="pt-2">
                     <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                       <span className="material-symbols-outlined text-[14px]">psychology</span>
-                      Thông tin nhận diện OCR/eKYC
+                      {t('vehicleRegistration.ocrTitle')}
                     </div>
                     <div className="rounded-xl bg-slate-50/70 p-3 space-y-2 border border-slate-100">
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-500">Họ tên</span>
+                        <span className="text-slate-500">{t('vehicleRegistration.ocrName')}</span>
                         <span className={`font-bold ${cccdFrontFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-                          {cccdFrontFile ? (user?.fullName || 'NGUYỄN VĂN A') : 'Chờ quét CCCD...'}
+                          {cccdFrontFile ? (user?.fullName || 'NGUYỄN VĂN A') : t('vehicleRegistration.ocrNameWaiting')}
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-500">Số CCCD</span>
+                        <span className="text-slate-500">{t('vehicleRegistration.ocrCccd')}</span>
                         <span className={`font-bold ${cccdFrontFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-                          {cccdFrontFile ? '037198001234' : 'Chờ quét CCCD...'}
+                          {cccdFrontFile ? '037198001234' : t('vehicleRegistration.ocrNameWaiting')}
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-500">Hạng GPLX</span>
+                        <span className="text-slate-500">{t('vehicleRegistration.ocrLicenseClass')}</span>
                         <span className={`font-bold ${driverLicenseFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-                          {driverLicenseFile ? (vehicleType === 'CAR' ? 'B2' : 'A1') : 'Chờ quét GPLX...'}
+                          {driverLicenseFile ? (vehicleType === 'CAR' ? 'B2' : 'A1') : t('vehicleRegistration.ocrLicenseWaiting')}
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-500">Biển số xe</span>
+                        <span className="text-slate-500">{t('vehicleRegistration.ocrPlate')}</span>
                         <span className={`font-bold ${licensePlateFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-                          {licensePlateFile ? (vehicleType === 'CAR' ? '30F-567.89' : '29-D1 123.45') : 'Chờ quét biển số...'}
+                          {licensePlateFile ? (vehicleType === 'CAR' ? '30F-567.89' : '29-D1 123.45') : t('vehicleRegistration.ocrPlateWaiting')}
                         </span>
                       </div>
                     </div>
@@ -436,18 +436,18 @@ export default function DriverVehicleRegistration() {
             {selectedPlans.length > 0 && (
               <div className="rounded-2xl bg-sky-50/50 border border-sky-100 p-5 space-y-3 animate-in fade-in duration-300">
                 <div className="border-b border-sky-100 pb-2">
-                  <p className="font-black text-sky-800 text-xs uppercase tracking-wider">Tóm tắt các gói đăng ký</p>
+                  <p className="font-black text-sky-800 text-xs uppercase tracking-wider">{t('vehicleRegistration.summaryPackages')}</p>
                 </div>
                 <div className="space-y-2 text-xs">
                   {selectedPlans.map((months) => (
                     <div key={months} className="flex justify-between items-center text-slate-600">
-                      <span className="font-semibold">Gói {months} tháng:</span>
+                      <span className="font-semibold">{t('vehicleRegistration.planMonths', { months })}:</span>
                       <span className="font-bold">{getPlanPrice(months).toLocaleString('vi-VN')} đ</span>
                     </div>
                   ))}
                   <div className="h-px bg-sky-100 my-1" />
                   <div className="flex justify-between items-center text-sky-950 font-black text-xs">
-                    <span>Tổng phí dự kiến:</span>
+                    <span>{t('vehicleRegistration.totalPriceEst')}</span>
                     <span>{totalPrice.toLocaleString('vi-VN')} đ</span>
                   </div>
                 </div>
