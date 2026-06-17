@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import {
   approveStaffBooking,
-  getStaffBookings,
   getVehicleRegistrations,
   rejectStaffBooking,
   reviewVehicleRegistration,
@@ -311,15 +310,14 @@ export default function StaffBookingReview() {
       setRegistrations(registrationsResult);
       setFallbackBookings([]);
     } catch (registrationError) {
-      try {
-        const bookingResult = await getStaffBookings();
-        setRegistrations([]);
-        setFallbackBookings(bookingResult);
-        setMessage('API đăng ký gói chưa sẵn sàng, đang hiển thị dữ liệu booking hiện có.');
-      } catch (bookingError) {
-        setRegistrations([]);
-        setFallbackBookings([]);
-        setMessage('Không thể tải hồ sơ đăng ký gói. Vui lòng kiểm tra quyền truy cập hoặc API backend.');
+      const status = registrationError?.response?.status;
+      setRegistrations([]);
+      setFallbackBookings([]);
+
+      if (status === 401 || status === 403) {
+        setMessage('Tài khoản hiện tại chưa có quyền xem hồ sơ đăng ký gói. Vui lòng đăng xuất và đăng nhập bằng Admin hoặc Staff.');
+      } else {
+        setMessage(registrationError?.response?.data?.message || 'Không thể tải hồ sơ đăng ký gói. Vui lòng kiểm tra API backend.');
       }
     } finally {
       setLoading(false);
