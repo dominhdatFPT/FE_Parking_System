@@ -24,10 +24,10 @@ import {
 } from 'lucide-react';
 import { ROUTES } from '../../../../constants/routes';
 
-const LANGUAGE_KEY = 'smartparking-language';
+const LANGUAGE_KEY = 'language';
 
 const resources = {
-  VN: {
+  vi: {
     translation: {
       nav: { login: 'Đăng nhập' },
       title: 'Tạo tài khoản mới',
@@ -104,7 +104,7 @@ const resources = {
       passwordA11y: { show: 'Hiện mật khẩu', hide: 'Ẩn mật khẩu' },
     },
   },
-  EN: {
+  en: {
     translation: {
       nav: { login: 'Login' },
       title: 'Create your account',
@@ -184,20 +184,24 @@ const resources = {
 };
 
 const getInitialLanguage = () => {
-  if (typeof window === 'undefined') return 'VN';
-  return window.localStorage.getItem(LANGUAGE_KEY) === 'EN' ? 'EN' : 'VN';
+  if (typeof window === 'undefined') return 'vi';
+  const savedLanguage = window.localStorage.getItem(LANGUAGE_KEY) || 'vi';
+  return savedLanguage.startsWith('en') ? 'en' : 'vi';
 };
 
 if (!i18n.isInitialized) {
   i18n.use(initReactI18next).init({
-    resources,
+    resources: {
+      vi: { translation: resources.vi.translation },
+      en: { translation: resources.en.translation },
+    },
     lng: getInitialLanguage(),
-    fallbackLng: 'VN',
+    fallbackLng: 'vi',
     interpolation: { escapeValue: false },
   });
 } else {
-  i18n.addResourceBundle('VN', 'translation', resources.VN.translation, true, true);
-  i18n.addResourceBundle('EN', 'translation', resources.EN.translation, true, true);
+  i18n.addResourceBundle('vi', 'translation', resources.vi.translation, true, true);
+  i18n.addResourceBundle('en', 'translation', resources.en.translation, true, true);
 }
 
 function BrandLogo() {
@@ -214,7 +218,7 @@ function BrandLogo() {
 }
 
 function TopNavigation({ currentLanguage, onLanguageChange, t }) {
-  const nextLanguage = currentLanguage === 'VN' ? 'EN' : 'VN';
+  const nextLanguage = currentLanguage === 'vi' ? 'en' : 'vi';
 
   return (
     <header className="absolute inset-x-0 top-0 z-20 bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 transition-all">
@@ -225,10 +229,10 @@ function TopNavigation({ currentLanguage, onLanguageChange, t }) {
             className="flex items-center gap-1.5 text-sm font-bold text-slate-600 hover:text-sky-600 transition-colors bg-slate-100 px-3 py-1.5 rounded-lg"
             type="button"
             onClick={() => onLanguageChange(nextLanguage)}
-            aria-label={nextLanguage}
+            aria-label={nextLanguage === 'vi' ? 'VN' : 'EN'}
           >
             <Globe className="w-4 h-4" />
-            <span>{currentLanguage}</span>
+            <span>{currentLanguage === 'vi' ? 'VN' : 'EN'}</span>
           </button>
           <div className="h-5 w-px bg-slate-200 hidden sm:block"></div>
           <Link
@@ -413,7 +417,7 @@ export default function SignupPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
-  const currentLanguage = signupI18n.language === 'EN' ? 'EN' : 'VN';
+  const currentLanguage = signupI18n.language.startsWith('en') ? 'en' : 'vi';
 
   useEffect(() => {
     localStorage.setItem(LANGUAGE_KEY, currentLanguage);
