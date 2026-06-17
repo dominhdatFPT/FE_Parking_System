@@ -1,23 +1,77 @@
-import React from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router';
+import React, { useMemo, useState } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
+import {
+  AlertTriangle,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Boxes,
+  Car,
+  ChevronLeft,
+  ChevronRight,
+  LayoutDashboard,
+  LogOut,
+  Package,
+  ParkingCircle,
+} from 'lucide-react';
 import { useAuth } from '../contexts/useAuth';
 import { ROUTES } from '../constants/routes';
 import { STORAGE_KEYS } from '../constants/storageKeys';
-import Icon from '../components/Icon';
 import NotificationDropdown from '../components/NotificationDropdown';
 import UserProfileDropdown from '../components/UserProfileDropdown';
 
-const menuItems = [
-  { icon: 'dashboard', label: 'Tổng quan', path: ROUTES.ADMIN.DASHBOARD },
-  { icon: 'manage_accounts', label: 'Quản lý tài khoản', path: ROUTES.ADMIN.USERS },
-  { icon: 'security', label: 'Quyền truy cập', path: ROUTES.ADMIN.ROLES },
-  { icon: 'settings', label: 'Cấu hình hệ thống', path: ROUTES.ADMIN.SYSTEM_CONFIG },
-  { icon: 'history', label: 'Nhật ký hệ thống', path: ROUTES.ADMIN.AUDIT_LOG },
+const navigationSections = [
+  {
+    label: 'Dashboard',
+    icon: Car,
+    items: [
+      { icon: LayoutDashboard, label: 'Tổng quan bãi', path: ROUTES.ADMIN.DASHBOARD },
+    ],
+  },
+  {
+    label: 'Vận hành',
+    icon: ParkingCircle,
+    items: [
+      { icon: ArrowDownToLine, label: 'Xe vào', path: ROUTES.ADMIN.VEHICLE_ENTRY },
+      { icon: ArrowUpFromLine, label: 'Xe ra', path: ROUTES.ADMIN.ROLES },
+      { icon: Boxes, label: 'Phiên gửi xe', path: ROUTES.ADMIN.PARKING_SESSIONS },
+    ],
+  },
+  {
+    items: [
+      { icon: Package, label: 'Quản lý gói', path: ROUTES.STAFF.BOOKINGS },
+      { icon: AlertTriangle, label: 'Sự cố', path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents` },
+    ],
+  },
 ];
+
+const pageTitles = [
+  { path: ROUTES.ADMIN.DASHBOARD, title: 'Tổng quan bãi', end: true },
+  { path: ROUTES.STAFF.BOOKINGS, title: 'Quản lý gói' },
+  { path: ROUTES.ADMIN.VEHICLE_ENTRY, title: 'Vehicle Entry' },
+  { path: ROUTES.ADMIN.PARKING_SESSIONS, title: 'Tất cả phiên gửi xe' },
+  { path: ROUTES.ADMIN.ROLES, title: 'Xe ra' },
+  { path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`, title: 'Sự cố' },
+  { path: ROUTES.ADMIN.NOTIFICATIONS.BASE, title: 'Thông báo' },
+];
+
+function getCurrentPageTitle(pathname, search) {
+  const currentUrl = `${pathname}${search}`;
+  const current = pageTitles.find((item) =>
+    item.end ? currentUrl === item.path : currentUrl.startsWith(item.path),
+  );
+
+  return current?.title ?? 'Parking Management';
+}
+
+function isNavigationItemActive(currentUrl, itemPath) {
+  return currentUrl === itemPath || (!itemPath.includes('?') && currentUrl.startsWith(itemPath));
+}
 
 export default function AdminLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, setUser } = useAuth();
+  const [collapsed, setCollapsed] = useState(false);
 
   function handleLogout() {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
@@ -30,100 +84,175 @@ export default function AdminLayout() {
 
   const profile = user
     ? {
-        name: user.fullName || user.name || 'Người dùng',
-        role: user.role || 'Người dùng',
+        name: user.fullName || user.name || 'Demo Admin',
+        role: user.role || 'Admin',
         email: user.email || '',
         avatar: user.avatarUrl || user.avatar || '',
       }
-    : null;
+    : {
+        name: 'Demo Admin',
+        role: 'Admin',
+        email: '',
+        avatar: '',
+      };
+
+  const currentUrl = `${location.pathname}${location.search}`;
+  const isVehicleEntryPage = location.pathname === ROUTES.ADMIN.VEHICLE_ENTRY;
+  const pageTitle = useMemo(
+    () => getCurrentPageTitle(location.pathname, location.search),
+    [location.pathname, location.search],
+  );
 
   return (
-    <div className="min-h-screen bg-gray-100 lg:flex">
-      <aside className="w-64 flex-shrink-0 bg-slate-900 text-white shadow-lg lg:sticky lg:top-0 lg:h-screen">
+    <div className="min-h-screen bg-[#f6f8fb] text-slate-950 lg:flex">
+      <aside
+        className={`hidden min-h-screen flex-shrink-0 border-r border-slate-800/80 bg-[#0f172a] text-white shadow-[12px_0_40px_rgba(15,23,42,0.12)] transition-[width] duration-300 ease-out lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col ${
+          collapsed ? 'w-20' : 'w-[260px]'
+        }`}
+      >
         <div className="flex h-full flex-col p-4">
-          <div>
-            <div 
-              className="flex items-center gap-3 border-b border-slate-700 pb-4 cursor-pointer" 
-              onClick={() => {
-                navigate(ROUTES.ADMIN.DASHBOARD);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }} 
-              title="Trang chủ quản trị"
+          <div
+            className={`flex items-center gap-3 border-b border-white/10 pb-5 ${
+              collapsed ? 'justify-center' : 'justify-between'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.ADMIN.DASHBOARD)}
+              className={`flex min-w-0 items-center gap-3 rounded-2xl text-left transition hover:opacity-90 ${
+                collapsed ? 'justify-center' : ''
+              }`}
+              title="Parking System"
             >
               <img
                 alt="Parking System Logo"
-                className="h-10 w-10 object-contain"
+                className="h-11 w-11 shrink-0 rounded-2xl bg-white object-contain p-1.5"
                 src="/parking-system-logo.png"
               />
-              <div>
-                <h1 className="text-lg font-bold">Parking System</h1>
-                <p className="text-xs text-slate-400">Hệ thống quản trị</p>
-              </div>
-            </div>
-
-            <nav className="mt-4 space-y-1">
-              {menuItems.map((item) => (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  end={item.path === ROUTES.ADMIN.DASHBOARD}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-                      isActive ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:bg-slate-800/50 hover:text-white'
-                    }`
-                  }
-                >
-                  <Icon name={item.icon} />
-                  <span>{item.label}</span>
-                </NavLink>
-              ))}
-            </nav>
-          </div>
-
-          <div className="mt-auto border-t border-slate-700 pt-4 flex items-center gap-3 shrink-0">
-            <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-[#1e3a8a] hover:bg-blue-800 rounded-lg transition-colors text-sm font-semibold shadow-sm">
-              <Icon name="help" className="text-white" />
-              <span className="text-white">Hỗ trợ</span>
+              {!collapsed ? (
+                <div className="min-w-0">
+                  <h1 className="truncate text-base font-semibold text-white">Parking System</h1>
+                  <p className="mt-0.5 truncate text-xs font-medium text-slate-400">Staff & Admin</p>
+                </div>
+              ) : null}
             </button>
 
+            {!collapsed ? (
+              <button
+                type="button"
+                onClick={() => setCollapsed(true)}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white"
+                aria-label="Thu gọn sidebar"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            ) : null}
+          </div>
+
+          {collapsed ? (
             <button
+              type="button"
+              onClick={() => setCollapsed(false)}
+              className="mx-auto mt-4 grid h-10 w-10 place-items-center rounded-2xl border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white"
+              aria-label="Mở rộng sidebar"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          ) : null}
+
+          <nav className="mt-5 flex-1 space-y-6 overflow-y-auto overflow-x-hidden pr-0.5">
+            {navigationSections.map((section, sectionIndex) => {
+              const SectionIcon = section.icon;
+
+              return (
+                <div key={section.label ?? `section-${sectionIndex}`} className="space-y-2">
+                  {section.label && !collapsed ? (
+                    <div className="flex items-center gap-2 px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                      {SectionIcon ? <SectionIcon className="h-3.5 w-3.5" /> : null}
+                      <span>{section.label}</span>
+                    </div>
+                  ) : null}
+
+                  <div className="space-y-1">
+                    {section.items.map((item) => {
+                      const ItemIcon = item.icon;
+
+                      return (
+                        <NavLink
+                          key={`${section.label ?? 'single'}-${item.label}`}
+                          to={item.path}
+                          end={item.path === ROUTES.ADMIN.DASHBOARD}
+                          title={collapsed ? item.label : undefined}
+                          className={() => {
+                            const isActive = isNavigationItemActive(currentUrl, item.path);
+                            return (
+                            `group relative flex h-12 items-center rounded-2xl text-sm font-semibold transition-all duration-200 ${
+                              collapsed ? 'justify-center px-0' : 'gap-3 px-3'
+                            } ${
+                              isActive
+                                ? 'bg-blue-600 text-white shadow-[0_12px_30px_rgba(37,99,235,0.28)]'
+                                : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                            }`
+                            );
+                          }}
+                        >
+                          <ItemIcon className="h-5 w-5 shrink-0" />
+                          {!collapsed ? <span className="truncate">{item.label}</span> : null}
+                        </NavLink>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </nav>
+
+          <div className="mt-5 border-t border-white/10 pt-5">
+            <button
+              type="button"
               title="Đăng xuất"
               onClick={handleLogout}
-              className="flex-shrink-0 flex items-center justify-center p-2.5 text-rose-600 hover:text-white hover:bg-rose-600 bg-rose-100 rounded-lg transition-all"
+              className={`flex h-12 w-full items-center rounded-2xl border border-rose-400/15 bg-rose-500/10 text-sm font-semibold text-rose-100 transition hover:border-rose-300/30 hover:bg-rose-500/20 hover:text-white ${
+                collapsed ? 'justify-center px-0' : 'gap-3 px-3'
+              }`}
             >
-              <Icon name="logout" />
+              <LogOut className="h-5 w-5 shrink-0" />
+              {!collapsed ? <span>Đăng xuất</span> : null}
             </button>
           </div>
         </div>
       </aside>
 
-      <div className="flex-1 min-w-0">
-        <header className="relative z-[999] overflow-visible border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4 flex-1">
-              <div className="relative w-full max-w-md">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
-                <input
-                  placeholder="Tìm kiếm dữ liệu, biển số xe..."
-                  type="search"
-                  className="w-full pl-10 pr-4 py-2 bg-gray-50 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-200"
-                />
-              </div>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 px-5 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)] backdrop-blur lg:px-8">
+          <div className="flex min-h-14 items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                Parking Management
+              </p>
+              <h2 className="mt-1 truncate text-2xl font-semibold tracking-normal text-slate-950">
+                {pageTitle}
+              </h2>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex shrink-0 items-center gap-3">
               <NotificationDropdown />
-
               <UserProfileDropdown
                 profile={profile}
                 onViewProfile={() => navigate(ROUTES.SETTINGS.PROFILE)}
-                onLogout={handleLogout}
+                onChangePassword={() => navigate(ROUTES.SETTINGS.PASSWORD)}
               />
             </div>
           </div>
         </header>
 
-        <main className="p-6">
+        <main
+          className={
+            isVehicleEntryPage
+              ? 'h-[calc(100vh-88px)] overflow-hidden p-4'
+              : 'min-w-0 flex-1 p-5 lg:p-8'
+          }
+        >
           <Outlet />
         </main>
       </div>

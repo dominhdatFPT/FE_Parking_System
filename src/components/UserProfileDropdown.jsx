@@ -1,25 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bell, ChevronDown, Lock, LogOut, Moon, Settings, User } from 'lucide-react';
+import { ChevronDown, Lock, User } from 'lucide-react';
 
 const defaultAvatar =
   'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=256&q=80';
 
-const quickActions = [
-  { label: 'Hồ sơ cá nhân', icon: User },
-  { label: 'Đổi mật khẩu', icon: Lock },
-  { label: 'Thông báo', icon: Bell },
-  { label: 'Cài đặt', icon: Settings },
-];
-
-export default function UserProfileDropdown({ onViewProfile, onLogout, profile }) {
+export default function UserProfileDropdown({ onViewProfile, onChangePassword, profile }) {
   const [open, setOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const dropdownRef = useRef(null);
 
   const profileData = {
-    name: profile?.name ?? 'Người dùng',
-    role: profile?.role ?? 'Người dùng',
+    name: profile?.name ?? 'Demo Admin',
+    role: profile?.role ?? 'Admin',
     email: profile?.email ?? '',
     avatar: profile?.avatar || defaultAvatar,
   };
@@ -31,25 +23,43 @@ export default function UserProfileDropdown({ onViewProfile, onLogout, profile }
       }
     }
 
+    function handleEscape(event) {
+      if (open && event.key === 'Escape') {
+        setOpen(false);
+      }
+    }
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
   }, [open]);
+
+  function handleAction(action) {
+    action?.();
+    setOpen(false);
+  }
 
   return (
     <div className="relative inline-flex text-left" ref={dropdownRef}>
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex min-w-[220px] w-fit items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm transition hover:bg-slate-50"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="inline-flex h-12 min-w-[220px] items-center gap-3 rounded-2xl border border-slate-200 bg-white px-2.5 pr-3 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
       >
         <img
           src={profileData.avatar}
           alt="Avatar"
-          className="h-12 w-12 rounded-full object-cover ring-2 ring-slate-200"
+          className="h-9 w-9 rounded-full object-cover ring-2 ring-slate-100"
         />
-        <div className="hidden flex-1 flex-col text-left sm:flex">
-          <span className="text-sm font-semibold text-slate-950 leading-tight">{profileData.name}</span>
-          <span className="text-xs text-slate-500 leading-tight">{profileData.role}</span>
+        <div className="hidden min-w-0 flex-1 flex-col text-left sm:flex">
+          <span className="truncate text-sm font-semibold leading-tight text-slate-950">{profileData.name}</span>
+          <span className="truncate text-xs font-medium leading-tight text-slate-500">{profileData.role}</span>
         </div>
         <ChevronDown className={`h-4 w-4 text-slate-500 transition ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -60,79 +70,47 @@ export default function UserProfileDropdown({ onViewProfile, onLogout, profile }
             initial={{ opacity: 0, y: 8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
-            className="absolute right-0 top-full z-[9999] mt-3 w-[360px] max-h-[calc(100vh-120px)] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent"
+            transition={{ duration: 0.16, ease: 'easeOut' }}
+            role="menu"
+            className="absolute right-0 top-full z-[9999] mt-3 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_24px_60px_rgba(15,23,42,0.16)]"
           >
-            <div className="flex min-h-0 flex-col gap-3 p-4">
-              <div className="rounded-2xl bg-white p-4 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={profileData.avatar}
-                    alt="Avatar"
-                    className="h-12 w-12 rounded-full object-cover"
-                  />
-                  <div>
-                    <p className="text-sm font-semibold text-slate-950">{profileData.name}</p>
-                    <p className="text-xs text-slate-500">{profileData.role}</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={onViewProfile}
-                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-[#1e3a8a] px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-800"
-                >
-                  <span className="material-symbols-outlined text-lg text-white">account_circle</span>
-                  <span className="text-white">Xem hồ sơ</span>
-                </button>
-              </div>
-
-              <div className="rounded-[16px] bg-white p-4 shadow-sm">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Quick Actions</p>
-                <div className="mt-3 grid gap-2">
-                  {quickActions.map((action) => {
-                    const IconComponent = action.icon;
-                    return (
-                      <button
-                        key={action.label}
-                        type="button"
-                        className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50"
-                      >
-                        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
-                          <IconComponent className="h-4 w-4" />
-                        </span>
-                        <span>{action.label}</span>
-                      </button>
-                    );
-                  })}
+            <div className="border-b border-slate-100 p-4">
+              <div className="flex items-center gap-3">
+                <img
+                  src={profileData.avatar}
+                  alt="Avatar"
+                  className="h-11 w-11 rounded-full object-cover"
+                />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-slate-950">{profileData.name}</p>
+                  <p className="truncate text-xs text-slate-500">{profileData.email || profileData.role}</p>
                 </div>
               </div>
+            </div>
 
-              <div className="rounded-[16px] bg-white p-4 shadow-sm">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Preferences</p>
-                <button
-                  type="button"
-                  onClick={() => setDarkMode((prev) => !prev)}
-                  className="mt-3 flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50"
-                >
-                  <span className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
-                      <Moon className="h-4 w-4" />
-                    </span>
-                    {darkMode ? 'Chế độ tối' : 'Chế độ sáng'}
-                  </span>
-                  <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
-                    {darkMode ? 'Bật' : 'Tắt'}
-                  </span>
-                </button>
-              </div>
+            <div className="p-2">
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => handleAction(onViewProfile)}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-blue-50 hover:text-blue-700"
+              >
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-600">
+                  <User className="h-4 w-4" />
+                </span>
+                Profile
+              </button>
 
               <button
                 type="button"
-                onClick={onLogout}
-                className="mt-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-[#F8FAFC] px-4 py-3 text-sm font-semibold text-[#B91C1C] transition hover:bg-[#FEE2E2]"
+                role="menuitem"
+                onClick={() => handleAction(onChangePassword)}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-blue-50 hover:text-blue-700"
               >
-                <LogOut className="h-4 w-4" />
-                Đăng xuất
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-600">
+                  <Lock className="h-4 w-4" />
+                </span>
+                Change password
               </button>
             </div>
           </motion.div>
