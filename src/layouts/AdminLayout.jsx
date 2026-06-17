@@ -38,7 +38,7 @@ const navigationSections = [
   },
   {
     items: [
-      { icon: Package, label: 'Quản lý gói', path: `${ROUTES.ADMIN.SYSTEM_CONFIG}?view=packages` },
+      { icon: Package, label: 'Quản lý gói', path: ROUTES.STAFF.BOOKINGS },
       { icon: AlertTriangle, label: 'Sự cố', path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents` },
     ],
   },
@@ -46,7 +46,7 @@ const navigationSections = [
 
 const pageTitles = [
   { path: ROUTES.ADMIN.DASHBOARD, title: 'Tổng quan bãi', end: true },
-  { path: `${ROUTES.ADMIN.SYSTEM_CONFIG}?view=packages`, title: 'Quản lý gói' },
+  { path: ROUTES.STAFF.BOOKINGS, title: 'Quản lý gói' },
   { path: ROUTES.ADMIN.VEHICLE_ENTRY, title: 'Vehicle Entry' },
   { path: ROUTES.ADMIN.PARKING_SESSIONS, title: 'Tất cả phiên gửi xe' },
   { path: ROUTES.ADMIN.ROLES, title: 'Xe ra' },
