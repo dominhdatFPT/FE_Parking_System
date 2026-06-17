@@ -37,15 +37,15 @@ export default function VehicleCardPricingModal({ isOpen, onClose }) {
   const pricingData = {
     MOTORBIKE: [
       { months: 1, name: 'Gói Tháng', price: 150000, save: 0, tag: '', desc: 'Phù hợp sử dụng ngắn hạn' },
-      { months: 3, name: 'Gói Quý', price: 420000, save: 7, tag: '', desc: 'Tiết kiệm 7%' },
-      { months: 6, name: 'Gói Nửa Năm', price: 800000, save: 10, tag: '⭐ PHỔ BIẾN NHẤT', desc: 'Tiết kiệm 10%' },
-      { months: 12, name: 'Gói Năm', price: 1500000, save: 16, tag: '🔥 TIẾT KIỆM NHẤT', desc: 'Tiết kiệm 16%' },
+      { months: 3, name: 'Gói Quý', price: 420000, save: 7, tag: '', desc: '' },
+      { months: 6, name: 'Gói Nửa Năm', price: 800000, save: 10, tag: '⭐ PHỔ BIẾN NHẤT', desc: '' },
+      { months: 12, name: 'Gói Năm', price: 1500000, save: 16, tag: '🔥 TIẾT KIỆM NHẤT', desc: '' },
     ],
     CAR: [
       { months: 1, name: 'Gói Tháng', price: 500000, save: 0, tag: '', desc: 'Phù hợp sử dụng ngắn hạn' },
-      { months: 3, name: 'Gói Quý', price: 1400000, save: 7, tag: '', desc: 'Tiết kiệm 7%' },
-      { months: 6, name: 'Gói Nửa Năm', price: 2700000, save: 10, tag: '⭐ PHỔ BIẾN NHẤT', desc: 'Tiết kiệm 10%' },
-      { months: 12, name: 'Gói Năm', price: 5000000, save: 16, tag: '🔥 TIẾT KIỆM NHẤT', desc: 'Tiết kiệm 16%' },
+      { months: 3, name: 'Gói Quý', price: 1400000, save: 7, tag: '', desc: '' },
+      { months: 6, name: 'Gói Nửa Năm', price: 2700000, save: 10, tag: '⭐ PHỔ BIẾN NHẤT', desc: '' },
+      { months: 12, name: 'Gói Năm', price: 5000000, save: 16, tag: '🔥 TIẾT KIỆM NHẤT', desc: '' },
     ],
   };
 
@@ -55,7 +55,7 @@ export default function VehicleCardPricingModal({ isOpen, onClose }) {
   // Pricing calculations
   const basePrice = activePlanDetails ? activePlanDetails.price : 0;
   const vatAmount = 0;
-  const discountAmount = (activePlanDetails && activePlanDetails.save > 0) ? 200000 : 0; 
+  const discountAmount = 0; 
   const totalPrice = activePlanDetails ? Math.max(0, basePrice + vatAmount - discountAmount) : 0;
 
   // Date calculations
@@ -365,6 +365,9 @@ export default function VehicleCardPricingModal({ isOpen, onClose }) {
                         onClick={() => {
                           setVehicleType('MOTORBIKE');
                           setSelectedPlan(null); // Reset package selection
+                          if (licensePlate === '29A-123.45' || licensePlate === '30F-567.89') {
+                            setLicensePlate('29-D1 123.45');
+                          }
                         }}
                         className={`relative flex items-center gap-3 rounded-2xl border-2 p-4 text-left transition-all duration-300 ${
                           vehicleType === 'MOTORBIKE'
@@ -387,6 +390,9 @@ export default function VehicleCardPricingModal({ isOpen, onClose }) {
                         onClick={() => {
                           setVehicleType('CAR');
                           setSelectedPlan(null); // Reset package selection
+                          if (licensePlate === '29-D1 123.45') {
+                            setLicensePlate('29A-123.45');
+                          }
                         }}
                         className={`relative flex items-center gap-3 rounded-2xl border-2 p-4 text-left transition-all duration-300 ${
                           vehicleType === 'CAR'
@@ -409,8 +415,8 @@ export default function VehicleCardPricingModal({ isOpen, onClose }) {
                   {/* Step 2: Vehicle details */}
                   <div className="space-y-2.5">
                     <label className="block text-xs font-bold text-slate-500">Bước 2 - Thông tin phương tiện</label>
-                    <div className="rounded-2xl border border-slate-100 bg-slate-50/40 p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1">
+                    <div className="rounded-2xl border border-slate-100 bg-slate-50/40 p-4">
+                      <div className="space-y-1 relative max-w-xs">
                         <span className="text-[10px] font-bold text-slate-400 uppercase">Biển số xe</span>
                         <div className="relative">
                           <span className="absolute left-3.5 top-2.5 text-xs">{vehicleType === 'CAR' ? '🚗' : '🏍'}</span>
@@ -420,20 +426,6 @@ export default function VehicleCardPricingModal({ isOpen, onClose }) {
                             onChange={(e) => setLicensePlate(e.target.value)}
                             placeholder="Nhập biển số xe..."
                             className="w-full pl-9 pr-3 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Ngày bắt đầu</span>
-                        <div className="relative">
-                          <span className="absolute left-3.5 top-2.5 text-xs">📅</span>
-                          <input
-                            type="date"
-                            value={startDate}
-                            disabled={hasExistingTicket}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            className="w-full pl-9 pr-3 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all disabled:opacity-60 disabled:bg-slate-100"
                           />
                         </div>
                       </div>
@@ -466,7 +458,6 @@ export default function VehicleCardPricingModal({ isOpen, onClose }) {
                             <div>
                               <div className="flex items-baseline justify-between border-b border-slate-55 pb-2 mb-2">
                                 <span className="text-[10px] font-black uppercase text-slate-400">{plan.name}</span>
-                                <span className="text-[9px] font-black text-emerald-500 bg-emerald-50 px-1 rounded">{plan.save > 0 ? `-${plan.save}%` : 'Gói chuẩn'}</span>
                               </div>
                               <div className="flex items-baseline gap-1 mt-1">
                                 <span className="text-2xl font-black text-slate-800 tracking-tight">{plan.months}</span>
@@ -489,9 +480,7 @@ export default function VehicleCardPricingModal({ isOpen, onClose }) {
                         );
                       })}
                     </div>
-                  </div>
-
-                </div>
+                  </div>                </div>
               </div>
 
               {/* Action Buttons */}
@@ -595,10 +584,6 @@ export default function VehicleCardPricingModal({ isOpen, onClose }) {
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-slate-400">Giá gói</span>
                         <span className="font-semibold text-slate-700">{basePrice.toLocaleString('vi-VN')} đ</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs text-rose-600">
-                        <span>Khuyến mãi</span>
-                        <span>-{discountAmount.toLocaleString('vi-VN')} đ</span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-slate-400">VAT (0%)</span>
