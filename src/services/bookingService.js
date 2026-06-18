@@ -386,10 +386,20 @@ export const bookingService = {
   },
 
   registerVehicleCard: async (payload) => {
-    await delay(800);
-    console.log('Sending registration request for username:', payload.username, payload);
-    addNotification('info', 'Yêu cầu đăng ký thẻ xe đã gửi', `Yêu cầu đăng ký thẻ xe của ${payload.username} đang được xử lý.`);
-    return { data: { id: `VREG${Date.now()}`, status: 'PENDING', ...payload }, error: null };
+    try {
+      const response = await apiClient.post('/api/v1/vehicle-registrations', payload);
+      const data = response.data?.data || response.data;
+      addNotification('info', 'Yêu cầu đăng ký thẻ xe đã gửi', 'Hồ sơ của bạn đang chờ admin duyệt.');
+      return { data, error: null };
+    } catch (error) {
+      console.error('Vehicle registration request failed:', error.response?.data || error.message);
+      const message = error.response?.data?.message
+        || error.response?.data?.error
+        || error.response?.data?.detail
+        || error.message
+        || 'Đăng ký thất bại. Vui lòng thử lại.';
+      return { data: null, error, message };
+    }
   },
 
   resetData: () => {

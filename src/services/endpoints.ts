@@ -11,4 +11,9 @@ export const API_ENDPOINTS = {
     ACTIVE_ORDERS: '/api/customer/parking-orders/active',
     SLOTS: '/api/v1/parking-slots',
   },
+  FEE: {
+    PACKAGES: '/api/v1/fee-packages',
+    MY_VEHICLES: '/api/v1/fee-subscriptions/my-vehicles',
+    SUBSCRIPTIONS: '/api/v1/fee-subscriptions',
+  },
 } as const;
