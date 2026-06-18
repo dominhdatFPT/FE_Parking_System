@@ -8,7 +8,7 @@ import { useAuth } from '../contexts/useAuth';
 const typeStyles = {
   critical: {
     icon: 'priority_high',
-    badge: 'bg-red-500 text-white',
+    badge: 'bg-rose-500 text-white',
     ring: 'ring-red-100',
   },
   warning: {
@@ -83,11 +83,11 @@ export default function NotificationDropdown() {
         aria-controls="notification-popup"
         aria-expanded={visible}
         aria-label="Thông báo"
-        className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
+        className="relative inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/80 bg-white/75 text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white active:translate-y-0"
       >
         <Icon name="notifications" />
         {unreadCount > 0 ? (
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white leading-none">
+          <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[11px] font-semibold text-white leading-none ring-2 ring-white">
             {unreadCount}
           </span>
         ) : null}
@@ -99,9 +99,9 @@ export default function NotificationDropdown() {
           id="notification-popup"
           role="dialog"
           aria-label="Danh sách thông báo"
-          className="absolute right-0 top-full z-[9999] mt-3 w-[380px] overflow-hidden rounded-[18px] border border-[#E5E7EB] bg-white shadow-[0_20px_60px_-20px_rgba(15,23,42,0.25)]"
+          className="absolute right-0 top-full z-[9999] mt-3 w-[min(380px,calc(100vw-2rem))] overflow-hidden rounded-[24px] border border-white/70 bg-white/90 shadow-[0_24px_70px_rgba(15,23,42,0.18)] backdrop-blur-2xl"
         >
-          <div className="border-b border-slate-200 px-4 py-4">
+          <div className="border-b border-slate-100 px-4 py-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-slate-950">Thông báo</p>
@@ -117,7 +117,7 @@ export default function NotificationDropdown() {
             </div>
           </div>
 
-          <div className="max-h-[480px] overflow-y-auto bg-white">
+          <div className="max-h-[480px] overflow-y-auto bg-white/80">
             {items.length === 0 ? (
               <div className="p-4 text-sm text-slate-500">Không có thông báo.</div>
             ) : (
@@ -129,7 +129,7 @@ export default function NotificationDropdown() {
                     type="button"
                     onClick={() => handleNotificationClick(item.id)}
                     className={`group flex w-full items-start gap-3 border-b border-slate-100 px-4 py-4 text-left transition ${
-                      item.unread ? 'bg-blue-50 hover:bg-blue-100' : 'bg-white hover:bg-slate-50'
+                      item.unread ? 'bg-sky-50/80 hover:bg-sky-100/80' : 'bg-white/80 hover:bg-slate-50'
                     }`}
                   >
                     <span className={`mt-1 inline-flex h-10 w-10 items-center justify-center rounded-2xl ${typeStyle.ring} ring-1`}>
@@ -143,7 +143,7 @@ export default function NotificationDropdown() {
                         </p>
                         <span
                           className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                            item.unread ? 'bg-blue-500/10 text-blue-700' : 'bg-slate-100 text-slate-500'
+                            item.unread ? 'bg-sky-500/10 text-sky-700' : 'bg-slate-100 text-slate-500'
                           }`}
                         >
                           {item.unread ? 'Chưa đọc' : 'Đã đọc'}

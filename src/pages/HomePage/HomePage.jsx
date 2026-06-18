@@ -133,58 +133,94 @@ const dashboardDataByDate = {
   },
 };
 
-const toneClasses = {
-  blue: 'bg-blue-50 text-blue-700 ring-blue-100',
-  green: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
-  amber: 'bg-amber-50 text-amber-700 ring-amber-100',
-  red: 'bg-red-50 text-red-700 ring-red-100',
-  slate: 'bg-slate-100 text-slate-700 ring-slate-200',
-};
-
 const statusClasses = {
-  'Bình thường': 'bg-emerald-50 text-emerald-700',
-  'Quá 24 giờ': 'bg-amber-50 text-amber-700',
-  'Quá 7 ngày': 'bg-red-50 text-red-700',
-  'Đã hoàn thành': 'bg-blue-50 text-blue-700',
+  normal: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100',
+  warning: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100',
+  danger: 'bg-rose-50 text-rose-700 ring-1 ring-rose-100',
+  done: 'bg-sky-50 text-sky-700 ring-1 ring-sky-100',
 };
 
 const paymentClasses = {
-  QR: 'bg-blue-50 text-blue-700',
-  'Tiền mặt': 'bg-emerald-50 text-emerald-700',
-  'Miễn phí': 'bg-slate-100 text-slate-700',
-  Gói: 'bg-violet-50 text-violet-700',
+  QR: 'bg-sky-50 text-sky-700 ring-1 ring-sky-100',
+  'Tiền mặt': 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100',
+  'Miễn phí': 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
+  Gói: 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
 };
 
-function getCompletedFee(session) {
-  return session.customer === 'Gói tháng' ? '-' : session.fee;
-}
-
-function getCompletedPayment(session) {
-  return session.customer === 'Gói tháng' ? 'Gói' : session.payment;
+function Card({ children, className = '' }) {
+  return (
+    <section className={`rounded-[28px] border border-white/60 bg-white/70 shadow-[0_18px_45px_rgba(15,23,42,0.07)] backdrop-blur-xl ${className}`}>
+      {children}
+    </section>
+  );
 }
 
 function SectionTitle({ children }) {
-  return <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{children}</h2>;
+  return <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{children}</h2>;
 }
 
-function Card({ children, className = '' }) {
-  return <section className={`rounded-2xl border border-slate-200 bg-white shadow-sm ${className}`}>{children}</section>;
+function parseCapacity(capacity) {
+  const [usedRaw, totalRaw] = String(capacity).split('/').map((part) => Number(part.trim()));
+  const used = Number.isFinite(usedRaw) ? usedRaw : 0;
+  const total = Number.isFinite(totalRaw) && totalRaw > 0 ? totalRaw : 1;
+  const percent = Math.min(100, Math.round((used / total) * 100));
+
+  return { used, total, percent };
+}
+
+function getCompletedFee(session) {
+  return isMonthlyCustomer(session.customer) ? '-' : session.fee;
+}
+
+function getCompletedPayment(session) {
+  return isMonthlyCustomer(session.customer) ? 'Gói' : normalizePayment(session.payment);
+}
+
+function isMonthlyCustomer(value = '') {
+  return value.includes('Gói');
+}
+
+function normalizePayment(value = '') {
+  if (value === 'QR') return 'QR';
+  if (value.includes('Tiền')) return 'Tiền mặt';
+  if (value.includes('Miễn')) return 'Miễn phí';
+  return value || '-';
+}
+
+function getStatusTone(status = '') {
+  if (status.includes('7')) return 'danger';
+  if (status.includes('24')) return 'warning';
+  if (status.includes('hoàn')) return 'done';
+  return 'normal';
+}
+
+function normalizeStatus(status = '') {
+  if (status.includes('7')) return 'Quá 7 ngày';
+  if (status.includes('24')) return 'Quá 24 giờ';
+  if (status.includes('hoàn')) return 'Đã hoàn thành';
+  return 'Bình thường';
 }
 
 function StatusBadge({ status }) {
-  return <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusClasses[status] || 'bg-slate-100 text-slate-700'}`}>{status}</span>;
+  const tone = getStatusTone(status);
+
+  return (
+    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusClasses[tone]}`}>
+      {normalizeStatus(status)}
+    </span>
+  );
 }
 
 function DetailItem({ label, value }) {
   return (
-    <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+    <div className="flex items-center justify-between rounded-2xl bg-slate-50/90 px-3 py-2 ring-1 ring-slate-100">
       <span className="text-sm font-medium text-slate-500">{label}</span>
-      <span className="text-sm font-semibold text-[#0F172A]">{value}</span>
+      <span className="text-sm font-semibold text-slate-950">{value}</span>
     </div>
   );
 }
 
-function KpiDropdown({ type, data, onNavigate }) {
+function KpiDropdown({ type, data }) {
   const config = {
     activeSessions: {
       title: 'Chi tiết phiên',
@@ -214,41 +250,161 @@ function KpiDropdown({ type, data, onNavigate }) {
         ['Đang sử dụng', 'Còn trống', 'Tổng sức chứa', 'Tỷ lệ sử dụng'].includes(item.label),
       ),
     },
+    overdue: {
+      title: 'Phiên cần chú ý',
+      items: [
+        { label: 'Quá 24 giờ', value: String(data.sessions.filter((session) => session.status.includes('24')).length) },
+        { label: 'Quá 7 ngày', value: String(data.sessions.filter((session) => session.status.includes('7')).length) },
+      ],
+    },
   }[type];
 
   if (!config) return null;
 
-  const isRightAligned = type === 'capacity';
-
   return (
-    <div
-      className={`absolute top-full z-50 mt-3 w-[320px] rounded-2xl border border-slate-200 bg-white p-4 shadow-xl ${
-        isRightAligned ? 'right-0' : 'left-0'
-      }`}
-    >
-      <div
-        className={`absolute -top-2 h-4 w-4 rotate-45 border-l border-t border-slate-200 bg-white ${
-          isRightAligned ? 'right-8' : 'left-8'
-        }`}
-      />
+    <div className="absolute left-0 top-full z-[100] mt-3 w-[300px] rounded-[22px] border border-white/70 bg-white/95 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.16)] backdrop-blur-xl">
+      <div className="absolute -top-2 left-8 h-4 w-4 rotate-45 border-l border-t border-white/70 bg-white/95" />
       <div className="relative">
         <h3 className="text-sm font-semibold text-slate-950">{config.title}</h3>
         <div className="mt-3 space-y-2">
           {config.items.map((item) => (
-            <DetailItem key={item.label} label={item.label} value={item.percent ? `${item.value} (${item.percent})` : item.value} />
+            <DetailItem
+              key={item.label}
+              label={item.label}
+              value={item.percent ? `${item.value} (${item.percent})` : item.value}
+            />
           ))}
         </div>
-        {config.action ? (
-          <button
-            type="button"
-            onClick={config.onClick}
-            className="mt-3 h-9 rounded-xl bg-blue-600 px-3 text-sm font-semibold text-white transition hover:bg-blue-700"
-          >
-            {config.action}
-          </button>
-        ) : null}
       </div>
     </div>
+  );
+}
+
+function OperationsDock({ stats, capacityPercent, openKpi, onKpiClick, currentData }) {
+  return (
+    <Card className="overflow-visible p-3 sm:p-4">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1.35fr]">
+        {stats.map((stat, index) => {
+          const isCapacity = stat.key === 'capacity';
+          const isOpen = openKpi === stat.key;
+
+          return (
+            <div
+              key={stat.key}
+              className={`relative min-w-0 ${index > 0 ? 'xl:border-l xl:border-slate-200/60' : ''}`}
+            >
+              <button
+                type="button"
+                onClick={() => onKpiClick(stat.key)}
+                className={`group h-full min-h-[150px] w-full rounded-[24px] p-4 text-left transition duration-200 hover:-translate-y-0.5 hover:bg-white/70 hover:shadow-md ${
+                  isOpen ? 'bg-white/85 ring-2 ring-sky-100' : 'bg-transparent'
+                }`}
+              >
+                <div className="flex h-full flex-col justify-between gap-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-500">{stat.label}</p>
+                      <p className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">{stat.value}</p>
+                      <p className="mt-1 text-xs font-medium text-slate-400">{stat.description}</p>
+                    </div>
+                    <span className={`grid h-10 min-w-10 place-items-center rounded-2xl px-2 text-xs font-bold ring-1 ${stat.tone}`}>
+                      {stat.icon}
+                    </span>
+                  </div>
+
+                  {isCapacity ? (
+                    <div>
+                      <div className="mb-2 flex items-center justify-between text-xs font-semibold text-slate-500">
+                        <span>{capacityPercent}% sử dụng</span>
+                        <span>{currentData.availableSlots} trống</span>
+                      </div>
+                      <div className="h-2.5 overflow-hidden rounded-full bg-slate-100 shadow-inner">
+                        <div className="h-full rounded-full bg-sky-500" style={{ width: `${capacityPercent}%` }} />
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </button>
+              {isOpen ? <KpiDropdown type={stat.key} data={stat.data} /> : null}
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
+function SessionTable({ title, sessions, emptyText, onViewAll, onDetail, completed = false }) {
+  return (
+    <Card className="p-4 sm:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SectionTitle>{title}</SectionTitle>
+        <button
+          type="button"
+          onClick={onViewAll}
+          className="rounded-xl border border-sky-100 bg-sky-50/80 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+        >
+          Xem tất cả
+        </button>
+      </div>
+
+      <div className="mt-4 space-y-3">
+        {sessions.length === 0 ? (
+          <div className="rounded-2xl border border-slate-200/60 bg-white/60 px-4 py-8 text-center text-sm font-medium text-slate-400">
+            {emptyText}
+          </div>
+        ) : (
+          sessions.slice(0, 5).map((session) => (
+            <div
+              key={session.id}
+              className={`grid min-h-[96px] gap-4 rounded-2xl border border-slate-200/60 bg-white/60 px-4 py-3 transition hover:bg-sky-50/40 sm:items-center ${
+                completed
+                  ? 'sm:grid-cols-4'
+                  : 'sm:grid-cols-3'
+              }`}
+            >
+              <div className="min-w-0 text-center sm:justify-self-center">
+                <p className="truncate text-base font-bold text-slate-950">{session.plate}</p>
+                <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+                  {completed ? (
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${paymentClasses[getCompletedPayment(session)] || 'bg-slate-100 text-slate-700'}`}>
+                      {getCompletedPayment(session)}
+                    </span>
+                  ) : (
+                    <StatusBadge status={session.status} />
+                  )}
+                  {completed ? (
+                    <span className="text-xs font-semibold text-slate-400">{getCompletedFee(session)}</span>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="min-w-0 text-center sm:justify-self-center">
+                <p className="text-xs font-medium text-slate-400">Giờ vào</p>
+                <p className="mt-1 text-sm font-semibold text-slate-700">{session.entry}</p>
+              </div>
+
+              {completed ? (
+                <div className="min-w-0 text-center sm:justify-self-center">
+                  <p className="text-xs font-medium text-slate-400">Giờ ra</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-700">{session.exit}</p>
+                </div>
+              ) : null}
+
+              <div className="flex justify-center sm:justify-self-center">
+                <button
+                  type="button"
+                  onClick={() => onDetail(session)}
+                  className="inline-flex h-9 w-20 items-center justify-center rounded-xl px-3 text-sm font-semibold text-sky-600 transition hover:bg-sky-50 hover:text-sky-700"
+                >
+                  Chi tiết
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </Card>
   );
 }
 
@@ -262,18 +418,50 @@ export default function HomePage() {
   const kpiRowRef = useRef(null);
 
   const currentData = dashboardDataByDate[selectedDate] || emptyDashboardData;
-
-  const kpis = useMemo(
+  const capacity = parseCapacity(currentData.capacity);
+  const stats = useMemo(
     () => [
-      { key: 'activeSessions', label: 'Phiên đang hoạt động', value: currentData.activeSessions, description: 'Xe đang trong bãi', icon: 'P', tone: 'blue' },
-      { key: 'entries', label: 'Xe vào', value: currentData.entries, description: 'Lượt vào trong ngày', icon: 'IN', tone: 'green' },
-      { key: 'exits', label: 'Xe ra', value: currentData.exits, description: 'Lượt ra trong ngày', icon: 'OUT', tone: 'slate' },
-      { key: 'revenue', label: 'Doanh thu', value: currentData.revenue, description: 'Đã thu trong ngày', icon: '₫', tone: 'amber' },
-      { key: 'capacity', label: 'Công suất bãi', value: currentData.capacity, description: `${currentData.availableSlots} chỗ còn trống`, icon: '%', tone: 'red' },
+      {
+        key: 'entries',
+        label: 'Xe vào',
+        value: currentData.entries,
+        description: 'Lượt vào trong ngày',
+        icon: 'IN',
+        tone: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
+        data: currentData,
+      },
+      {
+        key: 'exits',
+        label: 'Xe ra',
+        value: currentData.exits,
+        description: 'Lượt ra trong ngày',
+        icon: 'OUT',
+        tone: 'bg-slate-100 text-slate-700 ring-slate-200',
+        data: currentData,
+      },
+      {
+        key: 'revenue',
+        label: 'Doanh thu',
+        value: currentData.revenue,
+        description: 'Đã thu trong ngày',
+        icon: '₫',
+        tone: 'bg-amber-50 text-amber-700 ring-amber-100',
+        data: currentData,
+      },
+      {
+        key: 'capacity',
+        label: 'Công suất bãi',
+        value: currentData.capacity,
+        description: `${currentData.availableSlots} chỗ còn trống`,
+        icon: '%',
+        tone: 'bg-sky-50 text-sky-700 ring-sky-100',
+        progress: capacity.percent,
+        wide: true,
+        data: currentData,
+      },
     ],
-    [currentData],
+    [capacity.percent, currentData],
   );
-
   function handleRefresh() {
     setRefreshing(true);
     window.setTimeout(() => setRefreshing(false), 450);
@@ -300,129 +488,68 @@ export default function HomePage() {
   }, [openKpi]);
 
   return (
-    <div className="space-y-4 bg-[#F8FAFC]">
-      <Card className="p-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="space-y-6">
+      <Card className="relative overflow-hidden p-5 sm:p-6">
+        <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-sky-200/40 blur-3xl" />
+        <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-[#0F172A]">Tổng quan bãi</h1>
-            <p className="mt-1 text-sm font-medium text-[#64748B]">Theo dõi phiên gửi xe, doanh thu và công suất bãi</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-950">Tình hình hôm nay</h1>
+            <p className="mt-2 max-w-2xl text-sm font-medium text-slate-500">
+              Theo dõi nhanh lượt xe, doanh thu và công suất bãi
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <input type="date" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100" />
-            <button type="button" onClick={() => setSelectedDate(today)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Hôm nay</button>
-            <button type="button" onClick={handleRefresh} className="h-10 rounded-xl bg-[#2563EB] px-3 text-sm font-semibold text-white transition hover:bg-blue-700">{refreshing ? 'Đang tải...' : 'Làm mới'}</button>
-          </div>
-        </div>
-      </Card>
 
-      <section ref={kpiRowRef} className="grid grid-cols-5 gap-4">
-        {kpis.map((kpi) => (
-          <div key={kpi.key} className="relative">
+          <div className="flex w-full flex-wrap items-center gap-2 xl:w-auto xl:justify-end">
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(event) => setSelectedDate(event.target.value)}
+              className="h-10 rounded-2xl border border-white/80 bg-white/80 px-3 text-sm font-semibold text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+            />
             <button
               type="button"
-              onClick={() => handleKpiClick(kpi.key)}
-              className={`w-full rounded-2xl border bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md ${
-                openKpi === kpi.key ? 'border-blue-500 ring-4 ring-blue-50' : 'border-slate-200'
-              }`}
+              onClick={() => setSelectedDate(today)}
+              className="h-10 rounded-2xl border border-white/80 bg-white/80 px-4 text-sm font-semibold text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.05)] transition hover:bg-white active:scale-[0.98]"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium text-slate-500">{kpi.label}</p>
-                  <p className="mt-2 text-2xl font-semibold tracking-tight text-[#0F172A]">{kpi.value}</p>
-                </div>
-                <span className={`grid h-9 min-w-9 place-items-center rounded-xl px-2 text-xs font-bold ring-1 ${toneClasses[kpi.tone]}`}>{kpi.icon}</span>
-              </div>
+              Hôm nay
             </button>
-            {openKpi === kpi.key && <KpiDropdown type={openKpi} data={currentData} onNavigate={navigate} />}
+            <button
+              type="button"
+              onClick={handleRefresh}
+              className="h-10 rounded-2xl bg-sky-500 px-4 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(14,165,233,0.24)] transition hover:bg-sky-600 active:scale-[0.98]"
+            >
+              {refreshing ? 'Đang tải...' : 'Làm mới'}
+            </button>
           </div>
-        ))}
+        </div>
+      </Card>
+
+      <section ref={kpiRowRef} className="relative z-30">
+        <OperationsDock
+          stats={stats}
+          capacityPercent={capacity.percent}
+          openKpi={openKpi}
+          onKpiClick={handleKpiClick}
+          currentData={currentData}
+        />
       </section>
-
-      <Card className="p-4">
-        <div className="flex items-center justify-between">
-          <SectionTitle>Phiên gửi xe đang hoạt động</SectionTitle>
-          <button onClick={() => navigate('/admin/parking-sessions')} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-[#2563EB] transition hover:bg-blue-50">Xem tất cả phiên gửi xe</button>
-        </div>
-        <div className="mt-3 overflow-hidden rounded-xl border border-slate-200">
-          <table className="w-full table-fixed text-left text-sm">
-            <thead className="bg-slate-50/80 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-              <tr>
-                <th className="px-3 py-2.5">Biển số</th>
-                <th className="px-3 py-2.5">Loại xe</th>
-                <th className="px-3 py-2.5">Loại khách</th>
-                <th className="px-3 py-2.5">Giờ vào</th>
-                <th className="px-3 py-2.5">Thời gian gửi</th>
-                <th className="px-3 py-2.5">Trạng thái</th>
-                <th className="px-3 py-2.5 text-right">Chi tiết</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
-              {currentData.sessions.slice(0, 5).map((session) => (
-                <tr key={session.id} className="text-slate-600 transition hover:bg-slate-50">
-                  <td className="px-3 py-3 font-semibold text-[#0F172A]">{session.plate}</td>
-                  <td className="px-3 py-3">{session.type}</td>
-                  <td className="px-3 py-3">{session.customer}</td>
-                  <td className="px-3 py-3">{session.entry}</td>
-                  <td className="px-3 py-3 font-semibold text-[#0F172A]">{session.duration}</td>
-                  <td className="px-3 py-3"><StatusBadge status={session.status} /></td>
-                  <td className="px-3 py-3 text-right">
-                    <button onClick={() => openSessionDetail(session)} className="rounded-lg px-2 py-1 text-sm font-semibold text-[#2563EB] hover:bg-blue-50">Chi tiết</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      <Card className="p-4">
-        <SectionTitle>Phiên hoàn thành</SectionTitle>
-        <div className="mt-3 overflow-hidden rounded-xl border border-slate-200">
-          <table className="w-full table-fixed text-left text-sm">
-            <thead className="bg-slate-50/80 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-              <tr>
-                <th className="px-3 py-2.5">Biển số</th>
-                <th className="px-3 py-2.5">Loại xe</th>
-                <th className="px-3 py-2.5">Loại khách</th>
-                <th className="px-3 py-2.5">Giờ vào</th>
-                <th className="px-3 py-2.5">Giờ ra</th>
-                <th className="px-3 py-2.5">Thời gian gửi</th>
-                <th className="px-3 py-2.5">Phí</th>
-                <th className="px-3 py-2.5">Thanh toán</th>
-                <th className="px-3 py-2.5 text-right">Chi tiết</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {currentData.completedSessions.slice(0, 5).map((session) => (
-                <tr key={session.id} className="text-slate-600 hover:bg-slate-50">
-                  <td className="px-3 py-3 font-semibold text-[#0F172A]">{session.plate}</td>
-                  <td className="px-3 py-3">{session.type}</td>
-                  <td className="px-3 py-3">{session.customer}</td>
-                  <td className="px-3 py-3">{session.entry}</td>
-                  <td className="px-3 py-3">{session.exit}</td>
-                  <td className="px-3 py-3">{session.duration}</td>
-                  <td className="px-3 py-3 font-semibold text-[#0F172A]">{getCompletedFee(session)}</td>
-                  <td className="px-3 py-3">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${paymentClasses[getCompletedPayment(session)] || 'bg-slate-100 text-slate-700'}`}>
-                      {getCompletedPayment(session)}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3 text-right">
-                    <button
-                      type="button"
-                      onClick={() => openSessionDetail(session)}
-                      className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-semibold text-[#2563EB] transition hover:bg-blue-50"
-                    >
-                      <span aria-hidden="true">👁</span>
-                      Chi tiết
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      <section className="relative z-0 grid grid-cols-1 gap-4 2xl:grid-cols-2">
+        <SessionTable
+          title="Phiên đang hoạt động"
+          sessions={currentData.sessions}
+          emptyText="Chưa có phiên đang hoạt động."
+          onViewAll={() => navigate('/admin/parking-sessions')}
+          onDetail={openSessionDetail}
+        />
+        <SessionTable
+          title="Phiên gần đây"
+          sessions={currentData.completedSessions}
+          emptyText="Chưa có phiên gần đây."
+          onViewAll={() => navigate('/admin/parking-sessions')}
+          onDetail={openSessionDetail}
+          completed
+        />
+      </section>
 
       <SessionDetailDrawer open={isDetailOpen} session={selectedSession} onClose={() => setIsDetailOpen(false)} />
     </div>
