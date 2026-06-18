@@ -22,6 +22,7 @@ import {
   Smartphone,
   User,
 } from 'lucide-react';
+import Logo from '../../../../components/Logo';
 import { ROUTES } from '../../../../constants/routes';
 
 const LANGUAGE_KEY = 'language';
@@ -206,13 +207,8 @@ if (!i18n.isInitialized) {
 
 function BrandLogo() {
   return (
-    <Link className="flex items-center gap-3" to={ROUTES.WELCOME} aria-label="SmartParking">
-      <div className="bg-sky-600 p-1.5 rounded-lg shadow-sm shadow-sky-600/20">
-        <Car className="text-white w-6 h-6" />
-      </div>
-      <span className="text-xl font-extrabold text-slate-800 tracking-tight">
-        Smart<span className="text-sky-600">Parking</span>
-      </span>
+    <Link to={ROUTES.WELCOME} aria-label="Parking System">
+      <Logo variant="horizontal" size="md" />
     </Link>
   );
 }

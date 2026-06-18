@@ -6,6 +6,7 @@ import { STORAGE_KEYS } from '../constants/storageKeys';
 import Icon from '../components/Icon';
 import NotificationDropdown from '../components/NotificationDropdown';
 import UserProfileDropdown from '../components/UserProfileDropdown';
+import Logo from '../components/Logo';
 
 const menuItems = [
   { icon: 'dashboard', label: 'Tổng quan', path: ROUTES.ADMIN.DASHBOARD },
@@ -50,14 +51,9 @@ export default function AdminLayout() {
               }} 
               title="Trang chủ quản trị"
             >
-              <img
-                alt="Parking System Logo"
-                className="h-10 w-10 object-contain"
-                src="/parking-system-logo.png"
-              />
-              <div>
-                <h1 className="text-lg font-bold">Parking System</h1>
-                <p className="text-xs text-slate-400">Hệ thống quản trị</p>
+              <div className="flex flex-col">
+                <Logo variant="horizontal" theme="dark" size="sm" />
+                <p className="mt-1.5 truncate text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-[44px]">Hệ thống quản trị</p>
               </div>
             </div>
 

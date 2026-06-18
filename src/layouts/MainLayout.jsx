@@ -2,6 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router';
 import { ROUTES } from '../constants/routes';
 import { STORAGE_KEYS } from '../constants/storageKeys';
 import { useAuth } from '../contexts/useAuth';
+import Logo from '../components/Logo';
 
 const getNavigationItems = (role) => {
   const baseItems = [
@@ -46,16 +47,9 @@ export default function MainLayout() {
   return (
     <div className="min-h-screen bg-[#f4f7fb] text-[#172033] lg:grid lg:grid-cols-[264px_minmax(0,1fr)]">
       <aside className="hidden border-r border-[#d9e2ee] bg-white lg:flex lg:flex-col">
-        <div className="flex h-16 items-center gap-3 border-b border-[#e4eaf2] px-5">
-          <img
-            alt="Parking System Logo"
-            className="h-10 w-10 object-contain"
-            src="/parking-system-logo.png"
-          />
-          <div>
-            <p className="font-bold text-xl text-[#0051d5] tracking-wide">Parking System</p>
-            <p className="text-xs text-[#667085]">Admin workspace</p>
-          </div>
+        <div className="flex flex-col border-b border-[#e4eaf2] px-5 py-3 gap-1">
+          <Logo variant="horizontal" size="sm" />
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[#667085] ml-[44px]">Admin workspace</p>
         </div>
 
         <nav className="grid gap-1 p-3">

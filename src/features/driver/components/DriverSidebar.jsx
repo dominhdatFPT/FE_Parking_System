@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ROUTES } from '../../../constants/routes';
+import Logo from '../../../components/Logo';
 
 const navItems = [
   { key: 'dashboard', path: ROUTES.DRIVER.DASHBOARD, icon: 'dashboard' },
@@ -38,18 +39,9 @@ export default function DriverSidebar({ isOpen, onClose }) {
           background: 'linear-gradient(180deg, #E0F2FE 0%, #BAE6FD 100%)',
         }}
       >
-        {/* Logo */}
-        <div className="flex h-16 items-center gap-3 px-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#0EA5E9] to-[#06B6D4] shadow-md shadow-sky-400/30">
-            <span className="material-symbols-outlined text-[22px] text-white">directions_car</span>
-          </div>
-          <div>
-            <span className="text-[17px] font-extrabold tracking-tight">
-              <span className="text-sky-800">Smart</span>
-              <span className="text-white drop-shadow-sm">Parking</span>
-            </span>
-            <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-sky-600/70">IoT Platform</p>
-          </div>
+        <div className="flex flex-col px-5 py-3 gap-1 border-b border-sky-300/30">
+          <Logo variant="horizontal" size="sm" />
+          <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-sky-700/70 ml-[44px]">Driver Workspace</p>
         </div>
 
         {/* Navigation */}

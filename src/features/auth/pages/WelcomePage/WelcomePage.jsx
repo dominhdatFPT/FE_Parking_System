@@ -7,10 +7,12 @@ import {
   BatteryCharging, Maximize, Bell, ChevronRight, ChevronDown, Info,
   TrendingUp, TrendingDown, Activity, BarChart3, Users,
   LayoutDashboard, LogIn, UserPlus, Facebook, Github, Check,
-  AlertCircle, Sparkles, X
+  AlertCircle, Sparkles, X, Shield, Settings, Eye, CheckSquare
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { parkingAreaSummaryService } from '../../../../services/parkingAreaSummaryService';
+import Logo from '../../../../components/Logo';
 
 // --- DICTIONARY (i18n) ---
 const translations = {
@@ -54,25 +56,25 @@ const translations = {
       ]
     },
     funFacts: {
-      title: "Có Thể Bạn Chưa Biết? 🤭",
-      f1Title: "Không Gian Cực Rộng 📏",
+      title: "Thông tin hữu ích",
+      f1Title: "Không gian tối ưu",
       f1Desc: "Thiết kế phân làn thông minh, đường chạy 1 chiều chống kẹt xe hiệu quả.",
-      f2Title: "Trạm Sạc EV Siêu Tốc 🔋",
+      f2Title: "Trạm sạc xe điện EV",
       f2Desc: "Hỗ trợ các trụ sạc điện thông minh, vừa gửi xe vừa nạp đầy năng lượng!",
-      f3Title: "Luôn Xanh & Sạch Sẽ 🌿",
+      f3Title: "Hệ thống thông gió xanh",
       f3Desc: "Hệ thống thông gió công suất lớn, lọc khí liên tục, không lo ngột ngạt."
     },
     features: {
-      title: "Điểm Nổi Bật Siêu Xịn ✨",
-      f1Title: "An toàn tuyệt đối 🛡️",
+      title: "Công nghệ nổi bật",
+      f1Title: "An toàn bảo mật",
       f1Desc: "Camera AI giám sát 24/7, nhận diện biển số chuẩn xác 99.9%!",
-      f2Title: "Siêu tốc độ ⚡",
+      f2Title: "Tối ưu tốc độ",
       f2Desc: "Ra vào không chạm, không cần chờ đợi lấy thẻ từ.",
-      f3Title: "Thanh toán cái vèo 💳",
+      f3Title: "Thanh toán dễ dàng",
       f3Desc: "Quét mã QR hoặc ví điện tử siêu nhanh gọn, không cần tiền mặt.",
-      f4Title: "App cực xịn xò 📱",
+      f4Title: "Ứng dụng di động",
       f4Desc: "Đặt chỗ trước, tìm vị trí xe đậu dễ dàng ngay trên điện thoại!",
-      badge: "Hơn 10,000+ người dùng đã mê mẩn! 😍"
+      badge: "Hơn 10,000+ người dùng tin cậy"
     },
     process: {
       title: "Quy trình đỗ xe",
@@ -151,25 +153,25 @@ const translations = {
       ]
     },
     funFacts: {
-      title: "Did You Know? 🤭",
-      f1Title: "Extra Spacious 📏",
+      title: "Useful Information",
+      f1Title: "Optimized Space",
       f1Desc: "Smart lane design, one-way routes to prevent traffic jams efficiently.",
-      f2Title: "Fast EV Charging 🔋",
+      f2Title: "EV Charging Stations",
       f2Desc: "Supports smart charging stations, charge your car while parking!",
-      f3Title: "Green & Clean 🌿",
+      f3Title: "Green Ventilation",
       f3Desc: "High-capacity ventilation system, continuous air filtering."
     },
     features: {
-      title: "Awesome Highlights ✨",
-      f1Title: "Absolute Safety 🛡️",
+      title: "Key Features",
+      f1Title: "Secure System",
       f1Desc: "24/7 AI Camera monitoring, 99.9% accurate LPR!",
-      f2Title: "Lightning Fast ⚡",
+      f2Title: "High Performance",
       f2Desc: "Contactless entry/exit, no need to wait for cards.",
-      f3Title: "Quick Payment 💳",
+      f3Title: "Seamless Payment",
       f3Desc: "Scan QR code or use e-wallets fast, cash-free.",
-      f4Title: "Smart App 📱",
+      f4Title: "Mobile Application",
       f4Desc: "Pre-book slots, find your parking spot easily on your phone!",
-      badge: "Over 10,000+ happy users! 😍"
+      badge: "Trusted by over 10,000+ users"
     },
     process: {
       title: "Parking Process",
@@ -345,13 +347,8 @@ const Navbar = ({ lang, setLang, t }) => {
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={reloadPage}>
-            <div className="bg-sky-600 p-1.5 rounded-lg shadow-sm shadow-sky-600/20">
-              <Car className="text-white w-6 h-6" />
-            </div>
-            <span className="text-xl font-extrabold text-slate-800 tracking-tight">
-              Smart<span className="text-sky-600">Parking</span>
-            </span>
+          <div className="cursor-pointer" onClick={reloadPage}>
+            <Logo variant="horizontal" size="md" />
           </div>
 
           <nav className="hidden md:flex items-center gap-2">
@@ -514,8 +511,7 @@ const KPIDashboard = ({ t, zone, floor }) => {
   const kpis = [
     { id: 1, title: t.kpi.c1.title, value: totalSlots.toString(), unit: t.kpi.c1.unit, trend: '', trendDir: '', icon: LayoutDashboard, color: 'slate', progress: 100 },
     { id: 2, title: t.kpi.c2.title, value: availableSlots.toString(), unit: t.kpi.c2.unit, trend: '-5%', trendDir: 'down', icon: Car, color: 'emerald', progress: availableProgress },
-      // xoá 
-    { id: 4, title: t.kpi.c4.title, value: `${peakStart}:00`, unit: `- ${peakEnd}:00`, trend: '', trendDir: '', icon: Sparkles, color: 'orange', progress: 0 },
+    { id: 4, title: t.kpi.c4.title, value: `${peakStart}:00`, unit: `- ${peakEnd}:00`, trend: '', trendDir: '', icon: Clock, color: 'orange', progress: 0 },
   ];
 
   return (
@@ -551,54 +547,97 @@ const KPIDashboard = ({ t, zone, floor }) => {
 };
 
 const VehicleInOutLog = ({ t }) => {
-  const mockLogs = [
-    { plate: '51A-12345', vehicle: 'Car', checkIn: '08:15', checkOut: '--', status: 'In Parking' },
-    { plate: '59B-45678', vehicle: 'Motorbike', checkIn: '09:20', checkOut: '10:05', status: 'Completed' },
-    { plate: '30F-888.88', vehicle: 'Car', checkIn: '10:30', checkOut: '--', status: 'In Parking' },
-    { plate: '43A-999.99', vehicle: 'Car', checkIn: '11:15', checkOut: '12:30', status: 'Completed' },
-    { plate: '75B-111.22', vehicle: 'Motorbike', checkIn: '12:00', checkOut: '--', status: 'In Parking' },
-    { plate: '92C-333.44', vehicle: 'Car', checkIn: '12:45', checkOut: '13:50', status: 'Completed' },
-    { plate: '29A-555.66', vehicle: 'Car', checkIn: '14:15', checkOut: '--', status: 'In Parking' },
-    { plate: '36D-777.88', vehicle: 'Motorbike', checkIn: '14:30', checkOut: '15:10', status: 'Completed' },
+  const steps = [
+    {
+      id: 1,
+      title: i18n.language === 'en' ? 'Register Vehicle' : 'Đăng ký phương tiện',
+      desc: i18n.language === 'en' ? 'Quickly link your vehicle plate and details to your profile online.' : 'Đăng ký thông tin biển số và loại xe của bạn dễ dàng trực tuyến.',
+      tag: i18n.language === 'en' ? 'Step 1' : 'Bước 1',
+      icon: Car,
+      color: 'bg-blue-50 text-blue-600 border-blue-100',
+    },
+    {
+      id: 2,
+      title: i18n.language === 'en' ? 'Book Parking Spot' : 'Đặt chỗ gửi xe',
+      desc: i18n.language === 'en' ? 'Choose your desired parking space in advance through the smartphone app.' : 'Đặt trước vị trí và tầng đỗ xe mong muốn cực kỳ tiện lợi trước khi đến.',
+      tag: i18n.language === 'en' ? 'Step 2' : 'Bước 2',
+      icon: CalendarDays,
+      color: 'bg-sky-50 text-sky-600 border-sky-100',
+    },
+    {
+      id: 3,
+      title: i18n.language === 'en' ? 'AI License Plate Recognition' : 'Nhận diện biển số AI',
+      desc: i18n.language === 'en' ? 'High-accuracy camera scans plate and opens barrier without card touch.' : 'Camera AI quét biển số tự động nhận diện xe và mở cổng barrier chỉ trong 2 giây.',
+      tag: i18n.language === 'en' ? 'Step 3' : 'Bước 3',
+      icon: ScanLine,
+      color: 'bg-indigo-50 text-indigo-600 border-indigo-100',
+    },
+    {
+      id: 4,
+      title: i18n.language === 'en' ? 'Locate Parking Space' : 'Tìm vị trí đỗ xe',
+      desc: i18n.language === 'en' ? 'Follow smart indoor navigation panels directly to your reserved slot.' : 'Hệ thống bảng LED chỉ dẫn thông minh dẫn bạn đến đúng ô đỗ xe đã đặt.',
+      tag: i18n.language === 'en' ? 'Step 4' : 'Bước 4',
+      icon: MapPin,
+      color: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+    },
+    {
+      id: 5,
+      title: i18n.language === 'en' ? 'Cashless Checkout' : 'Thanh toán không tiền mặt',
+      desc: i18n.language === 'en' ? 'Scan QR or auto-deduct fee from e-wallet upon exit seamlessly.' : 'Quét mã QR hoặc tự động trừ tiền ví điện tử khi ra cổng. Không cần dùng tiền mặt.',
+      tag: i18n.language === 'en' ? 'Step 5' : 'Bước 5',
+      icon: CreditCard,
+      color: 'bg-amber-50 text-amber-600 border-amber-100',
+    },
   ];
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 h-full flex flex-col">
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
-          <Activity className="text-sky-500 w-5 h-5" /> {t.vehicleLog.title}
+    <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200 h-full flex flex-col justify-between">
+      <div className="mb-6">
+        <div className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.2em] font-bold text-sky-600 bg-sky-50 px-3 py-1 rounded-full uppercase mb-3">
+          {i18n.language === 'en' ? 'User Journey' : 'Hành trình trải nghiệm'}
+        </div>
+        <h3 className="font-extrabold text-slate-800 text-2xl tracking-tight mb-2">
+          {i18n.language === 'en' ? 'Smart Parking Journey' : 'Trải nghiệm Đỗ xe Thông minh'}
         </h3>
+        <p className="text-slate-500 text-sm font-medium leading-relaxed">
+          {i18n.language === 'en'
+            ? 'Discover how simple and automated the parking cycle is with our SaaS infrastructure.'
+            : 'Khám phá quy trình khép kín tự động hóa, giúp bạn đỗ xe nhanh chóng và thuận tiện.'}
+        </p>
       </div>
 
-      <div className="flex-1 overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-slate-100 text-slate-400 text-xs font-bold uppercase tracking-wider">
-              <th className="py-3 px-4">{t.vehicleLog.plate}</th>
-              <th className="py-3 px-4">{t.vehicleLog.vehicle}</th>
-              <th className="py-3 px-4">{t.vehicleLog.checkIn}</th>
-              <th className="py-3 px-4">{t.vehicleLog.checkOut}</th>
-              <th className="py-3 px-4">{t.vehicleLog.status}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 text-sm font-semibold text-slate-700">
-            {mockLogs.map((log, index) => (
-              <tr key={index} className="hover:bg-slate-50 transition-colors">
-                <td className="py-3.5 px-4 font-mono font-bold text-slate-800">{log.plate}</td>
-                <td className="py-3.5 px-4">{log.vehicle === 'Car' ? t.vehicleLog.car : t.vehicleLog.motorbike}</td>
-                <td className="py-3.5 px-4">{log.checkIn}</td>
-                <td className="py-3.5 px-4">{log.checkOut}</td>
-                <td className="py-3.5 px-4">
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
-                    log.status === 'In Parking' ? 'bg-emerald-100 text-emerald-700' : 'bg-sky-100 text-sky-700'
-                  }`}>
-                    {log.status === 'In Parking' ? t.vehicleLog.inParking : t.vehicleLog.completed}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="relative pl-6 sm:pl-8 border-l border-slate-100 space-y-6 sm:space-y-8 my-2">
+        {steps.map((step) => {
+          const StepIcon = step.icon;
+          return (
+            <motion.div
+              key={step.id}
+              className="relative group cursor-default"
+              initial={{ opacity: 0, x: -10 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: step.id * 0.1 }}
+            >
+              {/* Outer timeline node bezel */}
+              <div className="absolute -left-[45px] sm:-left-[53px] top-1 flex items-center justify-center">
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center transition-all duration-300 shadow-sm ${step.color} group-hover:scale-110 group-hover:shadow`}>
+                  <StepIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{step.tag}</span>
+                  <div className="h-1 w-1 rounded-full bg-slate-200"></div>
+                  <h4 className="font-bold text-slate-800 text-base group-hover:text-sky-600 transition-colors">{step.title}</h4>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed max-w-xl">
+                  {step.desc}
+                </p>
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
@@ -636,63 +675,72 @@ const ParkingTrendChart = ({ t }) => {
 };
 
 const GateControlPanel = ({ t }) => {
+  const features = [
+    {
+      id: 1,
+      title: i18n.language === 'en' ? 'AI LPR Recognition' : 'AI Nhận diện Biển số',
+      desc: i18n.language === 'en' ? 'Automated vehicle recognition and access with high accuracy.' : 'Nhận diện phương tiện tự động ra vào bãi với độ chính xác cao.',
+      icon: ScanLine,
+      color: 'text-blue-500 bg-blue-50 border-blue-100/50',
+    },
+    {
+      id: 2,
+      title: i18n.language === 'en' ? 'Pre-Booking' : 'Đặt chỗ trước',
+      desc: i18n.language === 'en' ? 'Reserve your desired parking slot easily before arrival.' : 'Đặt trước vị trí gửi xe nhanh chóng và tiện lợi trước khi di chuyển.',
+      icon: CalendarDays,
+      color: 'text-amber-500 bg-amber-50 border-amber-100/50',
+    },
+    {
+      id: 3,
+      title: i18n.language === 'en' ? 'Vehicle Management' : 'Quản lý phương tiện',
+      desc: i18n.language === 'en' ? 'Track and manage your private vehicles history easily.' : 'Theo dõi và quản lý danh sách xe cá nhân cũng như lịch sử ra vào bãi.',
+      icon: Car,
+      color: 'text-indigo-500 bg-indigo-50 border-indigo-100/50',
+    },
+    {
+      id: 4,
+      title: i18n.language === 'en' ? 'Visitor Card Support' : 'Hỗ trợ xe vãng lai',
+      desc: i18n.language === 'en' ? 'Quick registration and automatic ticket codes for guest cars.' : 'Đăng ký và sử dụng dịch vụ gửi xe nhanh chóng khi không có tài khoản tháng.',
+      icon: Zap,
+      color: 'text-emerald-500 bg-emerald-50 border-emerald-100/50',
+    },
+  ];
+
   return (
     <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm h-full flex flex-col justify-between">
-      <div>
-        <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-lg">
-          <ShieldCheck className="w-5 h-5 text-sky-500" /> {t.gateControl.title}
-        </h3>
-        
-        <div className="space-y-4 mb-6">
-          {/* Entrance Gate */}
-          <div className="rounded-xl border border-slate-200 p-4 bg-slate-50">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-bold text-slate-700">{t.gateControl.entrance}</span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
-                {t.gateControl.open}
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-slate-400 font-bold uppercase">{t.gateControl.lastPlate}</span>
-              <span className="font-mono font-bold text-slate-800">51A-12345</span>
-            </div>
-          </div>
-
-          {/* Exit Gate */}
-          <div className="rounded-xl border border-slate-200 p-4 bg-slate-50">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-bold text-slate-700">{t.gateControl.exit}</span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
-                {t.gateControl.processing}
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-slate-400 font-bold uppercase">{t.gateControl.lastPlate}</span>
-              <span className="font-mono font-bold text-slate-800">59B-45678</span>
-            </div>
-          </div>
+      <div className="mb-5">
+        <div className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.2em] font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase mb-3">
+          {i18n.language === 'en' ? 'Key Features' : 'Tính năng nổi bật'}
         </div>
+        <h3 className="font-extrabold text-slate-800 text-xl tracking-tight mb-1">
+          {i18n.language === 'en' ? 'Platform Features' : 'Tính năng cốt lõi'}
+        </h3>
+        <p className="text-slate-500 text-xs font-semibold leading-relaxed">
+          {i18n.language === 'en' ? 'Outstanding capabilities for modern buildings.' : 'Giải pháp công nghệ tối ưu hóa hiệu suất bãi xe.'}
+        </p>
       </div>
 
-      {/* Summary Card */}
-      <div className="rounded-xl border border-slate-200 p-4 bg-white shadow-sm mt-auto">
-        <div className="grid grid-cols-2 gap-4 mb-3">
-          <div>
-            <p className="text-xs font-bold text-slate-400 uppercase">{t.gateControl.vehiclesInside}</p>
-            <p className="text-xl font-black text-slate-800">154</p>
-          </div>
-          <div>
-            <p className="text-xs font-bold text-slate-400 uppercase">{t.gateControl.capacity}</p>
-            <p className="text-xl font-black text-slate-800">300</p>
-          </div>
-        </div>
-        <div className="flex justify-between items-center text-xs font-bold text-slate-500 mb-1.5">
-          <span>{t.gateControl.occupancy}</span>
-          <span className="text-sky-600">51%</span>
-        </div>
-        <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-          <div className="h-full bg-sky-500 rounded-full" style={{ width: '51%' }}></div>
-        </div>
+      <div className="grid grid-cols-1 gap-4 flex-1">
+        {features.map((item) => {
+          const FeatureIcon = item.icon;
+          return (
+            <motion.div
+              key={item.id}
+              className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-sky-100 hover:shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all duration-300 group cursor-default"
+              whileHover={{ y: -2 }}
+            >
+              <div className="flex gap-3">
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${item.color} group-hover:bg-sky-600 group-hover:text-white group-hover:border-sky-600 transition-colors duration-300`}>
+                  <FeatureIcon className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-800 text-sm group-hover:text-sky-600 transition-colors mb-0.5">{item.title}</h4>
+                  <p className="text-[11px] sm:text-xs text-slate-500 font-medium leading-relaxed">{item.desc}</p>
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
@@ -837,58 +885,148 @@ const NotificationCenter = ({ t }) => {
 
 const PricingAndMap = ({ t }) => {
   return (
-    <div id="kham-pha" className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-16">
-      <div className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-3xl p-6 sm:p-10 shadow-lg border border-indigo-100 flex flex-col lg:flex-row items-center gap-10">
-        {/* Image Side */}
-        <div className="w-full lg:w-1/2 h-[400px] rounded-2xl overflow-hidden shadow-2xl relative group">
-          <img 
-            src="https://images.unsplash.com/photo-1506521781263-d8422e82f27a?q=80&w=2070&auto=format&fit=crop" 
-            alt="Smart Parking Technology" 
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
-          <div className="absolute bottom-6 left-6 right-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-sm font-bold mb-3">
-              <ScanLine className="w-4 h-4" /> Công nghệ thông minh
-            </div>
-            <h3 className="text-white font-bold text-xl drop-shadow-md">Nhận diện biển số và thanh toán chạm cực mượt mà</h3>
-          </div>
+    <div id="kham-pha" className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-24">
+      {/* Section Header */}
+      <div className="mb-12 text-center lg:text-left">
+        <div className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.2em] font-bold text-sky-600 bg-sky-50 px-3 py-1 rounded-full uppercase mb-4 w-fit">
+          {i18n.language === 'en' ? 'Core Capabilities' : 'Năng lực cốt lõi'}
         </div>
-        
-        {/* Info Side */}
-        <div className="w-full lg:w-1/2 space-y-8">
-          <div>
-            <h2 className="text-3xl font-extrabold text-slate-800 mb-4 flex items-center gap-3">
-              <div className="p-2 bg-indigo-100 text-indigo-500 rounded-xl">
-                <Sparkles className="w-7 h-7" />
-              </div>
-              {t.features.title}
-            </h2>
-            <p className="text-slate-500 font-medium text-lg leading-relaxed">
-              Khám phá những công nghệ đột phá giúp bãi đỗ xe của chúng tôi trở nên thông minh và khác biệt so với phần còn lại.
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight mb-4">
+          {t.features.title}
+        </h2>
+        <p className="text-slate-500 font-medium text-lg max-w-3xl leading-relaxed">
+          {i18n.language === 'en' 
+            ? 'Our infrastructure leverages state-of-the-art computer vision and digital orchestration to deliver absolute efficiency.'
+            : 'Hệ thống hạ tầng kết hợp thị giác máy tính và điều phối số nhằm đem lại hiệu suất vận hành tối đa.'}
+        </p>
+      </div>
+
+      {/* Bento Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Big Feature: AI LPR (Occupies 2 columns on lg screens) */}
+        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-[0_2px_20px_rgba(0,0,0,0.015)] p-6 sm:p-8 flex flex-col justify-between overflow-hidden relative min-h-[480px] group transition-all duration-300 hover:border-sky-200/60">
+          <div className="max-w-xl z-10 mb-6">
+            <span className="text-[10px] font-bold text-sky-600 uppercase tracking-widest bg-sky-50 px-2.5 py-1 rounded-lg">AI Computer Vision</span>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight mt-4 mb-3">
+              {t.features.f1Title}
+            </h3>
+            <p className="text-sm sm:text-base text-slate-500 font-medium leading-relaxed mb-6">
+              {t.features.f1Desc}
             </p>
+            
+            {/* Bullets with subtle lines */}
+            <ul className="space-y-3.5 text-sm font-semibold text-slate-700">
+              <li className="flex items-center gap-3">
+                <div className="h-1.5 w-1.5 rounded-full bg-sky-500"></div>
+                <span>{i18n.language === 'en' ? 'AI camera recognizes vehicle license plate automatically' : 'Camera AI tự động phát hiện và nhận diện biển số'}</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <div className="h-1.5 w-1.5 rounded-full bg-sky-500"></div>
+                <span>{i18n.language === 'en' ? 'Barrier gate opens automatically upon detection' : 'Cổng tự động barrier mở ngay lập tức'}</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <div className="h-1.5 w-1.5 rounded-full bg-sky-500"></div>
+                <span>{i18n.language === 'en' ? 'Real-time vehicle tracking and logging' : 'Theo dõi trạng thái và ghi nhật ký xe thời gian thực'}</span>
+              </li>
+            </ul>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div className="bg-white p-4 rounded-xl border border-indigo-50 shadow-sm hover:shadow-md transition-shadow">
-              <ShieldCheck className="w-6 h-6 text-indigo-500 mb-3" />
-              <h4 className="font-bold text-slate-800 mb-1">{t.features.f1Title}</h4>
-              <p className="text-sm text-slate-500">{t.features.f1Desc}</p>
+          {/* Visual placeholder / graphic for LPR */}
+          <div className="w-full h-[240px] rounded-2xl border border-slate-100 bg-slate-50/50 p-4 sm:p-5 flex flex-col justify-between mt-auto">
+            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest text-center border-b border-slate-100 pb-2">
+              {i18n.language === 'en' ? 'Integrated System Workflow' : 'Luồng Vận Hành Hệ Thống Tích Hợp'}
             </div>
-            <div className="bg-white p-4 rounded-xl border border-indigo-50 shadow-sm hover:shadow-md transition-shadow">
-              <Zap className="w-6 h-6 text-orange-500 mb-3" />
-              <h4 className="font-bold text-slate-800 mb-1">{t.features.f2Title}</h4>
-              <p className="text-sm text-slate-500">{t.features.f2Desc}</p>
+            
+            <div className="flex items-center justify-between gap-2 my-auto">
+              {/* Node 1 */}
+              <div className="flex-1 bg-white border border-slate-100 rounded-xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.015)] h-[120px] flex flex-col justify-between items-center text-center">
+                <span className="text-[9px] font-bold text-slate-400 uppercase">{i18n.language === 'en' ? 'User' : 'Cá nhân'}</span>
+                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 leading-snug">{i18n.language === 'en' ? 'Registration' : 'Đăng ký xe'}</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+              </div>
+
+              <div className="text-slate-300 text-xs font-bold font-mono">→</div>
+
+              {/* Node 2 */}
+              <div className="flex-1 bg-white border border-slate-100 rounded-xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.015)] h-[120px] flex flex-col justify-between items-center text-center">
+                <span className="text-[9px] font-bold text-slate-400 uppercase">{i18n.language === 'en' ? 'Booking' : 'Đặt trước'}</span>
+                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 leading-snug">{i18n.language === 'en' ? 'Reservation' : 'Đặt chỗ đỗ'}</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+              </div>
+
+              <div className="text-slate-300 text-xs font-bold font-mono">→</div>
+
+              {/* Node 3 */}
+              <div className="flex-1 bg-sky-50 border border-sky-100 rounded-xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.015)] h-[120px] flex flex-col justify-between items-center text-center">
+                <span className="text-[9px] font-bold text-sky-500 uppercase">{i18n.language === 'en' ? 'Gate' : 'Cổng vào/ra'}</span>
+                <span className="text-[10px] sm:text-[11px] font-bold text-sky-800 leading-snug">{i18n.language === 'en' ? 'LPR Scan' : 'Nhận diện LPR'}</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-sky-500"></div>
+              </div>
+
+              <div className="text-slate-300 text-xs font-bold font-mono">→</div>
+
+              {/* Node 4 */}
+              <div className="flex-1 bg-white border border-slate-100 rounded-xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.015)] h-[120px] flex flex-col justify-between items-center text-center">
+                <span className="text-[9px] font-bold text-slate-400 uppercase">{i18n.language === 'en' ? 'Parking' : 'Chỗ đỗ'}</span>
+                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 leading-snug">{i18n.language === 'en' ? 'Slot Sensor' : 'Cảm biến ô'}</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+              </div>
+
+              <div className="text-slate-300 text-xs font-bold font-mono">→</div>
+
+              {/* Node 5 */}
+              <div className="flex-1 bg-white border border-slate-100 rounded-xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.015)] h-[120px] flex flex-col justify-between items-center text-center">
+                <span className="text-[9px] font-bold text-slate-400 uppercase">{i18n.language === 'en' ? 'Payment' : 'Thanh toán'}</span>
+                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 leading-snug">{i18n.language === 'en' ? 'Cashless' : 'Cổng thanh toán'}</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+              </div>
             </div>
-            <div className="bg-white p-4 rounded-xl border border-indigo-50 shadow-sm hover:shadow-md transition-shadow">
-              <CreditCard className="w-6 h-6 text-sky-500 mb-3" />
-              <h4 className="font-bold text-slate-800 mb-1">{t.features.f3Title}</h4>
-              <p className="text-sm text-slate-500">{t.features.f3Desc}</p>
+
+            <div className="border-t border-slate-100 pt-2 flex items-center justify-between text-[9px] font-bold text-slate-400 font-mono">
+              <span>PLATFORM FLOW</span>
+              <span>CORE ARCHITECTURE INTEGRATED</span>
             </div>
-            <div className="bg-white p-4 rounded-xl border border-indigo-50 shadow-sm hover:shadow-md transition-shadow">
-              <Smartphone className="w-6 h-6 text-emerald-500 mb-3" />
-              <h4 className="font-bold text-slate-800 mb-1">{t.features.f4Title}</h4>
-              <p className="text-sm text-slate-500">{t.features.f4Desc}</p>
+          </div>
+        </div>
+
+        {/* Supporting small features (1 column on lg screens) */}
+        <div className="flex flex-col gap-6">
+          {/* Spot 2: Parking Reservation */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_2px_20px_rgba(0,0,0,0.015)] flex-1 flex flex-col justify-between hover:border-sky-200/60 transition-all duration-300 group">
+            <div>
+              <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest bg-amber-50 px-2.5 py-1 rounded-lg">{i18n.language === 'en' ? 'Booking' : 'Đặt chỗ trước'}</span>
+              <h3 className="text-xl font-extrabold text-slate-800 tracking-tight mt-3 mb-2">{t.features.f2Title}</h3>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">{t.features.f2Desc}</p>
+            </div>
+            <div className="h-px bg-slate-100 my-4"></div>
+            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              {i18n.language === 'en' ? 'Optimized Space Allocation' : 'Tối ưu phân bổ không gian đỗ'}
+            </div>
+          </div>
+
+          {/* Spot 3: Cashless Payment */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_2px_20px_rgba(0,0,0,0.015)] flex-1 flex flex-col justify-between hover:border-sky-200/60 transition-all duration-300 group">
+            <div>
+              <span className="text-[10px] font-bold text-sky-600 uppercase tracking-widest bg-sky-50 px-2.5 py-1 rounded-lg">{i18n.language === 'en' ? 'Payment' : 'Thanh toán'}</span>
+              <h3 className="text-xl font-extrabold text-slate-800 tracking-tight mt-3 mb-2">{t.features.f3Title}</h3>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">{t.features.f3Desc}</p>
+            </div>
+            <div className="h-px bg-slate-100 my-4"></div>
+            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              {i18n.language === 'en' ? 'QR & E-Wallet integration' : 'Hỗ trợ QR và Ví điện tử'}
+            </div>
+          </div>
+
+          {/* Spot 4: Mobile App */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_2px_20px_rgba(0,0,0,0.015)] flex-1 flex flex-col justify-between hover:border-sky-200/60 transition-all duration-300 group">
+            <div>
+              <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2.5 py-1 rounded-lg">{i18n.language === 'en' ? 'App' : 'Ứng dụng'}</span>
+              <h3 className="text-xl font-extrabold text-slate-800 tracking-tight mt-3 mb-2">{t.features.f4Title}</h3>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">{t.features.f4Desc}</p>
+            </div>
+            <div className="h-px bg-slate-100 my-4"></div>
+            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              {i18n.language === 'en' ? 'iOS & Android support' : 'Hỗ trợ iOS và Android'}
             </div>
           </div>
         </div>
@@ -963,12 +1101,7 @@ const Footer = ({ t }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           <div className="col-span-1 md:col-span-1">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="bg-sky-600 p-1.5 rounded-lg">
-                <Car className="text-white w-5 h-5" />
-              </div>
-              <span className="text-xl font-extrabold text-slate-800 tracking-tight">SmartParking</span>
-            </div>
+            <Logo variant="horizontal" size="sm" />
             <p className="text-slate-500 text-sm font-medium leading-relaxed mb-6">
               {t.footer.desc}
             </p>
@@ -1005,7 +1138,7 @@ const Footer = ({ t }) => {
           <div>
             <h4 className="font-bold text-slate-800 mb-4">{t.footer.contact}</h4>
             <ul className="space-y-3 text-sm font-medium text-slate-500">
-              <li>Email: contact@smartparking.vn</li>
+              <li>Email: contact@parkingsystem.vn</li>
               <li>Hotline: 1900 1234</li>
               <li>{t.footer.addressLabel}: {t.footer.addressVal}</li>
             </ul>
@@ -1013,7 +1146,7 @@ const Footer = ({ t }) => {
         </div>
         
         <div className="border-t border-slate-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <span className="text-sm text-slate-500 font-medium">© 2026 SmartParking SaaS. {t.footer.rights}</span>
+          <span className="text-sm text-slate-500 font-medium">© 2026 Parking System SaaS. {t.footer.rights}</span>
           <div className="flex gap-6 text-sm font-bold text-slate-500">
             <a href="#" className="hover:text-sky-600 transition-colors">{t.footer.terms}</a>
             <a href="#" className="hover:text-sky-600 transition-colors">{t.footer.privacy}</a>

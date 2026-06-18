@@ -1,6 +1,7 @@
 // src/pages/AccountRecovery.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
+import Logo from '../../../../components/Logo';
 
 export default function AccountRecovery() {
     const navigate = useNavigate();
@@ -83,13 +84,8 @@ export default function AccountRecovery() {
         <div className="flex min-h-screen items-center justify-center bg-[#eff1f3] p-6 text-[#191c1e]">
             <div className="w-full max-w-[480px] rounded-xl border border-[#e0e3e5] bg-white px-8 py-10 text-center shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)] max-sm:px-5">
                 {/* Header & Logo */}
-                <div className="mx-auto mb-6 h-20 w-20 rounded-full border-2 border-[#e0e3e5] bg-white p-2 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
-                    {/* Logo đã được thay đổi */}
-                    <img
-                        className="h-full w-full rounded-full object-contain"
-                        src="/image_ac156e.jpg"
-                        alt="Parking System Logo"
-                    />
+                <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 p-3 shadow-[0_4px_12px_rgba(0,0,0,0.03)]">
+                    <Logo variant="icon-only" size="lg" />
                 </div>
 
                 <div>

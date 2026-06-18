@@ -29,6 +29,7 @@ import { auth, googleProvider } from '../../../../config/firebase';
 import { STORAGE_KEYS } from '../../../../constants/storageKeys';
 import { ROUTES } from '../../../../constants/routes';
 import { login } from '../../../../services/modules/authService';
+import Logo from '../../../../components/Logo';
 
 import { googleLoginApi } from '../../services/authApi';
 
@@ -189,13 +190,8 @@ function getDashboardPath(role) {
 
 function BrandLogo({ compact = false }) {
   return (
-    <Link className="flex items-center gap-3" to={ROUTES.WELCOME} aria-label="SmartParking">
-      <div className="bg-sky-600 p-1.5 rounded-lg shadow-sm shadow-sky-600/20">
-        <Car className="text-white w-6 h-6" />
-      </div>
-      <span className={compact ? 'text-xl font-extrabold text-slate-800 tracking-tight' : 'text-xl font-extrabold text-slate-800 tracking-tight'}>
-        Smart<span className="text-sky-600">Parking</span>
-      </span>
+    <Link to={ROUTES.WELCOME} aria-label="Parking System">
+      <Logo variant="horizontal" size={compact ? 'md' : 'md'} />
     </Link>
   );
 }
