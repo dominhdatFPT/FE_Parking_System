@@ -21,4 +21,9 @@ export const API_ENDPOINTS = {
     SEND: (id: string | number) => `/api/v1/admin/notifications/${id}/send`,
     DETAIL: (id: string | number) => `/api/v1/admin/notifications/${id}`,
   },
+  NOTIFICATIONS: {
+    LIST: '/api/v1/notifications',
+    DETAIL: (id: number | string) => `/api/v1/notifications/${id}`,
+    REGISTER_TOKEN: '/api/v1/notifications/register-token',
+  },
 } as const;
