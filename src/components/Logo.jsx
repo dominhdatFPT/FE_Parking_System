@@ -34,18 +34,6 @@ export default function Logo({ variant = 'horizontal', theme = 'brand', size = '
     dark: 'text-white',
   };
 
-  const textThemes = {
-    brand: 'text-slate-900 dark:text-slate-100',
-    light: 'text-slate-800 dark:text-slate-200',
-    dark: 'text-white',
-  };
-
-  const subtextThemes = {
-    brand: 'text-[#3B6E8C] dark:text-sky-400',
-    light: 'text-slate-500 dark:text-slate-400',
-    dark: 'text-sky-200/80',
-  };
-
   const getTextColor = () => {
     if (theme === 'dark') return '#ffffff';
     if (theme === 'light') return '#1e293b';

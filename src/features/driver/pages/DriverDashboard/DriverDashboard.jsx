@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/useAuth';
 import { bookingService } from '../../../../services/bookingService';
 import { ROUTES } from '../../../../constants/routes';
-import PageHeader from '../../components/PageHeader';
 import Button from '../../components/Button';
 
 export default function DriverDashboard() {
@@ -13,7 +12,6 @@ export default function DriverDashboard() {
   const { t } = useTranslation();
   const displayName = user?.fullName || user?.name || t('driverDashboard.driver');
   
-  const [summary, setSummary] = useState(null);
   const [areas, setAreas] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,11 +19,10 @@ export default function DriverDashboard() {
 
   const fetchDashboard = useCallback(async () => {
     setLoading(true);
-    const [summaryRes, bookingsRes] = await Promise.all([
+    const [, bookingsRes] = await Promise.all([
       bookingService.getDashboardSummary(),
       bookingService.getMyBookings(),
     ]);
-    setSummary(summaryRes.data);
     setBookings(Array.isArray(bookingsRes.data) ? bookingsRes.data : []);
     setLoading(false);
   }, []);
@@ -66,7 +63,7 @@ export default function DriverDashboard() {
   };
 
   const handleEnd = async (id) => {
-    if (confirm(t('driverDashboard.endConfirm'))) {
+    if (window.confirm(t('driverDashboard.endConfirm'))) {
       await bookingService.cancelBooking(id);
       fetchDashboard();
     }

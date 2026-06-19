@@ -7,7 +7,7 @@ import IncidentPage from '../IncidentPage';
 export default function AuditLogPage() {
   const location = useLocation();
 
-  if (new URLSearchParams(location.search).get('view') === 'incidents') {
+  if (new window.URLSearchParams(location.search).get('view') === 'incidents') {
     return <IncidentPage />;
   }
 

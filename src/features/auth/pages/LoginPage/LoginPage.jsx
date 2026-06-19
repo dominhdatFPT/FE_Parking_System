@@ -8,7 +8,6 @@ import {
   ArrowRight,
   BadgeCheck,
   Camera,
-  Car,
   CarFront,
   Check,
   CircleAlert,
@@ -161,6 +160,11 @@ const getInitialLanguage = () => {
   if (typeof window === 'undefined') return 'vi';
   const savedLanguage = window.localStorage.getItem(LOGIN_LANGUAGE_KEY) || 'vi';
   return savedLanguage.startsWith('en') ? 'en' : 'vi';
+};
+
+const getLoginText = (language, key) => {
+  const dictionary = loginTranslations[language] || loginTranslations.vi;
+  return key.split('.').reduce((value, part) => value?.[part], dictionary) ?? key;
 };
 
 if (!i18n.isInitialized) {
@@ -396,7 +400,7 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
-  const { t, i18n: loginI18n } = useTranslation();
+  const { i18n: loginI18n } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -407,6 +411,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
   const currentLanguage = loginI18n.language.startsWith('en') ? 'en' : 'vi';
+  const t = (key) => getLoginText(currentLanguage, key);
 
   useEffect(() => {
     localStorage.setItem(LOGIN_LANGUAGE_KEY, currentLanguage);

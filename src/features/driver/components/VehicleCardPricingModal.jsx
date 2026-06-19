@@ -1,13 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
-import { ROUTES } from '../../../constants/routes';
 import dayjs from 'dayjs';
 
 export default function VehicleCardPricingModal({ isOpen, onClose }) {
-  const navigate = useNavigate();
   const [vehicleType, setVehicleType] = useState('CAR'); // Default to CAR
   const [licensePlate, setLicensePlate] = useState('29A-123.45');
-  const [startDate, setStartDate] = useState(dayjs().format('YYYY-MM-DD'));
+  const [startDate] = useState(dayjs().format('YYYY-MM-DD'));
   const [selectedPlan, setSelectedPlan] = useState(null); // Default to null (no plan selected at first)
   
   // Checkout & Simulation states

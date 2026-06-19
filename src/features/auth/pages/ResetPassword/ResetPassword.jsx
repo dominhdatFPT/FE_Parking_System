@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Camera,
-  Car,
   Check,
   CheckCircle2,
   CircleAlert,
@@ -191,6 +190,11 @@ const getInitialLanguage = () => {
   if (typeof window === 'undefined') return 'vi';
   const savedLanguage = window.localStorage.getItem(LANGUAGE_KEY) || 'vi';
   return savedLanguage.startsWith('en') ? 'en' : 'vi';
+};
+
+const getResetText = (language, key) => {
+  const dictionary = resources[language]?.translation || resources.vi.translation;
+  return key.split('.').reduce((value, part) => value?.[part], dictionary) ?? key;
 };
 
 if (!i18n.isInitialized) {
@@ -381,7 +385,7 @@ function PasswordStrength({ password, t }) {
 }
 
 export default function ResetPassword() {
-  const { t, i18n: resetI18n } = useTranslation();
+  const { i18n: resetI18n } = useTranslation();
   const [step, setStep] = useState('email');
   const [email, setEmail] = useState('');
   const [otpDigits, setOtpDigits] = useState(Array(OTP_LENGTH).fill(''));
@@ -395,6 +399,7 @@ export default function ResetPassword() {
   const otpRefs = useRef([]);
   const navigate = useNavigate();
   const currentLanguage = resetI18n.language.startsWith('en') ? 'en' : 'vi';
+  const t = (key) => getResetText(currentLanguage, key);
 
   const otp = otpDigits.join('');
   const maskedEmail = email.trim();

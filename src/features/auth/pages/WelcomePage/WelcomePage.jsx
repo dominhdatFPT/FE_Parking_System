@@ -1,17 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { NavLink, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import i18n from 'i18next';
 import {
-  Car, Bike, Zap, MapPin, CreditCard, Globe, ScanLine, CalendarDays,
-  Smartphone, CheckCircle2, AlertTriangle, Clock, ShieldCheck,
-  BatteryCharging, Maximize, Bell, ChevronRight, ChevronDown, Info,
-  TrendingUp, TrendingDown, Activity, BarChart3, Users,
-  LayoutDashboard, LogIn, UserPlus, Facebook, Github, Check,
-  AlertCircle, Sparkles, X, Shield, Settings, Eye, CheckSquare
+  Car, Zap, MapPin, CreditCard, Globe, ScanLine, CalendarDays,
+  Smartphone, CheckCircle2, Clock, ShieldCheck,
+  Bell, ChevronRight, ChevronDown,
+  TrendingUp, TrendingDown, BarChart3,
+  LayoutDashboard, LogIn, UserPlus, Facebook, Github, X
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { parkingAreaSummaryService } from '../../../../services/parkingAreaSummaryService';
+import {
+  notificationService,
+  getCategoryToneClass,
+  getCategoryLabel,
+} from '../../../../services/notificationService';
+import dayjs from 'dayjs';
 import Logo from '../../../../components/Logo';
 
 // --- DICTIONARY (i18n) ---
@@ -294,6 +298,11 @@ const getAreaTone = (percent) => {
   };
 };
 
+void zoneData;
+void floorOptions;
+void generateParkingAreas;
+void getAreaTone;
+
 // --- HELPER HOOK ---
 const useScrollSpy = (ids, offset = 100) => {
   const [activeId, setActiveId] = useState('');
@@ -463,8 +472,8 @@ const HeroSection = ({ t }) => {
 
 // --- DASHBOARD WRAPPER ---
 const MainDashboard = ({ t }) => {
-  const [zone, setZone] = useState('LK');
-  const [floor, setFloor] = useState('1');
+  const zone = 'LK';
+  const floor = '1';
 
   return (
     <section id="dashboard" className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative z-20 py-12 space-y-8">
@@ -474,10 +483,10 @@ const MainDashboard = ({ t }) => {
       {/* 2. Main Section & Side Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <VehicleInOutLog t={t} />
+          <VehicleInOutLog />
         </div>
          <div className="lg:col-span-1">
-          <GateControlPanel t={t} />
+          <GateControlPanel />
         </div>
       </div>
 
@@ -502,8 +511,6 @@ const KPIDashboard = ({ t, zone, floor }) => {
   const availableSlots = totalSlots - occupied;
   
   const availableProgress = totalSlots > 0 ? Math.round((availableSlots / totalSlots) * 100) : 0;
-  
-  const todayTraffic = Math.round(totalSlots * 3.5 * floorMult);
   
   const peakStart = zone === 'A' ? 17 : zone === 'B' ? 18 : 16;
   const peakEnd = peakStart + 2;
@@ -546,7 +553,7 @@ const KPIDashboard = ({ t, zone, floor }) => {
   );
 };
 
-const VehicleInOutLog = ({ t }) => {
+const VehicleInOutLog = () => {
   const steps = [
     {
       id: 1,
@@ -674,7 +681,7 @@ const ParkingTrendChart = ({ t }) => {
   );
 };
 
-const GateControlPanel = ({ t }) => {
+const GateControlPanel = () => {
   const features = [
     {
       id: 1,
@@ -796,14 +803,94 @@ const CustomSelect = ({ value, options, onChange }) => {
   );
 };
 
-const NotificationCenter = ({ t }) => {
-  const [selectedNotice, setSelectedNotice] = useState(null);
+void CustomSelect;
 
-  const getBadgeColor = (tone) => {
-    if(tone === 'red') return 'bg-red-50 text-red-600 border-red-200';
-    if(tone === 'sky') return 'bg-sky-50 text-sky-600 border-sky-200';
-    if(tone === 'orange') return 'bg-orange-50 text-orange-600 border-orange-200';
-    return 'bg-slate-50 text-slate-600 border-slate-200';
+const NotificationCenter = ({ t }) => {
+  const [notices, setNotices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedNotice, setSelectedNotice] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const { data } = await notificationService.getActiveNotifications({ page: 0, size: 6 });
+      if (!cancelled) {
+        setNotices(Array.isArray(data) ? data : []);
+        setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const openDetail = async (notice) => {
+    setSelectedNotice({ ...notice, content: '', _loading: true });
+    setDetailLoading(true);
+    const { data } = await notificationService.getNotificationDetail(notice.id);
+    setDetailLoading(false);
+    if (data) {
+      setSelectedNotice({ ...notice, ...data, _loading: false });
+    } else {
+      setSelectedNotice({ ...notice, content: notice.summary || '', _loading: false, _error: true });
+    }
+  };
+
+  const closeDetail = () => setSelectedNotice(null);
+
+  const formatDate = (iso) => {
+    if (!iso) return '';
+    const d = dayjs(iso);
+    return d.isValid() ? d.format('DD/MM HH:mm') : '';
+  };
+
+  const renderCards = () => {
+    if (loading) {
+      return Array.from({ length: 3 }).map((_, idx) => (
+        <div
+          key={`skeleton-${idx}`}
+          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full animate-pulse"
+        >
+          <div className="h-4 w-20 bg-slate-200 rounded mb-4" />
+          <div className="h-5 w-3/4 bg-slate-200 rounded mb-3" />
+          <div className="h-3 w-full bg-slate-100 rounded mb-2" />
+          <div className="h-3 w-5/6 bg-slate-100 rounded mb-auto" />
+          <div className="h-4 w-24 bg-slate-200 rounded mt-4" />
+        </div>
+      ));
+    }
+
+    if (notices.length === 0) {
+      return (
+        <div className="md:col-span-3 bg-white p-10 rounded-2xl border border-slate-200 text-center text-slate-500">
+          <Bell className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+          <p className="font-bold text-slate-700 mb-1">Chưa có thông báo nào</p>
+          <p className="text-sm">Vui lòng quay lại sau.</p>
+        </div>
+      );
+    }
+
+    return notices.map((ann) => (
+      <div
+        key={ann.id}
+        onClick={() => openDetail(ann)}
+        className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition-all cursor-pointer flex flex-col h-full group"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${getCategoryToneClass(ann.category)} uppercase tracking-wider`}>
+            {getCategoryLabel(ann.category)}
+          </span>
+          <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
+            <Clock className="w-3 h-3" /> {formatDate(ann.publishedAt)}
+          </span>
+        </div>
+        <h3 className="font-bold text-slate-800 mb-2 leading-snug group-hover:text-sky-600 transition-colors">{ann.title}</h3>
+        <p className="text-sm text-slate-500 line-clamp-2 mb-4 flex-1">{ann.summary}</p>
+        <div className="flex items-center gap-1 text-sky-600 text-sm font-bold mt-auto">
+          {t.notice.readMore} <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+        </div>
+      </div>
+    ));
   };
 
   return (
@@ -812,51 +899,35 @@ const NotificationCenter = ({ t }) => {
         <h2 className="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
           <Bell className="text-sky-600 w-6 h-6" /> {t.notice.title}
         </h2>
-        <button className="text-sm font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1 hover:underline">
-          {t.notice.viewAll} <ChevronRight className="w-4 h-4" />
-        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {t.notice.data.map((ann) => (
-          <div 
-            key={ann.id} 
-            onClick={() => setSelectedNotice(ann)}
-            className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition-all cursor-pointer flex flex-col h-full group"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${getBadgeColor(ann.tone)} uppercase tracking-wider`}>
-                {ann.type}
-              </span>
-              <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
-                <Clock className="w-3 h-3" /> {ann.date}
-              </span>
-            </div>
-            <h3 className="font-bold text-slate-800 mb-2 leading-snug group-hover:text-sky-600 transition-colors">{ann.title}</h3>
-            <p className="text-sm text-slate-500 line-clamp-2 mb-4 flex-1">{ann.desc}</p>
-            <div className="flex items-center gap-1 text-sky-600 text-sm font-bold mt-auto">
-              {t.notice.readMore} <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </div>
-          </div>
-        ))}
+        {renderCards()}
       </div>
 
-      {/* Modal */}
       {selectedNotice && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+          onClick={closeDetail}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col border border-slate-200 animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between p-6 border-b border-slate-100">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg border ${getBadgeColor(selectedNotice.tone)}`}>
+                <div className={`p-2 rounded-lg border ${getCategoryToneClass(selectedNotice.category)}`}>
                   <Bell className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800">{selectedNotice.type}</h3>
-                  <p className="text-xs font-bold text-slate-400">{selectedNotice.date}</p>
+                  <h3 className="font-bold text-slate-800">{getCategoryLabel(selectedNotice.category)}</h3>
+                  <p className="text-xs font-bold text-slate-400">
+                    {selectedNotice._error ? 'Không tải được nội dung' : formatDate(selectedNotice.publishedAt)}
+                  </p>
                 </div>
               </div>
-              <button 
-                onClick={() => setSelectedNotice(null)}
+              <button
+                onClick={closeDetail}
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -864,13 +935,21 @@ const NotificationCenter = ({ t }) => {
             </div>
             <div className="p-6 overflow-y-auto max-h-[60vh] custom-scrollbar">
               <h2 className="text-xl font-extrabold text-slate-800 mb-4">{selectedNotice.title}</h2>
-              <div className="text-slate-600 text-sm font-medium leading-relaxed whitespace-pre-wrap">
-                {selectedNotice.fullContent || selectedNotice.desc}
-              </div>
+              {detailLoading ? (
+                <div className="space-y-2 animate-pulse">
+                  <div className="h-3 w-full bg-slate-100 rounded" />
+                  <div className="h-3 w-5/6 bg-slate-100 rounded" />
+                  <div className="h-3 w-4/6 bg-slate-100 rounded" />
+                </div>
+              ) : (
+                <div className="text-slate-600 text-sm font-medium leading-relaxed whitespace-pre-wrap">
+                  {selectedNotice.content || selectedNotice.summary || 'Chưa có nội dung chi tiết.'}
+                </div>
+              )}
             </div>
             <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
-              <button 
-                onClick={() => setSelectedNotice(null)}
+              <button
+                onClick={closeDetail}
                 className="px-6 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-lg transition-colors"
               >
                 Đóng
@@ -1189,6 +1268,8 @@ export default function WelcomePage() {
       <Navbar lang={lang} setLang={setLang} t={t} />
       <main>
         <HeroSection t={t} />
+        <MainDashboard t={t} />
+        <NotificationCenter t={t} />
         <PricingAndMap t={t} />
         <ProcessTimeline t={t} />
       </main>
