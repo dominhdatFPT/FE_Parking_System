@@ -1189,8 +1189,6 @@ export default function WelcomePage() {
       <Navbar lang={lang} setLang={setLang} t={t} />
       <main>
         <HeroSection t={t} />
-        <MainDashboard t={t} />
-        <NotificationCenter t={t} />
         <PricingAndMap t={t} />
         <ProcessTimeline t={t} />
       </main>

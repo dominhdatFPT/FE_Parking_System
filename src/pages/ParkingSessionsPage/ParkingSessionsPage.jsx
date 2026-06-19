@@ -1,241 +1,169 @@
-import React, { useMemo, useState } from 'react';
-import { CalendarDays, RotateCcw, Search } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
 import SessionDetailDrawer from '../../components/parking/SessionDetailDrawer';
-import { allParkingSessions } from '../../data/parkingSessions';
+import { getParkingSessions } from '../../services/staffService';
 
 const tabs = ['Đang hoạt động', 'Đã hoàn thành', 'Tất cả'];
 const vehicleTypes = ['Tất cả', 'Ô tô', 'Xe máy'];
 const customerTypes = ['Tất cả', 'Gói tháng', 'Vãng lai'];
 const statuses = ['Tất cả', 'Bình thường', 'Quá 24 giờ', 'Quá 7 ngày', 'Đã hoàn thành'];
-const defaultDate = '2026-06-17';
 
 const statusClasses = {
-  'Bình thường': 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100',
-  'Quá 24 giờ': 'bg-amber-50 text-amber-700 ring-1 ring-amber-100',
-  'Quá 7 ngày': 'bg-rose-50 text-rose-700 ring-1 ring-rose-100',
-  'Đã hoàn thành': 'bg-sky-50 text-sky-700 ring-1 ring-sky-100',
+  'Bình thường': 'bg-emerald-50 text-emerald-700',
+  'Quá 24 giờ': 'bg-amber-50 text-amber-700',
+  'Quá 7 ngày': 'bg-red-50 text-red-700',
+  'Đã hoàn thành': 'bg-blue-50 text-blue-700',
 };
 
+const normalizeVehicleType = (value) => {
+  const normalized = String(value || '').toUpperCase();
+  return normalized.includes('MOTOR') || normalized.includes('MÁY') || normalized.includes('MAY')
+    ? 'Xe máy'
+    : 'Ô tô';
+};
+
+const normalizeCustomerType = (value) =>
+  String(value || '').toUpperCase().includes('VISITOR') ? 'Vãng lai' : 'Gói tháng';
+
+const formatDateTime = (value) => {
+  if (!value) return '--';
+  return new Intl.DateTimeFormat('vi-VN', {
+    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+  }).format(new Date(value));
+};
+
+const durationMinutes = (entryTime, exitTime) => {
+  if (!entryTime) return 0;
+  return Math.max(0, Math.floor((new Date(exitTime || Date.now()).getTime() - new Date(entryTime).getTime()) / 60000));
+};
+
+const formatDuration = (minutes) => {
+  const days = Math.floor(minutes / 1440);
+  const hours = Math.floor((minutes % 1440) / 60);
+  const mins = minutes % 60;
+  if (days) return `${days} ngày ${hours}h`;
+  return `${hours}h ${mins}m`;
+};
+
+const formatFee = (fee, active) => active
+  ? 'Đang tính'
+  : `${Number(fee || 0).toLocaleString('vi-VN')} ₫`;
+
+function mapSession(item) {
+  const completed = item.status === 'COMPLETED' || Boolean(item.exitTime);
+  const minutes = durationMinutes(item.entryTime, item.exitTime);
+  const displayStatus = completed
+    ? 'Đã hoàn thành'
+    : minutes >= 7 * 1440
+      ? 'Quá 7 ngày'
+      : minutes >= 1440
+        ? 'Quá 24 giờ'
+        : 'Bình thường';
+
+  return {
+    id: item.orderCode || String(item.id),
+    rawId: item.id,
+    plate: item.licensePlate || '--',
+    type: normalizeVehicleType(item.vehicleType),
+    customer: normalizeCustomerType(item.customerType),
+    cardId: item.visitorCardCode || '--',
+    entry: formatDateTime(item.entryTime),
+    exit: formatDateTime(item.exitTime),
+    duration: formatDuration(minutes),
+    durationMinutes: minutes,
+    floor: item.floorName || '--',
+    zone: item.parkingName || '--',
+    status: displayStatus,
+    fee: formatFee(item.calculatedFee, !completed),
+    estimatedFee: item.calculatedFee == null ? null : formatFee(item.calculatedFee, false),
+    entryTime: item.entryTime,
+    exitTime: item.exitTime,
+    parkingStatus: item.status,
+  };
+}
+
 function StatusBadge({ status }) {
-  return (
-    <span
-      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-        statusClasses[status] || 'bg-slate-100 text-slate-700 ring-1 ring-slate-200'
-      }`}
-    >
-      {status}
-    </span>
-  );
-}
-
-function Panel({ children, className = '' }) {
-  return (
-    <section
-      className={`rounded-[28px] border border-white/60 bg-white/70 shadow-[0_18px_45px_rgba(15,23,42,0.07)] backdrop-blur-xl ${className}`}
-    >
-      {children}
-    </section>
-  );
-}
-
-function MiniKpi({ label, value, tone = 'text-slate-950' }) {
-  return (
-    <div className="rounded-2xl border border-slate-200/60 bg-white/65 px-4 py-3">
-      <p className="text-xs font-semibold text-slate-400">{label}</p>
-      <p className={`mt-1 text-2xl font-semibold tracking-tight ${tone}`}>{value}</p>
-    </div>
-  );
-}
-
-function FilterSelect({ value, onChange, options, label }) {
-  return (
-    <label className="min-w-0">
-      <span className="sr-only">{label}</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="h-11 w-full rounded-2xl border border-slate-200/70 bg-white/85 px-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-      >
-        {options.map((item) => (
-          <option key={item}>{item}</option>
-        ))}
-      </select>
-    </label>
-  );
+  return <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusClasses[status] || 'bg-slate-100 text-slate-700'}`}>{status}</span>;
 }
 
 export default function ParkingSessionsPage() {
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('Đang hoạt động');
   const [search, setSearch] = useState('');
   const [vehicleType, setVehicleType] = useState('Tất cả');
   const [customerType, setCustomerType] = useState('Tất cả');
   const [status, setStatus] = useState('Tất cả');
-  const [date, setDate] = useState(defaultDate);
+  const [date, setDate] = useState('');
   const [selectedSession, setSelectedSession] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  const kpis = useMemo(() => {
-    const active = allParkingSessions.filter((session) => session.status !== 'Đã hoàn thành').length;
-    const completed = allParkingSessions.filter((session) => session.status === 'Đã hoàn thành').length;
-    const overdue = allParkingSessions.filter((session) => session.status.includes('Quá')).length;
-
-    return {
-      active,
-      completed,
-      overdue,
-      total: allParkingSessions.length,
-    };
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    getParkingSessions()
+      .then((items) => {
+        if (active) setSessions(items.map(mapSession));
+      })
+      .catch((requestError) => {
+        if (active) setError(requestError?.response?.data?.message || 'Không thể tải dữ liệu phiên gửi xe từ database.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
   }, []);
 
-  const filteredSessions = useMemo(() => {
-    return allParkingSessions.filter((session) => {
-      const matchesTab =
-        activeTab === 'Tất cả' ||
-        (activeTab === 'Đang hoạt động' && session.status !== 'Đã hoàn thành') ||
-        (activeTab === 'Đã hoàn thành' && session.status === 'Đã hoàn thành');
-      const normalizedSearch = search.trim().toLowerCase();
-      const matchesSearch =
-        session.plate.toLowerCase().includes(normalizedSearch) ||
-        session.id.toLowerCase().includes(normalizedSearch) ||
-        session.cardId.toLowerCase().includes(normalizedSearch);
-      const matchesVehicle = vehicleType === 'Tất cả' || session.type === vehicleType;
-      const matchesCustomer = customerType === 'Tất cả' || session.customer === customerType;
-      const matchesStatus = status === 'Tất cả' || session.status === status;
+  const filteredSessions = useMemo(() => sessions.filter((session) => {
+    const completed = session.status === 'Đã hoàn thành';
+    const matchesTab = activeTab === 'Tất cả'
+      || (activeTab === 'Đang hoạt động' && !completed)
+      || (activeTab === 'Đã hoàn thành' && completed);
+    const matchesDate = !date || session.entryTime?.slice(0, 10) === date;
+    return matchesTab
+      && session.plate.toLowerCase().includes(search.trim().toLowerCase())
+      && (vehicleType === 'Tất cả' || session.type === vehicleType)
+      && (customerType === 'Tất cả' || session.customer === customerType)
+      && (status === 'Tất cả' || session.status === status)
+      && matchesDate;
+  }), [activeTab, customerType, date, search, sessions, status, vehicleType]);
 
-      return matchesTab && matchesSearch && matchesVehicle && matchesCustomer && matchesStatus && date;
-    });
-  }, [activeTab, customerType, date, search, status, vehicleType]);
-
-  function openSessionDetail(session) {
+  const openSessionDetail = (session) => {
     setSelectedSession(session);
     setIsDetailOpen(true);
-  }
-
-  function resetFilters() {
-    setSearch('');
-    setVehicleType('Tất cả');
-    setCustomerType('Tất cả');
-    setStatus('Tất cả');
-    setDate(defaultDate);
-  }
+  };
 
   return (
-    <div className="space-y-5">
-      <Panel className="overflow-hidden p-4 sm:p-5">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Danh sách phiên</h1>
-          </div>
-          <div className="flex w-full max-w-full overflow-x-auto rounded-2xl bg-slate-100/80 p-1 ring-1 ring-white/70 xl:w-auto">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab)}
-                className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                  activeTab === tab ? 'bg-white text-sky-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+    <div className="space-y-4">
+      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div><h1 className="text-2xl font-semibold tracking-tight text-slate-950">Tất cả phiên gửi xe</h1><p className="mt-1 text-sm font-medium text-slate-500">Dữ liệu trực tiếp từ hệ thống.</p></div>
+          <div className="flex rounded-xl bg-slate-100 p-1">{tabs.map((tab) => <button key={tab} type="button" onClick={() => setActiveTab(tab)} className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${activeTab === tab ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>{tab}</button>)}</div>
         </div>
+      </section>
 
-        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <MiniKpi label="Đang hoạt động" value={kpis.active} tone="text-sky-700" />
-          <MiniKpi label="Đã hoàn thành" value={kpis.completed} tone="text-emerald-700" />
-          <MiniKpi label="Quá hạn" value={kpis.overdue} tone="text-rose-700" />
-          <MiniKpi label="Tổng phiên" value={kpis.total} />
+      {error ? <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div> : null}
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_160px_170px_170px_160px]">
+          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm theo biển số" className="h-10 rounded-xl border border-slate-200 px-3 text-sm font-semibold outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" />
+          <select value={vehicleType} onChange={(event) => setVehicleType(event.target.value)} className="h-10 rounded-xl border border-slate-200 px-3 text-sm font-semibold">{vehicleTypes.map((item) => <option key={item}>{item}</option>)}</select>
+          <select value={customerType} onChange={(event) => setCustomerType(event.target.value)} className="h-10 rounded-xl border border-slate-200 px-3 text-sm font-semibold">{customerTypes.map((item) => <option key={item}>{item}</option>)}</select>
+          <select value={status} onChange={(event) => setStatus(event.target.value)} className="h-10 rounded-xl border border-slate-200 px-3 text-sm font-semibold">{statuses.map((item) => <option key={item}>{item}</option>)}</select>
+          <input type="date" value={date} onChange={(event) => setDate(event.target.value)} className="h-10 rounded-xl border border-slate-200 px-3 text-sm font-semibold" />
         </div>
+      </section>
 
-        <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-[minmax(240px,1.4fr)_150px_160px_170px_160px_112px]">
-          <label className="relative min-w-0">
-            <span className="sr-only">Search</span>
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search biển số, mã phiên, mã thẻ"
-              className="h-11 w-full rounded-2xl border border-slate-200/70 bg-white/85 pl-10 pr-3 text-sm font-semibold text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-            />
-          </label>
-          <FilterSelect label="Loại xe" value={vehicleType} onChange={setVehicleType} options={vehicleTypes} />
-          <FilterSelect label="Loại khách" value={customerType} onChange={setCustomerType} options={customerTypes} />
-          <FilterSelect label="Trạng thái" value={status} onChange={setStatus} options={statuses} />
-          <label className="relative min-w-0">
-            <span className="sr-only">Ngày</span>
-            <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="date"
-              value={date}
-              onChange={(event) => setDate(event.target.value)}
-              className="h-11 w-full rounded-2xl border border-slate-200/70 bg-white/85 pl-10 pr-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-            />
-          </label>
-          <button
-            type="button"
-            onClick={resetFilters}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200/70 bg-white/85 px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 active:scale-[0.98]"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Đặt lại
-          </button>
-        </div>
-      </Panel>
-
-      <Panel className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1040px] table-fixed text-left text-sm">
-            <thead className="bg-slate-50/90 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-              <tr>
-                <th className="w-[230px] px-4 py-3">Biển số + mã phiên</th>
-                <th className="w-[110px] px-4 py-3">Loại xe</th>
-                <th className="w-[130px] px-4 py-3">Khách</th>
-                <th className="w-[210px] px-4 py-3">Thời gian</th>
-                <th className="w-[110px] px-4 py-3">Phí</th>
-                <th className="w-[150px] px-4 py-3">Trạng thái</th>
-                <th className="w-[100px] px-4 py-3 text-right">Chi tiết</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 bg-white/95">
-              {filteredSessions.map((session) => (
-                <tr key={session.id} className="text-slate-600 transition hover:bg-sky-50/45">
-                  <td className="px-4 py-3">
-                    <p className="truncate text-base font-semibold text-slate-950">{session.plate}</p>
-                    <p className="mt-1 truncate text-xs font-semibold text-slate-400">{session.id}</p>
-                  </td>
-                  <td className="px-4 py-3 font-medium">{session.type}</td>
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-slate-700">{session.customer}</p>
-                    <p className="mt-1 truncate text-xs font-semibold text-slate-400">{session.cardId}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-slate-700">Vào: {session.entry}</p>
-                    <p className="mt-1 text-xs font-semibold text-slate-400">
-                      Ra: {session.exit} · {session.duration}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3 font-semibold text-slate-950">{session.fee}</td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={session.status} />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      type="button"
-                      onClick={() => openSessionDetail(session)}
-                      className="rounded-xl px-3 py-1.5 text-sm font-semibold text-sky-700 transition hover:bg-sky-50"
-                    >
-                      Chi tiết
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Panel>
-
+      <section className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <table className="w-full min-w-[1100px] table-fixed text-left text-sm">
+          <thead className="bg-slate-50/80 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500"><tr><th className="px-3 py-2.5">Mã phiên</th><th className="px-3 py-2.5">Biển số</th><th className="px-3 py-2.5">Loại xe</th><th className="px-3 py-2.5">Loại khách</th><th className="px-3 py-2.5">Mã thẻ</th><th className="px-3 py-2.5">Giờ vào</th><th className="px-3 py-2.5">Giờ ra</th><th className="px-3 py-2.5">Thời gian gửi</th><th className="px-3 py-2.5">Phí</th><th className="px-3 py-2.5">Trạng thái</th><th className="px-3 py-2.5 text-right">Chi tiết</th></tr></thead>
+          <tbody className="divide-y divide-slate-100">
+            {loading ? <tr><td colSpan="11" className="px-4 py-12 text-center text-slate-500">Đang tải dữ liệu từ database...</td></tr> : null}
+            {!loading && filteredSessions.length === 0 ? <tr><td colSpan="11" className="px-4 py-12 text-center text-slate-500">Không có phiên gửi xe phù hợp.</td></tr> : null}
+            {!loading && filteredSessions.map((session) => <tr key={session.id} className="text-slate-600 hover:bg-slate-50"><td className="truncate px-3 py-3 font-semibold text-slate-950">{session.id}</td><td className="px-3 py-3 font-semibold text-slate-950">{session.plate}</td><td className="px-3 py-3">{session.type}</td><td className="px-3 py-3">{session.customer}</td><td className="px-3 py-3">{session.cardId}</td><td className="px-3 py-3">{session.entry}</td><td className="px-3 py-3">{session.exit}</td><td className="px-3 py-3">{session.duration}</td><td className="px-3 py-3">{session.fee}</td><td className="px-3 py-3"><StatusBadge status={session.status} /></td><td className="px-3 py-3 text-right"><button onClick={() => openSessionDetail(session)} className="rounded-lg px-2 py-1 text-sm font-semibold text-blue-700 hover:bg-blue-50">Chi tiết</button></td></tr>)}
+          </tbody>
+        </table>
+      </section>
       <SessionDetailDrawer open={isDetailOpen} session={selectedSession} onClose={() => setIsDetailOpen(false)} />
     </div>
   );

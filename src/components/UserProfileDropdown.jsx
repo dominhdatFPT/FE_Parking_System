@@ -62,8 +62,8 @@ export default function UserProfileDropdown({ onViewProfile, onChangePassword, p
   const dropdownRef = useRef(null);
 
   const profileData = {
-    name: profile?.name ?? 'Demo Admin',
-    role: profile?.role ?? 'Admin',
+    name: profile?.name ?? profile?.email ?? 'Người dùng',
+    role: profile?.role ?? '',
     email: profile?.email ?? '',
   };
   const initials = getInitials(profileData.name);
