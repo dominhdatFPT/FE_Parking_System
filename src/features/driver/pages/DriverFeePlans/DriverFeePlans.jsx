@@ -35,14 +35,14 @@ export default function DriverFeePlans() {
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const selectedPackage = feePackages.find(p => p.id === selectedPlanId);
-  const basePrice = selectedPackage ? Number(selectedPackage.currentPrice) : 0;
+  const basePrice = selectedPackage ? Number(selectedPackage.price) : 0;
   const totalPrice = basePrice;
 
   const fetchFeePackages = useCallback(async (typeId) => {
     setLoadingFeePackages(true);
     setErrorMessage('');
     try {
-      const res = await apiClient.get(API_ENDPOINTS.FEE.PACKAGES, { params: { category: typeId } });
+      const res = await apiClient.get(API_ENDPOINTS.FEE.PACKAGES, { params: { vehicleTypeId: typeId } });
       setFeePackages(res.data?.data ?? []);
     } catch (err) {
       const msg = err.response?.data?.message || 'Không thể tải danh sách gói cước';
@@ -86,13 +86,20 @@ export default function DriverFeePlans() {
     setErrorMessage('');
 
     try {
-      const res = await apiClient.post(API_ENDPOINTS.FEE.SUBSCRIPTIONS, {
+      const res = await apiClient.post(API_ENDPOINTS.FEE.REGISTER, {
         vehicleId: selectedVehicle.vehicleId,
-        feePackageId: selectedPlanId,
+        planId: selectedPlanId,
+        autoRenew: false,
       });
       const result = res.data?.data ?? res.data;
-      setSubscriptionResult(result);
-      setSubmittedSuccess(true);
+      localStorage.setItem('pending_fee_plan_request', JSON.stringify({
+        ...result,
+        licensePlate: selectedVehicle.licensePlate,
+        planName: selectedPackage?.name,
+        durationMonths: selectedPackage?.durationMonths,
+        amount: selectedPackage?.price,
+      }));
+      navigate(ROUTES.DRIVER.PAYMENT);
     } catch (err) {
       const msg = err.response?.data?.message || 'Đã xảy ra lỗi khi tạo đăng ký';
       setErrorMessage(msg);
@@ -309,7 +316,7 @@ export default function DriverFeePlans() {
                     feePackages.map((pkg) => {
                       const isSelected = selectedPlanId === pkg.id;
                       const tag = pkg.isPopular ? t('feePlans.popularTag') : pkg.isBestValue ? t('feePlans.saveTag') : '';
-                      const price = Number(pkg.currentPrice);
+                      const price = Number(pkg.price);
                       return (
                         <div
                           key={pkg.id}

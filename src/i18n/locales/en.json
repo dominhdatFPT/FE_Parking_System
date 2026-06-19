@@ -331,6 +331,19 @@
     "statusActive": "🟢 Active",
     "statusExpired": "🔴 Expired",
     "statusPending": "🔵 Pending Payment",
-    "statusUnregistered": "🟡 Unregistered"
+    "statusCancelled": "⛔ Cancelled",
+    "statusUnregistered": "🟡 Unregistered",
+    "mySubscriptionsTitle": "My Subscriptions",
+    "noSubscriptions": "You have no subscriptions yet. Choose a plan below to register.",
+    "colPlate": "Plate",
+    "colPlan": "Plan",
+    "colDuration": "Duration",
+    "colStatus": "Status",
+    "colExpiry": "Expiry",
+    "months": "months",
+    "verifyingPayment": "Verifying payment...",
+    "paymentVerified": "Payment confirmed!",
+    "paymentPendingIpn": "Transaction is awaiting confirmation from the payment gateway. Please wait or check again later.",
+    "checkAgain": "Check status again"
   }
 }
