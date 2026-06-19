@@ -15,6 +15,11 @@ export const API_ENDPOINTS = {
     PACKAGES: '/api/v1/fee-packages',
     MY_VEHICLES: '/api/v1/fee-subscriptions/my-vehicles',
     SUBSCRIPTIONS: '/api/v1/fee-subscriptions',
+    MY_INVOICES: '/api/subscriptions/my-invoices',
+    REGISTER: '/api/subscriptions/register',
+  },
+  PAYMENTS: {
+    MOMO_ORDER_STATUS: (momoOrderId: string) => `/api/payments/momo-orders/${momoOrderId}/status`,
   },
   ADMIN_NOTIFICATIONS: {
     BASE: '/api/v1/admin/notifications',
