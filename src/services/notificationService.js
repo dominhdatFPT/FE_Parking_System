@@ -2,13 +2,19 @@ import { apiClient } from './apiClient';
 import { getStaffOperationsDashboard } from './staffService';
 
 export const NOTIFICATION_CATEGORIES = {
-  THONG_TIN: 'THONG_TIN',
-  CHINH_SACH: 'CHINH_SACH',
-  CANH_BAO: 'CANH_BAO',
-  BAO_TRI: 'BAO_TRI',
+  HE_THONG: 'Hệ thống',
+  BAO_TRI: 'Bảo trì',
+  GOI_GUI_XE: 'Gói gửi xe',
+  THANH_TOAN: 'Thanh toán',
+  SU_CO: 'Sự cố',
 };
 
 export const CATEGORY_META = {
+  'Hệ thống': { label: 'Hệ thống', tone: 'sky' },
+  'Bảo trì': { label: 'Bảo trì', tone: 'cyan' },
+  'Gói gửi xe': { label: 'Gói gửi xe', tone: 'violet' },
+  'Thanh toán': { label: 'Thanh toán', tone: 'emerald' },
+  'Sự cố': { label: 'Sự cố', tone: 'orange' },
   THONG_TIN: { label: 'Thông tin', tone: 'sky' },
   CHINH_SACH: { label: 'Chính sách', tone: 'purple' },
   CANH_BAO: { label: 'Cảnh báo', tone: 'orange' },
@@ -17,6 +23,9 @@ export const CATEGORY_META = {
 
 const TONE_CLASSES = {
   sky: 'bg-sky-50 text-sky-600 border-sky-200',
+  cyan: 'bg-cyan-50 text-cyan-600 border-cyan-200',
+  violet: 'bg-violet-50 text-violet-600 border-violet-200',
+  emerald: 'bg-emerald-50 text-emerald-600 border-emerald-200',
   purple: 'bg-purple-50 text-purple-600 border-purple-200',
   orange: 'bg-orange-50 text-orange-600 border-orange-200',
   red: 'bg-red-50 text-red-600 border-red-200',
