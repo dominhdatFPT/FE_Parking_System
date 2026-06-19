@@ -1,33 +1,42 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import dayjs from 'dayjs';
 import Icon from '../../components/Icon';
-import { useAuth } from '../../contexts/useAuth';
-import { getNotificationById, markNotificationAsUnread } from '../../features/notifications/notifications';
-
-const formatTypeLabel = (type) => {
-  if (type === 'critical') return 'Nhiệm vụ khẩn cấp';
-  if (type === 'warning') return 'Cảnh báo';
-  return 'Thành công';
-};
+import {
+  notificationService,
+  getCategoryToneClass,
+  getCategoryLabel,
+} from '../../services/notificationService';
 
 export default function NotificationDetailPage() {
-  const { role } = useAuth();
   const navigate = useNavigate();
   const { id } = useParams();
-  const currentRole = role === 'admin' ? 'admin' : 'staff';
-  const notification = useMemo(() => (id ? getNotificationById(id) : undefined), [id]);
-  const [isRead, setIsRead] = useState(notification?.isRead ?? true);
+  const [notification, setNotification] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    setIsRead(notification?.isRead ?? true);
-  }, [notification]);
+    let cancelled = false;
+    (async () => {
+      if (!id) return;
+      setLoading(true);
+      setNotFound(false);
+      const { data, error } = await notificationService.getNotificationDetail(id);
+      if (cancelled) return;
+      if (error?.response?.status === 404 || !data) {
+        setNotFound(true);
+      } else {
+        setNotification(data);
+      }
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [id]);
 
-  const hasAccess = !!notification && notification.roles.includes(currentRole);
-
-  const handleMarkUnread = () => {
-    if (!notification) return;
-    markNotificationAsUnread(notification.id);
-    setIsRead(false);
+  const formatDate = (iso) => {
+    if (!iso) return '';
+    const d = dayjs(iso);
+    return d.isValid() ? d.format('HH:mm DD/MM/YYYY') : '';
   };
 
   return (
@@ -36,7 +45,7 @@ export default function NotificationDetailPage() {
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Thông báo</p>
           <h1 className="mt-3 text-2xl font-semibold text-slate-950">Chi tiết thông báo</h1>
-          <p className="mt-2 text-sm text-slate-500">Xem nội dung thông báo đầy đủ và trạng thái chưa đọc.</p>
+          <p className="mt-2 text-sm text-slate-500">Xem nội dung thông báo đầy đủ.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -47,43 +56,46 @@ export default function NotificationDetailPage() {
             <Icon name="arrow_back" />
             Quay lại
           </button>
-          {hasAccess && isRead ? (
-            <button
-              type="button"
-              onClick={handleMarkUnread}
-              className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
-            >
-              Đánh dấu chưa đọc
-            </button>
-          ) : null}
         </div>
       </div>
 
       <section className="rounded-[18px] border border-slate-200 bg-white p-6 shadow-sm">
-        {notification && hasAccess ? (
+        {loading ? (
+          <div className="space-y-3 animate-pulse">
+            <div className="h-4 w-32 bg-slate-200 rounded" />
+            <div className="h-6 w-3/4 bg-slate-200 rounded" />
+            <div className="h-3 w-full bg-slate-100 rounded" />
+            <div className="h-3 w-5/6 bg-slate-100 rounded" />
+            <div className="h-3 w-4/6 bg-slate-100 rounded" />
+          </div>
+        ) : notFound || !notification ? (
+          <div className="rounded-[18px] border border-slate-200 bg-slate-50 p-8 text-center text-slate-600">
+            <h3 className="mb-2 text-lg font-semibold text-slate-900">Không tìm thấy thông báo</h3>
+            <p>Thông báo này không tồn tại hoặc đã bị ẩn.</p>
+          </div>
+        ) : (
           <div className="space-y-6">
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
-                <p className="text-sm uppercase tracking-[0.22em] text-slate-500">{formatTypeLabel(notification.type)}</p>
+                <span className={`inline-block text-[10px] font-bold px-2.5 py-1 rounded-lg border ${getCategoryToneClass(notification.category)} uppercase tracking-wider`}>
+                  {getCategoryLabel(notification.category)}
+                </span>
                 <h2 className="mt-3 text-2xl font-semibold text-slate-950">{notification.title}</h2>
                 <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">
-                  <span>Loại: <span className="font-medium text-slate-700">{notification.type}</span></span>
-                  <span>Thời gian: <span className="font-medium text-slate-700">{notification.time}</span></span>
-                  <span className={`rounded-full px-2 py-1 text-xs font-semibold ${isRead ? 'bg-slate-100 text-slate-600' : 'bg-blue-50 text-blue-700'}`}>
-                    {isRead ? 'Đã đọc' : 'Chưa đọc'}
-                  </span>
+                  <span>Thời gian: <span className="font-medium text-slate-700">{formatDate(notification.publishedAt)}</span></span>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-4 text-sm leading-7 text-slate-700">
-              <p>{notification.message}</p>
+            {notification.summary && (
+              <p className="text-sm font-semibold text-slate-700 border-l-4 border-sky-400 pl-3">
+                {notification.summary}
+              </p>
+            )}
+
+            <div className="space-y-4 text-sm leading-7 text-slate-700 whitespace-pre-wrap">
+              {notification.content || 'Chưa có nội dung chi tiết.'}
             </div>
-          </div>
-        ) : (
-          <div className="rounded-[18px] border border-slate-200 bg-slate-50 p-8 text-center text-slate-600">
-            <h3 className="mb-2 text-lg font-semibold text-slate-900">Không tìm thấy thông báo</h3>
-            <p>Thông báo này không tồn tại hoặc bạn không có quyền xem nội dung.</p>
           </div>
         )}
       </section>

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AuthContext } from './AuthContextCore';
+import { registerDeviceTokenForCurrentUser } from '../utils/deviceTokenRegistration';
 
 function readInitialUser() {
     if (typeof window === 'undefined') return null;
@@ -30,7 +31,7 @@ export function AuthProvider({ children }) {
 
     useEffect(() => {
         const rememberMe = window.localStorage.getItem('rememberMe') === 'true';
-        
+
         if (user) {
             if (rememberMe) {
                 window.localStorage.setItem('smart-parking-user', JSON.stringify(user));
@@ -39,6 +40,7 @@ export function AuthProvider({ children }) {
                 window.sessionStorage.setItem('smart-parking-user', JSON.stringify(user));
                 window.localStorage.removeItem('smart-parking-user');
             }
+            registerDeviceTokenForCurrentUser();
         } else {
             window.localStorage.removeItem('smart-parking-user');
             window.sessionStorage.removeItem('smart-parking-user');
