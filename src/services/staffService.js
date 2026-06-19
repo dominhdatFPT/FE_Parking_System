@@ -61,9 +61,42 @@ export const getStaffParkingOperations = async () => {
   return response.data?.data ?? response.data ?? { facilities: [], floors: [], slots: [] };
 };
 
-export const getStaffOperationsDashboard = async () => {
-  const response = await apiClient.get('/api/v1/staff/operations-dashboard');
+export const getStaffOperationsDashboard = async (date) => {
+  const response = await apiClient.get('/api/v1/staff/operations-dashboard', {
+    params: date ? { date } : undefined,
+  });
   return response.data?.data ?? response.data;
+};
+
+export const getParkingSessions = async () => {
+  const response = await apiClient.get('/api/v1/staff/parking-sessions');
+  return unwrapList(response);
+};
+
+export const checkParkingEntry = async (licensePlate, vehicleType = null) => {
+  const payload = { licensePlate };
+  if (vehicleType) payload.vehicleType = vehicleType;
+  const response = await apiClient.post('/api/v1/parking-entry/check', payload);
+  return unwrapData(response);
+};
+
+export const confirmParkingEntry = async (entry) => {
+  const response = await apiClient.post('/api/v1/parking-entry/confirm', {
+    licensePlate: entry.licensePlate,
+    vehicleType: entry.vehicleType,
+    visitorCardCode: entry.entryType === 'VISITOR' ? entry.visitorCardCode : null,
+  });
+  return unwrapData(response);
+};
+
+export const checkParkingExit = async (licensePlate) => {
+  const response = await apiClient.post('/api/v1/parking-exit/check', { licensePlate });
+  return unwrapData(response);
+};
+
+export const confirmParkingExit = async (orderId, payload) => {
+  const response = await apiClient.post(`/api/v1/parking-exit/${orderId}/confirm`, payload);
+  return unwrapData(response);
 };
 
 export const updateStaffParkingSlot = async (slot) => {

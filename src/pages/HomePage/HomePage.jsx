@@ -1,17 +1,14 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import SessionDetailDrawer from '../../components/parking/SessionDetailDrawer';
-import { activeParkingSessions, completedParkingSessions } from '../../data/parkingSessions';
-
-const today = '2026-06-17';
+import { getStaffOperationsDashboard } from '../../services/staffService';
 
 const emptyDashboardData = {
-  activeSessions: 0,
   entries: 0,
   exits: 0,
   revenue: '0',
-  capacity: '0 / 600',
-  availableSlots: 600,
+  capacity: '0 / 0',
+  availableSlots: 0,
   sessions: [],
   completedSessions: [],
   revenueBreakdown: [],
@@ -20,117 +17,6 @@ const emptyDashboardData = {
   entryBreakdown: [],
   exitBreakdown: [],
   capacityBreakdown: [],
-};
-
-const dashboardDataByDate = {
-  '2026-06-17': {
-    activeSessions: 428,
-    entries: 632,
-    exits: 584,
-    revenue: '18.4M',
-    capacity: '428 / 600',
-    availableSlots: 172,
-    sessions: activeParkingSessions,
-    completedSessions: completedParkingSessions,
-    revenueBreakdown: [
-      { label: 'Khách vãng lai', value: '5.2M' },
-      { label: 'Khách gói', value: '12M' },
-      { label: 'Phí phát sinh', value: '1.2M' },
-      { label: 'Tổng cộng', value: '18.4M' },
-    ],
-    vehicleBreakdown: [
-      { label: 'Ô tô', value: '186', percent: '43%' },
-      { label: 'Xe máy', value: '242', percent: '57%' },
-    ],
-    customerBreakdown: [
-      { label: 'Khách gói', value: '296', percent: '69%' },
-      { label: 'Khách vãng lai', value: '132', percent: '31%' },
-    ],
-    entryBreakdown: [
-      { label: 'Tổng lượt vào', value: '632' },
-      { label: 'Khách gói', value: '430' },
-      { label: 'Khách vãng lai', value: '202' },
-      { label: 'Ô tô', value: '280' },
-      { label: 'Xe máy', value: '352' },
-    ],
-    exitBreakdown: [
-      { label: 'Tổng lượt ra', value: '584' },
-      { label: 'Khách gói', value: '390' },
-      { label: 'Khách vãng lai', value: '194' },
-      { label: 'Ô tô', value: '255' },
-      { label: 'Xe máy', value: '329' },
-      { label: 'QR', value: '220' },
-      { label: 'Tiền mặt', value: '160' },
-      { label: 'Miễn phí', value: '204' },
-    ],
-    capacityBreakdown: [
-      { label: 'Đang sử dụng', value: '428' },
-      { label: 'Còn trống', value: '172' },
-      { label: 'Tổng sức chứa', value: '600' },
-      { label: 'Tỷ lệ sử dụng', value: '71%' },
-      { label: 'Floor 1', value: '120 / 200' },
-      { label: 'Floor 2', value: '180 / 200' },
-      { label: 'Floor 3', value: '128 / 200' },
-    ],
-  },
-  '2026-06-16': {
-    activeSessions: 390,
-    entries: 580,
-    exits: 540,
-    revenue: '16.2M',
-    capacity: '390 / 600',
-    availableSlots: 210,
-    sessions: activeParkingSessions.map((session, index) => ({
-      ...session,
-      id: `PS-20260616-00${index + 1}`,
-      entry: ['08:02', '12:15', '10:35', '07:40', '10/06 08:20'][index],
-    })),
-    completedSessions: completedParkingSessions.map((session, index) => ({
-      ...session,
-      id: `PS-20260616-10${index + 1}`,
-      fee: ['65K', '10K', '0K', '12K', '35K'][index],
-    })),
-    revenueBreakdown: [
-      { label: 'Khách vãng lai', value: '4.4M' },
-      { label: 'Khách gói', value: '10.7M' },
-      { label: 'Phí phát sinh', value: '1.1M' },
-      { label: 'Tổng cộng', value: '16.2M' },
-    ],
-    vehicleBreakdown: [
-      { label: 'Ô tô', value: '248', percent: '44%' },
-      { label: 'Xe máy', value: '312', percent: '56%' },
-    ],
-    customerBreakdown: [
-      { label: 'Khách gói', value: '360', percent: '64%' },
-      { label: 'Khách vãng lai', value: '200', percent: '36%' },
-    ],
-    entryBreakdown: [
-      { label: 'Tổng lượt vào', value: '580' },
-      { label: 'Khách gói', value: '380' },
-      { label: 'Khách vãng lai', value: '200' },
-      { label: 'Ô tô', value: '250' },
-      { label: 'Xe máy', value: '330' },
-    ],
-    exitBreakdown: [
-      { label: 'Tổng lượt ra', value: '540' },
-      { label: 'Khách gói', value: '355' },
-      { label: 'Khách vãng lai', value: '185' },
-      { label: 'Ô tô', value: '230' },
-      { label: 'Xe máy', value: '310' },
-      { label: 'QR', value: '205' },
-      { label: 'Tiền mặt', value: '145' },
-      { label: 'Miễn phí', value: '190' },
-    ],
-    capacityBreakdown: [
-      { label: 'Đang sử dụng', value: '390' },
-      { label: 'Còn trống', value: '210' },
-      { label: 'Tổng sức chứa', value: '600' },
-      { label: 'Tỷ lệ sử dụng', value: '65%' },
-      { label: 'Floor 1', value: '110 / 200' },
-      { label: 'Floor 2', value: '165 / 200' },
-      { label: 'Floor 3', value: '115 / 200' },
-    ],
-  },
 };
 
 const statusClasses = {
@@ -159,13 +45,166 @@ function SectionTitle({ children }) {
   return <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{children}</h2>;
 }
 
+function getToday() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function asNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function formatMoney(value) {
+  const amount = asNumber(value);
+  if (amount >= 1000000) {
+    return `${(amount / 1000000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}M`;
+  }
+  if (amount >= 1000) {
+    return `${(amount / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}K`;
+  }
+  return amount.toLocaleString('vi-VN');
+}
+
+function formatCurrency(value) {
+  const amount = asNumber(value);
+  if (!amount) return '0đ';
+  return `${amount.toLocaleString('vi-VN')}đ`;
+}
+
+function formatTime(value) {
+  if (!value) return '--';
+  return new Intl.DateTimeFormat('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value));
+}
+
+function formatDuration(entryTime, exitTime) {
+  if (!entryTime) return '--';
+  const start = new Date(entryTime).getTime();
+  const end = exitTime ? new Date(exitTime).getTime() : Date.now();
+  const diffMinutes = Math.max(0, Math.floor((end - start) / 60000));
+  const days = Math.floor(diffMinutes / 1440);
+  const hours = Math.floor((diffMinutes % 1440) / 60);
+  const minutes = diffMinutes % 60;
+
+  if (days > 0) return `${days} ngày ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+}
+
+function percent(part, total) {
+  if (!total) return '0%';
+  return `${Math.round((part / total) * 100)}%`;
+}
+
 function parseCapacity(capacity) {
   const [usedRaw, totalRaw] = String(capacity).split('/').map((part) => Number(part.trim()));
   const used = Number.isFinite(usedRaw) ? usedRaw : 0;
   const total = Number.isFinite(totalRaw) && totalRaw > 0 ? totalRaw : 1;
-  const percent = Math.min(100, Math.round((used / total) * 100));
+  const percentValue = Math.min(100, Math.round((used / total) * 100));
 
-  return { used, total, percent };
+  return { used, total, percent: percentValue };
+}
+
+function mapVehicleType(value) {
+  return value === 'MOTORBIKE' ? 'Xe máy' : 'Ô tô';
+}
+
+function mapCustomerType(value) {
+  return value === 'MONTHLY' ? 'Gói tháng' : 'Vãng lai';
+}
+
+function mapStatus(activity) {
+  if (activity.exitTime || activity.status === 'COMPLETED') return 'Đã hoàn thành';
+  if (!activity.entryTime) return activity.status || 'Bình thường';
+
+  const hours = (Date.now() - new Date(activity.entryTime).getTime()) / 3600000;
+  if (hours >= 24 * 7) return 'Quá 7 ngày';
+  if (hours >= 24) return 'Quá 24 giờ';
+  return 'Bình thường';
+}
+
+function mapActivityToSession(activity) {
+  const status = mapStatus(activity);
+  const isCompleted = status === 'Đã hoàn thành';
+  const isMonthly = activity.customerType === 'MONTHLY';
+  const fee = activity.calculatedFee ? formatMoney(activity.calculatedFee) : isCompleted ? '0' : 'Đang tính';
+
+  return {
+    id: activity.orderCode || `PO-${activity.id}`,
+    plate: activity.licensePlate || '--',
+    type: mapVehicleType(activity.vehicleType),
+    customer: mapCustomerType(activity.customerType),
+    cardId: activity.visitorCardCode || '--',
+    entry: formatTime(activity.entryTime),
+    exit: isCompleted ? formatTime(activity.exitTime) : '--',
+    duration: formatDuration(activity.entryTime, activity.exitTime),
+    floor: activity.floorName || '--',
+    zone: activity.parkingName || '--',
+    status,
+    fee,
+    estimatedFee: fee,
+    payment: isMonthly ? 'Gói' : activity.calculatedFee ? 'Tiền mặt' : 'Miễn phí',
+  };
+}
+
+function buildDashboardData(payload) {
+  const metrics = payload?.metrics || {};
+  const activities = Array.isArray(payload?.recentVehicleActivities) ? payload.recentVehicleActivities : [];
+  const areaOccupancy = Array.isArray(payload?.areaOccupancy) ? payload.areaOccupancy : [];
+  const sessions = activities.map(mapActivityToSession);
+  const activeSessions = sessions.filter((session) => session.status !== 'Đã hoàn thành');
+  const completedSessions = sessions.filter((session) => session.status === 'Đã hoàn thành');
+  const vehiclesInParking = asNumber(metrics.vehiclesInParking);
+  const totalSlots = asNumber(metrics.totalSlots);
+  const availableSlots = asNumber(metrics.availableSlots);
+  const activeCars = asNumber(metrics.activeCars);
+  const activeMotorbikes = asNumber(metrics.activeMotorbikes);
+  const vehiclesInToday = asNumber(metrics.vehiclesInToday);
+  const vehiclesOutToday = asNumber(metrics.vehiclesOutToday);
+  const revenueToday = asNumber(metrics.revenueToday);
+
+  return {
+    entries: vehiclesInToday,
+    exits: vehiclesOutToday,
+    revenue: formatMoney(revenueToday),
+    capacity: `${vehiclesInParking} / ${totalSlots}`,
+    availableSlots,
+    sessions: activeSessions,
+    completedSessions,
+    revenueBreakdown: [
+      { label: 'Tổng cộng', value: formatCurrency(revenueToday) },
+    ],
+    vehicleBreakdown: [
+      { label: 'Ô tô', value: String(activeCars), percent: percent(activeCars, vehiclesInParking) },
+      { label: 'Xe máy', value: String(activeMotorbikes), percent: percent(activeMotorbikes, vehiclesInParking) },
+    ],
+    customerBreakdown: [
+      { label: 'Gói tháng', value: String(sessions.filter((session) => session.customer === 'Gói tháng').length) },
+      { label: 'Vãng lai', value: String(sessions.filter((session) => session.customer === 'Vãng lai').length) },
+    ],
+    entryBreakdown: [
+      { label: 'Tổng lượt vào', value: String(vehiclesInToday) },
+      { label: 'Ô tô', value: String(asNumber(metrics.vehiclesInTodayCars)) },
+      { label: 'Xe máy', value: String(asNumber(metrics.vehiclesInTodayMotorbikes)) },
+    ],
+    exitBreakdown: [
+      { label: 'Tổng lượt ra', value: String(vehiclesOutToday) },
+      { label: 'Ô tô', value: String(asNumber(metrics.vehiclesOutTodayCars)) },
+      { label: 'Xe máy', value: String(asNumber(metrics.vehiclesOutTodayMotorbikes)) },
+    ],
+    capacityBreakdown: [
+      { label: 'Đang sử dụng', value: String(vehiclesInParking) },
+      { label: 'Còn trống', value: String(availableSlots) },
+      { label: 'Tổng sức chứa', value: String(totalSlots) },
+      { label: 'Tỷ lệ sử dụng', value: `${asNumber(metrics.occupancyRate)}%` },
+      ...areaOccupancy.slice(0, 6).map((area) => ({
+        label: area.name || 'Khu',
+        value: `${asNumber(area.occupied)} / ${asNumber(area.total)}`,
+      })),
+    ],
+  };
 }
 
 function getCompletedFee(session) {
@@ -358,9 +397,7 @@ function SessionTable({ title, sessions, emptyText, onViewAll, onDetail, complet
             <div
               key={session.id}
               className={`grid min-h-[96px] gap-4 rounded-2xl border border-slate-200/60 bg-white/60 px-4 py-3 transition hover:bg-sky-50/40 sm:items-center ${
-                completed
-                  ? 'sm:grid-cols-4'
-                  : 'sm:grid-cols-3'
+                completed ? 'sm:grid-cols-4' : 'sm:grid-cols-3'
               }`}
             >
               <div className="min-w-0 text-center sm:justify-self-center">
@@ -410,21 +447,43 @@ function SessionTable({ title, sessions, emptyText, onViewAll, onDetail, complet
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const [selectedDate, setSelectedDate] = useState(today);
+  const [selectedDate, setSelectedDate] = useState(getToday);
+  const [dashboardData, setDashboardData] = useState(emptyDashboardData);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [selectedSession, setSelectedSession] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [openKpi, setOpenKpi] = useState(null);
   const kpiRowRef = useRef(null);
 
-  const currentData = dashboardDataByDate[selectedDate] || emptyDashboardData;
+  const loadDashboard = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const payload = await getStaffOperationsDashboard(selectedDate);
+      setDashboardData(buildDashboardData(payload));
+    } catch (err) {
+      setDashboardData(emptyDashboardData);
+      setError(err?.response?.data?.message || 'Không thể tải dữ liệu dashboard từ database.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
+
+  const currentData = dashboardData;
   const capacity = parseCapacity(currentData.capacity);
   const stats = useMemo(
     () => [
       {
         key: 'entries',
         label: 'Xe vào',
-        value: currentData.entries,
+        value: loading ? '...' : currentData.entries,
         description: 'Lượt vào trong ngày',
         icon: 'IN',
         tone: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
@@ -433,7 +492,7 @@ export default function HomePage() {
       {
         key: 'exits',
         label: 'Xe ra',
-        value: currentData.exits,
+        value: loading ? '...' : currentData.exits,
         description: 'Lượt ra trong ngày',
         icon: 'OUT',
         tone: 'bg-slate-100 text-slate-700 ring-slate-200',
@@ -442,16 +501,16 @@ export default function HomePage() {
       {
         key: 'revenue',
         label: 'Doanh thu',
-        value: currentData.revenue,
+        value: loading ? '...' : currentData.revenue,
         description: 'Đã thu trong ngày',
-        icon: '₫',
+        icon: 'đ',
         tone: 'bg-amber-50 text-amber-700 ring-amber-100',
         data: currentData,
       },
       {
         key: 'capacity',
         label: 'Công suất bãi',
-        value: currentData.capacity,
+        value: loading ? '...' : currentData.capacity,
         description: `${currentData.availableSlots} chỗ còn trống`,
         icon: '%',
         tone: 'bg-sky-50 text-sky-700 ring-sky-100',
@@ -460,11 +519,12 @@ export default function HomePage() {
         data: currentData,
       },
     ],
-    [capacity.percent, currentData],
+    [capacity.percent, currentData, loading],
   );
+
   function handleRefresh() {
     setRefreshing(true);
-    window.setTimeout(() => setRefreshing(false), 450);
+    loadDashboard();
   }
 
   function openSessionDetail(session) {
@@ -497,6 +557,7 @@ export default function HomePage() {
             <p className="mt-2 max-w-2xl text-sm font-medium text-slate-500">
               Theo dõi nhanh lượt xe, doanh thu và công suất bãi
             </p>
+            {error ? <p className="mt-2 text-sm font-semibold text-rose-600">{error}</p> : null}
           </div>
 
           <div className="flex w-full flex-wrap items-center gap-2 xl:w-auto xl:justify-end">
@@ -508,7 +569,7 @@ export default function HomePage() {
             />
             <button
               type="button"
-              onClick={() => setSelectedDate(today)}
+              onClick={() => setSelectedDate(getToday())}
               className="h-10 rounded-2xl border border-white/80 bg-white/80 px-4 text-sm font-semibold text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.05)] transition hover:bg-white active:scale-[0.98]"
             >
               Hôm nay
@@ -518,7 +579,7 @@ export default function HomePage() {
               onClick={handleRefresh}
               className="h-10 rounded-2xl bg-sky-500 px-4 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(14,165,233,0.24)] transition hover:bg-sky-600 active:scale-[0.98]"
             >
-              {refreshing ? 'Đang tải...' : 'Làm mới'}
+              {refreshing || loading ? 'Đang tải...' : 'Làm mới'}
             </button>
           </div>
         </div>
@@ -537,14 +598,14 @@ export default function HomePage() {
         <SessionTable
           title="Phiên đang hoạt động"
           sessions={currentData.sessions}
-          emptyText="Chưa có phiên đang hoạt động."
+          emptyText={loading ? 'Đang tải dữ liệu...' : 'Chưa có phiên đang hoạt động.'}
           onViewAll={() => navigate('/admin/parking-sessions')}
           onDetail={openSessionDetail}
         />
         <SessionTable
           title="Phiên gần đây"
           sessions={currentData.completedSessions}
-          emptyText="Chưa có phiên gần đây."
+          emptyText={loading ? 'Đang tải dữ liệu...' : 'Chưa có phiên gần đây.'}
           onViewAll={() => navigate('/admin/parking-sessions')}
           onDetail={openSessionDetail}
           completed

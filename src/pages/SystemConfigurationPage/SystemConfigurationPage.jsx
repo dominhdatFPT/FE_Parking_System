@@ -1,36 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { systemDataService } from '../../services/systemDataService';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-
-const STORAGE_KEY = 'parking_system_configuration';
-
-const DEFAULT_CONFIG = {
-    systemName: 'Smart Parking AI',
-    region: 'VN',
-    timezone: 'Asia/Ho_Chi_Minh',
-    defaultLanguage: 'Vietnamese',
-    operationMode: 'auto',
-    enableCamera: true,
-    enableRFID: true,
-    enableQR: false,
-    enablePaymentGateway: false,
-    enableAuditLogs: true,
-    sessionTimeout: 15,
-    maxConcurrentSessions: 120,
-    maintenanceWindow: '02:00 - 04:00',
-};
-
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function loadConfig() {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (!stored) return DEFAULT_CONFIG;
-    try {
-        return { ...DEFAULT_CONFIG, ...JSON.parse(stored) };
-    } catch {
-        return DEFAULT_CONFIG;
-    }
+    return systemDataService.getConfiguration();
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -86,11 +62,11 @@ function ToggleRow({ label, checked, onChange }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SystemConfigurationPage() {
-    const [config, setConfig] = useState(DEFAULT_CONFIG);
+    const [config, setConfig] = useState({});
     const [message, setMessage] = useState('');
 
     useEffect(() => {
-        setConfig(loadConfig());
+        loadConfig().then(setConfig).catch(() => setMessage('Không thể tải cấu hình từ database.'));
     }, []);
 
     const enabledIntegrations = useMemo(
@@ -105,15 +81,22 @@ export default function SystemConfigurationPage() {
         setConfig((current) => ({ ...current, [key]: value }));
     }
 
-    function handleSave() {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-        setMessage('✓ Đã lưu cấu hình hệ thống thành công.');
+    async function handleSave() {
+        try {
+            setConfig(await systemDataService.saveConfiguration(config));
+            setMessage('Đã lưu cấu hình vào database.');
+        } catch {
+            setMessage('Không thể lưu cấu hình vào database.');
+        }
     }
 
-    function handleReset() {
-        setConfig(DEFAULT_CONFIG);
-        window.localStorage.removeItem(STORAGE_KEY);
-        setMessage('↺ Đã khôi phục cấu hình mặc định.');
+    async function handleReset() {
+        try {
+            setConfig(await loadConfig());
+            setMessage('Đã tải lại cấu hình từ database.');
+        } catch {
+            setMessage('Không thể tải cấu hình từ database.');
+        }
     }
 
     const operationModeLabel =
@@ -318,7 +301,7 @@ export default function SystemConfigurationPage() {
                             onClick={handleReset}
                             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300"
                         >
-                            Khôi phục mặc định
+                            Tải lại từ database
                         </button>
                         {message && (
                             <p className="rounded-lg bg-green-50 px-3 py-2 text-center text-sm font-medium text-green-700 border border-green-200">
