@@ -16,4 +16,9 @@ export const API_ENDPOINTS = {
     MY_VEHICLES: '/api/v1/fee-subscriptions/my-vehicles',
     SUBSCRIPTIONS: '/api/v1/fee-subscriptions',
   },
+  ADMIN_NOTIFICATIONS: {
+    BASE: '/api/v1/admin/notifications',
+    SEND: (id: string | number) => `/api/v1/admin/notifications/${id}/send`,
+    DETAIL: (id: string | number) => `/api/v1/admin/notifications/${id}`,
+  },
 } as const;

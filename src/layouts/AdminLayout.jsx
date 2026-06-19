@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   ArrowDownToLine,
   ArrowUpFromLine,
+  BellRing,
   Boxes,
   ChevronLeft,
   ChevronRight,
@@ -24,6 +25,7 @@ const mainNavigationItems = [
   { icon: ArrowUpFromLine, label: 'Xe ra', path: ROUTES.ADMIN.VEHICLE_EXIT },
   { icon: Boxes, label: 'Phiên gửi xe', path: ROUTES.ADMIN.PARKING_SESSIONS },
   { icon: Package, label: 'Quản lý gói', path: ROUTES.STAFF.BOOKINGS },
+  { icon: BellRing, label: 'Thông báo', path: ROUTES.ADMIN.NOTIFICATIONS.BASE },
 ];
 
 const incidentNavigationItem = {
@@ -182,7 +184,20 @@ export default function AdminLayout() {
                     >
                       <ItemIcon className="h-[18px] w-[18px] shrink-0" />
                     </span>
-                    {!collapsed ? <span className="truncate">{item.label}</span> : null}
+                    {!collapsed ? (
+                      <>
+                        <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                        {item.badge ? (
+                          <span
+                            className={`grid h-6 min-w-6 place-items-center rounded-full px-2 text-xs font-bold tabular-nums ${
+                              isActive ? 'bg-white text-sky-600' : 'bg-sky-400/15 text-sky-200'
+                            }`}
+                          >
+                            {item.badge}
+                          </span>
+                        ) : null}
+                      </>
+                    ) : null}
                   </NavLink>
                 );
               })}
