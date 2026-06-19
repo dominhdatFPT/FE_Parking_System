@@ -330,6 +330,64 @@ export default function DriverPayment() {
         )}
       </div>
 
+      {/* Lịch sử thanh toán thẻ tháng */}
+      <div>
+        <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-sm">
+            <span className="material-symbols-outlined text-[16px]">sell</span>
+          </span>
+          Lịch sử thanh toán thẻ tháng
+        </h3>
+
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2].map((i) => (
+              <div key={i} className="h-16 animate-pulse rounded-2xl bg-white shadow-sm" />
+            ))}
+          </div>
+        ) : subscriptionInvoices.length === 0 ? (
+          <EmptyState icon="sell" title="Chưa có giao dịch thẻ tháng" description="Các giao dịch đăng ký gói thẻ tháng sẽ hiển thị tại đây." />
+        ) : (
+          <div className="rounded-2xl border border-slate-100/80 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/80">
+                    <th className="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Hoá đơn</th>
+                    <th className="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Biển số / Gói</th>
+                    <th className="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">{t('payment.amount')}</th>
+                    <th className="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">{t('payment.method')}</th>
+                    <th className="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">{t('payment.status')}</th>
+                    <th className="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">{t('payment.date')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {subscriptionInvoices.map((inv) => (
+                    <tr key={inv.id} className="transition hover:bg-slate-50/50">
+                      <td className="px-5 py-3.5 font-bold text-slate-700">#{inv.id}</td>
+                      <td className="px-5 py-3.5">
+                        <p className="font-semibold text-slate-700 text-xs">{inv.licensePlate}</p>
+                        <p className="text-[10px] text-slate-400">{inv.planName}</p>
+                      </td>
+                      <td className="px-5 py-3.5 font-bold text-slate-800">{Number(inv.amount).toLocaleString('vi-VN')} VNĐ</td>
+                      <td className="px-5 py-3.5">
+                        <span className="inline-flex items-center gap-1 rounded-lg bg-pink-50 px-2 py-0.5 text-xs font-medium text-pink-600">
+                          MoMo
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <StatusBadge status={inv.status === 'SUCCESS' ? 'PAID' : inv.status} />
+                      </td>
+                      <td className="px-5 py-3.5 text-slate-400">{dayjs(inv.createdAt).format('DD/MM/YYYY HH:mm')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+
       {showModal && selectedBooking && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowModal(false)}>
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
