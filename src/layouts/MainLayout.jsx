@@ -45,21 +45,21 @@ export default function MainLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] text-[#172033] lg:grid lg:grid-cols-[264px_minmax(0,1fr)]">
-      <aside className="hidden border-r border-[#d9e2ee] bg-white lg:flex lg:flex-col">
-        <div className="flex flex-col border-b border-[#e4eaf2] px-5 py-3 gap-1">
+    <div className="min-h-screen bg-slate-50/50 text-slate-800 lg:grid lg:grid-cols-[260px_minmax(0,1fr)]">
+      <aside className="hidden border-r border-slate-100 bg-white lg:flex lg:flex-col">
+        <div className="flex flex-col border-b border-slate-100 px-5 py-4 gap-1">
           <Logo variant="horizontal" size="sm" />
-          <p className="text-[10px] font-bold uppercase tracking-wider text-[#667085] ml-[44px]">Admin workspace</p>
+          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-[44px]">Workspace</p>
         </div>
 
         <nav className="grid gap-1 p-3">
           {navigationItems.map((item) => (
             <NavLink
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded px-3 py-2.5 text-sm font-medium transition ${
+                `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
                   isActive
-                    ? 'bg-[#eaf2ff] text-[#0051d5]'
-                    : 'text-[#475467] hover:bg-[#f2f5f9] hover:text-[#101828]'
+                    ? 'bg-sky-50 text-sky-600 shadow-[inset_0_1px_0_rgba(14,165,233,0.05)]'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
                 }`
               }
               key={item.path}
@@ -71,9 +71,9 @@ export default function MainLayout() {
           ))}
         </nav>
 
-        <div className="mt-auto border-t border-[#e4eaf2] p-4">
+        <div className="mt-auto border-t border-slate-100 p-3">
           <button
-            className="flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2.5 text-sm font-semibold text-[#b42318] hover:bg-[#fff1f1]"
+            className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-rose-600 transition-all duration-300 hover:bg-rose-50"
             type="button"
             onClick={handleLogout}
           >
@@ -84,14 +84,14 @@ export default function MainLayout() {
       </aside>
 
       <div className="min-w-0">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-[#d9e2ee] bg-white/95 px-4 backdrop-blur lg:px-6">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-100 bg-white/70 px-4 backdrop-blur-md lg:px-6">
           <div>
-            <p className="text-sm font-semibold text-[#101828]">Dashboard</p>
-            <p className="text-xs text-[#667085]">Parking operations overview</p>
+            <p className="text-sm font-semibold text-slate-800">Dashboard</p>
+            <p className="text-[10px] font-medium text-slate-400">Parking operations overview</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="grid h-10 w-10 cursor-pointer place-items-center rounded border border-[#d9e2ee] bg-white text-[#475467] hover:text-[#0051d5]">
-              <span className="material-symbols-outlined">notifications</span>
+            <button className="grid h-9 w-9 cursor-pointer place-items-center rounded-xl border border-slate-200/60 bg-white text-slate-500 shadow-sm transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-slate-300 hover:text-sky-600 active:scale-95">
+              <span className="material-symbols-outlined text-[20px]">notifications</span>
             </button>
           </div>
         </header>

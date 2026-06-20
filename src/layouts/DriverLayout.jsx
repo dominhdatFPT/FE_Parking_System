@@ -7,7 +7,7 @@ export default function DriverLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F8FAFC]">
+    <div className="flex h-screen overflow-hidden bg-slate-50/50">
       <DriverSidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 

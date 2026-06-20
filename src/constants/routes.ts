@@ -10,7 +10,6 @@ export const ROUTES = {
   ADMIN: {
     DASHBOARD: '/admin',
     VEHICLE_ENTRY: '/admin/vehicle-entry',
-    VEHICLE_EXIT: '/admin/vehicle-exit',
     PARKING_SESSIONS: '/admin/parking-sessions',
     USERS: '/admin/users',
     ROLES: '/admin/roles',
@@ -69,5 +68,9 @@ export const ROUTES = {
     ACTIVE_SESSION: '/driver/active-session',
     VEHICLE_REGISTRATION: '/driver-vehicle-registration',
     FEE_PLANS: '/driver-fee-plans',
+  },
+
+  SUBSCRIPTION: {
+    RESULT: '/subscription/result',
   },
 } as const;
