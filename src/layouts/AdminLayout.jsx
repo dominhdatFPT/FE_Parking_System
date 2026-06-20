@@ -40,7 +40,7 @@ const pageTitles = [
   { path: ROUTES.ADMIN.VEHICLE_ENTRY, title: 'Xe vào' },
   { path: ROUTES.ADMIN.PARKING_SESSIONS, title: 'Tất cả phiên gửi xe' },
   { path: ROUTES.ADMIN.VEHICLE_EXIT, title: 'Xe ra' },
-  { path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`, title: 'Sự cố' },
+  { path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`, title: 'Quản lí sự cố và hỗ trợ' },
   { path: ROUTES.ADMIN.NOTIFICATIONS.BASE, title: 'Thông báo' },
 ];
 

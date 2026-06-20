@@ -1,8 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router';
 import DashboardShell from '../../components/DashboardShell';
 import { systemDataService } from '../../services/systemDataService';
+import IncidentPage from '../IncidentPage';
 
 export default function AuditLogPage() {
+  const location = useLocation();
+
+  if (new URLSearchParams(location.search).get('view') === 'incidents') {
+    return <IncidentPage />;
+  }
+
+  return <AuditLogContent />;
+}
+
+function AuditLogContent() {
   const [logs, setLogs] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
