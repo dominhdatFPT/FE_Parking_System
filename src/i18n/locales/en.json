@@ -176,10 +176,10 @@
     "title": "Support Center",
     "subtitle": "We're always here to help",
     "hotline": "Hotline",
-    "hotlineNumber": "1900-xxxx",
+    "hotlineNumber": "0123456789",
     "hotlineDesc": "Available 24/7",
     "email": "Support Email",
-    "emailAddress": "support@smartparking.vn",
+    "emailAddress": "dat@example.com",
     "emailDesc": "Response within 24h",
     "faq": "Frequently Asked Questions",
     "contactForm": "Submit a Support Request",
@@ -205,7 +205,7 @@
     "faq5q": "What if the parking lot is full?",
     "faq5a": "When a parking lot is FULL, the \"Select\" button will be disabled. Please choose another lot with available slots.",
     "faq6q": "I need urgent support?",
-    "faq6a": "Please call hotline 1900-xxxx or email support@smartparking.vn. Our support team operates 24/7."
+    "faq6a": "Please call hotline 0123456789 or email dat@example.com. Our support team operates 24/7."
   },
   "status": {
     "PENDING": "Pending",

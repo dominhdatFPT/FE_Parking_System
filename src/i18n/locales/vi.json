@@ -176,10 +176,10 @@
     "title": "Hỗ trợ",
     "subtitle": "Chúng tôi luôn sẵn sàng giúp đỡ bạn",
     "hotline": "Hotline",
-    "hotlineNumber": "1900-xxxx",
+    "hotlineNumber": "0123456789",
     "hotlineDesc": "Phục vụ 24/7",
     "email": "Email hỗ trợ",
-    "emailAddress": "support@smartparking.vn",
+    "emailAddress": "dat@example.com",
     "emailDesc": "Phản hồi trong 24h",
     "faq": "Câu hỏi thường gặp",
     "contactForm": "Gửi yêu cầu hỗ trợ",
@@ -205,7 +205,7 @@
     "faq5q": "Làm thế nào khi bãi xe đã đầy?",
     "faq5a": "Khi bãi xe đã đầy (trạng thái FULL), nút \"Chọn bãi\" sẽ bị vô hiệu hóa. Hãy chọn bãi xe khác có slot trống.",
     "faq6q": "Tôi cần hỗ trợ khẩn cấp?",
-    "faq6a": "Vui lòng gọi hotline 1900-xxxx hoặc email support@smartparking.vn. Đội ngũ hỗ trợ hoạt động 24/7."
+    "faq6a": "Vui lòng gọi hotline 0123456789 hoặc email dat@example.com. Đội ngũ hỗ trợ hoạt động 24/7."
   },
   "status": {
     "PENDING": "Đang chờ",

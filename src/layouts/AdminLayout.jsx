@@ -30,7 +30,7 @@ const mainNavigationItems = [
 
 const incidentNavigationItem = {
   icon: AlertTriangle,
-  label: 'Sự cố',
+  label: 'Sự cố & hỗ trợ',
   path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`,
 };
 
@@ -40,7 +40,7 @@ const pageTitles = [
   { path: ROUTES.ADMIN.VEHICLE_ENTRY, title: 'Xe vào' },
   { path: ROUTES.ADMIN.PARKING_SESSIONS, title: 'Tất cả phiên gửi xe' },
   { path: ROUTES.ADMIN.VEHICLE_EXIT, title: 'Xe ra' },
-  { path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`, title: 'Sự cố' },
+  { path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`, title: 'Quản lí sự cố và hỗ trợ' },
   { path: ROUTES.ADMIN.NOTIFICATIONS.BASE, title: 'Thông báo' },
 ];
 
@@ -68,6 +68,8 @@ export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
 
   function handleLogout() {
+    sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    sessionStorage.removeItem(STORAGE_KEYS.USER);
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER);
     localStorage.removeItem('smart-parking-user');
@@ -102,16 +104,13 @@ export default function AdminLayout() {
         isVehicleEntryPage ? 'h-screen overflow-hidden' : 'min-h-screen overflow-x-hidden'
       }`}
     >
-      <div className="pointer-events-none fixed -left-24 top-24 h-72 w-72 rounded-full bg-sky-200/35 blur-3xl" />
-      <div className="pointer-events-none fixed right-0 top-1/3 h-80 w-80 rounded-full bg-slate-300/25 blur-3xl" />
       <aside
-        className={`hidden min-h-screen flex-shrink-0 border-r border-white/10 bg-slate-950/90 text-white shadow-[18px_0_48px_rgba(15,23,42,0.22)] backdrop-blur-2xl transition-[width] duration-300 ease-out lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:h-screen lg:flex-col ${
+        className={`hidden min-h-screen flex-shrink-0 border-r border-white/10 bg-slate-950 text-white shadow-[18px_0_48px_rgba(15,23,42,0.22)] transition-[width] duration-300 ease-out lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:h-screen lg:flex-col ${
           collapsed ? 'w-20' : 'w-[260px]'
         }`}
       >
-        <div className="relative flex h-full flex-col overflow-hidden bg-[radial-gradient(circle_at_20%_0%,rgba(14,165,233,0.18),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.015)_42%,rgba(15,23,42,0))] p-4">
-          <div className="pointer-events-none absolute -left-20 top-10 h-44 w-44 rounded-full bg-sky-400/10 blur-3xl" />
-          <div className="pointer-events-none absolute -right-24 bottom-20 h-56 w-56 rounded-full bg-slate-400/10 blur-3xl" />
+        <div className="relative flex h-full flex-col overflow-hidden p-4">
+
           <div
             className={`relative flex items-center gap-3 border-b border-white/10 pb-4 ${
               collapsed ? 'justify-center' : 'justify-between'
@@ -248,7 +247,7 @@ export default function AdminLayout() {
           collapsed ? 'lg:ml-20' : 'lg:ml-[260px]'
         } ${isVehicleEntryPage ? 'h-full overflow-hidden' : ''}`}
       >
-        <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/70 px-5 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)] backdrop-blur-md lg:px-8">
+        <header className="sticky top-0 z-40 border-b border-slate-100 bg-white px-5 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)] lg:px-8">
           <div className="flex min-h-12 items-center justify-between gap-4">
             <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">

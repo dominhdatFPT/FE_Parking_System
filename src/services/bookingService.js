@@ -231,6 +231,15 @@ export const bookingService = {
     }
   },
 
+  getMySupportRequests: async () => {
+    try {
+      const response = await apiClient.get('/api/customer/support/my');
+      return { data: unwrap(response) || [], error: null };
+    } catch (error) {
+      return { ...apiError(error), data: [] };
+    }
+  },
+
   registerVehicleCard: async (payload) => {
     try {
       const response = await apiClient.post('/api/v1/vehicle-registrations', payload);

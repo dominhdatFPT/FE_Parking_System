@@ -33,11 +33,10 @@ export function AuthProvider({ children }) {
         const rememberMe = window.localStorage.getItem('rememberMe') === 'true';
 
         if (user) {
+            window.sessionStorage.setItem('smart-parking-user', JSON.stringify(user));
             if (rememberMe) {
                 window.localStorage.setItem('smart-parking-user', JSON.stringify(user));
-                window.sessionStorage.removeItem('smart-parking-user');
             } else {
-                window.sessionStorage.setItem('smart-parking-user', JSON.stringify(user));
                 window.localStorage.removeItem('smart-parking-user');
             }
             registerDeviceTokenForCurrentUser();
