@@ -29,16 +29,14 @@ const LANGUAGE_KEY = 'language';
 const resources = {
   vi: {
     translation: {
-      nav: { login: 'Đăng nhập' },
+      login: 'Đăng nhập',
       title: 'Tạo tài khoản mới',
       message: 'Tạo tài khoản để quản lý bãi đỗ xe thông minh, nhận diện biển số AI và theo dõi phương tiện theo thời gian thực.',
-      fields: {
-        fullName: 'Họ và tên',
-        email: 'Email',
-        username: 'Tên đăng nhập',
-        password: 'Mật khẩu',
-        confirmPassword: 'Xác nhận mật khẩu',
-      },
+      fullName: 'Họ và tên',
+      email: 'Email',
+      username: 'Tên đăng nhập',
+      password: 'Mật khẩu',
+      confirmPassword: 'Xác nhận mật khẩu',
       placeholders: {
         fullName: 'Nguyễn Văn A',
         email: 'yourname@company.com',
@@ -68,15 +66,13 @@ const resources = {
           'Dữ liệu chỉ được chia sẻ với các bên liên quan khi cần thiết cho vận hành hệ thống, tuân thủ yêu cầu pháp lý hoặc theo cấu hình của đơn vị quản lý bãi xe.',
         ],
       },
-      actions: {
-        submit: 'Đăng ký',
-        submitting: 'Đang tạo tài khoản...',
-        or: 'Hoặc',
-        google: 'Đăng ký bằng Google',
-        googleLoading: 'Đang đăng ký...',
-        hasAccount: 'Đã có tài khoản?',
-        loginNow: 'Đăng nhập ngay',
-      },
+      submit: 'Đăng ký',
+      submitting: 'Đang tạo tài khoản...',
+      or: 'Hoặc',
+      google: 'Đăng ký bằng Google',
+      googleLoading: 'Đang đăng ký...',
+      hasAccount: 'Đã có tài khoản?',
+      loginNow: 'Đăng nhập ngay',
       trust: {
         identity: 'Định danh tài khoản bảo mật',
         cloud: 'Kết nối Cloud Platform',
@@ -106,16 +102,14 @@ const resources = {
   },
   en: {
     translation: {
-      nav: { login: 'Login' },
+      login: 'Login',
       title: 'Create your account',
       message: 'Create an account to manage smart parking, AI license plate recognition, and real-time vehicle monitoring.',
-      fields: {
-        fullName: 'Full name',
-        email: 'Email',
-        username: 'Username',
-        password: 'Password',
-        confirmPassword: 'Confirm password',
-      },
+      fullName: 'Full name',
+      email: 'Email',
+      username: 'Username',
+      password: 'Password',
+      confirmPassword: 'Confirm password',
       placeholders: {
         fullName: 'Alex Nguyen',
         email: 'yourname@company.com',
@@ -145,15 +139,13 @@ const resources = {
           'Data is shared only when needed for system operation, legal compliance, or parking operator configuration.',
         ],
       },
-      actions: {
-        submit: 'Sign up',
-        submitting: 'Creating account...',
-        or: 'Or',
-        google: 'Sign up with Google',
-        googleLoading: 'Signing up...',
-        hasAccount: 'Already have an account?',
-        loginNow: 'Login now',
-      },
+      submit: 'Sign up',
+      submitting: 'Creating account...',
+      or: 'Or',
+      google: 'Sign up with Google',
+      googleLoading: 'Signing up...',
+      hasAccount: 'Already have an account?',
+      loginNow: 'Login now',
       trust: {
         identity: 'Secure account identity',
         cloud: 'Cloud Platform connection',
@@ -240,7 +232,7 @@ function TopNavigation({ currentLanguage, onLanguageChange, t }) {
             to={ROUTES.LOGIN}
           >
             <LogIn className="w-4 h-4" />
-            {t('nav.login')}
+            {t('login')}
           </Link>
         </div>
       </nav>
@@ -432,6 +424,11 @@ export default function SignupPage() {
   const validateForm = () => {
     if (!fullName.trim()) return setError(t('errors.fullName')) || false;
     if (!email.trim()) return setError(t('errors.email')) || false;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError(currentLanguage === 'vi' ? 'Định dạng email không hợp lệ.' : 'Invalid email format.');
+      return false;
+    }
     if (!username.trim()) return setError(t('errors.username')) || false;
     if (password.length < 6) return setError(t('errors.passwordLength')) || false;
     if (password !== confirmPassword) return setError(t('errors.passwordMismatch')) || false;
@@ -480,8 +477,6 @@ export default function SignupPage() {
               <div className="flex justify-center">
                 <BrandLogo />
               </div>
-              <h1 className="mt-2 text-[26px] font-semibold leading-tight tracking-normal text-slate-950 sm:text-[32px]">{t('title')}</h1>
-              <p className="mx-auto mt-1.5 max-w-xl text-xs font-medium leading-5 text-slate-500">{t('message')}</p>
             </div>
 
             {error && (
@@ -499,13 +494,13 @@ export default function SignupPage() {
 
             <form className="mt-3 grid gap-2.5" onSubmit={handleSubmit}>
               <div className="grid gap-3 sm:grid-cols-2">
-                <Field icon={User} id="signup-fullname" label={t('fields.fullName')} placeholder={t('placeholders.fullName')} type="text" value={fullName} onChange={(event) => setFullName(event.target.value)} required />
-                <Field icon={Mail} id="signup-email" label={t('fields.email')} placeholder={t('placeholders.email')} type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+                <Field icon={User} id="signup-fullname" label={t('fullName')} placeholder={t('placeholders.fullName')} type="text" value={fullName} onChange={(event) => setFullName(event.target.value)} required />
+                <Field icon={Mail} id="signup-email" label={t('email')} placeholder={t('placeholders.email')} type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
               </div>
-              <Field icon={AtSign} id="signup-username" label={t('fields.username')} placeholder={t('placeholders.username')} type="text" value={username} onChange={(event) => setUsername(event.target.value)} required />
+              <Field icon={AtSign} id="signup-username" label={t('username')} placeholder={t('placeholders.username')} type="text" value={username} onChange={(event) => setUsername(event.target.value)} required />
               <div className="grid gap-3 sm:grid-cols-2">
-                <PasswordField icon={LockKeyhole} id="signup-password" label={t('fields.password')} placeholder="••••••••" value={password} onChange={(event) => setPassword(event.target.value)} showPassword={showPassword} onTogglePassword={() => setShowPassword((current) => !current)} t={t} required />
-                <PasswordField icon={LockKeyhole} id="signup-confirm-password" label={t('fields.confirmPassword')} placeholder="••••••••" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword((current) => !current)} t={t} required />
+                <PasswordField icon={LockKeyhole} id="signup-password" label={t('password')} placeholder="••••••••" value={password} onChange={(event) => setPassword(event.target.value)} showPassword={showPassword} onTogglePassword={() => setShowPassword((current) => !current)} t={t} required />
+                <PasswordField icon={LockKeyhole} id="signup-confirm-password" label={t('confirmPassword')} placeholder="••••••••" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword((current) => !current)} t={t} required />
               </div>
 
               <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3">
@@ -521,17 +516,17 @@ export default function SignupPage() {
                 </Checkbox>
               </div>
 
-              <button className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)] focus:outline-none focus:ring-4 focus:ring-sky-100 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70" type="submit" disabled={loading}>
-                {loading ? t('actions.submitting') : t('actions.submit')}
-                {!loading && <ArrowRight className="h-5 w-5" />}
+              <button className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold !text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)] focus:outline-none focus:ring-4 focus:ring-sky-100 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70" type="submit" disabled={loading}>
+                {loading ? t('submitting') : t('submit')}
+                {!loading && <ArrowRight className="h-5 w-5 !text-white" />}
               </button>
 
             </form>
 
             <p className="mt-3 text-center text-sm text-slate-500">
-              {t('actions.hasAccount')}
+              {t('hasAccount')}
               <Link className="ml-1 font-bold text-sky-600 transition hover:text-sky-700" to={ROUTES.LOGIN}>
-                {t('actions.loginNow')}
+                {t('loginNow')}
               </Link>
             </p>
           </section>
