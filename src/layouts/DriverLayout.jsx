@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { Outlet } from 'react-router';
 import DriverHeader from '../features/driver/components/DriverHeader';
 import DriverSidebar from '../features/driver/components/DriverSidebar';
+import AiChatWidget from '../components/AiChatWidget';
 
 export default function DriverLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F8FAFC]">
+    <div className="flex h-screen overflow-hidden bg-slate-50/50">
       <DriverSidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
@@ -20,6 +21,7 @@ export default function DriverLayout() {
           </div>
         </main>
       </div>
+      <AiChatWidget />
     </div>
   );
 }

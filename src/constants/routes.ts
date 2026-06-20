@@ -70,4 +70,8 @@ export const ROUTES = {
     VEHICLE_REGISTRATION: '/driver-vehicle-registration',
     FEE_PLANS: '/driver-fee-plans',
   },
+
+  SUBSCRIPTION: {
+    RESULT: '/subscription/result',
+  },
 } as const;

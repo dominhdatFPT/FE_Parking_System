@@ -1,4 +1,25 @@
 {
+  "email": "Email",
+  "password": "Password",
+  "forgot": "Forgot password?",
+  "remember": "Remember me",
+  "submit": "Submit",
+  "submitting": "Submitting...",
+  "or": "Or",
+  "google": "Google",
+  "googleLoading": "Logging in...",
+  "noAccount": "No account yet?",
+  "signupNow": "Sign up now",
+  "hidePassword": "Hide password",
+  "showPassword": "Show password",
+  "contact": "Contact",
+  "signup": "Sign Up",
+  "login": "Login",
+  "fullName": "Full name",
+  "username": "Username",
+  "confirmPassword": "Confirm password",
+  "hasAccount": "Already have an account?",
+  "loginNow": "Login now",
   "common": {
     "loading": "Loading...",
     "save": "Save",
@@ -155,10 +176,10 @@
     "title": "Support Center",
     "subtitle": "We're always here to help",
     "hotline": "Hotline",
-    "hotlineNumber": "1900-xxxx",
+    "hotlineNumber": "0123456789",
     "hotlineDesc": "Available 24/7",
     "email": "Support Email",
-    "emailAddress": "support@smartparking.vn",
+    "emailAddress": "dat@example.com",
     "emailDesc": "Response within 24h",
     "faq": "Frequently Asked Questions",
     "contactForm": "Submit a Support Request",
@@ -184,7 +205,7 @@
     "faq5q": "What if the parking lot is full?",
     "faq5a": "When a parking lot is FULL, the \"Select\" button will be disabled. Please choose another lot with available slots.",
     "faq6q": "I need urgent support?",
-    "faq6a": "Please call hotline 1900-xxxx or email support@smartparking.vn. Our support team operates 24/7."
+    "faq6a": "Please call hotline 0123456789 or email dat@example.com. Our support team operates 24/7."
   },
   "status": {
     "PENDING": "Pending",
@@ -331,6 +352,19 @@
     "statusActive": "🟢 Active",
     "statusExpired": "🔴 Expired",
     "statusPending": "🔵 Pending Payment",
-    "statusUnregistered": "🟡 Unregistered"
+    "statusCancelled": "⛔ Cancelled",
+    "statusUnregistered": "🟡 Unregistered",
+    "mySubscriptionsTitle": "My Subscriptions",
+    "noSubscriptions": "You have no subscriptions yet. Choose a plan below to register.",
+    "colPlate": "Plate",
+    "colPlan": "Plan",
+    "colDuration": "Duration",
+    "colStatus": "Status",
+    "colExpiry": "Expiry",
+    "months": "months",
+    "verifyingPayment": "Verifying payment...",
+    "paymentVerified": "Payment confirmed!",
+    "paymentPendingIpn": "Transaction is awaiting confirmation from the payment gateway. Please wait or check again later.",
+    "checkAgain": "Check status again"
   }
 }

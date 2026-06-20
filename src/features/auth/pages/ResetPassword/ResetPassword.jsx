@@ -31,7 +31,7 @@ const OTP_LENGTH = 6;
 const resources = {
   vi: {
     translation: {
-      nav: { login: 'Đăng nhập' },
+      login: 'Đăng nhập',
       steps: {
         email: 'Email',
         otp: 'Xác thực OTP',
@@ -109,7 +109,7 @@ const resources = {
   },
   en: {
     translation: {
-      nav: { login: 'Login' },
+      login: 'Login',
       steps: {
         email: 'Email',
         otp: 'OTP Verification',
@@ -249,7 +249,7 @@ function TopNavigation({ currentLanguage, onLanguageChange, t }) {
             to={ROUTES.LOGIN}
           >
             <LogIn className="w-4 h-4" />
-            {t('nav.login')}
+            {t('login')}
           </Link>
         </div>
       </nav>

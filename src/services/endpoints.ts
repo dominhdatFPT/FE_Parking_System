@@ -15,10 +15,20 @@ export const API_ENDPOINTS = {
     PACKAGES: '/api/v1/fee-packages',
     MY_VEHICLES: '/api/v1/fee-subscriptions/my-vehicles',
     SUBSCRIPTIONS: '/api/v1/fee-subscriptions',
+    MY_INVOICES: '/api/subscriptions/my-invoices',
+    REGISTER: '/api/subscriptions/register',
+  },
+  PAYMENTS: {
+    MOMO_ORDER_STATUS: (momoOrderId: string) => `/api/payments/momo-orders/${momoOrderId}/status`,
   },
   ADMIN_NOTIFICATIONS: {
     BASE: '/api/v1/admin/notifications',
     SEND: (id: string | number) => `/api/v1/admin/notifications/${id}/send`,
     DETAIL: (id: string | number) => `/api/v1/admin/notifications/${id}`,
+  },
+  NOTIFICATIONS: {
+    LIST: '/api/v1/notifications',
+    DETAIL: (id: number | string) => `/api/v1/notifications/${id}`,
+    REGISTER_TOKEN: '/api/v1/notifications/register-token',
   },
 } as const;

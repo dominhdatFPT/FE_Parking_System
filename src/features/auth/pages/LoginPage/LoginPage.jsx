@@ -44,10 +44,8 @@ const trustSignals = [
 
 const loginTranslations = {
   vi: {
-    nav: {
-      contact: 'Liên hệ',
-      signup: 'Đăng ký',
-    },
+    contact: 'Liên hệ',
+    signup: 'Đăng ký',
     brand: {
       tagline: 'Quản lý bãi đỗ xe thông minh',
     },
@@ -63,21 +61,19 @@ const loginTranslations = {
       zone: 'Phân tích khu vực',
       payment: 'Thanh toán không chạm',
     },
-    form: {
-      email: 'Email',
-      password: 'Mật khẩu',
-      forgot: 'Quên mật khẩu?',
-      remember: 'Ghi nhớ đăng nhập',
-      submit: 'Đăng nhập',
-      submitting: 'Đang đăng nhập...',
-      or: 'Hoặc',
-      google: 'Đăng nhập bằng Google',
-      googleLoading: 'Đang đăng nhập...',
-      noAccount: 'Chưa có tài khoản?',
-      signupNow: 'Đăng ký ngay',
-      hidePassword: 'Ẩn mật khẩu',
-      showPassword: 'Hiện mật khẩu',
-    },
+    email: 'Email',
+    password: 'Mật khẩu',
+    forgot: 'Quên mật khẩu?',
+    remember: 'Ghi nhớ đăng nhập',
+    submit: 'Đăng nhập',
+    submitting: 'Đang đăng nhập...',
+    or: 'Hoặc',
+    google: 'Đăng nhập bằng Google',
+    googleLoading: 'Đang đăng nhập...',
+    noAccount: 'Chưa có tài khoản?',
+    signupNow: 'Đăng ký ngay',
+    hidePassword: 'Ẩn mật khẩu',
+    showPassword: 'Hiện mật khẩu',
     trust: {
       lpr: 'AI nhận diện biển số',
       monitoring: 'Giám sát bãi xe thời gian thực',
@@ -100,10 +96,8 @@ const loginTranslations = {
     },
   },
   en: {
-    nav: {
-      contact: 'Contact',
-      signup: 'Sign Up',
-    },
+    contact: 'Contact',
+    signup: 'Sign Up',
     brand: {
       tagline: 'Smart parking management',
     },
@@ -119,21 +113,19 @@ const loginTranslations = {
       zone: 'Zone Analytics',
       payment: 'Contactless Payment',
     },
-    form: {
-      email: 'Email',
-      password: 'Password',
-      forgot: 'Forgot password?',
-      remember: 'Remember me',
-      submit: 'Login',
-      submitting: 'Logging in...',
-      or: 'Or',
-      google: 'Login with Google',
-      googleLoading: 'Logging in...',
-      noAccount: 'No account yet?',
-      signupNow: 'Sign up now',
-      hidePassword: 'Hide password',
-      showPassword: 'Show password',
-    },
+    email: 'Email',
+    password: 'Password',
+    forgot: 'Forgot password?',
+    remember: 'Remember me',
+    submit: 'Login',
+    submitting: 'Logging in...',
+    or: 'Or',
+    google: 'Login with Google',
+    googleLoading: 'Logging in...',
+    noAccount: 'No account yet?',
+    signupNow: 'Sign up now',
+    hidePassword: 'Hide password',
+    showPassword: 'Show password',
     trust: {
       lpr: 'AI license plate recognition',
       monitoring: 'Real-time parking monitoring',
@@ -224,7 +216,7 @@ function TopNavigation({ currentLanguage, onLanguageChange, t }) {
             to={ROUTES.SIGNUP}
           >
             <UserPlus className="w-4 h-4 text-white" style={{ color: '#FFFFFF' }} />
-            <span className="text-white" style={{ color: '#FFFFFF' }}>{t('nav.signup')}</span>
+            <span className="text-white" style={{ color: '#FFFFFF' }}>{t('signup')}</span>
           </Link>
         </div>
       </nav>
@@ -358,9 +350,9 @@ function PasswordInput({ showPassword, onTogglePassword, t, ...props }) {
   return (
     <label className="grid gap-1.5 text-left" htmlFor="login-password">
       <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
-        {t('form.password')}
+        {t('password')}
         <Link className="text-xs font-semibold normal-case tracking-normal text-sky-600 transition hover:text-sky-700" to="/reset-password">
-          {t('form.forgot')}
+          {t('forgot')}
         </Link>
       </span>
       <span className="relative block">
@@ -372,7 +364,7 @@ function PasswordInput({ showPassword, onTogglePassword, t, ...props }) {
           {...props}
         />
         <button
-          aria-label={showPassword ? t('form.hidePassword') : t('form.showPassword')}
+          aria-label={showPassword ? t('hidePassword') : t('showPassword')}
           className="absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
           type="button"
           onClick={onTogglePassword}
@@ -422,6 +414,29 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
+    // Input Validation
+    if (!email) {
+      setError(currentLanguage === 'vi' ? 'Vui lòng nhập email.' : 'Please enter email.');
+      setLoading(false);
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError(currentLanguage === 'vi' ? 'Định dạng email không hợp lệ.' : 'Invalid email format.');
+      setLoading(false);
+      return;
+    }
+    if (!password) {
+      setError(currentLanguage === 'vi' ? 'Vui lòng nhập mật khẩu.' : 'Please enter password.');
+      setLoading(false);
+      return;
+    }
+    if (password.length < 6) {
+      setError(currentLanguage === 'vi' ? 'Mật khẩu phải từ 6 ký tự trở lên.' : 'Password must be at least 6 characters.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await login(email, password);
 
@@ -429,7 +444,7 @@ export default function LoginPage() {
         throw new Error(t('errors.missingToken'));
       }
 
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
+      sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
 
       const authenticatedUser = {
         id: response.user?.id ?? response.userId ?? email,
@@ -440,11 +455,17 @@ export default function LoginPage() {
       };
 
       setUser(authenticatedUser);
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authenticatedUser));
+      sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authenticatedUser));
       localStorage.setItem('userRole', authenticatedUser.role || 'driver');
 
       if (rememberMe) {
         localStorage.setItem('rememberMe', 'true');
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authenticatedUser));
+      } else {
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER);
       }
 
       navigate(getDashboardPath(authenticatedUser.role));
@@ -476,8 +497,10 @@ export default function LoginPage() {
           avatarUrl: response.avatarUrl ?? '',
         };
 
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(nextUser));
+        sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
+        sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(nextUser));
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER);
         localStorage.setItem('userRole', response.role || 'driver');
         setUser(nextUser);
         navigate(getDashboardPath(response.role));
@@ -502,10 +525,6 @@ export default function LoginPage() {
               <div className="flex justify-center">
                 <BrandLogo compact />
               </div>
-              <h1 className="mt-1 text-[28px] font-semibold leading-tight tracking-normal text-slate-950 sm:text-[34px]">{t('hero.title')}</h1>
-              <p className="mx-auto mt-1 max-w-md text-xs font-medium leading-5 text-slate-400">
-                {t('hero.support')}
-              </p>
             </div>
 
             {error && (
@@ -519,7 +538,7 @@ export default function LoginPage() {
               <AuthInput
                 icon={Mail}
                 id="login-email"
-                label={t('form.email')}
+                label={t('email')}
                 name="email"
                 placeholder="yourname@company.com"
                 type="email"
@@ -551,22 +570,22 @@ export default function LoginPage() {
                     />
                     <Check className="pointer-events-none absolute h-3.5 w-3.5 text-white opacity-0 transition peer-checked:opacity-100" />
                   </span>
-                  {t('form.remember')}
+                  {t('remember')}
                 </label>
               </div>
 
               <button
-                className="mt-0.5 inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)] focus:outline-none focus:ring-4 focus:ring-sky-100 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70"
+                className="mt-0.5 inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold !text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)] focus:outline-none focus:ring-4 focus:ring-sky-100 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70"
                 type="submit"
                 disabled={loading}
               >
-                {loading ? t('form.submitting') : t('form.submit')}
-                {!loading && <ArrowRight className="h-5 w-5" />}
+                {loading ? t('submitting') : t('submit')}
+                {!loading && <ArrowRight className="h-5 w-5 !text-white" />}
               </button>
 
               <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
                 <span className="h-px flex-1 bg-slate-200" />
-                <span>{t('form.or')}</span>
+                <span>{t('or')}</span>
                 <span className="h-px flex-1 bg-slate-200" />
               </div>
 
@@ -577,13 +596,13 @@ export default function LoginPage() {
                 disabled={googleLoading}
               >
                 <GoogleIcon />
-                {googleLoading ? t('form.googleLoading') : t('form.google')}
+                {googleLoading ? t('googleLoading') : t('google')}
               </button>
 
               <p className="text-center text-sm font-medium text-slate-500">
-                {t('form.noAccount')}
+                {t('noAccount')}
                 <Link className="ml-1 font-bold text-sky-600 transition hover:text-sky-700 hover:underline" to={ROUTES.SIGNUP}>
-                  {t('form.signupNow')}
+                  {t('signupNow')}
                 </Link>
               </p>
 

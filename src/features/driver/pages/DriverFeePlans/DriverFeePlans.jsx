@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ROUTES } from '../../../../constants/routes';
 import { apiClient } from '../../../../services/apiClient';
@@ -17,9 +17,10 @@ const STATUS_MAP = {
 
 export default function DriverFeePlans() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
 
-  const [vehicleType, setVehicleType] = useState('CAR');
+  const [vehicleType, setVehicleType] = useState(location.state?.selectedType || 'CAR');
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [licensePlate, setLicensePlate] = useState('');
   const [selectedPlanId, setSelectedPlanId] = useState(null);
@@ -35,14 +36,15 @@ export default function DriverFeePlans() {
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const selectedPackage = feePackages.find(p => p.id === selectedPlanId);
-  const basePrice = selectedPackage ? Number(selectedPackage.currentPrice) : 0;
+  const selectedPackagePrice = selectedPackage ? (selectedPackage.price ?? selectedPackage.currentPrice ?? 0) : 0;
+  const basePrice = Number.isFinite(Number(selectedPackagePrice)) ? Number(selectedPackagePrice) : 0;
   const totalPrice = basePrice;
 
   const fetchFeePackages = useCallback(async (typeId) => {
     setLoadingFeePackages(true);
     setErrorMessage('');
     try {
-      const res = await apiClient.get(API_ENDPOINTS.FEE.PACKAGES, { params: { category: typeId } });
+      const res = await apiClient.get(API_ENDPOINTS.FEE.PACKAGES, { params: { vehicleTypeId: typeId } });
       setFeePackages(res.data?.data ?? []);
     } catch (err) {
       const msg = err.response?.data?.message || 'Không thể tải danh sách gói cước';
@@ -86,13 +88,20 @@ export default function DriverFeePlans() {
     setErrorMessage('');
 
     try {
-      const res = await apiClient.post(API_ENDPOINTS.FEE.SUBSCRIPTIONS, {
+      const res = await apiClient.post(API_ENDPOINTS.FEE.REGISTER, {
         vehicleId: selectedVehicle.vehicleId,
-        feePackageId: selectedPlanId,
+        planId: selectedPlanId,
+        autoRenew: false,
       });
       const result = res.data?.data ?? res.data;
-      setSubscriptionResult(result);
-      setSubmittedSuccess(true);
+      localStorage.setItem('pending_fee_plan_request', JSON.stringify({
+        ...result,
+        licensePlate: selectedVehicle.licensePlate,
+        planName: selectedPackage?.name,
+        durationMonths: selectedPackage?.durationMonths,
+        amount: selectedPackage?.price ?? selectedPackage?.currentPrice ?? 0,
+      }));
+      navigate(ROUTES.DRIVER.PAYMENT);
     } catch (err) {
       const msg = err.response?.data?.message || 'Đã xảy ra lỗi khi tạo đăng ký';
       setErrorMessage(msg);
@@ -309,7 +318,8 @@ export default function DriverFeePlans() {
                     feePackages.map((pkg) => {
                       const isSelected = selectedPlanId === pkg.id;
                       const tag = pkg.isPopular ? t('feePlans.popularTag') : pkg.isBestValue ? t('feePlans.saveTag') : '';
-                      const price = Number(pkg.currentPrice);
+                      const rawPrice = pkg.price ?? pkg.currentPrice ?? 0;
+                      const price = Number.isFinite(Number(rawPrice)) ? Number(rawPrice) : 0;
                       return (
                         <div
                           key={pkg.id}

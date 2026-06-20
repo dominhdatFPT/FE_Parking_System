@@ -37,6 +37,7 @@ import StaffSessions from '../features/staff/pages/StaffSessions';
 import StaffExceptions from '../features/staff/pages/StaffExceptions';
 import VehicleEntryPage from '../pages/VehicleEntryPage';
 import ParkingSessionsPage from '../pages/ParkingSessionsPage';
+import SubscriptionResultPage from '../pages/SubscriptionResultPage';
 
 function RequireAuth({ children }) {
   const { isAuthenticated } = useAuth();
@@ -125,6 +126,7 @@ export function AppRoutes() {
         <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />}/>
       </Route>
       
+      <Route path={ROUTES.SUBSCRIPTION.RESULT} element={<SubscriptionResultPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

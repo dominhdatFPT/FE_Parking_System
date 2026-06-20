@@ -1,8 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { bookingService } from '../../../../services/bookingService';
 import PageHeader from '../../components/PageHeader';
 import Button from '../../components/Button';
+
+const SUPPORT_SUBJECTS = [
+  'Dịch vụ gửi xe',
+  'Thanh toán & hóa đơn',
+  'Gói gửi xe',
+  'Tài khoản người dùng',
+  'Hỗ trợ khách hàng',
+  'An ninh',
+  'Khác',
+];
 
 export default function DriverSupport() {
   const { t } = useTranslation();
@@ -11,6 +21,17 @@ export default function DriverSupport() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [formError, setFormError] = useState('');
+  const [requests, setRequests] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+
+  const loadRequests = async () => {
+    setHistoryLoading(true);
+    const { data } = await bookingService.getMySupportRequests();
+    setRequests(data || []);
+    setHistoryLoading(false);
+  };
+
+  useEffect(() => { loadRequests(); }, []);
 
   const toggleFaq = (i) => setOpenFaq(openFaq === i ? null : i);
 
@@ -25,6 +46,7 @@ export default function DriverSupport() {
     if (error) { setFormError(t('support.submitError')); return; }
     setSubmitted(true);
     setForm({ subject: '', message: '' });
+    await loadRequests();
     setTimeout(() => setSubmitted(false), 3000);
   };
 
@@ -117,14 +139,18 @@ export default function DriverSupport() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="mb-1.5 block text-xs font-bold text-slate-500">{t('support.subject')}</label>
-                <input
-                  type="text"
+                <label htmlFor="support-subject" className="mb-1.5 block text-xs font-bold text-slate-500">{t('support.subject')}</label>
+                <select
+                  id="support-subject"
                   value={form.subject}
                   onChange={(e) => setForm((p) => ({ ...p, subject: e.target.value }))}
-                  placeholder={t('support.subjectPlaceholder')}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 outline-none transition-all focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100"
-                />
+                >
+                  <option value="" disabled>Chọn chủ đề cần hỗ trợ</option>
+                  {SUPPORT_SUBJECTS.map((subject) => (
+                    <option key={subject} value={subject}>{subject}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-slate-500">{t('support.message')}</label>
@@ -157,6 +183,42 @@ export default function DriverSupport() {
           )}
         </div>
       </div>
+
+      <section className="rounded-2xl border border-slate-100/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-800">
+          <span className="material-symbols-outlined text-sky-500">forum</span>
+          Yêu cầu hỗ trợ của tôi
+        </h3>
+        {historyLoading ? (
+          <p className="py-6 text-center text-sm text-slate-400">Đang tải dữ liệu...</p>
+        ) : requests.length === 0 ? (
+          <p className="py-6 text-center text-sm text-slate-400">Bạn chưa gửi yêu cầu hỗ trợ nào.</p>
+        ) : (
+          <div className="space-y-3">
+            {requests.map((request) => (
+              <article key={request.id} className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-bold text-slate-800">{request.service}</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-600">{request.content}</p>
+                  </div>
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-100">
+                    {{ OPEN: 'Chờ xử lý', IN_PROGRESS: 'Đang xử lý', REPLIED: 'Đã phản hồi', RESOLVED: 'Đã giải quyết', CLOSED: 'Đã đóng' }[request.status] || request.status}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-slate-400">{new Date(request.createdAt).toLocaleString('vi-VN')}</p>
+                {request.replyMessage && (
+                  <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 p-4">
+                    <p className="text-sm font-bold text-emerald-800">{request.replyTitle}</p>
+                    <p className="mt-1 text-sm leading-6 text-emerald-700">{request.replyMessage}</p>
+                    <p className="mt-2 text-xs text-emerald-600">Phản hồi bởi {request.repliedBy || 'Nhân viên hỗ trợ'} · {request.repliedAt ? new Date(request.repliedAt).toLocaleString('vi-VN') : ''}</p>
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
