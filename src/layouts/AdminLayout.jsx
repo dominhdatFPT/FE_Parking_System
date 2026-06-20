@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   ArrowDownToLine,
   ArrowUpFromLine,
+  BellRing,
   Boxes,
   ChevronLeft,
   ChevronRight,
@@ -21,9 +22,10 @@ import Logo from '../components/Logo';
 const mainNavigationItems = [
   { icon: LayoutDashboard, label: 'Tổng quan bãi', path: ROUTES.ADMIN.DASHBOARD },
   { icon: ArrowDownToLine, label: 'Xe vào', path: ROUTES.ADMIN.VEHICLE_ENTRY },
-  { icon: ArrowUpFromLine, label: 'Xe ra', path: ROUTES.ADMIN.ROLES },
+  { icon: ArrowUpFromLine, label: 'Xe ra', path: ROUTES.ADMIN.VEHICLE_EXIT },
   { icon: Boxes, label: 'Phiên gửi xe', path: ROUTES.ADMIN.PARKING_SESSIONS },
   { icon: Package, label: 'Quản lý gói', path: ROUTES.STAFF.BOOKINGS },
+  { icon: BellRing, label: 'Thông báo', path: ROUTES.ADMIN.NOTIFICATIONS.BASE },
 ];
 
 const incidentNavigationItem = {
@@ -37,7 +39,7 @@ const pageTitles = [
   { path: ROUTES.STAFF.BOOKINGS, title: 'Quản lý gói' },
   { path: ROUTES.ADMIN.VEHICLE_ENTRY, title: 'Xe vào' },
   { path: ROUTES.ADMIN.PARKING_SESSIONS, title: 'Tất cả phiên gửi xe' },
-  { path: ROUTES.ADMIN.ROLES, title: 'Xe ra' },
+  { path: ROUTES.ADMIN.VEHICLE_EXIT, title: 'Xe ra' },
   { path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`, title: 'Sự cố' },
   { path: ROUTES.ADMIN.NOTIFICATIONS.BASE, title: 'Thông báo' },
 ];
@@ -76,14 +78,14 @@ export default function AdminLayout() {
 
   const profile = user
     ? {
-        name: user.fullName || user.name || 'Demo Admin',
-        role: user.role || 'Admin',
+        name: user.fullName || user.name || user.email || 'Người dùng',
+        role: user.role || '',
         email: user.email || '',
         avatar: user.avatarUrl || user.avatar || '',
       }
     : {
-        name: 'Demo Admin',
-        role: 'Admin',
+        name: 'Người dùng',
+        role: '',
         email: '',
         avatar: '',
       };

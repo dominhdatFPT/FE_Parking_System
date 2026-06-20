@@ -1,17 +1,14 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import SessionDetailDrawer from '../../components/parking/SessionDetailDrawer';
-import { activeParkingSessions, completedParkingSessions } from '../../data/parkingSessions';
-
-const today = '2026-06-17';
+import { getStaffOperationsDashboard } from '../../services/staffService';
 
 const emptyDashboardData = {
-  activeSessions: 0,
   entries: 0,
   exits: 0,
   revenue: '0',
-  capacity: '0 / 600',
-  availableSlots: 600,
+  capacity: '0 / 0',
+  availableSlots: 0,
   sessions: [],
   completedSessions: [],
   revenueBreakdown: [],
@@ -20,117 +17,6 @@ const emptyDashboardData = {
   entryBreakdown: [],
   exitBreakdown: [],
   capacityBreakdown: [],
-};
-
-const dashboardDataByDate = {
-  '2026-06-17': {
-    activeSessions: 428,
-    entries: 632,
-    exits: 584,
-    revenue: '18.4M',
-    capacity: '428 / 600',
-    availableSlots: 172,
-    sessions: activeParkingSessions,
-    completedSessions: completedParkingSessions,
-    revenueBreakdown: [
-      { label: 'Khách vãng lai', value: '5.2M' },
-      { label: 'Khách gói', value: '12M' },
-      { label: 'Phí phát sinh', value: '1.2M' },
-      { label: 'Tổng cộng', value: '18.4M' },
-    ],
-    vehicleBreakdown: [
-      { label: 'Ô tô', value: '186', percent: '43%' },
-      { label: 'Xe máy', value: '242', percent: '57%' },
-    ],
-    customerBreakdown: [
-      { label: 'Khách gói', value: '296', percent: '69%' },
-      { label: 'Khách vãng lai', value: '132', percent: '31%' },
-    ],
-    entryBreakdown: [
-      { label: 'Tổng lượt vào', value: '632' },
-      { label: 'Khách gói', value: '430' },
-      { label: 'Khách vãng lai', value: '202' },
-      { label: 'Ô tô', value: '280' },
-      { label: 'Xe máy', value: '352' },
-    ],
-    exitBreakdown: [
-      { label: 'Tổng lượt ra', value: '584' },
-      { label: 'Khách gói', value: '390' },
-      { label: 'Khách vãng lai', value: '194' },
-      { label: 'Ô tô', value: '255' },
-      { label: 'Xe máy', value: '329' },
-      { label: 'QR', value: '220' },
-      { label: 'Tiền mặt', value: '160' },
-      { label: 'Miễn phí', value: '204' },
-    ],
-    capacityBreakdown: [
-      { label: 'Đang sử dụng', value: '428' },
-      { label: 'Còn trống', value: '172' },
-      { label: 'Tổng sức chứa', value: '600' },
-      { label: 'Tỷ lệ sử dụng', value: '71%' },
-      { label: 'Floor 1', value: '120 / 200' },
-      { label: 'Floor 2', value: '180 / 200' },
-      { label: 'Floor 3', value: '128 / 200' },
-    ],
-  },
-  '2026-06-16': {
-    activeSessions: 390,
-    entries: 580,
-    exits: 540,
-    revenue: '16.2M',
-    capacity: '390 / 600',
-    availableSlots: 210,
-    sessions: activeParkingSessions.map((session, index) => ({
-      ...session,
-      id: `PS-20260616-00${index + 1}`,
-      entry: ['08:02', '12:15', '10:35', '07:40', '10/06 08:20'][index],
-    })),
-    completedSessions: completedParkingSessions.map((session, index) => ({
-      ...session,
-      id: `PS-20260616-10${index + 1}`,
-      fee: ['65K', '10K', '0K', '12K', '35K'][index],
-    })),
-    revenueBreakdown: [
-      { label: 'Khách vãng lai', value: '4.4M' },
-      { label: 'Khách gói', value: '10.7M' },
-      { label: 'Phí phát sinh', value: '1.1M' },
-      { label: 'Tổng cộng', value: '16.2M' },
-    ],
-    vehicleBreakdown: [
-      { label: 'Ô tô', value: '248', percent: '44%' },
-      { label: 'Xe máy', value: '312', percent: '56%' },
-    ],
-    customerBreakdown: [
-      { label: 'Khách gói', value: '360', percent: '64%' },
-      { label: 'Khách vãng lai', value: '200', percent: '36%' },
-    ],
-    entryBreakdown: [
-      { label: 'Tổng lượt vào', value: '580' },
-      { label: 'Khách gói', value: '380' },
-      { label: 'Khách vãng lai', value: '200' },
-      { label: 'Ô tô', value: '250' },
-      { label: 'Xe máy', value: '330' },
-    ],
-    exitBreakdown: [
-      { label: 'Tổng lượt ra', value: '540' },
-      { label: 'Khách gói', value: '355' },
-      { label: 'Khách vãng lai', value: '185' },
-      { label: 'Ô tô', value: '230' },
-      { label: 'Xe máy', value: '310' },
-      { label: 'QR', value: '205' },
-      { label: 'Tiền mặt', value: '145' },
-      { label: 'Miễn phí', value: '190' },
-    ],
-    capacityBreakdown: [
-      { label: 'Đang sử dụng', value: '390' },
-      { label: 'Còn trống', value: '210' },
-      { label: 'Tổng sức chứa', value: '600' },
-      { label: 'Tỷ lệ sử dụng', value: '65%' },
-      { label: 'Floor 1', value: '110 / 200' },
-      { label: 'Floor 2', value: '165 / 200' },
-      { label: 'Floor 3', value: '115 / 200' },
-    ],
-  },
 };
 
 const statusClasses = {
@@ -147,28 +33,180 @@ const paymentClasses = {
   Gói: 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
 };
 
-function Card({ children, className = '', p = 'p-5 sm:p-6' }) {
+function Card({ children, className = '' }) {
   return (
-    <section className={`rounded-2xl border border-slate-100 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.02)] ${className} ${p}`}>
+    <section className={`rounded-[28px] border border-white/60 bg-white/70 shadow-[0_18px_45px_rgba(15,23,42,0.07)] backdrop-blur-xl ${className}`}>
       {children}
     </section>
   );
 }
 
 function SectionTitle({ children }) {
-  return <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">{children}</h2>;
+  return <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{children}</h2>;
+}
+
+function getToday() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function asNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function formatMoney(value) {
+  const amount = asNumber(value);
+  if (amount >= 1000000) {
+    return `${(amount / 1000000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}M`;
+  }
+  if (amount >= 1000) {
+    return `${(amount / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}K`;
+  }
+  return amount.toLocaleString('vi-VN');
+}
+
+function formatCurrency(value) {
+  const amount = asNumber(value);
+  if (!amount) return '0đ';
+  return `${amount.toLocaleString('vi-VN')}đ`;
+}
+
+function formatTime(value) {
+  if (!value) return '--';
+  return new Intl.DateTimeFormat('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value));
+}
+
+function formatDuration(entryTime, exitTime) {
+  if (!entryTime) return '--';
+  const start = new Date(entryTime).getTime();
+  const end = exitTime ? new Date(exitTime).getTime() : Date.now();
+  const diffMinutes = Math.max(0, Math.floor((end - start) / 60000));
+  const days = Math.floor(diffMinutes / 1440);
+  const hours = Math.floor((diffMinutes % 1440) / 60);
+  const minutes = diffMinutes % 60;
+
+  if (days > 0) return `${days} ngày ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+}
+
+function percent(part, total) {
+  if (!total) return '0%';
+  return `${Math.round((part / total) * 100)}%`;
 }
 
 function parseCapacity(capacity) {
   const [usedRaw, totalRaw] = String(capacity).split('/').map((part) => Number(part.trim()));
   const used = Number.isFinite(usedRaw) ? usedRaw : 0;
   const total = Number.isFinite(totalRaw) && totalRaw > 0 ? totalRaw : 1;
-  const percent = Math.min(100, Math.round((used / total) * 100));
+  const percentValue = Math.min(100, Math.round((used / total) * 100));
 
-  return { used, total, percent };
+  return { used, total, percent: percentValue };
 }
 
-// Keep all helper methods intact
+function mapVehicleType(value) {
+  return value === 'MOTORBIKE' ? 'Xe máy' : 'Ô tô';
+}
+
+function mapCustomerType(value) {
+  return value === 'MONTHLY' ? 'Gói tháng' : 'Vãng lai';
+}
+
+function mapStatus(activity) {
+  if (activity.exitTime || activity.status === 'COMPLETED') return 'Đã hoàn thành';
+  if (!activity.entryTime) return activity.status || 'Bình thường';
+
+  const hours = (Date.now() - new Date(activity.entryTime).getTime()) / 3600000;
+  if (hours >= 24 * 7) return 'Quá 7 ngày';
+  if (hours >= 24) return 'Quá 24 giờ';
+  return 'Bình thường';
+}
+
+function mapActivityToSession(activity) {
+  const status = mapStatus(activity);
+  const isCompleted = status === 'Đã hoàn thành';
+  const isMonthly = activity.customerType === 'MONTHLY';
+  const fee = activity.calculatedFee ? formatMoney(activity.calculatedFee) : isCompleted ? '0' : 'Đang tính';
+
+  return {
+    id: activity.orderCode || `PO-${activity.id}`,
+    plate: activity.licensePlate || '--',
+    type: mapVehicleType(activity.vehicleType),
+    customer: mapCustomerType(activity.customerType),
+    cardId: activity.visitorCardCode || '--',
+    entry: formatTime(activity.entryTime),
+    exit: isCompleted ? formatTime(activity.exitTime) : '--',
+    duration: formatDuration(activity.entryTime, activity.exitTime),
+    floor: activity.floorName || '--',
+    zone: activity.parkingName || '--',
+    status,
+    fee,
+    estimatedFee: fee,
+    payment: isMonthly ? 'Gói' : activity.calculatedFee ? 'Tiền mặt' : 'Miễn phí',
+  };
+}
+
+function buildDashboardData(payload) {
+  const metrics = payload?.metrics || {};
+  const activities = Array.isArray(payload?.recentVehicleActivities) ? payload.recentVehicleActivities : [];
+  const areaOccupancy = Array.isArray(payload?.areaOccupancy) ? payload.areaOccupancy : [];
+  const sessions = activities.map(mapActivityToSession);
+  const activeSessions = sessions.filter((session) => session.status !== 'Đã hoàn thành');
+  const completedSessions = sessions.filter((session) => session.status === 'Đã hoàn thành');
+  const vehiclesInParking = asNumber(metrics.vehiclesInParking);
+  const totalSlots = asNumber(metrics.totalSlots);
+  const availableSlots = asNumber(metrics.availableSlots);
+  const activeCars = asNumber(metrics.activeCars);
+  const activeMotorbikes = asNumber(metrics.activeMotorbikes);
+  const vehiclesInToday = asNumber(metrics.vehiclesInToday);
+  const vehiclesOutToday = asNumber(metrics.vehiclesOutToday);
+  const revenueToday = asNumber(metrics.revenueToday);
+
+  return {
+    entries: vehiclesInToday,
+    exits: vehiclesOutToday,
+    revenue: formatMoney(revenueToday),
+    capacity: `${vehiclesInParking} / ${totalSlots}`,
+    availableSlots,
+    sessions: activeSessions,
+    completedSessions,
+    revenueBreakdown: [
+      { label: 'Tổng cộng', value: formatCurrency(revenueToday) },
+    ],
+    vehicleBreakdown: [
+      { label: 'Ô tô', value: String(activeCars), percent: percent(activeCars, vehiclesInParking) },
+      { label: 'Xe máy', value: String(activeMotorbikes), percent: percent(activeMotorbikes, vehiclesInParking) },
+    ],
+    customerBreakdown: [
+      { label: 'Gói tháng', value: String(sessions.filter((session) => session.customer === 'Gói tháng').length) },
+      { label: 'Vãng lai', value: String(sessions.filter((session) => session.customer === 'Vãng lai').length) },
+    ],
+    entryBreakdown: [
+      { label: 'Tổng lượt vào', value: String(vehiclesInToday) },
+      { label: 'Ô tô', value: String(asNumber(metrics.vehiclesInTodayCars)) },
+      { label: 'Xe máy', value: String(asNumber(metrics.vehiclesInTodayMotorbikes)) },
+    ],
+    exitBreakdown: [
+      { label: 'Tổng lượt ra', value: String(vehiclesOutToday) },
+      { label: 'Ô tô', value: String(asNumber(metrics.vehiclesOutTodayCars)) },
+      { label: 'Xe máy', value: String(asNumber(metrics.vehiclesOutTodayMotorbikes)) },
+    ],
+    capacityBreakdown: [
+      { label: 'Đang sử dụng', value: String(vehiclesInParking) },
+      { label: 'Còn trống', value: String(availableSlots) },
+      { label: 'Tổng sức chứa', value: String(totalSlots) },
+      { label: 'Tỷ lệ sử dụng', value: `${asNumber(metrics.occupancyRate)}%` },
+      ...areaOccupancy.slice(0, 6).map((area) => ({
+        label: area.name || 'Khu',
+        value: `${asNumber(area.occupied)} / ${asNumber(area.total)}`,
+      })),
+    ],
+  };
+}
+
 function getCompletedFee(session) {
   return isMonthlyCustomer(session.customer) ? '-' : session.fee;
 }
@@ -206,7 +244,7 @@ function StatusBadge({ status }) {
   const tone = getStatusTone(status);
 
   return (
-    <span className={`inline-flex rounded-lg px-2 py-0.5 text-[11px] font-semibold ${statusClasses[tone]}`}>
+    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusClasses[tone]}`}>
       {normalizeStatus(status)}
     </span>
   );
@@ -214,9 +252,9 @@ function StatusBadge({ status }) {
 
 function DetailItem({ label, value }) {
   return (
-    <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-100">
-      <span className="text-xs font-semibold text-slate-500">{label}</span>
-      <span className="text-xs font-bold text-slate-800">{value}</span>
+    <div className="flex items-center justify-between rounded-2xl bg-slate-50/90 px-3 py-2 ring-1 ring-slate-100">
+      <span className="text-sm font-medium text-slate-500">{label}</span>
+      <span className="text-sm font-semibold text-slate-950">{value}</span>
     </div>
   );
 }
@@ -263,11 +301,11 @@ function KpiDropdown({ type, data }) {
   if (!config) return null;
 
   return (
-    <div className="absolute left-0 top-full z-50 mt-2.5 w-[280px] rounded-2xl border border-slate-100 bg-white p-4 shadow-[0_12px_30px_-5px_rgba(0,0,0,0.08)]">
-      <div className="absolute -top-1.5 left-8 h-3 w-3 rotate-45 border-l border-t border-slate-100 bg-white" />
+    <div className="absolute left-0 top-full z-[100] mt-3 w-[300px] rounded-[22px] border border-white/70 bg-white/95 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.16)] backdrop-blur-xl">
+      <div className="absolute -top-2 left-8 h-4 w-4 rotate-45 border-l border-t border-white/70 bg-white/95" />
       <div className="relative">
-        <h3 className="text-xs font-bold text-slate-800">{config.title}</h3>
-        <div className="mt-2.5 space-y-1.5">
+        <h3 className="text-sm font-semibold text-slate-950">{config.title}</h3>
+        <div className="mt-3 space-y-2">
           {config.items.map((item) => (
             <DetailItem
               key={item.label}
@@ -283,8 +321,8 @@ function KpiDropdown({ type, data }) {
 
 function OperationsDock({ stats, capacityPercent, openKpi, onKpiClick, currentData }) {
   return (
-    <Card className="overflow-visible" p="p-2">
-      <div className="grid grid-cols-1 gap-1 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1.35fr]">
+    <Card className="overflow-visible p-3 sm:p-4">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1.35fr]">
         {stats.map((stat, index) => {
           const isCapacity = stat.key === 'capacity';
           const isOpen = openKpi === stat.key;
@@ -292,35 +330,35 @@ function OperationsDock({ stats, capacityPercent, openKpi, onKpiClick, currentDa
           return (
             <div
               key={stat.key}
-              className={`relative min-w-0 ${index > 0 ? 'xl:border-l xl:border-slate-100' : ''}`}
+              className={`relative min-w-0 ${index > 0 ? 'xl:border-l xl:border-slate-200/60' : ''}`}
             >
               <button
                 type="button"
                 onClick={() => onKpiClick(stat.key)}
-                className={`group h-full min-h-[140px] w-full rounded-xl p-4 text-left transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-slate-50 active:scale-[0.98] ${
-                  isOpen ? 'bg-slate-50' : 'bg-transparent'
+                className={`group h-full min-h-[150px] w-full rounded-[24px] p-4 text-left transition duration-200 hover:-translate-y-0.5 hover:bg-white/70 hover:shadow-md ${
+                  isOpen ? 'bg-white/85 ring-2 ring-sky-100' : 'bg-transparent'
                 }`}
               >
-                <div className="flex h-full flex-col justify-between gap-4">
+                <div className="flex h-full flex-col justify-between gap-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-slate-400">{stat.label}</p>
-                      <p className="mt-1 text-2xl font-bold tracking-tight text-slate-800">{stat.value}</p>
-                      <p className="mt-0.5 text-[10px] font-medium text-slate-400">{stat.description}</p>
+                      <p className="text-sm font-semibold text-slate-500">{stat.label}</p>
+                      <p className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">{stat.value}</p>
+                      <p className="mt-1 text-xs font-medium text-slate-400">{stat.description}</p>
                     </div>
-                    <span className={`grid h-8 min-w-8 place-items-center rounded-lg px-1.5 text-xs font-bold ring-1 transition-all duration-300 ${stat.tone}`}>
+                    <span className={`grid h-10 min-w-10 place-items-center rounded-2xl px-2 text-xs font-bold ring-1 ${stat.tone}`}>
                       {stat.icon}
                     </span>
                   </div>
 
                   {isCapacity ? (
                     <div>
-                      <div className="mb-1.5 flex items-center justify-between text-[10px] font-semibold text-slate-400">
+                      <div className="mb-2 flex items-center justify-between text-xs font-semibold text-slate-500">
                         <span>{capacityPercent}% sử dụng</span>
                         <span>{currentData.availableSlots} trống</span>
                       </div>
-                      <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-                        <div className="h-full rounded-full bg-sky-500 transition-all duration-500" style={{ width: `${capacityPercent}%` }} />
+                      <div className="h-2.5 overflow-hidden rounded-full bg-slate-100 shadow-inner">
+                        <div className="h-full rounded-full bg-sky-500" style={{ width: `${capacityPercent}%` }} />
                       </div>
                     </div>
                   ) : null}
@@ -337,66 +375,64 @@ function OperationsDock({ stats, capacityPercent, openKpi, onKpiClick, currentDa
 
 function SessionTable({ title, sessions, emptyText, onViewAll, onDetail, completed = false }) {
   return (
-    <Card p="p-4 sm:p-5">
+    <Card className="p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <SectionTitle>{title}</SectionTitle>
         <button
           type="button"
           onClick={onViewAll}
-          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition-all duration-300 hover:bg-slate-50 hover:text-slate-800"
+          className="rounded-xl border border-sky-100 bg-sky-50/80 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
         >
           Xem tất cả
         </button>
       </div>
 
-      <div className="mt-4 space-y-2">
+      <div className="mt-4 space-y-3">
         {sessions.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center text-xs font-semibold text-slate-400">
+          <div className="rounded-2xl border border-slate-200/60 bg-white/60 px-4 py-8 text-center text-sm font-medium text-slate-400">
             {emptyText}
           </div>
         ) : (
           sessions.slice(0, 5).map((session) => (
             <div
               key={session.id}
-              className={`grid min-h-[72px] gap-4 rounded-xl border border-slate-100 bg-slate-50/30 px-4 py-3 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-slate-50 sm:items-center ${
-                completed
-                  ? 'sm:grid-cols-4'
-                  : 'sm:grid-cols-3'
+              className={`grid min-h-[96px] gap-4 rounded-2xl border border-slate-200/60 bg-white/60 px-4 py-3 transition hover:bg-sky-50/40 sm:items-center ${
+                completed ? 'sm:grid-cols-4' : 'sm:grid-cols-3'
               }`}
             >
-              <div className="min-w-0 text-center sm:text-left">
-                <p className="truncate font-mono text-sm font-bold tracking-tight text-slate-800">{session.plate}</p>
-                <div className="mt-1 flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              <div className="min-w-0 text-center sm:justify-self-center">
+                <p className="truncate text-base font-bold text-slate-950">{session.plate}</p>
+                <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
                   {completed ? (
-                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${paymentClasses[getCompletedPayment(session)] || 'bg-slate-100 text-slate-700'}`}>
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${paymentClasses[getCompletedPayment(session)] || 'bg-slate-100 text-slate-700'}`}>
                       {getCompletedPayment(session)}
                     </span>
                   ) : (
                     <StatusBadge status={session.status} />
                   )}
                   {completed ? (
-                    <span className="text-[10px] font-bold text-slate-400">{getCompletedFee(session)}</span>
+                    <span className="text-xs font-semibold text-slate-400">{getCompletedFee(session)}</span>
                   ) : null}
                 </div>
               </div>
 
               <div className="min-w-0 text-center sm:justify-self-center">
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Giờ vào</p>
-                <p className="mt-0.5 text-xs font-semibold text-slate-600">{session.entry}</p>
+                <p className="text-xs font-medium text-slate-400">Giờ vào</p>
+                <p className="mt-1 text-sm font-semibold text-slate-700">{session.entry}</p>
               </div>
 
               {completed ? (
                 <div className="min-w-0 text-center sm:justify-self-center">
-                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Giờ ra</p>
-                  <p className="mt-0.5 text-xs font-semibold text-slate-600">{session.exit}</p>
+                  <p className="text-xs font-medium text-slate-400">Giờ ra</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-700">{session.exit}</p>
                 </div>
               ) : null}
 
-              <div className="flex justify-center sm:justify-end">
+              <div className="flex justify-center sm:justify-self-center">
                 <button
                   type="button"
                   onClick={() => onDetail(session)}
-                  className="inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition-all duration-300 hover:bg-slate-50 hover:text-slate-800"
+                  className="inline-flex h-9 w-20 items-center justify-center rounded-xl px-3 text-sm font-semibold text-sky-600 transition hover:bg-sky-50 hover:text-sky-700"
                 >
                   Chi tiết
                 </button>
@@ -411,21 +447,43 @@ function SessionTable({ title, sessions, emptyText, onViewAll, onDetail, complet
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const [selectedDate, setSelectedDate] = useState(today);
+  const [selectedDate, setSelectedDate] = useState(getToday);
+  const [dashboardData, setDashboardData] = useState(emptyDashboardData);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [selectedSession, setSelectedSession] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [openKpi, setOpenKpi] = useState(null);
   const kpiRowRef = useRef(null);
 
-  const currentData = dashboardDataByDate[selectedDate] || emptyDashboardData;
+  const loadDashboard = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const payload = await getStaffOperationsDashboard(selectedDate);
+      setDashboardData(buildDashboardData(payload));
+    } catch (err) {
+      setDashboardData(emptyDashboardData);
+      setError(err?.response?.data?.message || 'Không thể tải dữ liệu dashboard từ database.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
+
+  const currentData = dashboardData;
   const capacity = parseCapacity(currentData.capacity);
   const stats = useMemo(
     () => [
       {
         key: 'entries',
         label: 'Xe vào',
-        value: currentData.entries,
+        value: loading ? '...' : currentData.entries,
         description: 'Lượt vào trong ngày',
         icon: 'IN',
         tone: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
@@ -434,7 +492,7 @@ export default function HomePage() {
       {
         key: 'exits',
         label: 'Xe ra',
-        value: currentData.exits,
+        value: loading ? '...' : currentData.exits,
         description: 'Lượt ra trong ngày',
         icon: 'OUT',
         tone: 'bg-slate-100 text-slate-700 ring-slate-200',
@@ -443,16 +501,16 @@ export default function HomePage() {
       {
         key: 'revenue',
         label: 'Doanh thu',
-        value: currentData.revenue,
+        value: loading ? '...' : currentData.revenue,
         description: 'Đã thu trong ngày',
-        icon: '₫',
+        icon: 'đ',
         tone: 'bg-amber-50 text-amber-700 ring-amber-100',
         data: currentData,
       },
       {
         key: 'capacity',
         label: 'Công suất bãi',
-        value: currentData.capacity,
+        value: loading ? '...' : currentData.capacity,
         description: `${currentData.availableSlots} chỗ còn trống`,
         icon: '%',
         tone: 'bg-sky-50 text-sky-700 ring-sky-100',
@@ -461,11 +519,12 @@ export default function HomePage() {
         data: currentData,
       },
     ],
-    [capacity.percent, currentData],
+    [capacity.percent, currentData, loading],
   );
+
   function handleRefresh() {
     setRefreshing(true);
-    window.setTimeout(() => setRefreshing(false), 450);
+    loadDashboard();
   }
 
   function openSessionDetail(session) {
@@ -498,6 +557,7 @@ export default function HomePage() {
             <p className="mt-2 max-w-2xl text-sm font-medium text-slate-500">
               Theo dõi nhanh lượt xe, doanh thu và công suất bãi
             </p>
+            {error ? <p className="mt-2 text-sm font-semibold text-rose-600">{error}</p> : null}
           </div>
 
           <div className="flex w-full flex-wrap items-center gap-2 xl:w-auto xl:justify-end">
@@ -509,7 +569,7 @@ export default function HomePage() {
             />
             <button
               type="button"
-              onClick={() => setSelectedDate(today)}
+              onClick={() => setSelectedDate(getToday())}
               className="h-10 rounded-2xl border border-white/80 bg-white/80 px-4 text-sm font-semibold text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.05)] transition hover:bg-white active:scale-[0.98]"
             >
               Hôm nay
@@ -519,7 +579,7 @@ export default function HomePage() {
               onClick={handleRefresh}
               className="h-10 rounded-2xl bg-sky-500 px-4 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(14,165,233,0.24)] transition hover:bg-sky-600 active:scale-[0.98]"
             >
-              {refreshing ? 'Đang tải...' : 'Làm mới'}
+              {refreshing || loading ? 'Đang tải...' : 'Làm mới'}
             </button>
           </div>
         </div>
@@ -538,14 +598,14 @@ export default function HomePage() {
         <SessionTable
           title="Phiên đang hoạt động"
           sessions={currentData.sessions}
-          emptyText="Chưa có phiên đang hoạt động."
+          emptyText={loading ? 'Đang tải dữ liệu...' : 'Chưa có phiên đang hoạt động.'}
           onViewAll={() => navigate('/admin/parking-sessions')}
           onDetail={openSessionDetail}
         />
         <SessionTable
           title="Phiên gần đây"
           sessions={currentData.completedSessions}
-          emptyText="Chưa có phiên gần đây."
+          emptyText={loading ? 'Đang tải dữ liệu...' : 'Chưa có phiên gần đây.'}
           onViewAll={() => navigate('/admin/parking-sessions')}
           onDetail={openSessionDetail}
           completed
