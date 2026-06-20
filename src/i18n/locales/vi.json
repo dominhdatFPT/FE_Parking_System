@@ -352,6 +352,19 @@
     "statusActive": "🟢 Đang hoạt động",
     "statusExpired": "🔴 Hết hạn",
     "statusPending": "🔵 Chờ thanh toán",
-    "statusUnregistered": "🟡 Chưa đăng ký"
+    "statusCancelled": "⛔ Đã hủy",
+    "statusUnregistered": "🟡 Chưa đăng ký",
+    "mySubscriptionsTitle": "Gói đã đăng ký của tôi",
+    "noSubscriptions": "Bạn chưa có gói nào. Hãy chọn gói bên dưới để đăng ký.",
+    "colPlate": "Biển số",
+    "colPlan": "Gói",
+    "colDuration": "Thời hạn",
+    "colStatus": "Trạng thái",
+    "colExpiry": "Hết hạn",
+    "months": "tháng",
+    "verifyingPayment": "Đang xác nhận thanh toán...",
+    "paymentVerified": "Thanh toán đã được xác nhận!",
+    "paymentPendingIpn": "Giao dịch đang chờ xác nhận từ cổng thanh toán. Vui lòng chờ hoặc kiểm tra lại sau.",
+    "checkAgain": "Kiểm tra lại trạng thái"
   }
 }
