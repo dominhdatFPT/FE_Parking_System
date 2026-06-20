@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/useAuth';
 import { bookingService } from '../../../services/bookingService';
 import { ROUTES } from '../../../constants/routes';
+import NotificationDetailModal from './NotificationDetailModal';
 
 export default function DriverHeader({ onToggleSidebar }) {
   const { user } = useAuth();
@@ -16,18 +17,22 @@ export default function DriverHeader({ onToggleSidebar }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const notifRef = useRef(null);
   const langRef = useRef(null);
+  const [selectedNotification, setSelectedNotification] = useState(null);
+
   const currentLang = i18n.language;
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const loadNotifications = async () => {
       const { data } = await bookingService.getNotifications();
       if (!cancelled) {
         setNotifications(Array.isArray(data) ? data : []);
         setUnreadCount(Array.isArray(data) ? data.filter((n) => !n.read).length : 0);
       }
-    })();
-    return () => { cancelled = true; };
+    };
+    loadNotifications();
+    const intervalId = window.setInterval(loadNotifications, 10000);
+    return () => { cancelled = true; window.clearInterval(intervalId); };
   }, []);
 
   useEffect(() => {
@@ -49,6 +54,12 @@ export default function DriverHeader({ onToggleSidebar }) {
     await bookingService.markAllNotificationsRead();
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     setUnreadCount(0);
+  };
+
+  const openNotification = async (notification) => {
+    setNotifOpen(false);
+    setSelectedNotification({ ...notification, read: true });
+    if (!notification.read) await handleMarkRead(notification.id);
   };
 
   const typeIcon = { info: 'info', success: 'check_circle', warning: 'warning', error: 'error' };
@@ -76,7 +87,8 @@ export default function DriverHeader({ onToggleSidebar }) {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-slate-100 bg-white/70 px-4 backdrop-blur-md transition-all duration-300 lg:px-6">
+    <>
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-slate-100 bg-white px-4 transition-all duration-300 lg:px-6">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -155,7 +167,7 @@ export default function DriverHeader({ onToggleSidebar }) {
                     <button
                       key={n.id}
                       type="button"
-                      onClick={() => handleMarkRead(n.id)}
+                      onClick={() => openNotification(n)}
                       className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-all duration-300 hover:bg-slate-50/50 ${!n.read ? 'bg-sky-50/20' : ''}`}
                     >
                       <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${typeColor[n.type] || typeColor.info}`}>
@@ -193,5 +205,7 @@ export default function DriverHeader({ onToggleSidebar }) {
         </button>
       </div>
     </header>
+    <NotificationDetailModal notification={selectedNotification} onClose={() => setSelectedNotification(null)} />
+    </>
   );
 }

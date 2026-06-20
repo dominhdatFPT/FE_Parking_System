@@ -449,7 +449,7 @@ export default function LoginPage() {
         throw new Error(t('errors.missingToken'));
       }
 
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
+      sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
 
       const authenticatedUser = {
         id: response.user?.id ?? response.userId ?? email,
@@ -460,11 +460,17 @@ export default function LoginPage() {
       };
 
       setUser(authenticatedUser);
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authenticatedUser));
+      sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authenticatedUser));
       localStorage.setItem('userRole', authenticatedUser.role || 'driver');
 
       if (rememberMe) {
         localStorage.setItem('rememberMe', 'true');
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authenticatedUser));
+      } else {
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER);
       }
 
       navigate(getDashboardPath(authenticatedUser.role));
@@ -496,8 +502,10 @@ export default function LoginPage() {
           avatarUrl: response.avatarUrl ?? '',
         };
 
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(nextUser));
+        sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
+        sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(nextUser));
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER);
         localStorage.setItem('userRole', response.role || 'driver');
         setUser(nextUser);
         navigate(getDashboardPath(response.role));

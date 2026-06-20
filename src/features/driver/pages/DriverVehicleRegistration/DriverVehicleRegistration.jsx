@@ -18,9 +18,6 @@ export default function DriverVehicleRegistration() {
   // Form Fields State
   const [vehicleType, setVehicleType] = useState(preselectedType);
   const [selectedPlans, setSelectedPlans] = useState(preselectedPlans);
-  const [licensePlate, setLicensePlate] = useState('');
-  const [brand, setBrand] = useState('');
-  const [color, setColor] = useState('');
 
   // File Upload State (CCCD requires 2 sides)
   const [cccdFrontFile, setCccdFrontFile] = useState(null);
@@ -43,9 +40,23 @@ export default function DriverVehicleRegistration() {
     }
   }, [location.state]);
 
+  const validateAndSetFile = (file, setter) => {
+    setError('');
+    if (!file?.type?.startsWith('image/')) {
+      setError('Chỉ chấp nhận ảnh CCCD, bằng lái, đăng ký xe hoặc biển số; không nhận PDF.');
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      setError('Mỗi ảnh không được vượt quá 4 MB. Vui lòng chụp rõ và giảm dung lượng ảnh.');
+      return;
+    }
+    setter(file);
+  };
+
   const handleFileChange = (e, setter) => {
     const file = e.target.files[0];
-    if (file) setter(file);
+    if (file) validateAndSetFile(file, setter);
+    e.target.value = '';
   };
 
   const handleDragOver = (e) => e.preventDefault();
@@ -53,7 +64,7 @@ export default function DriverVehicleRegistration() {
   const handleDrop = (e, setter) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
-    if (file) setter(file);
+    if (file) validateAndSetFile(file, setter);
   };
 
   const handleRemovePlan = (months) => {
@@ -71,11 +82,6 @@ export default function DriverVehicleRegistration() {
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     setError('');
-
-    if (!licensePlate.trim()) {
-      setError('Vui lòng nhập biển số xe.');
-      return;
-    }
 
     if (!cccdFrontFile) {
       setError(t('vehicleRegistration.errorCccdFront'));
@@ -101,13 +107,11 @@ export default function DriverVehicleRegistration() {
     setSubmitting(true);
     try {
     const payload = {
-      vehicleTypeId: vehicleType === 'CAR' ? 1 : 2,
-      licensePlate: licensePlate.trim().toUpperCase(),
-      brand: brand.trim(),
-      color: color.trim(),
+      vehicleTypeId: vehicleType === 'CAR' ? 2 : 1,
       cccdFrontImage: await fileToBase64(cccdFrontFile),
       cccdBackImage: await fileToBase64(cccdBackFile),
       licenseImage: await fileToBase64(driverLicenseFile),
+      vehicleDocumentImage: await fileToBase64(vehicleDocsFile),
       plateImage: await fileToBase64(licensePlateFile),
     };
 
@@ -143,7 +147,7 @@ export default function DriverVehicleRegistration() {
             <input
               type="file"
               id={id}
-              accept="image/*,application/pdf"
+              accept="image/jpeg,image/png,image/webp"
               onChange={(e) => handleFileChange(e, setter)}
               className="absolute inset-0 cursor-pointer opacity-0"
             />
@@ -228,9 +232,6 @@ export default function DriverVehicleRegistration() {
                       setVehicleDocsFile(null);
                       setLicensePlateFile(null);
                       setSelectedPlans([]);
-                      setLicensePlate('');
-                      setBrand('');
-                      setColor('');
                     }}
                   >
                     {t('vehicleRegistration.registerOther')}
@@ -286,37 +287,8 @@ export default function DriverVehicleRegistration() {
                   </div>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="sm:col-span-1">
-                    <label className="mb-1.5 block text-xs font-bold text-slate-500">Bien so xe *</label>
-                    <input
-                      type="text"
-                      value={licensePlate}
-                      onChange={(e) => setLicensePlate(e.target.value)}
-                      placeholder="VD: 51F-12345"
-                      className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold uppercase text-slate-700 outline-none transition-all focus:border-[#0EA5E9] focus:ring-2 focus:ring-sky-100"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-xs font-bold text-slate-500">Hang xe</label>
-                    <input
-                      type="text"
-                      value={brand}
-                      onChange={(e) => setBrand(e.target.value)}
-                      placeholder="Honda, Toyota..."
-                      className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-[#0EA5E9] focus:ring-2 focus:ring-sky-100"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-xs font-bold text-slate-500">Mau xe</label>
-                    <input
-                      type="text"
-                      value={color}
-                      onChange={(e) => setColor(e.target.value)}
-                      placeholder="Den, trang..."
-                      className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-[#0EA5E9] focus:ring-2 focus:ring-sky-100"
-                    />
-                  </div>
+                <div className="rounded-xl border border-sky-100 bg-sky-50/70 p-3 text-xs leading-relaxed text-sky-800">
+                  Họ tên và biển số sẽ được hệ thống đọc từ ảnh CCCD, bằng lái và ảnh biển số sau khi gửi hồ sơ. Bạn không cần nhập tay.
                 </div>
 
                 {/* Selected Plans List */}
@@ -459,25 +431,25 @@ export default function DriverVehicleRegistration() {
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-slate-500">{t('vehicleRegistration.ocrName')}</span>
                         <span className={`font-bold ${cccdFrontFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-                          {cccdFrontFile ? (user?.fullName || 'NGUYỄN VĂN A') : t('vehicleRegistration.ocrNameWaiting')}
+                          {cccdFrontFile ? 'Sẽ đọc khi gửi hồ sơ' : t('vehicleRegistration.ocrNameWaiting')}
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-slate-500">{t('vehicleRegistration.ocrCccd')}</span>
                         <span className={`font-bold ${cccdFrontFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-                          {cccdFrontFile ? '037198001234' : t('vehicleRegistration.ocrNameWaiting')}
+                          {cccdFrontFile ? 'Sẽ đọc khi gửi hồ sơ' : t('vehicleRegistration.ocrNameWaiting')}
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-slate-500">{t('vehicleRegistration.ocrLicenseClass')}</span>
                         <span className={`font-bold ${driverLicenseFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-                          {driverLicenseFile ? (vehicleType === 'CAR' ? 'B2' : 'A1') : t('vehicleRegistration.ocrLicenseWaiting')}
+                          {driverLicenseFile ? 'Sẽ đọc khi gửi hồ sơ' : t('vehicleRegistration.ocrLicenseWaiting')}
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-slate-500">{t('vehicleRegistration.ocrPlate')}</span>
                         <span className={`font-bold ${licensePlateFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-                          {licensePlateFile ? (vehicleType === 'CAR' ? '30F-567.89' : '29-D1 123.45') : t('vehicleRegistration.ocrPlateWaiting')}
+                          {licensePlateFile ? 'Sẽ đọc khi gửi hồ sơ' : t('vehicleRegistration.ocrPlateWaiting')}
                         </span>
                       </div>
                     </div>

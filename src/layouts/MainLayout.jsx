@@ -38,6 +38,8 @@ export default function MainLayout() {
   const navigationItems = getNavigationItems(role);
 
   const handleLogout = () => {
+    sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    sessionStorage.removeItem(STORAGE_KEYS.USER);
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER);
     setUser(null);
@@ -84,7 +86,7 @@ export default function MainLayout() {
       </aside>
 
       <div className="min-w-0">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-100 bg-white/70 px-4 backdrop-blur-md lg:px-6">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-100 bg-white px-4 lg:px-6">
           <div>
             <p className="text-sm font-semibold text-slate-800">Dashboard</p>
             <p className="text-[10px] font-medium text-slate-400">Parking operations overview</p>

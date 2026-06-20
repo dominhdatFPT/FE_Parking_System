@@ -92,7 +92,7 @@ export default function AccountRecovery() {
                     <h1 className="mb-2 text-2xl font-bold text-[#191c1e]">Xác nhận danh tính</h1>
                     <p className="mb-8 text-[15px] leading-normal text-[#45464d]">
                         Vui lòng nhập mã OTP 6 số đã được gửi đến email<br/>
-                        <strong className="text-[#0051d5]">admin@nexus.vn</strong>
+                        <strong className="text-[#0051d5]">dat@example.com</strong>
                     </p>
                 </div>
 

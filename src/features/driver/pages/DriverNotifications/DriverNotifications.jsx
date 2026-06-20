@@ -5,6 +5,7 @@ import { bookingService } from '../../../../services/bookingService';
 import PageHeader from '../../components/PageHeader';
 import Button from '../../components/Button';
 import EmptyState from '../../components/EmptyState';
+import NotificationDetailModal from '../../components/NotificationDetailModal';
 
 const typeIcon = { info: 'info', success: 'check_circle', warning: 'warning', error: 'error' };
 const typeColor = {
@@ -19,18 +20,20 @@ export default function DriverNotifications() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
+  const [selectedNotification, setSelectedNotification] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      setLoading(true);
+    const loadNotifications = async () => {
       const { data } = await bookingService.getNotifications();
       if (!cancelled) {
         setNotifications(Array.isArray(data) ? data : []);
         setLoading(false);
       }
-    })();
-    return () => { cancelled = true; };
+    };
+    loadNotifications();
+    const intervalId = window.setInterval(loadNotifications, 10000);
+    return () => { cancelled = true; window.clearInterval(intervalId); };
   }, []);
 
   const handleMarkRead = async (id) => {
@@ -41,6 +44,11 @@ export default function DriverNotifications() {
   const handleMarkAllRead = async () => {
     await bookingService.markAllNotificationsRead();
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
+
+  const openNotification = async (notification) => {
+    setSelectedNotification({ ...notification, read: true });
+    if (!notification.read) await handleMarkRead(notification.id);
   };
 
   const filtered = notifications.filter((n) => {
@@ -110,11 +118,15 @@ export default function DriverNotifications() {
           {filtered.map((n) => (
             <div
               key={n.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => openNotification(n)}
+              onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') openNotification(n); }}
               className={`group flex items-start gap-4 rounded-2xl border p-4 transition-all duration-200 ${
                 n.read
                   ? 'border-slate-100/80 bg-white'
                   : 'border-sky-100 bg-sky-50/40 shadow-[0_1px_3px_rgba(0,0,0,0.02)]'
-              } hover:shadow-[0_4px_16px_rgba(0,0,0,0.04)]`}
+              } cursor-pointer hover:shadow-[0_4px_16px_rgba(0,0,0,0.04)]`}
             >
               <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${typeColor[n.type] || typeColor.info}`}>
                 <span className="material-symbols-outlined text-[20px]">{typeIcon[n.type] || 'info'}</span>
@@ -130,7 +142,7 @@ export default function DriverNotifications() {
               {!n.read && (
                 <button
                   type="button"
-                  onClick={() => handleMarkRead(n.id)}
+                  onClick={(event) => { event.stopPropagation(); handleMarkRead(n.id); }}
                   className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-sky-600 opacity-0 transition-all hover:bg-sky-100 group-hover:opacity-100"
                 >
                   {t('common.markRead')}
@@ -140,6 +152,7 @@ export default function DriverNotifications() {
           ))}
         </div>
       )}
+      <NotificationDetailModal notification={selectedNotification} onClose={() => setSelectedNotification(null)} />
     </div>
   );
 }

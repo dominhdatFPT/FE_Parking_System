@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router';
 import DriverHeader from '../features/driver/components/DriverHeader';
 import DriverSidebar from '../features/driver/components/DriverSidebar';
+import AiChatWidget from '../components/AiChatWidget';
 
 export default function DriverLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,6 +21,7 @@ export default function DriverLayout() {
           </div>
         </main>
       </div>
+      <AiChatWidget />
     </div>
   );
 }

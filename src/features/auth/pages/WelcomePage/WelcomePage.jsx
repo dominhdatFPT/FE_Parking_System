@@ -1217,8 +1217,8 @@ const Footer = ({ t }) => {
           <div>
             <h4 className="font-bold text-slate-800 mb-4">{t.footer.contact}</h4>
             <ul className="space-y-3 text-sm font-medium text-slate-500">
-              <li>Email: contact@parkingsystem.vn</li>
-              <li>Hotline: 1900 1234</li>
+              <li>Email: dat@example.com</li>
+              <li>Hotline: 0123456789</li>
               <li>{t.footer.addressLabel}: {t.footer.addressVal}</li>
             </ul>
           </div>
