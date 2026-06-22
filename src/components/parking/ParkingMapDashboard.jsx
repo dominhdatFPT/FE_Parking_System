@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { parkingMapService } from '../../services/parkingMapService';
 
 const ParkingMapDashboard = ({ parkingId = 1 }) => {
@@ -8,16 +8,7 @@ const ParkingMapDashboard = ({ parkingId = 1 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch parking structure
-  useEffect(() => {
-    fetchParkingMap();
-    
-    // Auto-refresh every 10 seconds
-    const interval = setInterval(fetchParkingMap, 10000);
-    return () => clearInterval(interval);
-  }, [parkingId]);
-
-  const fetchParkingMap = async () => {
+  const fetchParkingMap = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -32,7 +23,16 @@ const ParkingMapDashboard = ({ parkingId = 1 }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [parkingId]);
+
+  // Fetch parking structure
+  useEffect(() => {
+    fetchParkingMap();
+
+    // Auto-refresh every 10 seconds
+    const interval = setInterval(fetchParkingMap, 10000);
+    return () => clearInterval(interval);
+  }, [fetchParkingMap]);
 
   // Get status color
   const getStatusColor = (status) => {

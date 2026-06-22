@@ -73,7 +73,7 @@ export default function DriverVehicleRegistration() {
 
   const fileToBase64 = (file) =>
     new Promise((resolve, reject) => {
-      const reader = new FileReader();
+      const reader = new window.FileReader();
       reader.onload = () => resolve(reader.result);
       reader.onerror = reject;
       reader.readAsDataURL(file);
@@ -189,8 +189,6 @@ export default function DriverVehicleRegistration() {
   // Calculate completeness percentage
   const totalSteps = 5;
   const completedSteps = [cccdFrontFile, cccdBackFile, driverLicenseFile, vehicleDocsFile, licensePlateFile].filter(Boolean).length;
-  const completionPercentage = Math.round((completedSteps / totalSteps) * 100);
-
   const getFormStatus = () => {
     if (submitted) return t('vehicleRegistration.statusPending');
     if (completedSteps === totalSteps) return t('vehicleRegistration.statusReady');

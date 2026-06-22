@@ -82,7 +82,7 @@ export default function NotificationDetailPage() {
                 </span>
                 <h2 className="mt-3 text-2xl font-semibold text-slate-950">{notification.title}</h2>
                 <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">
-                  <span>Thởi gian: <span className="font-medium text-slate-700">{formatDate(notification.publishedAt)}</span></span>
+                  <span>Thời gian: <span className="font-medium text-slate-700">{formatDate(notification.publishedAt)}</span></span>
                 </div>
               </div>
             </div>

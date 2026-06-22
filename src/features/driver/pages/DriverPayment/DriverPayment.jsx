@@ -132,7 +132,7 @@ export default function DriverPayment() {
 
     poll();
     return () => { cancelled = true; };
-  }, [showQrModal, pendingFeePlan?.momoOrderId]);
+  }, [showQrModal, pendingFeePlan?.momoOrderId, pendingFeePlan?.subscriptionId, pendingFeePlan?.amount]);
 
   const paidBookingIds = new Set(payments.filter((p) => p.status === 'PAID').map((p) => p.bookingId));
   const unpaidBookings = bookings.filter((b) => b.status === 'CONFIRMED' && !paidBookingIds.has(b.id));

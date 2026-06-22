@@ -17,7 +17,6 @@ export default function DriverHeader({ onToggleSidebar }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const notifRef = useRef(null);
   const langRef = useRef(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedNotification, setSelectedNotification] = useState(null);
 
   const currentLang = i18n.language;

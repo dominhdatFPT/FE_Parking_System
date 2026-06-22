@@ -1,17 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { NavLink, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import i18n from 'i18next';
 import {
-  Car, Bike, Zap, MapPin, CreditCard, Globe, ScanLine, CalendarDays,
-  Smartphone, CheckCircle2, AlertTriangle, Clock, ShieldCheck,
-  BatteryCharging, Maximize, Bell, ChevronRight, ChevronDown, Info,
-  TrendingUp, TrendingDown, Activity, BarChart3, Users,
-  LayoutDashboard, LogIn, UserPlus, Facebook, Github, Check,
-  AlertCircle, Sparkles, X, Shield, Settings, Eye, CheckSquare
+  Car, Zap, MapPin, CreditCard, Globe, ScanLine, CalendarDays,
+  Smartphone, CheckCircle2, Clock, ShieldCheck,
+  Bell, ChevronRight, ChevronDown,
+  TrendingUp, TrendingDown, BarChart3,
+  LayoutDashboard, LogIn, UserPlus, Facebook, Github, X
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { parkingAreaSummaryService } from '../../../../services/parkingAreaSummaryService';
 import {
   notificationService,
   getCategoryToneClass,
@@ -300,6 +298,11 @@ const getAreaTone = (percent) => {
   };
 };
 
+void zoneData;
+void floorOptions;
+void generateParkingAreas;
+void getAreaTone;
+
 // --- HELPER HOOK ---
 const useScrollSpy = (ids, offset = 100) => {
   const [activeId, setActiveId] = useState('');
@@ -469,8 +472,8 @@ const HeroSection = ({ t }) => {
 
 // --- DASHBOARD WRAPPER ---
 const MainDashboard = ({ t }) => {
-  const [zone, setZone] = useState('LK');
-  const [floor, setFloor] = useState('1');
+  const zone = 'LK';
+  const floor = '1';
 
   return (
     <section id="dashboard" className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative z-20 py-12 space-y-8">
@@ -480,10 +483,10 @@ const MainDashboard = ({ t }) => {
       {/* 2. Main Section & Side Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <VehicleInOutLog t={t} />
+          <VehicleInOutLog />
         </div>
          <div className="lg:col-span-1">
-          <GateControlPanel t={t} />
+          <GateControlPanel />
         </div>
       </div>
 
@@ -508,8 +511,6 @@ const KPIDashboard = ({ t, zone, floor }) => {
   const availableSlots = totalSlots - occupied;
   
   const availableProgress = totalSlots > 0 ? Math.round((availableSlots / totalSlots) * 100) : 0;
-  
-  const todayTraffic = Math.round(totalSlots * 3.5 * floorMult);
   
   const peakStart = zone === 'A' ? 17 : zone === 'B' ? 18 : 16;
   const peakEnd = peakStart + 2;
@@ -552,7 +553,7 @@ const KPIDashboard = ({ t, zone, floor }) => {
   );
 };
 
-const VehicleInOutLog = ({ t }) => {
+const VehicleInOutLog = () => {
   const steps = [
     {
       id: 1,
@@ -680,7 +681,7 @@ const ParkingTrendChart = ({ t }) => {
   );
 };
 
-const GateControlPanel = ({ t }) => {
+const GateControlPanel = () => {
   const features = [
     {
       id: 1,
@@ -801,6 +802,8 @@ const CustomSelect = ({ value, options, onChange }) => {
     </div>
   );
 };
+
+void CustomSelect;
 
 const NotificationCenter = ({ t }) => {
   const [notices, setNotices] = useState([]);

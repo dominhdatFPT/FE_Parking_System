@@ -7,7 +7,6 @@ import {
   AtSign,
   BadgeCheck,
   Camera,
-  Car,
   Check,
   CircleAlert,
   Cloud,
@@ -180,6 +179,11 @@ const getInitialLanguage = () => {
   if (typeof window === 'undefined') return 'vi';
   const savedLanguage = window.localStorage.getItem(LANGUAGE_KEY) || 'vi';
   return savedLanguage.startsWith('en') ? 'en' : 'vi';
+};
+
+const getSignupText = (language, key) => {
+  const dictionary = resources[language]?.translation || resources.vi.translation;
+  return key.split('.').reduce((value, part) => value?.[part], dictionary) ?? key;
 };
 
 if (!i18n.isInitialized) {
@@ -391,7 +395,7 @@ function PolicyModal({ content, onClose, title, t }) {
 }
 
 export default function SignupPage() {
-  const { t, i18n: signupI18n } = useTranslation();
+  const { i18n: signupI18n } = useTranslation();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
@@ -406,6 +410,7 @@ export default function SignupPage() {
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
   const currentLanguage = signupI18n.language.startsWith('en') ? 'en' : 'vi';
+  const t = (key) => getSignupText(currentLanguage, key);
 
   useEffect(() => {
     localStorage.setItem(LANGUAGE_KEY, currentLanguage);
