@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import dayjs from 'dayjs';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { bookingService } from '../../../../services/bookingService';
@@ -8,6 +7,7 @@ import PageHeader from '../../components/PageHeader';
 import Button from '../../components/Button';
 import StatusBadge from '../../components/StatusBadge';
 import EmptyState from '../../components/EmptyState';
+import { vietnamDayjs } from '../../../../utils/dateTime';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -138,7 +138,7 @@ export default function DriverHistory() {
                         </span>
                         <span className="flex items-center gap-1">
                           <span className="material-symbols-outlined text-[14px]">schedule</span>
-                          {dayjs(b.createdAt).format('HH:mm DD/MM/YYYY')}
+                          {vietnamDayjs(b.createdAt).format('HH:mm DD/MM/YYYY')}
                         </span>
                       </div>
                     </div>

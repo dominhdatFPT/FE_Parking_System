@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import SessionDetailDrawer from '../../components/parking/SessionDetailDrawer';
 import { getParkingSessions } from '../../services/staffService';
+import { apiDateTimeMillis, formatVietnamDateTime } from '../../utils/dateTime';
 
 const tabs = ['Đang hoạt động', 'Đã hoàn thành', 'Tất cả'];
 const vehicleTypes = ['Tất cả', 'Ô tô', 'Xe máy'];
@@ -25,15 +26,12 @@ const normalizeCustomerType = (value) =>
   String(value || '').toUpperCase().includes('VISITOR') ? 'Vãng lai' : 'Gói tháng';
 
 const formatDateTime = (value) => {
-  if (!value) return '--';
-  return new Intl.DateTimeFormat('vi-VN', {
-    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
-  }).format(new Date(value));
+  return formatVietnamDateTime(value, { year: undefined }) || '--';
 };
 
 const durationMinutes = (entryTime, exitTime) => {
   if (!entryTime) return 0;
-  return Math.max(0, Math.floor((new Date(exitTime || Date.now()).getTime() - new Date(entryTime).getTime()) / 60000));
+  return Math.max(0, Math.floor((apiDateTimeMillis(exitTime || Date.now()) - apiDateTimeMillis(entryTime)) / 60000));
 };
 
 const formatDuration = (minutes) => {

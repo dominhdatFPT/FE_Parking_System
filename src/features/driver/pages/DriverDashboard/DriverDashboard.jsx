@@ -245,7 +245,7 @@ export default function DriverDashboard() {
                     <div className="space-y-0.5">
                       <p className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[150px]">{b.parkingAreaName}</p>
                       <p className="text-[10px] text-slate-400 font-semibold">
-                        {new Date(b.createdAt).toLocaleDateString()}
+                        {formatVietnamDate(b.createdAt)}
                       </p>
                     </div>
 

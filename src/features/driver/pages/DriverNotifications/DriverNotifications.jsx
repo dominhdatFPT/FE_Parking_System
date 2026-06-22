@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { bookingService } from '../../../../services/bookingService';
 import PageHeader from '../../components/PageHeader';
 import Button from '../../components/Button';
 import EmptyState from '../../components/EmptyState';
 import NotificationDetailModal from '../../components/NotificationDetailModal';
+import { vietnamDayjs } from '../../../../utils/dateTime';
 
 const typeIcon = { info: 'info', success: 'check_circle', warning: 'warning', error: 'error' };
 const typeColor = {
@@ -137,7 +137,7 @@ export default function DriverNotifications() {
                   {!n.read && <span className="h-2 w-2 rounded-full bg-sky-500" />}
                 </div>
                 <p className="mt-1 text-sm leading-relaxed text-slate-500">{n.message}</p>
-                <p className="mt-2 text-xs text-slate-400">{dayjs(n.time).format('HH:mm DD/MM/YYYY')}</p>
+                <p className="mt-2 text-xs text-slate-400">{vietnamDayjs(n.time).format('HH:mm DD/MM/YYYY')}</p>
               </div>
               {!n.read && (
                 <button

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { systemDataService } from '../../../services/systemDataService';
+import { formatVietnamDateTime } from '../../../utils/dateTime';
 
 const exceptionTypes = [
   { value: 'LOST_CARD', label: 'Mất thẻ', severity: 'HIGH' },
@@ -12,7 +13,7 @@ const exceptionTypes = [
 
 const labels = Object.fromEntries(exceptionTypes.map((item) => [item.value, item.label]));
 const tones = { HIGH: 'bg-rose-100 text-rose-700', MEDIUM: 'bg-amber-100 text-amber-700', LOW: 'bg-slate-100 text-slate-700' };
-const formatDateTime = (value) => value ? new Date(value).toLocaleString('vi-VN') : '—';
+const formatDateTime = (value) => formatVietnamDateTime(value) || '—';
 
 export default function StaffExceptions() {
   const [form, setForm] = useState({ type: 'LOST_CARD', plate: '', cardCode: '', description: '', resolution: 'Đang xử lý' });

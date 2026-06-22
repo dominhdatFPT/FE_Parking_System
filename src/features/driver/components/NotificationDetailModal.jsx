@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import { vietnamDayjs } from '../../../utils/dateTime';
 
 const TYPE_LABELS = {
   info: 'Thông tin',
@@ -52,7 +52,7 @@ export default function NotificationDetailModal({ notification, onClose }) {
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 text-xs text-slate-500">
             <span className="font-semibold">Người gửi: Staff/Admin Smart Parking</span>
-            <time>{dayjs(notification.time).format('HH:mm DD/MM/YYYY')}</time>
+            <time>{vietnamDayjs(notification.time).format('HH:mm DD/MM/YYYY')}</time>
           </div>
         </div>
 

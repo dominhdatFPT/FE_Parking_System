@@ -24,6 +24,7 @@ import {
   rejectStaffBooking,
   reviewVehicleRegistration,
 } from '../../../services/staffService';
+import { VIETNAM_TIME_ZONE } from '../../../utils/dateTime';
 
 const statusConfig = {
   PENDING: {
@@ -76,6 +77,7 @@ const formatDate = (value) => {
   if (Number.isNaN(date.getTime())) return 'Chưa có dữ liệu';
 
   return new Intl.DateTimeFormat('vi-VN', {
+    timeZone: VIETNAM_TIME_ZONE,
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -88,6 +90,7 @@ const formatDateTime = (value) => {
   if (Number.isNaN(date.getTime())) return 'Chưa có dữ liệu';
 
   return new Intl.DateTimeFormat('vi-VN', {
+    timeZone: VIETNAM_TIME_ZONE,
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
