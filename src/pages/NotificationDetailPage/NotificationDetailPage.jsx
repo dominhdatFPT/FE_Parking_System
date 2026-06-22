@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import dayjs from 'dayjs';
 import Icon from '../../components/Icon';
 import {
   notificationService,
   getCategoryToneClass,
   getCategoryLabel,
 } from '../../services/notificationService';
+import { vietnamDayjs } from '../../utils/dateTime';
 
 export default function NotificationDetailPage() {
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ export default function NotificationDetailPage() {
 
   const formatDate = (iso) => {
     if (!iso) return '';
-    const d = dayjs(iso);
+    const d = vietnamDayjs(iso);
     return d.isValid() ? d.format('HH:mm DD/MM/YYYY') : '';
   };
 

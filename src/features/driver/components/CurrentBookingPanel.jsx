@@ -1,6 +1,6 @@
-import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import StatusBadge from './StatusBadge';
+import { vietnamDayjs } from '../../../utils/dateTime';
 
 export default function CurrentBookingPanel({ booking, loading }) {
   const { t } = useTranslation();
@@ -59,7 +59,7 @@ export default function CurrentBookingPanel({ booking, loading }) {
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-slate-500">{t('history.createdAt')}</span>
-          <span className="font-semibold text-slate-700">{dayjs(booking.createdAt).format('HH:mm DD/MM/YYYY')}</span>
+          <span className="font-semibold text-slate-700">{vietnamDayjs(booking.createdAt).format('HH:mm DD/MM/YYYY')}</span>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { STORAGE_KEYS } from '../constants/storageKeys';
+import { normalizeApiDateTimes } from '../utils/dateTime';
 
 const apiBaseURL = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -20,7 +21,10 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    response.data = normalizeApiDateTimes(response.data);
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);

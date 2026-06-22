@@ -1,5 +1,6 @@
 import { apiClient } from './apiClient';
 import { API_ENDPOINTS } from './endpoints';
+import { formatVietnamDate } from '../utils/dateTime';
 
 const unwrapData = (response) => response.data?.data ?? response.data;
 
@@ -11,15 +12,7 @@ const unwrapList = (response) => {
 };
 
 const formatDate = (value) => {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-
-  return new Intl.DateTimeFormat('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(date);
+  return formatVietnamDate(value) || (value ? String(value) : '');
 };
 
 const mapStatusToView = (status = '') => {

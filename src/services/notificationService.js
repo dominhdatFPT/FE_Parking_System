@@ -1,4 +1,5 @@
 import { apiClient } from './apiClient';
+import { apiDateTimeMillis } from '../utils/dateTime';
 import { getStaffOperationsDashboard } from './staffService';
 
 export const NOTIFICATION_CATEGORIES = {
@@ -90,7 +91,7 @@ export const notificationService = {
 
 const relativeTime = (value) => {
   if (!value) return '—';
-  const minutes = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000));
+  const minutes = Math.max(0, Math.floor((Date.now() - apiDateTimeMillis(value)) / 60000));
   if (minutes < 1) return 'Vừa xong';
   if (minutes < 60) return `${minutes} phút trước`;
   if (minutes < 1440) return `${Math.floor(minutes / 60)} giờ trước`;
@@ -124,7 +125,7 @@ export async function getDatabaseNotifications() {
     createdAt: item.updatedAt || item.entryTime,
   }));
   return [...incidents, ...bookings, ...activities]
-    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .sort((a, b) => apiDateTimeMillis(b.createdAt || 0) - apiDateTimeMillis(a.createdAt || 0))
     .slice(0, 20);
 }
 

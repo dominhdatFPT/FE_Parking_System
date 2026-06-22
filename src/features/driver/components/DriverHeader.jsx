@@ -5,6 +5,7 @@ import { useAuth } from '../../../contexts/useAuth';
 import { bookingService } from '../../../services/bookingService';
 import { ROUTES } from '../../../constants/routes';
 import NotificationDetailModal from './NotificationDetailModal';
+import { apiDateTimeMillis } from '../../../utils/dateTime';
 
 export default function DriverHeader({ onToggleSidebar }) {
   const { user } = useAuth();
@@ -72,7 +73,7 @@ export default function DriverHeader({ onToggleSidebar }) {
   };
 
   const timeAgo = (dateStr) => {
-    const diff = Date.now() - new Date(dateStr).getTime();
+    const diff = Date.now() - apiDateTimeMillis(dateStr);
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return t('time.justNow');
     if (mins < 60) return t('time.minutesAgo', { count: mins });

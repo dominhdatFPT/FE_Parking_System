@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Clock3, LifeBuoy, MessageSquareText, Search, Send, X } from 'lucide-react';
 import { incidentService } from '../../services/incidentService';
+import { formatVietnamDateTime } from '../../utils/dateTime';
 
 const STATUS_LABELS = {
   OPEN: 'Chờ xử lý',
@@ -13,7 +14,7 @@ const STATUS_CODES = Object.fromEntries(Object.entries(STATUS_LABELS).map(([code
 const statuses = ['Tất cả', ...Object.values(STATUS_LABELS)];
 
 const formatDate = (value) => value
-  ? new Date(value).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })
+  ? formatVietnamDateTime(value)
   : '—';
 
 const normalizeIncident = (item) => ({

@@ -1,19 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import Icon from '../../components/Icon';
 import { getAdminUsers } from '../../services/adminDashboardService';
+import { formatVietnamDateTime } from '../../utils/dateTime';
 
 const formatDateTime = (value) => {
-  if (!value) return 'Chưa có dữ liệu';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Chưa có dữ liệu';
-
-  return new Intl.DateTimeFormat('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
+  return formatVietnamDateTime(value) || 'Chưa có dữ liệu';
 };
 
 const initials = (name = '') => {

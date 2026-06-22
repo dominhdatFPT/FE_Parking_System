@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { bookingService } from '../../../../services/bookingService';
 import PageHeader from '../../components/PageHeader';
 import Button from '../../components/Button';
+import { formatVietnamDateTime } from '../../../../utils/dateTime';
 
 const SUPPORT_SUBJECTS = [
   'Dịch vụ gửi xe',
@@ -206,12 +207,12 @@ export default function DriverSupport() {
                     {{ OPEN: 'Chờ xử lý', IN_PROGRESS: 'Đang xử lý', REPLIED: 'Đã phản hồi', RESOLVED: 'Đã giải quyết', CLOSED: 'Đã đóng' }[request.status] || request.status}
                   </span>
                 </div>
-                <p className="mt-2 text-xs text-slate-400">{new Date(request.createdAt).toLocaleString('vi-VN')}</p>
+                <p className="mt-2 text-xs text-slate-400">{formatVietnamDateTime(request.createdAt)}</p>
                 {request.replyMessage && (
                   <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 p-4">
                     <p className="text-sm font-bold text-emerald-800">{request.replyTitle}</p>
                     <p className="mt-1 text-sm leading-6 text-emerald-700">{request.replyMessage}</p>
-                    <p className="mt-2 text-xs text-emerald-600">Phản hồi bởi {request.repliedBy || 'Nhân viên hỗ trợ'} · {request.repliedAt ? new Date(request.repliedAt).toLocaleString('vi-VN') : ''}</p>
+                    <p className="mt-2 text-xs text-emerald-600">Phản hồi bởi {request.repliedBy || 'Nhân viên hỗ trợ'} · {request.repliedAt ? formatVietnamDateTime(request.repliedAt) : ''}</p>
                   </div>
                 )}
               </article>

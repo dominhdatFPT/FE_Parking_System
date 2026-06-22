@@ -5,6 +5,7 @@ import {
   TimerReset, UserRound,
 } from 'lucide-react';
 import { checkParkingExit, confirmParkingExit } from '../../../services/staffService';
+import { VIETNAM_TIME_ZONE } from '../../../utils/dateTime';
 
 const formatCurrency = (value) => `${Number(value || 0).toLocaleString('vi-VN')} ₫`;
 
@@ -13,6 +14,7 @@ const formatDateTime = (value) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '—';
   return new Intl.DateTimeFormat('vi-VN', {
+    timeZone: VIETNAM_TIME_ZONE,
     hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric',
   }).format(date);
 };

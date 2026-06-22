@@ -1,6 +1,6 @@
 import React from 'react';
 import { useActiveParkingOrders } from '../hooks/useActiveParkingOrders';
-import dayjs from 'dayjs';
+import { vietnamDayjs } from '../utils/dateTime';
 
 const MyParkingOrders = () => {
   const { orders, loading, error, refetch } = useActiveParkingOrders();
@@ -103,7 +103,7 @@ const MyParkingOrders = () => {
                 <div>
                   <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Giờ vào</p>
                   <p className="font-semibold text-slate-800">
-                    {order.entryTime ? dayjs(order.entryTime).format('HH:mm DD/MM/YYYY') : '-'}
+                    {order.entryTime ? vietnamDayjs(order.entryTime).format('HH:mm DD/MM/YYYY') : '-'}
                   </p>
                 </div>
                 <div>

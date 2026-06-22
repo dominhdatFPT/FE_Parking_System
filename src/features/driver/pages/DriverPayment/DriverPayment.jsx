@@ -8,6 +8,7 @@ import PageHeader from '../../components/PageHeader';
 import Button from '../../components/Button';
 import StatusBadge from '../../components/StatusBadge';
 import EmptyState from '../../components/EmptyState';
+import { vietnamDayjs } from '../../../../utils/dateTime';
 
 export default function DriverPayment() {
   const { t } = useTranslation();
@@ -320,7 +321,7 @@ export default function DriverPayment() {
                       <td className="px-5 py-3.5">
                         <StatusBadge status={inv.status === 'SUCCESS' ? 'PAID' : inv.status} />
                       </td>
-                      <td className="px-5 py-3.5 text-slate-400">{dayjs(inv.createdAt).format('DD/MM/YYYY HH:mm')}</td>
+                      <td className="px-5 py-3.5 text-slate-400">{vietnamDayjs(inv.createdAt).format('DD/MM/YYYY HH:mm')}</td>
                     </tr>
                   ))}
                 </tbody>

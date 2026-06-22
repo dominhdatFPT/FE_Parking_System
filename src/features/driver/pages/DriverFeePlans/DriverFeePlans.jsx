@@ -9,6 +9,11 @@ import PageHeader from '../../components/PageHeader';
 
 const VEHICLE_TYPE_ID = { MOTORBIKE: 1, CAR: 2 };
 
+const normalizeLicensePlate = (value) => String(value || '')
+  .trim()
+  .toUpperCase()
+  .replace(/[.\s-]/g, '');
+
 const STATUS_MAP = {
   PENDING_PAYMENT: 'feePlans.statusPending',
   ACTIVE: 'feePlans.statusActive',
@@ -121,6 +126,21 @@ export default function DriverFeePlans() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [vehicleType, fetchMyVehicles]);
+
+  // Keep the text shown in the plate input and the vehicle used for submit in
+  // sync. A user may type/paste the exact plate instead of clicking the row.
+  useEffect(() => {
+    if (!licensePlate) {
+      setSelectedVehicle(null);
+      return;
+    }
+
+    const normalizedInput = normalizeLicensePlate(licensePlate);
+    const matchingVehicle = vehicles.find(
+      (vehicle) => normalizeLicensePlate(vehicle.licensePlate) === normalizedInput,
+    );
+    setSelectedVehicle(matchingVehicle || null);
+  }, [licensePlate, vehicles]);
 
   const handleSubmitRequest = async () => {
     if (!selectedVehicle || !selectedPlanId) return;
@@ -299,7 +319,7 @@ export default function DriverFeePlans() {
                       <input
                         type="text"
                         value={licensePlate}
-                        onChange={(e) => { setLicensePlate(e.target.value); setSelectedVehicle(null); }}
+                        onChange={(e) => setLicensePlate(e.target.value)}
                         placeholder={t('feePlans.platePlaceholder')}
                         className="w-full pl-9 pr-10 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl focus:outline-none"
                       />

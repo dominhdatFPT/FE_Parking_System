@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { getStaffParkingOperations, updateStaffParkingSlot } from '../../../services/staffService';
 import { parkingAreaSummaryService } from '../../../services/parkingAreaSummaryService';
+import { formatVietnamDateTime } from '../../../utils/dateTime';
 
 const AREA_KEYS = ['A', 'B', 'C', 'D'];
 
@@ -181,7 +182,7 @@ function SlotDetail({ slot, updating, onMarkMaintenance }) {
         </div>
         <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
           <dt className="font-bold text-slate-500">Cập nhật</dt>
-          <dd className="font-black text-slate-950">{slot.updatedAt ? new Date(slot.updatedAt).toLocaleString('vi-VN') : 'Realtime'}</dd>
+          <dd className="font-black text-slate-950">{slot.updatedAt ? formatVietnamDateTime(slot.updatedAt) : 'Realtime'}</dd>
         </div>
       </dl>
 
