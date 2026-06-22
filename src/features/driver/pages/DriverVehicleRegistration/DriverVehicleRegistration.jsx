@@ -18,6 +18,9 @@ export default function DriverVehicleRegistration() {
   // Form Fields State
   const [vehicleType, setVehicleType] = useState(preselectedType);
   const [selectedPlans, setSelectedPlans] = useState(preselectedPlans);
+  const [licensePlate, setLicensePlate] = useState('');
+  const [brand, setBrand] = useState('');
+  const [color, setColor] = useState('');
 
   // File Upload State (CCCD requires 2 sides)
   const [cccdFrontFile, setCccdFrontFile] = useState(null);
@@ -103,11 +106,18 @@ export default function DriverVehicleRegistration() {
       setError(t('vehicleRegistration.errorLicensePlate'));
       return;
     }
+    if (!licensePlate.trim()) {
+      setError('Vui lòng nhập biển số xe thực tế.');
+      return;
+    }
 
     setSubmitting(true);
     try {
     const payload = {
       vehicleTypeId: vehicleType === 'CAR' ? 2 : 1,
+      licensePlate: licensePlate.trim().toUpperCase().replace(/\s+/g, ''),
+      brand: brand.trim() || null,
+      color: color.trim() || null,
       cccdFrontImage: await fileToBase64(cccdFrontFile),
       cccdBackImage: await fileToBase64(cccdBackFile),
       licenseImage: await fileToBase64(driverLicenseFile),
@@ -231,6 +241,9 @@ export default function DriverVehicleRegistration() {
                       setDriverLicenseFile(null);
                       setVehicleDocsFile(null);
                       setLicensePlateFile(null);
+                      setLicensePlate('');
+                      setBrand('');
+                      setColor('');
                       setSelectedPlans([]);
                     }}
                   >
@@ -287,8 +300,38 @@ export default function DriverVehicleRegistration() {
                   </div>
                 </div>
 
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <label className="grid gap-1.5 text-xs font-bold text-slate-500">
+                    Biển số xe thực tế *
+                    <input
+                      value={licensePlate}
+                      onChange={(event) => setLicensePlate(event.target.value.toUpperCase())}
+                      placeholder="Ví dụ: 51F-12345"
+                      className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 uppercase outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                    />
+                  </label>
+                  <label className="grid gap-1.5 text-xs font-bold text-slate-500">
+                    Hãng xe
+                    <input
+                      value={brand}
+                      onChange={(event) => setBrand(event.target.value)}
+                      placeholder="Ví dụ: Honda"
+                      className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                    />
+                  </label>
+                  <label className="grid gap-1.5 text-xs font-bold text-slate-500">
+                    Màu xe
+                    <input
+                      value={color}
+                      onChange={(event) => setColor(event.target.value)}
+                      placeholder="Ví dụ: Đen"
+                      className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                    />
+                  </label>
+                </div>
+
                 <div className="rounded-xl border border-sky-100 bg-sky-50/70 p-3 text-xs leading-relaxed text-sky-800">
-                  Họ tên và biển số sẽ được hệ thống đọc từ ảnh CCCD, bằng lái và ảnh biển số sau khi gửi hồ sơ. Bạn không cần nhập tay.
+                  Họ tên được lấy từ tài khoản. Biển số, hãng và màu xe lấy từ thông tin bạn nhập; ảnh tải lên dùng để staff đối chiếu khi duyệt.
                 </div>
 
                 {/* Selected Plans List */}
@@ -391,6 +434,11 @@ export default function DriverVehicleRegistration() {
                         ? selectedPlans.map((m) => t('vehicleRegistration.planMonths', { months: m })).join(', ')
                         : t('vehicleRegistration.noPlansSelected')}
                     </span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-50">
+                    <span className="text-slate-500 font-medium">Biển số xe</span>
+                    <span className="font-bold text-slate-700">{licensePlate.trim() || 'Chưa nhập'}</span>
                   </div>
 
                   <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-50">

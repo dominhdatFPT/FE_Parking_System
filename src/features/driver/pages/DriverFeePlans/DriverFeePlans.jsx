@@ -81,6 +81,23 @@ export default function DriverFeePlans() {
     setSelectedPlanId(null);
   }, [vehicleType, fetchFeePackages, fetchMyVehicles]);
 
+  useEffect(() => {
+    const refreshVehicles = () => {
+      const typeId = VEHICLE_TYPE_ID[vehicleType];
+      if (typeId) fetchMyVehicles(typeId);
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') refreshVehicles();
+    };
+
+    window.addEventListener('focus', refreshVehicles);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.removeEventListener('focus', refreshVehicles);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [vehicleType, fetchMyVehicles]);
+
   const handleSubmitRequest = async () => {
     if (!selectedVehicle || !selectedPlanId) return;
 
