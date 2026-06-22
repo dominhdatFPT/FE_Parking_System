@@ -20,7 +20,7 @@ export default function DriverFeePlans() {
   const location = useLocation();
   const { t } = useTranslation();
 
-  const [vehicleType, setVehicleType] = useState(location.state?.selectedType || 'CAR');
+  const [vehicleType, setVehicleType] = useState(location.state?.selectedType || null);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [licensePlate, setLicensePlate] = useState('');
   const [selectedPlanId, setSelectedPlanId] = useState(null);
@@ -69,6 +69,30 @@ export default function DriverFeePlans() {
       setLoadingVehicles(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (vehicleType) return;
+
+    let cancelled = false;
+    const selectLatestVehicleType = async () => {
+      setLoadingVehicles(true);
+      try {
+        const res = await apiClient.get(API_ENDPOINTS.FEE.MY_VEHICLES);
+        const allVehicles = res.data?.data ?? [];
+        if (cancelled) return;
+        const latestVehicle = allVehicles[0];
+        const typeCode = String(latestVehicle?.vehicleTypeCode || '').toUpperCase();
+        setVehicleType(typeCode.startsWith('CAR') ? 'CAR' : 'MOTORBIKE');
+      } catch {
+        if (!cancelled) setVehicleType('MOTORBIKE');
+      } finally {
+        if (!cancelled) setLoadingVehicles(false);
+      }
+    };
+
+    selectLatestVehicleType();
+    return () => { cancelled = true; };
+  }, [vehicleType]);
 
   useEffect(() => {
     const typeId = VEHICLE_TYPE_ID[vehicleType];
