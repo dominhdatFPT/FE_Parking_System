@@ -288,7 +288,7 @@ export default function DriverVehicleRegistration() {
                 </div>
 
                 <div className="rounded-xl border border-sky-100 bg-sky-50/70 p-3 text-xs leading-relaxed text-sky-800">
-                  Họ tên và biển số sẽ được hệ thống đọc từ ảnh CCCD, bằng lái và ảnh biển số sau khi gửi hồ sơ. Bạn không cần nhập tay.
+                  Họ tên được lấy từ tài khoản. Biển số, hãng và màu xe được hệ thống đọc từ ảnh bạn cung cấp để staff đối chiếu khi duyệt.
                 </div>
 
                 {/* Selected Plans List */}

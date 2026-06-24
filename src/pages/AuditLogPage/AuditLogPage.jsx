@@ -3,6 +3,7 @@ import { useLocation } from 'react-router';
 import DashboardShell from '../../components/DashboardShell';
 import { systemDataService } from '../../services/systemDataService';
 import IncidentPage from '../IncidentPage';
+import { formatVietnamDateTime } from '../../utils/dateTime';
 
 export default function AuditLogPage() {
   const location = useLocation();
@@ -49,7 +50,7 @@ function AuditLogContent() {
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3"><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Tìm trong nhật ký..." className="min-w-72 rounded-xl border px-4 py-3" /><div className="flex gap-2"><button onClick={exportCsv} className="rounded-xl border px-4 py-3">Xuất CSV</button><button onClick={load} className="rounded-xl bg-blue-700 px-4 py-3 text-white">Làm mới</button></div></div>
         {error && <p className="mt-4 rounded-xl bg-rose-50 p-4 text-rose-700">{error}</p>}
-        <div className="mt-5 overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-slate-50 text-left"><tr><th className="p-3">Người dùng</th><th className="p-3">Thời gian</th><th className="p-3">Hành động</th><th className="p-3">Mức độ</th><th className="p-3">Trạng thái</th><th className="p-3">Nội dung</th></tr></thead><tbody className="divide-y">{loading ? <tr><td colSpan="6" className="p-8 text-center">Đang tải từ database...</td></tr> : filtered.length === 0 ? <tr><td colSpan="6" className="p-8 text-center text-slate-500">Database chưa có nhật ký phù hợp.</td></tr> : filtered.map(x=><tr key={x.id}><td className="p-3"><b>{x.user_name || 'Hệ thống'}</b><div className="text-xs text-slate-500">{x.email || '—'}</div></td><td className="p-3">{new Date(x.created_at).toLocaleString('vi-VN')}</td><td className="p-3">{x.action}</td><td className="p-3">{x.severity}</td><td className="p-3">{x.status}</td><td className="p-3">{x.message}</td></tr>)}</tbody></table></div>
+        <div className="mt-5 overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-slate-50 text-left"><tr><th className="p-3">Người dùng</th><th className="p-3">Thời gian</th><th className="p-3">Hành động</th><th className="p-3">Mức độ</th><th className="p-3">Trạng thái</th><th className="p-3">Nội dung</th></tr></thead><tbody className="divide-y">{loading ? <tr><td colSpan="6" className="p-8 text-center">Đang tải từ database...</td></tr> : filtered.length === 0 ? <tr><td colSpan="6" className="p-8 text-center text-slate-500">Database chưa có nhật ký phù hợp.</td></tr> : filtered.map(x=><tr key={x.id}><td className="p-3"><b>{x.user_name || 'Hệ thống'}</b><div className="text-xs text-slate-500">{x.email || '—'}</div></td><td className="p-3">{formatVietnamDateTime(x.created_at)}</td><td className="p-3">{x.action}</td><td className="p-3">{x.severity}</td><td className="p-3">{x.status}</td><td className="p-3">{x.message}</td></tr>)}</tbody></table></div>
       </section>
     </div>
   </DashboardShell>;

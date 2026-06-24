@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { getStaffBookings, getStaffParkingSlots } from '../../../services/staffService';
+import { VIETNAM_TIME_ZONE } from '../../../utils/dateTime';
 
 const activeStatuses = ['APPROVED_WAITING_PAYMENT', 'PAID', 'CONFIRMED'];
 
@@ -8,6 +9,7 @@ const formatDateTime = (value) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '-';
   return new Intl.DateTimeFormat('vi-VN', {
+    timeZone: VIETNAM_TIME_ZONE,
     day: '2-digit',
     month: '2-digit',
     hour: '2-digit',

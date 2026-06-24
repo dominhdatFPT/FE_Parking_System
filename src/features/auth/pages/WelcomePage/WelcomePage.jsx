@@ -16,7 +16,7 @@ import {
   getCategoryToneClass,
   getCategoryLabel,
 } from '../../../../services/notificationService';
-import dayjs from 'dayjs';
+import { vietnamDayjs } from '../../../../utils/dateTime';
 import Logo from '../../../../components/Logo';
 
 // --- DICTIONARY (i18n) ---
@@ -900,7 +900,7 @@ const NotificationCenter = ({ t }) => {
 
   const formatDate = (iso) => {
     if (!iso) return '';
-    const d = dayjs(iso);
+    const d = vietnamDayjs(iso);
     return d.isValid() ? d.format('DD/MM HH:mm') : '';
   };
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { bookingService } from '../../../services/bookingService';
 import { ROUTES } from '../../../constants/routes';
+import { apiDateTimeMillis } from '../../../utils/dateTime';
 
 const typeIcon = { info: 'info', success: 'check_circle', warning: 'warning', error: 'error' };
 const typeColor = {
@@ -13,7 +14,7 @@ const typeColor = {
 };
 
 function timeAgo(dateStr, t) {
-  const diff = Date.now() - new Date(dateStr).getTime();
+  const diff = Date.now() - apiDateTimeMillis(dateStr);
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return t('time.justNow');
   if (mins < 60) return t('time.minutesAgo', { count: mins });

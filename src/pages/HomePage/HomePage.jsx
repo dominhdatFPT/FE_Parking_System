@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router';
 import SessionDetailDrawer from '../../components/parking/SessionDetailDrawer';
 import { getStaffOperationsDashboard } from '../../services/staffService';
+import { apiDateTimeMillis, formatVietnamTime } from '../../utils/dateTime';
 
 const emptyDashboardData = {
   entries: 0,
@@ -72,17 +73,13 @@ function formatCurrency(value) {
 }
 
 function formatTime(value) {
-  if (!value) return '--';
-  return new Intl.DateTimeFormat('vi-VN', {
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(value));
+  return formatVietnamTime(value) || '--';
 }
 
 function formatDuration(entryTime, exitTime) {
   if (!entryTime) return '--';
-  const start = new Date(entryTime).getTime();
-  const end = exitTime ? new Date(exitTime).getTime() : Date.now();
+  const start = apiDateTimeMillis(entryTime);
+  const end = exitTime ? apiDateTimeMillis(exitTime) : Date.now();
   const diffMinutes = Math.max(0, Math.floor((end - start) / 60000));
   const days = Math.floor(diffMinutes / 1440);
   const hours = Math.floor((diffMinutes % 1440) / 60);
@@ -119,7 +116,7 @@ function mapStatus(activity) {
   if (activity.exitTime || activity.status === 'COMPLETED') return 'Đã hoàn thành';
   if (!activity.entryTime) return activity.status || 'Bình thường';
 
-  const hours = (Date.now() - new Date(activity.entryTime).getTime()) / 3600000;
+  const hours = (Date.now() - apiDateTimeMillis(activity.entryTime)) / 3600000;
   if (hours >= 24 * 7) return 'Quá 7 ngày';
   if (hours >= 24) return 'Quá 24 giờ';
   return 'Bình thường';

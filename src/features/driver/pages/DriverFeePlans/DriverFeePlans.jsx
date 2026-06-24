@@ -9,6 +9,11 @@ import PageHeader from '../../components/PageHeader';
 
 const VEHICLE_TYPE_ID = { MOTORBIKE: 1, CAR: 2 };
 
+const normalizeLicensePlate = (value) => String(value || '')
+  .trim()
+  .toUpperCase()
+  .replace(/[.\s-]/g, '');
+
 const STATUS_MAP = {
   PENDING_PAYMENT: 'feePlans.statusPending',
   ACTIVE: 'feePlans.statusActive',
@@ -20,7 +25,7 @@ export default function DriverFeePlans() {
   const location = useLocation();
   const { t } = useTranslation();
 
-  const [vehicleType, setVehicleType] = useState(location.state?.selectedType || 'CAR');
+  const [vehicleType, setVehicleType] = useState(location.state?.selectedType || null);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [licensePlate, setLicensePlate] = useState('');
   const [selectedPlanId, setSelectedPlanId] = useState(null);
@@ -71,6 +76,30 @@ export default function DriverFeePlans() {
   }, []);
 
   useEffect(() => {
+    if (vehicleType) return;
+
+    let cancelled = false;
+    const selectLatestVehicleType = async () => {
+      setLoadingVehicles(true);
+      try {
+        const res = await apiClient.get(API_ENDPOINTS.FEE.MY_VEHICLES);
+        const allVehicles = res.data?.data ?? [];
+        if (cancelled) return;
+        const latestVehicle = allVehicles[0];
+        const typeCode = String(latestVehicle?.vehicleTypeCode || '').toUpperCase();
+        setVehicleType(typeCode.startsWith('CAR') ? 'CAR' : 'MOTORBIKE');
+      } catch {
+        if (!cancelled) setVehicleType('MOTORBIKE');
+      } finally {
+        if (!cancelled) setLoadingVehicles(false);
+      }
+    };
+
+    selectLatestVehicleType();
+    return () => { cancelled = true; };
+  }, [vehicleType]);
+
+  useEffect(() => {
     const typeId = VEHICLE_TYPE_ID[vehicleType];
     if (typeId) {
       fetchFeePackages(typeId);
@@ -80,6 +109,38 @@ export default function DriverFeePlans() {
     setLicensePlate('');
     setSelectedPlanId(null);
   }, [vehicleType, fetchFeePackages, fetchMyVehicles]);
+
+  useEffect(() => {
+    const refreshVehicles = () => {
+      const typeId = VEHICLE_TYPE_ID[vehicleType];
+      if (typeId) fetchMyVehicles(typeId);
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') refreshVehicles();
+    };
+
+    window.addEventListener('focus', refreshVehicles);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.removeEventListener('focus', refreshVehicles);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [vehicleType, fetchMyVehicles]);
+
+  // Keep the text shown in the plate input and the vehicle used for submit in
+  // sync. A user may type/paste the exact plate instead of clicking the row.
+  useEffect(() => {
+    if (!licensePlate) {
+      setSelectedVehicle(null);
+      return;
+    }
+
+    const normalizedInput = normalizeLicensePlate(licensePlate);
+    const matchingVehicle = vehicles.find(
+      (vehicle) => normalizeLicensePlate(vehicle.licensePlate) === normalizedInput,
+    );
+    setSelectedVehicle(matchingVehicle || null);
+  }, [licensePlate, vehicles]);
 
   const handleSubmitRequest = async () => {
     if (!selectedVehicle || !selectedPlanId) return;
@@ -258,7 +319,7 @@ export default function DriverFeePlans() {
                       <input
                         type="text"
                         value={licensePlate}
-                        onChange={(e) => { setLicensePlate(e.target.value); setSelectedVehicle(null); }}
+                        onChange={(e) => setLicensePlate(e.target.value)}
                         placeholder={t('feePlans.platePlaceholder')}
                         className="w-full pl-9 pr-10 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl focus:outline-none"
                       />

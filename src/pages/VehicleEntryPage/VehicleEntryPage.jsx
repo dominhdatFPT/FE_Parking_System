@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { AlertCircle, CarFront, CheckCircle2, Search, TicketCheck, Bike } from 'lucide-react';
 import { checkParkingEntry, confirmParkingEntry } from '../../services/staffService';
+import { formatVietnamDateTime } from '../../utils/dateTime';
 
-const formatDateTime = (value) => value ? new Date(value).toLocaleString('vi-VN') : '—';
+const formatDateTime = (value) => formatVietnamDateTime(value) || '—';
 
 function Info({ label, value }) {
   return <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4"><p className="text-xs font-semibold text-slate-400">{label}</p><p className="mt-1 font-bold text-slate-800">{value || '—'}</p></div>;
