@@ -1,6 +1,8 @@
 import { useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ROUTES } from '../../../constants/routes';
+import { STORAGE_KEYS } from '../../../constants/storageKeys';
+import { useAuth } from '../../../contexts/useAuth';
 import Logo from '../../../components/Logo';
 
 const navItems = [
@@ -16,11 +18,29 @@ export default function DriverSidebar({ isOpen, onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const { setUser } = useAuth();
 
-  const handleNav = (item) => {
-    navigate(item.path);
+  const handleNav = (target) => {
+    const path = typeof target === 'string' ? target : target?.path;
+    if (path) {
+      navigate(path);
+    }
     onClose?.();
   };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    sessionStorage.removeItem(STORAGE_KEYS.USER);
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.USER);
+    localStorage.removeItem('smart-parking-user');
+    localStorage.removeItem('rememberMe');
+    setUser(null);
+    navigate(ROUTES.LOGIN, { replace: true });
+    onClose?.();
+  };
+
+  const isProfileActive = location.pathname === ROUTES.DRIVER.PROFILE;
 
   return (
     <>
@@ -40,7 +60,7 @@ export default function DriverSidebar({ isOpen, onClose }) {
         }}
       >
         <div className="flex flex-col px-5 py-3 gap-1 border-b border-sky-300/30">
-          <Logo variant="horizontal" size="sm" />
+          <Logo variant="horizontal" theme="brand" size="sm" />
           <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-sky-700/70 ml-[44px]">Driver Workspace</p>
         </div>
 
@@ -78,21 +98,33 @@ export default function DriverSidebar({ isOpen, onClose }) {
         <div className="mx-5 border-t border-sky-300/30" />
 
         {/* Bottom */}
-        <div className="p-3">
+        <div className="p-3 space-y-1">
           <button
             type="button"
             onClick={() => handleNav(ROUTES.DRIVER.PROFILE)}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium text-slate-700 transition-all duration-300 hover:bg-white/70 hover:text-slate-900 hover:shadow-md hover:shadow-sky-300/20"
+            className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium transition-all duration-300 ${
+              isProfileActive
+                ? 'bg-gradient-to-r from-[#0EA5E9] to-[#06B6D4] text-white shadow-lg shadow-sky-400/40'
+                : 'text-slate-700 hover:bg-white/70 hover:text-slate-900 hover:shadow-md hover:shadow-sky-300/20'
+            }`}
           >
-            <span className="material-symbols-outlined text-[19px] text-sky-600/80">person</span>
-            {t('sidebar.profile')}
+            {isProfileActive && (
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#06B6D4] shadow-lg shadow-sky-400/40" />
+            )}
+            <span className={`relative z-10 material-symbols-outlined text-[19px] transition-colors duration-300 ${
+              isProfileActive ? 'text-white' : 'text-sky-600/80 group-hover:text-slate-700'
+            }`}>
+              person
+            </span>
+            <span className="relative z-10">{t('sidebar.profile')}</span>
           </button>
+          
           <button
             type="button"
-            onClick={() => handleNav(ROUTES.LOGIN)}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium text-slate-700 transition-all duration-300 hover:bg-red-50/80 hover:text-red-500 hover:shadow-sm"
+            onClick={handleLogout}
+            className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium text-slate-700 transition-all duration-300 hover:bg-red-50/80 hover:text-red-500 hover:shadow-sm"
           >
-            <span className="material-symbols-outlined text-[19px] text-sky-600/80">logout</span>
+            <span className="material-symbols-outlined text-[19px] text-sky-600/80 group-hover:text-red-500">logout</span>
             {t('sidebar.logout')}
           </button>
         </div>

@@ -317,7 +317,7 @@ export default function DriverFeePlans() {
                   ) : (
                     feePackages.map((pkg) => {
                       const isSelected = selectedPlanId === pkg.id;
-                      const tag = pkg.isPopular ? t('feePlans.popularTag') : pkg.isBestValue ? t('feePlans.saveTag') : '';
+                      const tag = '';
                       const rawPrice = pkg.price ?? pkg.currentPrice ?? 0;
                       const price = Number.isFinite(Number(rawPrice)) ? Number(rawPrice) : 0;
                       return (

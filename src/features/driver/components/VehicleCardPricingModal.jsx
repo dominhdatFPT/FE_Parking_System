@@ -35,14 +35,14 @@ export default function VehicleCardPricingModal({ isOpen, onClose }) {
     MOTORBIKE: [
       { months: 1, name: 'Gói Tháng', price: 150000, save: 0, tag: '', desc: 'Phù hợp sử dụng ngắn hạn' },
       { months: 3, name: 'Gói Quý', price: 420000, save: 7, tag: '', desc: '' },
-      { months: 6, name: 'Gói Nửa Năm', price: 800000, save: 10, tag: '⭐ PHỔ BIẾN NHẤT', desc: '' },
-      { months: 12, name: 'Gói Năm', price: 1500000, save: 16, tag: '🔥 TIẾT KIỆM NHẤT', desc: '' },
+      { months: 6, name: 'Gói Nửa Năm', price: 800000, save: 10, tag: '', desc: '' },
+      { months: 12, name: 'Gói Năm', price: 1500000, save: 16, tag: '', desc: '' },
     ],
     CAR: [
       { months: 1, name: 'Gói Tháng', price: 500000, save: 0, tag: '', desc: 'Phù hợp sử dụng ngắn hạn' },
       { months: 3, name: 'Gói Quý', price: 1400000, save: 7, tag: '', desc: '' },
-      { months: 6, name: 'Gói Nửa Năm', price: 2700000, save: 10, tag: '⭐ PHỔ BIẾN NHẤT', desc: '' },
-      { months: 12, name: 'Gói Năm', price: 5000000, save: 16, tag: '🔥 TIẾT KIỆM NHẤT', desc: '' },
+      { months: 6, name: 'Gói Nửa Năm', price: 2700000, save: 10, tag: '', desc: '' },
+      { months: 12, name: 'Gói Năm', price: 5000000, save: 16, tag: '', desc: '' },
     ],
   };
 

@@ -6,7 +6,8 @@ import {
   Smartphone, CheckCircle2, Clock, ShieldCheck,
   Bell, ChevronRight, ChevronDown,
   TrendingUp, TrendingDown, BarChart3,
-  LayoutDashboard, LogIn, UserPlus, Facebook, Github, X
+  LayoutDashboard, LogIn, UserPlus, Facebook, Github, X,
+  Mail, Phone
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -22,7 +23,7 @@ import Logo from '../../../../components/Logo';
 const translations = {
   vi: {
     nav: { home: "Trang chủ", dashboard: "Bảng điều khiển", notice: "Thông báo", explore: "Khám phá", login: "Đăng nhập", signup: "Đăng ký" },
-    hero: { badge: "Hệ thống đang hoạt động 24/7", title1: "Quản lý bãi đỗ xe", title2: "tòa nhà thông minh", desc: "Nền tảng Smart Parking dành cho chung cư, văn phòng và trung tâm thương mại với nhận diện biển số LPR, đặt chỗ trước và thanh toán không chạm.", f1: "Thanh toán không chạm", f2: "Nhận diện biển số LPR", f3: "Theo dõi thời gian thực" },
+    hero: { title1: "Quản lý bãi đỗ xe", title2: "tòa nhà thông minh", desc: "Nền tảng Smart Parking dành cho chung cư, văn phòng và trung tâm thương mại với đặt chỗ trước, nhận diện biển số LPR và theo dõi trạng thái thời gian thực.", f1: "Đặt chỗ trước", f2: "Nhận diện biển số LPR", f3: "Theo dõi thời gian thực" },
     kpi: { 
       c1: { title: "Tổng số Slot", unit: "chỗ" }, 
       c2: { title: "Slot còn trống", unit: "chỗ" }, 
@@ -88,10 +89,11 @@ const translations = {
       rulesTitle: "Quy định", r1: "Cao: 2.2m", r2: "Tắt máy", r3: "Đỗ đúng vạch"
     },
     footer: { 
-      desc: "Giải pháp đỗ xe thông minh hàng đầu dành cho khu đô thị, trung tâm thương mại và tòa nhà văn phòng.",
-      products: "Sản phẩm", support: "Hỗ trợ", helpCenter: "Trung tâm trợ giúp", apiDocs: "Tài liệu API", community: "Cộng đồng",
-      contact: "Liên hệ", addressLabel: "Địa chỉ", addressVal: "Tòa nhà Nexus, 123 Trần Phú, Q.1, TP.HCM",
-      rights: "All rights reserved.", terms: "Điều khoản", privacy: "Bảo mật", cookies: "Cookies" 
+      desc: "Nền tảng quản lý bãi đỗ xe thông minh cho tòa nhà, chung cư và trung tâm thương mại.",
+      products: "Chức năng", f1: "Đăng ký thẻ xe", f2: "Đặt chỗ trước", f3: "Quản lý phương tiện", f4: "Thanh toán",
+      support: "Hỗ trợ", faq: "Câu hỏi thường gặp", guide: "Hướng dẫn sử dụng",
+      contact: "Liên hệ", addressLabel: "Địa chỉ", addressVal: "TP. Hồ Chí Minh",
+      rights: "All rights reserved.", terms: "Điều khoản sử dụng", privacy: "Chính sách bảo mật" 
     },
     vehicleLog: {
       title: "Lịch sử Xe Ra / Vào",
@@ -119,7 +121,7 @@ const translations = {
   },
   en: {
     nav: { home: "Home", dashboard: "Dashboard", notice: "Notices", explore: "Explore", login: "Login", signup: "Sign Up" },
-    hero: { badge: "System running 24/7", title1: "Smart Building", title2: "Parking Management", desc: "Smart Parking platform for apartments, offices and commercial centers with LPR, booking and contactless payment.", f1: "Contactless Payment", f2: "LPR System", f3: "Real-time Tracking" },
+    hero: { title1: "Smart Building", title2: "Parking Management", desc: "Smart Parking platform for apartments, offices and commercial centers with pre-booking, LPR system, and real-time tracking.", f1: "Pre-booking", f2: "LPR System", f3: "Real-time Tracking" },
     kpi: { 
       c1: { title: "Total Slots", unit: "slots" }, 
       c2: { title: "Available Slots", unit: "slots" }, 
@@ -185,10 +187,11 @@ const translations = {
       rulesTitle: "Rules", r1: "Height: 2.2m", r2: "Engine off", r3: "Park within lines"
     },
     footer: { 
-      desc: "Leading smart parking solution for urban areas, commercial centers, and office buildings.",
-      products: "Products", support: "Support", helpCenter: "Help Center", apiDocs: "API Documentation", community: "Community",
-      contact: "Contact", addressLabel: "Address", addressVal: "Nexus Building, 123 Tran Phu, Dist 1, HCMC",
-      rights: "All rights reserved.", terms: "Terms", privacy: "Privacy", cookies: "Cookies" 
+      desc: "Smart parking management platform for buildings, apartments and shopping centers.",
+      products: "Features", f1: "Register parking card", f2: "Pre-book slot", f3: "Manage vehicle", f4: "Payment",
+      support: "Support", faq: "FAQs", guide: "User guide",
+      contact: "Contact", addressLabel: "Address", addressVal: "Ho Chi Minh City",
+      rights: "All rights reserved.", terms: "Terms of Use", privacy: "Privacy Policy" 
     },
     vehicleLog: {
       title: "Vehicle In / Out History",
@@ -423,48 +426,105 @@ const HeroSection = ({ t }) => {
     return () => clearInterval(timer);
   }, [backgrounds.length]);
 
+  const containerVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.4
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" }
+    }
+  };
+
   return (
-    <section id="hero" className="relative pt-20 pb-24 px-4 sm:px-6 lg:px-8 flex items-center justify-center min-h-[400px]">
+    <section id="hero" className="relative pt-24 pb-28 px-4 sm:px-6 lg:px-8 flex items-center justify-center min-h-[480px]">
       <div className="absolute inset-0 z-0 overflow-hidden bg-slate-900">
-        {backgrounds.map((bg, idx) => (
-          <img 
-            key={idx}
-            src={bg} 
-            alt={`Parking Background ${idx + 1}`} 
-            className={`absolute inset-0 w-full h-full object-cover scale-105 transition-opacity duration-1000 ease-in-out ${currentBg === idx ? 'opacity-100' : 'opacity-0'}`}
-          />
-        ))}
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/95 via-slate-900/80 to-sky-900/80"></div>
+        <motion.div
+          initial={{ scale: 1.05 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 1.8, ease: "easeOut" }}
+          className="absolute inset-0 w-full h-full"
+        >
+          {backgrounds.map((bg, idx) => (
+            <img 
+              key={idx}
+              src={bg} 
+              alt={`Parking Background ${idx + 1}`} 
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${currentBg === idx ? 'opacity-100' : 'opacity-0'}`}
+            />
+          ))}
+        </motion.div>
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/70 to-sky-950/65"></div>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto text-center w-full">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-sm font-bold mb-6 backdrop-blur-md shadow-lg">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-          </span>
-          {t.hero.badge}
-        </div>
-        
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight mb-6 drop-shadow-lg">
+      <div className="relative z-10 max-w-7xl mx-auto text-center w-full flex flex-col items-center">
+        <motion.h1 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight mb-8 drop-shadow-lg leading-tight"
+        >
           {t.hero.title1} <br className="hidden sm:block" />
           <span className="text-sky-400">{t.hero.title2}</span>
-        </h1>
-        <p className="text-lg text-slate-300 max-w-2xl mx-auto mb-10 drop-shadow font-medium">
+        </motion.h1>
+        
+        <motion.p 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          className="text-lg text-slate-300 max-w-xl mx-auto mb-8 drop-shadow leading-relaxed font-medium"
+        >
           {t.hero.desc}
-        </p>
+        </motion.p>
 
-        <div className="flex flex-wrap justify-center gap-6 text-slate-200 text-sm font-bold">
-          <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/10">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" /> {t.hero.f1}
-          </div>
-          <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/10">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" /> {t.hero.f2}
-          </div>
-          <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/10">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" /> {t.hero.f3}
-          </div>
-        </div>
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="flex flex-wrap justify-center gap-6 text-slate-100 text-sm font-bold"
+        >
+          <motion.div 
+            variants={itemVariants}
+            whileHover={{ scale: 1.02, borderColor: "rgba(255, 255, 255, 0.25)", boxShadow: "0 12px 40px 0 rgba(0,0,0,0.25)" }}
+            className="flex items-center gap-3.5 bg-white/5 backdrop-blur-md border border-white/10 px-6 py-4 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.15)] transition-all duration-300 cursor-default"
+          >
+            <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/30 flex items-center justify-center text-sky-400">
+              <CalendarDays className="w-5 h-5" />
+            </div>
+            <span className="text-white tracking-wide font-semibold text-base">{t.hero.f1}</span>
+          </motion.div>
+          
+          <motion.div 
+            variants={itemVariants}
+            whileHover={{ scale: 1.02, borderColor: "rgba(255, 255, 255, 0.25)", boxShadow: "0 12px 40px 0 rgba(0,0,0,0.25)" }}
+            className="flex items-center gap-3.5 bg-white/5 backdrop-blur-md border border-white/10 px-6 py-4 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.15)] transition-all duration-300 cursor-default"
+          >
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400">
+              <ScanLine className="w-5 h-5" />
+            </div>
+            <span className="text-white tracking-wide font-semibold text-base">{t.hero.f2}</span>
+          </motion.div>
+          
+          <motion.div 
+            variants={itemVariants}
+            whileHover={{ scale: 1.02, borderColor: "rgba(255, 255, 255, 0.25)", boxShadow: "0 12px 40px 0 rgba(0,0,0,0.25)" }}
+            className="flex items-center gap-3.5 bg-white/5 backdrop-blur-md border border-white/10 px-6 py-4 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.15)] transition-all duration-300 cursor-default"
+          >
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-400">
+              <Clock className="w-5 h-5" />
+            </div>
+            <span className="text-white tracking-wide font-semibold text-base">{t.hero.f3}</span>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );
@@ -950,7 +1010,8 @@ const NotificationCenter = ({ t }) => {
             <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
               <button
                 onClick={closeDetail}
-                className="px-6 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-lg transition-colors"
+                className="px-6 py-2 bg-sky-500 hover:bg-sky-600 !text-white font-bold rounded-lg transition-colors"
+                style={{ color: '#FFFFFF' }}
               >
                 Đóng
               </button>
@@ -1174,70 +1235,216 @@ const ProcessTimeline = ({ t }) => {
   );
 };
 
-const Footer = ({ t }) => {
+const ModalContainer = ({ isOpen, onClose, title, children }) => {
+  if (!isOpen) return null;
   return (
-    <footer className="bg-white border-t border-slate-200 pt-16 pb-8">
+    <div
+      className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col border border-slate-200 animate-in fade-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+          <h3 className="font-bold text-slate-800 text-lg">{title}</h3>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-6 overflow-y-auto max-h-[60vh] custom-scrollbar text-slate-600 text-sm font-medium leading-relaxed">
+          {children}
+        </div>
+        <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-sky-500 hover:bg-sky-600 !text-white font-bold rounded-lg transition-colors"
+            style={{ color: '#FFFFFF' }}
+          >
+            Đóng
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Footer = ({ t, onOpenModal }) => {
+  const navigate = useNavigate();
+  const currentPath = window.location.pathname;
+
+  const handleFeatureClick = (e, path) => {
+    e.preventDefault();
+    const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+    if (token) {
+      navigate(path);
+    } else {
+      sessionStorage.setItem('redirect_after_login', path);
+      navigate('/login');
+    }
+  };
+
+  const handleFaqClick = (e) => {
+    e.preventDefault();
+    const target = document.getElementById('thong-bao');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleContactClick = (e) => {
+    e.preventDefault();
+    window.location.href = "mailto:support@parking-system.vn";
+  };
+
+  const linkClass = (path) => {
+    const isActive = currentPath === path;
+    return `group flex items-center gap-2 cursor-pointer focus:ring-2 focus:ring-sky-500/40 focus:outline-none min-h-[40px] px-1 py-1 rounded transition-all duration-200 ease-out text-slate-500 hover:text-sky-600 hover:translate-x-1 ${
+      isActive ? 'text-sky-600 font-semibold border-b border-sky-600 w-fit' : ''
+    }`;
+  };
+
+  return (
+    <footer className="bg-slate-50 border-t border-slate-200/60 pt-12 pb-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="col-span-1 md:col-span-1">
             <Logo variant="horizontal" size="sm" />
-            <p className="text-slate-500 text-sm font-medium leading-relaxed mb-6">
+            <p className="text-slate-500 text-sm font-medium leading-relaxed mt-4">
               {t.footer.desc}
             </p>
-            <div className="flex gap-4">
-              <a href="#" className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-sky-100 hover:text-sky-600 transition-colors">
-                <Facebook className="w-4 h-4" />
-              </a>
-              <a href="#" className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-sky-100 hover:text-sky-600 transition-colors">
-                <Github className="w-4 h-4" />
-              </a>
-            </div>
           </div>
           
           <div>
-            <h4 className="font-bold text-slate-800 mb-4">{t.footer.products}</h4>
-            <ul className="space-y-3 text-sm font-medium text-slate-500">
-              <li><a href="#" className="hover:text-sky-600 transition-colors">Enterprise Dashboard</a></li>
-              <li><a href="#" className="hover:text-sky-600 transition-colors">Mobile App</a></li>
-              <li><a href="#" className="hover:text-sky-600 transition-colors">LPR Camera System</a></li>
-              <li><a href="#" className="hover:text-sky-600 transition-colors">Payment Gateway</a></li>
+            <h4 className="font-bold text-slate-800 mb-4 text-sm uppercase tracking-wider">{t.footer.products}</h4>
+            <ul className="space-y-1">
+              <li>
+                <a 
+                  href="#" 
+                  onClick={(e) => handleFeatureClick(e, '/driver-vehicle-registration')} 
+                  className={linkClass('/driver-vehicle-registration')}
+                >
+                  <span className="hover:underline">{t.footer.f1}</span>
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#" 
+                  onClick={(e) => handleFeatureClick(e, '/driver-booking')} 
+                  className={linkClass('/driver-booking')}
+                >
+                  <span className="hover:underline">{t.footer.f2}</span>
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#" 
+                  onClick={(e) => handleFeatureClick(e, '/driver-dashboard')} 
+                  className={linkClass('/driver-dashboard')}
+                >
+                  <span className="hover:underline">{t.footer.f3}</span>
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#" 
+                  onClick={(e) => handleFeatureClick(e, '/driver-payment')} 
+                  className={linkClass('/driver-payment')}
+                >
+                  <span className="hover:underline">{t.footer.f4}</span>
+                </a>
+              </li>
             </ul>
           </div>
           
           <div>
-            <h4 className="font-bold text-slate-800 mb-4">{t.footer.support}</h4>
-            <ul className="space-y-3 text-sm font-medium text-slate-500">
-              <li><a href="#" className="hover:text-sky-600 transition-colors">{t.footer.helpCenter}</a></li>
-              <li><a href="#" className="hover:text-sky-600 transition-colors">{t.footer.apiDocs}</a></li>
-              <li><a href="#" className="hover:text-sky-600 transition-colors">{t.footer.community}</a></li>
-              <li><a href="#" className="hover:text-sky-600 transition-colors">{t.footer.contact}</a></li>
+            <h4 className="font-bold text-slate-800 mb-4 text-sm uppercase tracking-wider">{t.footer.support}</h4>
+            <ul className="space-y-1">
+              <li>
+                <a 
+                  href="#thong-bao" 
+                  onClick={handleFaqClick} 
+                  className="group flex items-center gap-2 cursor-pointer focus:ring-2 focus:ring-sky-500/40 focus:outline-none min-h-[40px] px-1 py-1 rounded transition-all duration-200 ease-out text-slate-500 hover:text-sky-600 hover:translate-x-1"
+                >
+                  <span className="hover:underline">{t.footer.faq}</span>
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#" 
+                  onClick={(e) => { e.preventDefault(); onOpenModal('guide'); }} 
+                  className="group flex items-center gap-2 cursor-pointer focus:ring-2 focus:ring-sky-500/40 focus:outline-none min-h-[40px] px-1 py-1 rounded transition-all duration-200 ease-out text-slate-500 hover:text-sky-600 hover:translate-x-1"
+                >
+                  <span className="hover:underline">{t.footer.guide}</span>
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#" 
+                  onClick={handleContactClick} 
+                  className="group flex items-center gap-2 cursor-pointer focus:ring-2 focus:ring-sky-500/40 focus:outline-none min-h-[40px] px-1 py-1 rounded transition-all duration-200 ease-out text-slate-500 hover:text-sky-600 hover:translate-x-1"
+                >
+                  <span className="hover:underline">{t.footer.contact}</span>
+                </a>
+              </li>
             </ul>
           </div>
           
           <div>
-            <h4 className="font-bold text-slate-800 mb-4">{t.footer.contact}</h4>
-            <ul className="space-y-3 text-sm font-medium text-slate-500">
-              <li>Email: dat@example.com</li>
-              <li>Hotline: 0123456789</li>
-              <li>{t.footer.addressLabel}: {t.footer.addressVal}</li>
+            <h4 className="font-bold text-slate-800 mb-4 text-sm uppercase tracking-wider">{t.footer.contact}</h4>
+            <ul className="space-y-2.5 text-sm font-medium text-slate-500">
+              <li className="flex items-center gap-2 min-h-[40px]">
+                <a 
+                  href="mailto:support@parking-system.vn" 
+                  className="inline-flex items-center gap-2 text-slate-500 hover:text-sky-600 transition-colors duration-200 focus:ring-2 focus:ring-sky-500/40 focus:outline-none px-1.5 py-1.5 rounded"
+                >
+                  <Mail className="w-4 h-4 shrink-0 text-sky-500" />
+                  <span>support@parking-system.vn</span>
+                </a>
+              </li>
+              <li className="flex items-center gap-2 min-h-[40px]">
+                <a 
+                  href="tel:+84123456789" 
+                  className="inline-flex items-center gap-2 text-slate-500 hover:text-sky-600 transition-colors duration-200 focus:ring-2 focus:ring-sky-500/40 focus:outline-none px-1.5 py-1.5 rounded"
+                >
+                  <Phone className="w-4 h-4 shrink-0 text-sky-500" />
+                  <span>(+84) 123 456 789</span>
+                </a>
+              </li>
+              <li className="flex items-center gap-2 min-h-[40px] text-slate-500 px-1.5 py-1.5">
+                <MapPin className="w-4 h-4 shrink-0 text-slate-400" />
+                <span>{t.footer.addressVal}</span>
+              </li>
             </ul>
           </div>
         </div>
         
-        <div className="border-t border-slate-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <span className="text-sm text-slate-500 font-medium">© 2026 Parking System SaaS. {t.footer.rights}</span>
+        <div className="border-t border-slate-200 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+          <span className="text-sm text-slate-500 font-medium">© 2026 Parking Building Management System. {t.footer.rights}</span>
           <div className="flex gap-6 text-sm font-bold text-slate-500">
-            <a href="#" className="hover:text-sky-600 transition-colors">{t.footer.terms}</a>
-            <a href="#" className="hover:text-sky-600 transition-colors">{t.footer.privacy}</a>
-            <a href="#" className="hover:text-sky-600 transition-colors">{t.footer.cookies}</a>
+            <a 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); onOpenModal('terms'); }} 
+              className="transition-colors duration-200 hover:text-sky-600 focus:ring-2 focus:ring-sky-500/40 focus:outline-none px-1 py-1 rounded"
+            >
+              {t.footer.terms}
+            </a>
+            <a 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); onOpenModal('privacy'); }} 
+              className="transition-colors duration-200 hover:text-sky-600 focus:ring-2 focus:ring-sky-500/40 focus:outline-none px-1 py-1 rounded"
+            >
+              {t.footer.privacy}
+            </a>
           </div>
         </div>
       </div>
     </footer>
   );
 };
-
-// --- MAIN PAGE COMPONENT ---
 
 export default function WelcomePage() {
   const getInitialLang = () => {
@@ -1263,6 +1470,8 @@ export default function WelcomePage() {
     };
   }, []);
 
+  const [activeModal, setActiveModal] = useState(null);
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800 selection:bg-sky-200">
       <Navbar lang={lang} setLang={setLang} t={t} />
@@ -1273,7 +1482,85 @@ export default function WelcomePage() {
         <PricingAndMap t={t} />
         <ProcessTimeline t={t} />
       </main>
-      <Footer t={t} />
+      <Footer t={t} onOpenModal={setActiveModal} />
+
+      <ModalContainer 
+        isOpen={activeModal === 'guide'} 
+        onClose={() => setActiveModal(null)} 
+        title={lang === 'vi' ? 'Hướng dẫn sử dụng hệ thống' : 'System User Guide'}
+      >
+        {lang === 'vi' ? (
+          <div className="space-y-4">
+            <p className="font-semibold text-slate-800">Để sử dụng dịch vụ bãi đỗ xe thông minh, quý khách vui lòng làm theo các bước sau:</p>
+            <ol className="list-decimal pl-5 space-y-2">
+              <li><strong>Đăng ký tài khoản:</strong> Tạo tài khoản và cập nhật thông tin cá nhân.</li>
+              <li><strong>Đăng ký thẻ xe:</strong> Đăng ký biển số xe chính chủ và chọn loại thẻ tháng hoặc lượt.</li>
+              <li><strong>Đặt chỗ trước:</strong> Chọn khu vực, tầng và vị trí đỗ mong muốn trước khi di chuyển đến tòa nhà.</li>
+              <li><strong>Vào bãi xe:</strong> Camera AI LPR sẽ tự động nhận diện biển số của bạn và mở cổng barie trong 2 giây.</li>
+              <li><strong>Thanh toán trực tuyến:</strong> Thanh toán phí gửi xe dễ dàng qua ứng dụng di động hoặc ví điện tử liên kết khi ra cổng.</li>
+            </ol>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="font-semibold text-slate-800">To use our smart parking services, please follow these steps:</p>
+            <ol className="list-decimal pl-5 space-y-2">
+              <li><strong>Account Registration:</strong> Create an account and update your profile details.</li>
+              <li><strong>Parking Card Registration:</strong> Register your vehicle license plate and choose subscription or single-use card.</li>
+              <li><strong>Pre-booking Slot:</strong> Select your desired parking zone, floor and slot before arriving.</li>
+              <li><strong>Access the Gate:</strong> The AI LPR camera will automatically scan your plate and open the barrier gate in 2 seconds.</li>
+              <li><strong>Online Payment:</strong> Easily pay parking fees via mobile app or linked e-wallets when exiting.</li>
+            </ol>
+          </div>
+        )}
+      </ModalContainer>
+
+      <ModalContainer 
+        isOpen={activeModal === 'terms'} 
+        onClose={() => setActiveModal(null)} 
+        title={lang === 'vi' ? 'Điều khoản sử dụng' : 'Terms of Use'}
+      >
+        {lang === 'vi' ? (
+          <div className="space-y-4">
+            <p>Chào mừng bạn đến với <strong>Parking Building Management System</strong>. Khi truy cập và sử dụng dịch vụ của chúng tôi, bạn đồng ý tuân thủ các điều khoản sau:</p>
+            <h4 className="font-bold text-slate-800 text-sm uppercase">1. Đăng ký & Bảo mật thông tin</h4>
+            <p>Người dùng có trách nhiệm tự bảo mật tài khoản và mật khẩu cá nhân. Mọi hành vi chia sẻ tài khoản cho bên thứ ba hoặc vi phạm nội quy đỗ xe đều có thể bị khóa tài khoản tạm thời hoặc vĩnh viễn.</p>
+            <h4 className="font-bold text-slate-800 text-sm uppercase">2. Quy định trong bãi đỗ xe</h4>
+            <p>Khách hàng phải tuân thủ hướng dẫn của nhân viên điều phối, đỗ đúng vị trí ô đỗ đã đặt, tuân thủ tốc độ giới hạn và tắt động cơ khi xe đã vào vị trí đỗ.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p>Welcome to <strong>Parking Building Management System</strong>. By accessing and using our service, you agree to comply with the following terms:</p>
+            <h4 className="font-bold text-slate-800 text-sm uppercase">1. Registration & Security</h4>
+            <p>Users are responsible for maintaining the confidentiality of their accounts and passwords. Any sharing of accounts or parking violation may result in temporary or permanent suspension.</p>
+            <h4 className="font-bold text-slate-800 text-sm uppercase">2. Parking Lot Regulations</h4>
+            <p>Customers must follow coordinates and guidelines from operators, park inside designated lines, adhere to speed limits, and turn off engines after parking.</p>
+          </div>
+        )}
+      </ModalContainer>
+
+      <ModalContainer 
+        isOpen={activeModal === 'privacy'} 
+        onClose={() => setActiveModal(null)} 
+        title={lang === 'vi' ? 'Chính sách bảo mật' : 'Privacy Policy'}
+      >
+        {lang === 'vi' ? (
+          <div className="space-y-4">
+            <p>Chính sách bảo mật này mô tả cách chúng tôi thu thập, sử dụng và bảo vệ thông tin cá nhân của bạn:</p>
+            <h4 className="font-bold text-slate-800 text-sm uppercase">1. Dữ liệu thu thập</h4>
+            <p>Chúng tôi thu thập thông tin tài khoản (Họ tên, Email, Số điện thoại), thông tin phương tiện (Biển số xe, hình ảnh nhận diện LPR tại cổng) để phục vụ cho mục đích vận hành tự động bãi xe.</p>
+            <h4 className="font-bold text-slate-800 text-sm uppercase">2. Cam kết bảo mật</h4>
+            <p>Thông tin của bạn được lưu trữ trên hạ tầng an toàn bảo mật cao và tuyệt đối không chia sẻ cho bất kỳ bên thứ ba nào nếu không có sự đồng ý của bạn hoặc yêu cầu từ cơ quan có thẩm quyền.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p>This privacy policy describes how we collect, use and protect your personal information:</p>
+            <h4 className="font-bold text-slate-800 text-sm uppercase">1. Data Collected</h4>
+            <p>We collect account details (Full name, Email, Phone number) and vehicle details (license plates, LPR entry/exit logs) for automated parking operations.</p>
+            <h4 className="font-bold text-slate-800 text-sm uppercase">2. Security Guarantee</h4>
+            <p>Your details are stored in highly secure cloud environments and will never be shared with third parties without your permission or regulatory requirements.</p>
+          </div>
+        )}
+      </ModalContainer>
     </div>
   );
 }
