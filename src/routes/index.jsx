@@ -1,7 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router';
 import { useAuth } from '../contexts/useAuth';
 import { ROUTES } from '../constants/routes';
-import MainLayout from '../layouts/MainLayout';
 import AdminLayout from '../layouts/AdminLayout';
 import DriverLayout from '../layouts/DriverLayout';
 import LoginPage from '../features/auth/pages/LoginPage';
@@ -120,12 +119,9 @@ export function AppRoutes() {
         <Route path={ROUTES.STAFF.VEHICLE_EXIT} element={<StaffVehicleExit />} />
         <Route path={ROUTES.STAFF.SESSIONS} element={<StaffSessions />} />
         <Route path={ROUTES.STAFF.EXCEPTIONS} element={<StaffExceptions />} />
+        <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />} />
       </Route>
-      
-      <Route element={<MainLayout />}>
-        <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />}/>
-      </Route>
-      
+
       <Route path={ROUTES.SUBSCRIPTION.RESULT} element={<SubscriptionResultPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

@@ -5,7 +5,6 @@ import { initReactI18next } from 'react-i18next';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import {
-  ArrowRight,
   BadgeCheck,
   Camera,
   CarFront,
@@ -584,8 +583,7 @@ export default function LoginPage() {
                 type="submit"
                 disabled={loading}
               >
-                {loading ? t('submitting') : t('submit')}
-                {!loading && <ArrowRight className="h-5 w-5 !text-white" />}
+                {loading ? t('submitting') : (currentLanguage === 'vi' ? 'Đăng nhập' : 'Login')}
               </button>
 
               <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
