@@ -32,7 +32,7 @@ const reportTypes = [
 const defaultReportStats = {
   totalSlots: 'Chưa có dữ liệu',
   availableSlots: 'Chưa có dữ liệu',
-  bookings: 'Chưa có dữ liệu',
+  registrations: 'Chưa có dữ liệu',
   revenue: 'Chưa có API',
   occupancyRate: 'Chưa có dữ liệu',
   slotStatusSummary: 'Chưa có dữ liệu',
@@ -79,7 +79,7 @@ Ngày xuất: ${dateLabel}
 Tổng số chỗ đỗ:      ${stats.totalSlots}
 Chỗ trống hiện tại:  ${stats.availableSlots}
 Tỷ lệ lấp đầy:       ${stats.occupancyRate}
-Lượt đặt chỗ:        ${stats.bookings}
+Hồ sơ đăng ký xe:    ${stats.registrations}
 Doanh thu:           ${stats.revenue}
 
 -----------------------------------------
@@ -124,7 +124,7 @@ const buildCsvReport = (dateLabel, stats) =>
     ['Tổng số chỗ đỗ', stats.totalSlots],
     ['Chỗ trống hiện tại', stats.availableSlots],
     ['Tỷ lệ lấp đầy', stats.occupancyRate],
-    ['Lượt đặt chỗ', stats.bookings],
+    ['Hồ sơ đăng ký xe', stats.registrations],
     ['Doanh thu', stats.revenue],
     [],
     ['TRẠNG THÁI CHỖ ĐỖ'],
@@ -153,7 +153,7 @@ const buildExcelReport = (dateLabel, stats) => `
       <tr><td>Tổng số chỗ đỗ</td><td>${stats.totalSlots}</td></tr>
       <tr><td>Chỗ trống hiện tại</td><td>${stats.availableSlots}</td></tr>
       <tr><td>Tỷ lệ lấp đầy</td><td>${stats.occupancyRate}</td></tr>
-      <tr><td>Lượt đặt chỗ</td><td>${stats.bookings}</td></tr>
+      <tr><td>Hồ sơ đăng ký xe</td><td>${stats.registrations}</td></tr>
       <tr><td>Doanh thu</td><td>${stats.revenue}</td></tr>
       <tr></tr>
       <tr><th colspan="2">2. TRẠNG THÁI CHỖ ĐỖ</th></tr>

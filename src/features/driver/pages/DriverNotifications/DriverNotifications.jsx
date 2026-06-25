@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { bookingService } from '../../../../services/bookingService';
+import { customerService } from '../../../../services/customerService';
 import PageHeader from '../../components/PageHeader';
 import Button from '../../components/Button';
 import EmptyState from '../../components/EmptyState';
@@ -25,7 +25,7 @@ export default function DriverNotifications() {
   useEffect(() => {
     let cancelled = false;
     const loadNotifications = async () => {
-      const { data } = await bookingService.getNotifications();
+      const { data } = await customerService.getNotifications();
       if (!cancelled) {
         setNotifications(Array.isArray(data) ? data : []);
         setLoading(false);
@@ -37,12 +37,12 @@ export default function DriverNotifications() {
   }, []);
 
   const handleMarkRead = async (id) => {
-    await bookingService.markNotificationRead(id);
+    await customerService.markNotificationRead(id);
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
   };
 
   const handleMarkAllRead = async () => {
-    await bookingService.markAllNotificationsRead();
+    await customerService.markAllNotificationsRead();
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
@@ -72,7 +72,7 @@ export default function DriverNotifications() {
     <div className="space-y-6">
       <PageHeader
         title={t('notifications.title')}
-        subtitle={unreadCount > 0 ? t('notifications.unreadCount', { count: unreadCount }) : t('dashboard.confirmedBookings')}
+        subtitle={unreadCount > 0 ? t('notifications.unreadCount', { count: unreadCount }) : t('notifications.noNotificationsDesc')}
         icon="notifications"
         actions={
           unreadCount > 0 ? (

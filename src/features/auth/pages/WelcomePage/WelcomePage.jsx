@@ -24,7 +24,7 @@ import Logo from '../../../../components/Logo';
 const translations = {
   vi: {
     nav: { home: "Trang chủ", dashboard: "Bảng điều khiển", notice: "Thông báo", explore: "Khám phá", login: "Đăng nhập", signup: "Đăng ký" },
-    hero: { badge: "Hệ thống đang hoạt động 24/7", title1: "Quản lý bãi đỗ xe", title2: "tòa nhà thông minh", desc: "Nền tảng Smart Parking dành cho chung cư, văn phòng và trung tâm thương mại với nhận diện biển số LPR, đặt chỗ trước và thanh toán không chạm.", f1: "Thanh toán không chạm", f2: "Nhận diện biển số LPR", f3: "Theo dõi thời gian thực" },
+    hero: { badge: "Hệ thống đang hoạt động 24/7", title1: "Quản lý bãi đỗ xe", title2: "tòa nhà thông minh", desc: "Nền tảng Smart Parking hỗ trợ đăng ký thẻ xe, mua biểu phí, nhận diện biển số LPR và thanh toán không chạm.", f1: "Thanh toán không chạm", f2: "Nhận diện biển số LPR", f3: "Theo dõi thời gian thực" },
     kpi: { 
       c1: { title: "Tổng số Slot", unit: "chỗ" }, 
       c2: { title: "Slot còn trống", unit: "chỗ" }, 
@@ -79,7 +79,7 @@ const translations = {
       f3Title: "Thanh toán dễ dàng",
       f3Desc: "Quét mã QR hoặc ví điện tử siêu nhanh gọn, không cần tiền mặt.",
       f4Title: "Ứng dụng di động",
-      f4Desc: "Đặt chỗ trước, tìm vị trí xe đậu dễ dàng ngay trên điện thoại!",
+      f4Desc: "Đăng ký thẻ xe, mua gói và thanh toán dễ dàng ngay trên điện thoại!",
       badge: "Hơn 10,000+ người dùng tin cậy"
     },
     process: {
@@ -121,7 +121,7 @@ const translations = {
   },
   en: {
     nav: { home: "Home", dashboard: "Dashboard", notice: "Notices", explore: "Explore", login: "Login", signup: "Sign Up" },
-    hero: { badge: "System running 24/7", title1: "Smart Building", title2: "Parking Management", desc: "Smart Parking platform for apartments, offices and commercial centers with LPR, booking and contactless payment.", f1: "Contactless Payment", f2: "LPR System", f3: "Real-time Tracking" },
+    hero: { badge: "System running 24/7", title1: "Smart Building", title2: "Parking Management", desc: "Smart Parking platform for vehicle registration, monthly parking plans, LPR and contactless payment.", f1: "Contactless Payment", f2: "LPR System", f3: "Real-time Tracking" },
     kpi: { 
       c1: { title: "Total Slots", unit: "slots" }, 
       c2: { title: "Available Slots", unit: "slots" }, 
@@ -176,7 +176,7 @@ const translations = {
       f3Title: "Seamless Payment",
       f3Desc: "Scan QR code or use e-wallets fast, cash-free.",
       f4Title: "Mobile Application",
-      f4Desc: "Pre-book slots, find your parking spot easily on your phone!",
+      f4Desc: "Register a vehicle card, buy a parking plan, and pay on your phone!",
       badge: "Trusted by over 10,000+ users"
     },
     process: {
@@ -564,8 +564,8 @@ const VehicleInOutLog = ({ t }) => {
     },
     {
       id: 2,
-      title: i18n.language === 'en' ? 'Book Parking Spot' : 'Đặt chỗ gửi xe',
-      desc: i18n.language === 'en' ? 'Choose your desired parking space in advance through the smartphone app.' : 'Đặt trước vị trí và tầng đỗ xe mong muốn cực kỳ tiện lợi trước khi đến.',
+      title: i18n.language === 'en' ? 'Buy Parking Plans' : 'Mua biểu phí thẻ xe',
+      desc: i18n.language === 'en' ? 'Choose a monthly parking plan and pay directly in the application.' : 'Chọn gói gửi xe phù hợp và thanh toán trực tiếp trên ứng dụng.',
       tag: i18n.language === 'en' ? 'Step 2' : 'Bước 2',
       icon: CalendarDays,
       color: 'bg-sky-50 text-sky-600 border-sky-100',
@@ -691,8 +691,8 @@ const GateControlPanel = ({ t }) => {
     },
     {
       id: 2,
-      title: i18n.language === 'en' ? 'Pre-Booking' : 'Đặt chỗ trước',
-      desc: i18n.language === 'en' ? 'Reserve your desired parking slot easily before arrival.' : 'Đặt trước vị trí gửi xe nhanh chóng và tiện lợi trước khi di chuyển.',
+      title: i18n.language === 'en' ? 'AI Registration Assistant' : 'Trợ lý đăng ký xe',
+      desc: i18n.language === 'en' ? 'A guided assistant helps users submit vehicle registration documents.' : 'Trợ lý hướng dẫn từng bước để người dùng gửi hồ sơ đăng ký thẻ xe.',
       icon: CalendarDays,
       color: 'text-amber-500 bg-amber-50 border-amber-100/50',
     },
@@ -1025,8 +1025,8 @@ const PricingAndMap = ({ t }) => {
 
               {/* Node 2 */}
               <div className="flex-1 bg-white border border-slate-100 rounded-xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.015)] h-[120px] flex flex-col justify-between items-center text-center">
-                <span className="text-[9px] font-bold text-slate-400 uppercase">{i18n.language === 'en' ? 'Booking' : 'Đặt trước'}</span>
-                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 leading-snug">{i18n.language === 'en' ? 'Reservation' : 'Đặt chỗ đỗ'}</span>
+                <span className="text-[9px] font-bold text-slate-400 uppercase">{i18n.language === 'en' ? 'Plans' : 'Biểu phí'}</span>
+                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 leading-snug">{i18n.language === 'en' ? 'Monthly pass' : 'Mua gói thẻ xe'}</span>
                 <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
               </div>
 
@@ -1070,7 +1070,7 @@ const PricingAndMap = ({ t }) => {
           {/* Spot 2: Parking Reservation */}
           <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_2px_20px_rgba(0,0,0,0.015)] flex-1 flex flex-col justify-between hover:border-sky-200/60 transition-all duration-300 group">
             <div>
-              <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest bg-amber-50 px-2.5 py-1 rounded-lg">{i18n.language === 'en' ? 'Booking' : 'Đặt chỗ trước'}</span>
+              <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest bg-amber-50 px-2.5 py-1 rounded-lg">{i18n.language === 'en' ? 'AI Assistant' : 'Trợ lý đăng ký xe'}</span>
               <h3 className="text-xl font-extrabold text-slate-800 tracking-tight mt-3 mb-2">{t.features.f2Title}</h3>
               <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">{t.features.f2Desc}</p>
             </div>

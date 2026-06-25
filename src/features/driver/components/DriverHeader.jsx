@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/useAuth';
-import { bookingService } from '../../../services/bookingService';
+import { customerService } from '../../../services/customerService';
 import { ROUTES } from '../../../constants/routes';
 import NotificationDetailModal from './NotificationDetailModal';
 import { apiDateTimeMillis } from '../../../utils/dateTime';
@@ -26,7 +26,7 @@ export default function DriverHeader({ onToggleSidebar }) {
   useEffect(() => {
     let cancelled = false;
     const loadNotifications = async () => {
-      const { data } = await bookingService.getNotifications();
+      const { data } = await customerService.getNotifications();
       if (!cancelled) {
         setNotifications(Array.isArray(data) ? data : []);
         setUnreadCount(Array.isArray(data) ? data.filter((n) => !n.read).length : 0);
@@ -47,13 +47,13 @@ export default function DriverHeader({ onToggleSidebar }) {
   }, []);
 
   const handleMarkRead = async (id) => {
-    await bookingService.markNotificationRead(id);
+    await customerService.markNotificationRead(id);
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
     setUnreadCount((prev) => Math.max(0, prev - 1));
   };
 
   const handleMarkAllRead = async () => {
-    await bookingService.markAllNotificationsRead();
+    await customerService.markAllNotificationsRead();
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     setUnreadCount(0);
   };

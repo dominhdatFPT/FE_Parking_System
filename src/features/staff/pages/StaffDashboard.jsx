@@ -643,7 +643,7 @@ export default function StaffDashboard() {
               <div>
                 <h3 className="font-black text-amber-900">Operational note</h3>
                 <p className="mt-1 text-sm font-semibold text-amber-800">
-                  Khi đánh dấu bảo trì, slot sẽ không nên được cấp cho booking mới cho đến khi được mở lại từ cấu hình hệ thống.
+                  Khi đánh dấu bảo trì, slot sẽ không được cấp cho xe vào mới cho đến khi được mở lại từ cấu hình hệ thống.
                 </p>
               </div>
             </div>

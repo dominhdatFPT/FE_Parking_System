@@ -6,7 +6,7 @@ export type PermissionModule =
   | 'parkingManagement'
   | 'slotManagement'
   | 'parkingSession'
-  | 'reservation'
+  | 'vehicleRegistration'
   | 'payment'
   | 'pricingPolicy'
   | 'reporting'

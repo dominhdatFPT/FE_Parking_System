@@ -6,21 +6,17 @@ import AdminLayout from '../layouts/AdminLayout';
 import DriverLayout from '../layouts/DriverLayout';
 import LoginPage from '../features/auth/pages/LoginPage';
 import HomePage from '../pages/HomePage';
-import ParkingMapPage from '../pages/ParkingMapPage';
 import WelcomePage from '../features/auth/pages/WelcomePage';
 import AccountRecovery from '../features/auth/pages/AccountRecovery';
 import ResetPassword from '../features/auth/pages/ResetPassword';
 import SignupPage from '../features/auth/pages/SignupPage';
 import DriverDashboard from '../features/driver/pages/DriverDashboard';
-import DriverBooking from '../features/driver/pages/DriverBooking';
 import DriverPayment from '../features/driver/pages/DriverPayment';
-import DriverHistory from '../features/driver/pages/DriverHistory';
 import DriverNotifications from '../features/driver/pages/DriverNotifications';
 import DriverSupport from '../features/driver/pages/DriverSupport';
 import DriverProfile from '../features/driver/pages/DriverProfile/DriverProfile';
 import DriverVehicleRegistration from '../features/driver/pages/DriverVehicleRegistration';
 import DriverFeePlans from '../features/driver/pages/DriverFeePlans';
-import MyParkingOrders from '../pages/MyParkingOrders';
 import NotFoundPage from '../pages/NotFoundPage';
 import ForbiddenPage from '../pages/ForbiddenPage';
 import AccountManagementPage from '../pages/AccountManagementPage';
@@ -30,7 +26,7 @@ import NotificationManagement from '../pages/NotificationManagement';
 import SystemConfigurationPage from '../pages/SystemConfigurationPage';
 import AuditLogPage from '../pages/AuditLogPage';
 import StaffDashboard from '../features/staff/pages/StaffDashboard';
-import StaffBookingReview from '../features/staff/pages/StaffBookingReview';
+import StaffVehicleRegistrationReview from '../features/staff/pages/StaffVehicleRegistrationReview';
 import StaffVehicleEntry from '../features/staff/pages/StaffVehicleEntry';
 import StaffVehicleExit from '../features/staff/pages/StaffVehicleExit';
 import StaffSessions from '../features/staff/pages/StaffSessions';
@@ -81,25 +77,15 @@ export function AppRoutes() {
           </RequireAuth>
         }
       />
-      <Route path="/parking-map" element={
-          <RequireAuth>
-            <ParkingMapPage />
-          </RequireAuth>
-        }
-      />
-
       {/* Driver Portal Routes */}
       <Route element={<DriverLayout />}>
         <Route path={ROUTES.DRIVER.DASHBOARD} element={<DriverDashboard />} />
-        <Route path={ROUTES.DRIVER.BOOKING} element={<DriverBooking />} />
-        <Route path={ROUTES.DRIVER.HISTORY} element={<DriverHistory />} />
         <Route path={ROUTES.DRIVER.VEHICLE_REGISTRATION} element={<DriverVehicleRegistration />} />
         <Route path={ROUTES.DRIVER.FEE_PLANS} element={<DriverFeePlans />} />
         <Route path={ROUTES.DRIVER.PAYMENT} element={<DriverPayment />} />
         <Route path={ROUTES.DRIVER.NOTIFICATIONS} element={<DriverNotifications />} />
         <Route path={ROUTES.DRIVER.SUPPORT} element={<DriverSupport />} />
         <Route path={ROUTES.DRIVER.PROFILE} element={<DriverProfile />} />
-        <Route path={ROUTES.DRIVER.ACTIVE_SESSION} element={<MyParkingOrders />} />
       </Route>
       
       <Route element={<RequireBackOfficeRole><AdminLayout /></RequireBackOfficeRole>}>
@@ -115,7 +101,7 @@ export function AppRoutes() {
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.DETAIL} element={<NotificationDetailPage />} />
         <Route path={ROUTES.FORBIDDEN} element={<ForbiddenPage />} />
         <Route path={ROUTES.STAFF.DASHBOARD} element={<StaffDashboard />} />
-        <Route path={ROUTES.STAFF.BOOKINGS} element={<StaffBookingReview />} />
+        <Route path={ROUTES.STAFF.VEHICLE_REGISTRATIONS} element={<StaffVehicleRegistrationReview />} />
         <Route path={ROUTES.STAFF.VEHICLE_ENTRY} element={<StaffVehicleEntry />} />
         <Route path={ROUTES.STAFF.VEHICLE_EXIT} element={<StaffVehicleExit />} />
         <Route path={ROUTES.STAFF.SESSIONS} element={<StaffSessions />} />

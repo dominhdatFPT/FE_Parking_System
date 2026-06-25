@@ -8,13 +8,13 @@ export const API_ENDPOINTS = {
     RESET_PASSWORD: '/api/v1/auth/reset-password',
   },
   PARKING: {
-    ACTIVE_ORDERS: '/api/customer/parking-orders/active',
     SLOTS: '/api/v1/parking-slots',
   },
   FEE: {
     PACKAGES: '/api/v1/fee-packages',
     MY_VEHICLES: '/api/v1/fee-subscriptions/my-vehicles',
     SUBSCRIPTIONS: '/api/v1/fee-subscriptions',
+    MY_SUBSCRIPTIONS: '/api/subscriptions/my',
     MY_INVOICES: '/api/subscriptions/my-invoices',
     REGISTER: '/api/subscriptions/register',
   },
