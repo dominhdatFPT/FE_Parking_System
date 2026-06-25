@@ -36,6 +36,11 @@ export const reviewVehicleRegistration = async (id, status, rejectReason = '') =
   return unwrapData(response);
 };
 
+export const deleteVehicleRegistration = async (id) => {
+  const response = await apiClient.delete(`/api/v1/vehicle-registrations/${id}`);
+  return unwrapData(response);
+};
+
 export const getStaffParkingSlots = async () => {
   const response = await apiClient.get('/api/v1/parking-slots');
   return unwrapList(response);

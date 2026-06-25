@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import i18n from 'i18next';
-import { initReactI18next, useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import {
   ArrowLeft,
@@ -193,20 +191,10 @@ const getInitialLanguage = () => {
   return savedLanguage.startsWith('en') ? 'en' : 'vi';
 };
 
-if (!i18n.isInitialized) {
-  i18n.use(initReactI18next).init({
-    resources: {
-      vi: { translation: resources.vi.translation },
-      en: { translation: resources.en.translation },
-    },
-    lng: getInitialLanguage(),
-    fallbackLng: 'vi',
-    interpolation: { escapeValue: false },
-  });
-} else {
-  i18n.addResourceBundle('vi', 'translation', resources.vi.translation, true, true);
-  i18n.addResourceBundle('en', 'translation', resources.en.translation, true, true);
-}
+const translate = (language, key) => {
+  const dictionary = resources[language]?.translation ?? resources.vi.translation;
+  return key.split('.').reduce((value, part) => value?.[part], dictionary) ?? key;
+};
 
 const stepOrder = ['email', 'otp', 'password'];
 
@@ -381,7 +369,11 @@ function PasswordStrength({ password, t }) {
 }
 
 export default function ResetPassword() {
-  const { t, i18n: resetI18n } = useTranslation();
+  const [currentLanguage, setCurrentLanguage] = useState(getInitialLanguage);
+  const t = useMemo(
+    () => (key) => translate(currentLanguage, key),
+    [currentLanguage],
+  );
   const [step, setStep] = useState('email');
   const [email, setEmail] = useState('');
   const [otpDigits, setOtpDigits] = useState(Array(OTP_LENGTH).fill(''));
@@ -394,7 +386,6 @@ export default function ResetPassword() {
   const [countdown, setCountdown] = useState(59);
   const otpRefs = useRef([]);
   const navigate = useNavigate();
-  const currentLanguage = resetI18n.language.startsWith('en') ? 'en' : 'vi';
 
   const otp = otpDigits.join('');
   const maskedEmail = email.trim();
@@ -413,7 +404,7 @@ export default function ResetPassword() {
   }, [step, message]);
 
   const handleLanguageChange = (nextLanguage) => {
-    resetI18n.changeLanguage(nextLanguage);
+    setCurrentLanguage(nextLanguage);
     localStorage.setItem(LANGUAGE_KEY, nextLanguage);
   };
 

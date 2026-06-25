@@ -15,10 +15,12 @@ import {
   RefreshCcw,
   Search,
   ShieldCheck,
+  Trash2,
   UserRound,
   XCircle,
 } from 'lucide-react';
 import {
+  deleteVehicleRegistration,
   getVehicleRegistration,
   getVehicleRegistrations,
   reviewVehicleRegistration,
@@ -231,6 +233,8 @@ export default function StaffVehicleRegistrationReview() {
   const [actionLoading, setActionLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [previewImage, setPreviewImage] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const records = useMemo(() => registrations.map(normalizeRegistration), [registrations]);
 
@@ -353,6 +357,32 @@ export default function StaffVehicleRegistrationReview() {
       setMessage(error.response?.data?.message || 'Không thể xử lý hồ sơ. Vui lòng thử lại.');
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedRecord) return;
+
+    setDeleteLoading(true);
+    setMessage('');
+    try {
+      await deleteVehicleRegistration(selectedRecord.id);
+      setRegistrations((current) => current.filter(
+        (item) => item.registrationId !== selectedRecord.id,
+      ));
+      setRegistrationDetails((current) => {
+        const next = { ...current };
+        delete next[selectedRecord.id];
+        return next;
+      });
+      setSelectedKey('');
+      setShowDeleteConfirm(false);
+      setMessage(`Đã xóa mềm xe ${selectedRecord.licensePlate}.`);
+    } catch (error) {
+      setMessage(error.response?.data?.message || 'Không thể xóa xe. Vui lòng thử lại.');
+      setShowDeleteConfirm(false);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -498,7 +528,19 @@ export default function StaffVehicleRegistrationReview() {
                     Hồ sơ #{selectedRecord.id} · {selectedRecord.licensePlate}
                   </p>
                 </div>
-                <StatusBadge status={selectedRecord.status} />
+                <div className="flex items-center gap-2">
+                  {selectedRecord.status === 'APPROVED' && (
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="inline-flex items-center gap-2 rounded-xl bg-rose-50 px-3 py-1.5 text-xs font-black text-rose-600 ring-1 ring-rose-200 transition hover:bg-rose-100"
+                    >
+                      <Trash2 size={14} />
+                      Xóa xe
+                    </button>
+                  )}
+                  <StatusBadge status={selectedRecord.status} />
+                </div>
               </div>
             </div>
 
@@ -715,6 +757,46 @@ export default function StaffVehicleRegistrationReview() {
             </div>
             <div className="max-h-[calc(90vh-73px)] overflow-auto bg-slate-100 p-4">
               <img src={previewImage.src} alt={previewImage.label} className="mx-auto max-h-[75vh] rounded-xl object-contain" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteConfirm && selectedRecord && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/70 p-6" role="dialog" aria-modal="true">
+          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="px-6 pt-6 text-center">
+              <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-rose-50 text-rose-600 ring-1 ring-rose-200">
+                <Trash2 size={26} />
+              </div>
+              <h2 className="mt-4 text-lg font-black text-slate-950">Xác nhận xóa xe</h2>
+              <p className="mt-3 text-sm font-semibold text-slate-600">
+                Xe <span className="font-black text-slate-900">{selectedRecord.licensePlate}</span> sẽ
+                được xóa mềm và không còn xuất hiện trong danh sách hoạt động.
+              </p>
+            </div>
+            <div className="mt-6 grid grid-cols-2 gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                disabled={deleteLoading}
+                onClick={() => setShowDeleteConfirm(false)}
+                className="h-11 rounded-2xl bg-white text-sm font-black text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-100 disabled:opacity-50"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                disabled={deleteLoading}
+                onClick={handleDelete}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-rose-600 text-sm font-black text-white transition hover:bg-rose-700 disabled:opacity-60"
+              >
+                {deleteLoading ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                ) : (
+                  <Trash2 size={16} />
+                )}
+                {deleteLoading ? 'Đang xóa...' : 'Xác nhận xóa'}
+              </button>
             </div>
           </div>
         </div>
