@@ -20,7 +20,8 @@ export const API_ENDPOINTS = {
     REGISTER: '/api/subscriptions/register',
   },
   PAYMENTS: {
-    MOMO_ORDER_STATUS: (momoOrderId: string) => `/api/payments/momo-orders/${momoOrderId}/status`,
+    VNPAY_ORDER_STATUS: (txnRef: string) => `/api/payments/vnpay/orders/${txnRef}/status`,
+    VNPAY_CANCEL: (txnRef: string) => `/api/payments/vnpay/orders/${txnRef}/cancel`,
   },
   ADMIN_NOTIFICATIONS: {
     BASE: '/api/v1/admin/notifications',
