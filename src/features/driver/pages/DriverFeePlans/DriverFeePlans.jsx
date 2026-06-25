@@ -155,8 +155,13 @@ export default function DriverFeePlans() {
         autoRenew: false,
       });
       const result = res.data?.data ?? res.data;
+      // Lưu thông tin đơn VNPay để hiển thị nút "Thanh toán ngay" trên trang Payment
       localStorage.setItem('pending_fee_plan_request', JSON.stringify({
-        ...result,
+        subscriptionId: result.subscriptionId,
+        invoiceId: result.invoiceId,
+        vnpTxnRef: result.vnpTxnRef,
+        paymentUrl: result.paymentUrl,        // Link redirect sang VNPay
+        expiredAt: result.expiredAt,
         licensePlate: selectedVehicle.licensePlate,
         planName: selectedPackage?.name,
         durationMonths: selectedPackage?.durationMonths,

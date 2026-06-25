@@ -4,10 +4,8 @@ import { initReactI18next, useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import {
   ArrowRight,
-  AtSign,
   BadgeCheck,
   Camera,
-  Car,
   Check,
   CircleAlert,
   Cloud,
@@ -24,6 +22,9 @@ import {
 } from 'lucide-react';
 import Logo from '../../../../components/Logo';
 import { ROUTES } from '../../../../constants/routes';
+import { useAuth } from '../../../../contexts/useAuth';
+import { registerApi } from '../../services/authApi';
+import { STORAGE_KEYS } from '../../../../constants/storageKeys';
 
 const LANGUAGE_KEY = 'language';
 
@@ -392,9 +393,9 @@ function PolicyModal({ content, onClose, title, t }) {
 
 export default function SignupPage() {
   const { t, i18n: signupI18n } = useTranslation();
+  const { setUser } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptedAgreement, setAcceptedAgreement] = useState(false);
@@ -424,7 +425,6 @@ export default function SignupPage() {
       setError(currentLanguage === 'vi' ? 'Định dạng email không hợp lệ.' : 'Invalid email format.');
       return false;
     }
-    if (!username.trim()) return setError(t('errors.username')) || false;
     if (password.length < 6) return setError(t('errors.passwordLength')) || false;
     if (password !== confirmPassword) return setError(t('errors.passwordMismatch')) || false;
     if (!acceptedAgreement) return setError(t('errors.terms')) || false;
@@ -439,21 +439,31 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/v1/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, email, username, password }),
-      });
+      const response = await registerApi({ fullName, email, password });
 
-      if (response.ok) {
-        setSuccess(t('success'));
-        setTimeout(() => navigate(ROUTES.LOGIN), 1500);
-      } else {
-        const data = await response.json();
-        setError(data.message || t('errors.generic'));
+      if (!response?.token) {
+        throw new Error(currentLanguage === 'vi' ? 'Không nhận được token từ máy chủ' : 'No token received from server');
       }
+
+      sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
+
+      const registeredUser = {
+        id: response.userId,
+        fullName: response.fullName,
+        email: response.email,
+        role: (response.role || 'USER').toLowerCase(),
+        avatarUrl: '',
+      };
+
+      setUser(registeredUser);
+      sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(registeredUser));
+      localStorage.setItem('userRole', registeredUser.role);
+
+      setSuccess(t('success'));
+      setTimeout(() => navigate(ROUTES.DRIVER.DASHBOARD), 1500);
     } catch (err) {
-      setError(t('errors.network'));
+      const message = err?.response?.data?.message || t('errors.generic');
+      setError(message);
       console.error('Signup error:', err);
     } finally {
       setLoading(false);
@@ -492,7 +502,6 @@ export default function SignupPage() {
                 <Field icon={User} id="signup-fullname" label={t('fullName')} placeholder={t('placeholders.fullName')} type="text" value={fullName} onChange={(event) => setFullName(event.target.value)} required />
                 <Field icon={Mail} id="signup-email" label={t('email')} placeholder={t('placeholders.email')} type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
               </div>
-              <Field icon={AtSign} id="signup-username" label={t('username')} placeholder={t('placeholders.username')} type="text" value={username} onChange={(event) => setUsername(event.target.value)} required />
               <div className="grid gap-3 sm:grid-cols-2">
                 <PasswordField icon={LockKeyhole} id="signup-password" label={t('password')} placeholder="••••••••" value={password} onChange={(event) => setPassword(event.target.value)} showPassword={showPassword} onTogglePassword={() => setShowPassword((current) => !current)} t={t} required />
                 <PasswordField icon={LockKeyhole} id="signup-confirm-password" label={t('confirmPassword')} placeholder="••••••••" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword((current) => !current)} t={t} required />

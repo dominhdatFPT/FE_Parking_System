@@ -5,64 +5,74 @@ import { apiClient } from '../services/apiClient';
 import { API_ENDPOINTS } from '../services/endpoints';
 
 const POLL_INTERVAL_MS = 2000;
-const MAX_POLLS = 8;
+const MAX_POLLS = 10;
 
+/**
+ * Trang hiển thị kết quả thanh toán VNPay.
+ *
+ * BE redirect về đây sau khi xử lý return URL từ VNPay với params:
+ *   ?status=success|failed&txnRef=VNP...&responseCode=00&subscriptionId=123
+ */
 export default function SubscriptionResultPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
 
-  const resultCode = params.get('resultCode') ?? '';
-  const orderId    = params.get('orderId') ?? '';
-  const momoSuccess = resultCode === '0';
+  const status        = params.get('status') ?? '';
+  const txnRef        = params.get('txnRef') ?? '';
+  const responseCode  = params.get('responseCode') ?? '';
+  const subscriptionId = params.get('subscriptionId') ? Number(params.get('subscriptionId')) : null;
 
-  const [verifying, setVerifying] = useState(momoSuccess);
+  const isVnpaySuccess = status === 'success';
+
+  const [verifying, setVerifying] = useState(isVnpaySuccess);
   const [dbStatus, setDbStatus] = useState(null); // 'ACTIVE' | 'PENDING_PAYMENT' | null
   const [pollCount, setPollCount] = useState(0);
 
-  // Khi MoMo báo hủy/thất bại → xóa ngay pendingFeePlan cũ khỏi localStorage
+  // Nếu VNPay báo thất bại → xóa pending khỏi localStorage ngay
   useEffect(() => {
-    if (!momoSuccess) {
+    if (!isVnpaySuccess) {
       localStorage.removeItem('pending_fee_plan_request');
     }
-  }, [momoSuccess]);
+  }, [isVnpaySuccess]);
 
+  // Polling VNPay order status — dùng txnRef thay vì subscriptionId
+  // (FE dùng /api/subscriptions/register tạo FeeSubscriptionInvoice, không phải FeeSubscription)
   const checkSubscription = useCallback(async () => {
+    if (!txnRef) return null;
     try {
-      const res = await apiClient.get(API_ENDPOINTS.FEE.SUBSCRIPTIONS);
-      const list = res.data?.data ?? [];
-      // Lấy subscription mới nhất liên quan đến orderId này (SUB{id}_timestamp)
-      const subIdStr = orderId.replace('SUB', '').split('_')[0];
-      const subId = Number(subIdStr);
-      const found = !isNaN(subId)
-        ? list.find(s => s.id === subId)
-        : list.find(s => s.status === 'ACTIVE' || s.status === 'PENDING_PAYMENT');
-      return found?.status ?? null;
+      const res = await apiClient.get(API_ENDPOINTS.PAYMENTS.VNPAY_ORDER_STATUS(txnRef));
+      const vnpStatus = res.data?.data?.status ?? null; // PENDING | PAID | FAILED | CANCELLED
+      // Map VNPay status → subscription status dùng để hiển thị
+      if (vnpStatus === 'PAID') return 'ACTIVE';
+      if (vnpStatus === 'FAILED' || vnpStatus === 'CANCELLED') return 'FAILED';
+      return 'PENDING_PAYMENT';
     } catch {
       return null;
     }
-  }, [orderId]);
+  }, [txnRef]);
 
   useEffect(() => {
-    if (!momoSuccess) return;
+    if (!isVnpaySuccess) return;
 
     let cancelled = false;
     let attempt = 0;
 
     const poll = async () => {
       if (cancelled) return;
-      const status = await checkSubscription();
+      const subStatus = await checkSubscription();
       if (cancelled) return;
 
       setPollCount(++attempt);
 
-      if (status === 'ACTIVE') {
+      if (subStatus === 'ACTIVE') {
         setDbStatus('ACTIVE');
         setVerifying(false);
+        localStorage.removeItem('pending_fee_plan_request');
         return;
       }
 
       if (attempt >= MAX_POLLS) {
-        setDbStatus(status);
+        setDbStatus(subStatus);
         setVerifying(false);
         return;
       }
@@ -72,11 +82,11 @@ export default function SubscriptionResultPage() {
 
     poll();
     return () => { cancelled = true; };
-  }, [momoSuccess, checkSubscription]);
+  }, [isVnpaySuccess, checkSubscription]);
 
-  // MoMo báo thất bại / hủy → không cần poll
-  if (!momoSuccess) {
-    const isCancelled = resultCode === '1006';
+  // ── Trường hợp VNPay báo thất bại / user hủy ─────────────────────────────
+  if (!isVnpaySuccess) {
+    const isCancelled = responseCode === '24'; // VNPay code 24 = user hủy
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
         <div className="w-full max-w-md rounded-3xl bg-white shadow-lg p-8 flex flex-col items-center text-center space-y-5">
@@ -87,8 +97,15 @@ export default function SubscriptionResultPage() {
             <h2 className="text-xl font-black text-slate-800">
               {isCancelled ? 'Bạn đã hủy giao dịch.' : 'Giao dịch không thành công. Vui lòng thử lại.'}
             </h2>
-            {orderId && (
-              <p className="text-xs text-slate-400">Mã đơn: <span className="font-semibold text-slate-600">{orderId}</span></p>
+            {txnRef && (
+              <p className="text-xs text-slate-400">
+                Mã giao dịch: <span className="font-semibold text-slate-600">{txnRef}</span>
+              </p>
+            )}
+            {responseCode && responseCode !== '24' && (
+              <p className="text-xs text-slate-400 mt-1">
+                Mã lỗi VNPay: <span className="font-mono text-red-500">{responseCode}</span>
+              </p>
             )}
           </div>
           <div className="flex gap-3 pt-2 w-full">
@@ -110,7 +127,7 @@ export default function SubscriptionResultPage() {
     );
   }
 
-  // MoMo báo thành công → đang xác nhận DB
+  // ── Đang xác nhận với DB (polling) ───────────────────────────────────────
   if (verifying) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
@@ -121,7 +138,7 @@ export default function SubscriptionResultPage() {
           <div className="space-y-1">
             <h2 className="text-xl font-black text-slate-800">Đang xác nhận thanh toán...</h2>
             <p className="text-xs text-slate-400">
-              Đang chờ xác nhận từ cổng thanh toán ({pollCount}/{MAX_POLLS})
+              VNPay đã xác nhận, đang kích hoạt thẻ tháng ({pollCount}/{MAX_POLLS})
             </p>
           </div>
         </div>
@@ -129,6 +146,7 @@ export default function SubscriptionResultPage() {
     );
   }
 
+  // ── Kết quả cuối cùng ─────────────────────────────────────────────────────
   const isConfirmed = dbStatus === 'ACTIVE';
 
   return (
@@ -140,16 +158,24 @@ export default function SubscriptionResultPage() {
           </span>
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-2">
           <h2 className="text-xl font-black text-slate-800">
             {isConfirmed ? 'Thanh toán thành công!' : 'Đang chờ xác nhận'}
           </h2>
-          {orderId && (
-            <p className="text-xs text-slate-400">Mã đơn: <span className="font-semibold text-slate-600">{orderId}</span></p>
+          {txnRef && (
+            <p className="text-xs text-slate-400">
+              Mã giao dịch: <span className="font-semibold text-slate-600">{txnRef}</span>
+            </p>
           )}
           {!isConfirmed && (
             <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-              Giao dịch đang chờ xác nhận từ cổng thanh toán. Gói của bạn sẽ được kích hoạt trong vài phút.
+              VNPay đã ghi nhận giao dịch. Thẻ tháng của bạn sẽ được kích hoạt trong vài phút.
+              Bạn có thể kiểm tra lại ở trang "Thanh toán".
+            </p>
+          )}
+          {isConfirmed && (
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Thẻ tháng đã được kích hoạt. Chúc bạn đỗ xe thuận tiện!
             </p>
           )}
         </div>
