@@ -11,7 +11,6 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { checkParkingEntry, confirmParkingEntry } from '../../services/staffService';
-import { formatVietnamDateTime } from '../../utils/dateTime';
 
 const CAMERA_FEEDS = [
   { id: '01', title: 'Trước xe', status: 'Captured', angle: 'FRONT' },
