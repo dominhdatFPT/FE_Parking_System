@@ -21,7 +21,7 @@ import {
 import { useNavigate } from 'react-router';
 import { ROUTES } from '../constants/routes';
 import { apiClient } from '../services/apiClient';
-import { bookingService } from '../services/bookingService';
+import { customerService } from '../services/customerService';
 
 const MAX_FILE_SIZE = 4 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -154,7 +154,7 @@ export default function AiChatWidget() {
         vehicleTypeId: vehicleType.id,
         ...Object.fromEntries(encodedFiles),
       };
-      const result = await bookingService.registerVehicleCard(payload);
+      const result = await customerService.registerVehicleCard(payload);
       if (result.error) {
         setError(
           result.message

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { bookingService } from '../../../../services/bookingService';
+import { customerService } from '../../../../services/customerService';
 import PageHeader from '../../components/PageHeader';
 import Button from '../../components/Button';
 import { formatVietnamDateTime } from '../../../../utils/dateTime';
@@ -27,7 +27,7 @@ export default function DriverSupport() {
 
   const loadRequests = async () => {
     setHistoryLoading(true);
-    const { data } = await bookingService.getMySupportRequests();
+    const { data } = await customerService.getMySupportRequests();
     setRequests(data || []);
     setHistoryLoading(false);
   };
@@ -42,7 +42,7 @@ export default function DriverSupport() {
     if (!form.subject.trim()) { setFormError(t('support.subjectRequired')); return; }
     if (!form.message.trim()) { setFormError(t('support.messageRequired')); return; }
     setSubmitting(true);
-    const { error } = await bookingService.submitSupport(form);
+    const { error } = await customerService.submitSupport(form);
     setSubmitting(false);
     if (error) { setFormError(t('support.submitError')); return; }
     setSubmitted(true);

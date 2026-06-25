@@ -24,7 +24,7 @@ const mainNavigationItems = [
   { icon: ArrowDownToLine, label: 'Xe vào', path: ROUTES.ADMIN.VEHICLE_ENTRY },
   { icon: ArrowUpFromLine, label: 'Xe ra', path: ROUTES.ADMIN.VEHICLE_EXIT },
   { icon: Boxes, label: 'Phiên gửi xe', path: ROUTES.ADMIN.PARKING_SESSIONS },
-  { icon: Package, label: 'Quản lý gói', path: ROUTES.STAFF.BOOKINGS },
+  { icon: Package, label: 'Quản lý đăng ký xe', path: ROUTES.STAFF.VEHICLE_REGISTRATIONS },
   { icon: BellRing, label: 'Thông báo', path: ROUTES.ADMIN.NOTIFICATIONS.BASE },
 ];
 

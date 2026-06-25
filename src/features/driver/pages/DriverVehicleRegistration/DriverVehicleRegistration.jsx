@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/useAuth';
-import { bookingService } from '../../../../services/bookingService';
+import { customerService } from '../../../../services/customerService';
 import PageHeader from '../../components/PageHeader';
 import Button from '../../components/Button';
 
@@ -115,7 +115,7 @@ export default function DriverVehicleRegistration() {
       plateImage: await fileToBase64(licensePlateFile),
     };
 
-    const { error: err, message } = await bookingService.registerVehicleCard(payload);
+    const { error: err, message } = await customerService.registerVehicleCard(payload);
     if (err) {
       setError(message || t('vehicleRegistration.errorGeneric'));
       return;

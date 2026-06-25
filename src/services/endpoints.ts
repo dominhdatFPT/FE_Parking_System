@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
     PACKAGES: '/api/v1/fee-packages',
     MY_VEHICLES: '/api/v1/fee-subscriptions/my-vehicles',
     SUBSCRIPTIONS: '/api/v1/fee-subscriptions',
+    MY_SUBSCRIPTIONS: '/api/subscriptions/my',
     MY_INVOICES: '/api/subscriptions/my-invoices',
     REGISTER: '/api/subscriptions/register',
   },
