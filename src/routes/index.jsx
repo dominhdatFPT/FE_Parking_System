@@ -107,11 +107,11 @@ export function AppRoutes() {
         <Route path={ROUTES.STAFF.SESSIONS} element={<StaffSessions />} />
         <Route path={ROUTES.STAFF.EXCEPTIONS} element={<StaffExceptions />} />
       </Route>
-      
+
       <Route element={<MainLayout />}>
-        <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />}/>
+        <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />} />
       </Route>
-      
+
       <Route path={ROUTES.SUBSCRIPTION.RESULT} element={<SubscriptionResultPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

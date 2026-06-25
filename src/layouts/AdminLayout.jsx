@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import {
   AlertTriangle,
@@ -61,6 +61,17 @@ function isNavigationItemActive(pathname, search, itemPath) {
   return pathname === itemPath;
 }
 
+function getNavigationLabel(item) {
+  if (item.path === ROUTES.ADMIN.VEHICLE_ENTRY) return 'Xe vào';
+  if (item.path === ROUTES.ADMIN.DASHBOARD) return 'Tổng quan bãi';
+  if (item.path === ROUTES.ADMIN.VEHICLE_EXIT) return 'Xe ra';
+  if (item.path === ROUTES.ADMIN.PARKING_SESSIONS) return 'Phiên gửi xe';
+  if (item.path === ROUTES.STAFF.BOOKINGS) return 'Quản lý gói';
+  if (item.path === ROUTES.ADMIN.NOTIFICATIONS.BASE) return 'Thông báo';
+  if (item.path === incidentNavigationItem.path) return 'Sự cố & hỗ trợ';
+  return item.label;
+}
+
 export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -93,11 +104,6 @@ export default function AdminLayout() {
       };
 
   const isVehicleEntryPage = location.pathname === ROUTES.ADMIN.VEHICLE_ENTRY;
-  const pageTitle = useMemo(
-    () => getCurrentPageTitle(location.pathname, location.search),
-    [location.pathname, location.search],
-  );
-
   return (
     <div
       className={`relative bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.14),transparent_34%),linear-gradient(135deg,#f8fafc_0%,#eef6fb_46%,#f8fafc_100%)] text-slate-950 lg:flex ${
@@ -106,7 +112,7 @@ export default function AdminLayout() {
     >
       <aside
         className={`hidden min-h-screen flex-shrink-0 border-r border-white/10 bg-slate-950 text-white shadow-[18px_0_48px_rgba(15,23,42,0.22)] transition-[width] duration-300 ease-out lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:h-screen lg:flex-col ${
-          collapsed ? 'w-20' : 'w-[260px]'
+          collapsed ? 'w-20' : 'w-[276px]'
         }`}
       >
         <div className="relative flex h-full flex-col overflow-hidden p-4">
@@ -159,13 +165,14 @@ export default function AdminLayout() {
               {mainNavigationItems.map((item) => {
                 const ItemIcon = item.icon;
                 const isActive = isNavigationItemActive(location.pathname, location.search, item.path);
+                const label = getNavigationLabel(item);
 
                 return (
                   <NavLink
                     key={item.label}
                     to={item.path}
                     end={item.path === ROUTES.ADMIN.DASHBOARD}
-                    title={collapsed ? item.label : undefined}
+                    title={collapsed ? label : undefined}
                     className={`group relative flex h-11 items-center rounded-xl text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
                       collapsed ? 'justify-center px-0' : 'gap-3 px-2.5'
                     } ${
@@ -183,7 +190,7 @@ export default function AdminLayout() {
                     >
                       <ItemIcon className="h-4 w-4 shrink-0" />
                     </span>
-                    {!collapsed ? <span className="truncate">{item.label}</span> : null}
+                    {!collapsed ? <span className="truncate">{label}</span> : null}
                   </NavLink>
                 );
               })}
@@ -202,7 +209,7 @@ export default function AdminLayout() {
               return (
                 <NavLink
                   to={incidentNavigationItem.path}
-                  title={collapsed ? incidentNavigationItem.label : undefined}
+                  title={collapsed ? getNavigationLabel(incidentNavigationItem) : undefined}
                   className={`group flex h-11 items-center rounded-xl border text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] ${
                     collapsed ? 'w-full justify-center px-0' : 'min-w-0 flex-[7] gap-2 px-2.5'
                   } ${
@@ -220,7 +227,7 @@ export default function AdminLayout() {
                   >
                     <IncidentIcon className="h-4 w-4 shrink-0" />
                   </span>
-                  {!collapsed ? <span className="truncate">{incidentNavigationItem.label}</span> : null}
+                  {!collapsed ? <span className="truncate">{getNavigationLabel(incidentNavigationItem)}</span> : null}
                 </NavLink>
               );
             })()}
@@ -242,9 +249,10 @@ export default function AdminLayout() {
         </div>
       </aside>
 
+
       <div
         className={`relative z-10 flex min-w-0 flex-1 flex-col transition-[margin] duration-300 ease-out ${
-          collapsed ? 'lg:ml-20' : 'lg:ml-[260px]'
+          collapsed ? 'lg:ml-20' : 'lg:ml-[276px]'
         } ${isVehicleEntryPage ? 'h-full overflow-hidden' : ''}`}
       >
         <header className="sticky top-0 z-40 border-b border-slate-100 bg-white px-5 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)] lg:px-8">
@@ -253,14 +261,6 @@ export default function AdminLayout() {
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                 Parking Management
               </p>
-              <h2 className="mt-0.5 truncate text-lg font-semibold tracking-tight text-slate-800">
-                {pageTitle}
-              </h2>
-              {location.pathname === ROUTES.ADMIN.PARKING_SESSIONS ? (
-                <p className="mt-1 text-xs font-medium text-slate-500">
-                  Theo dõi toàn bộ phiên gửi xe trong hệ thống
-                </p>
-              ) : null}
             </div>
 
             <div className="flex shrink-0 items-center gap-3">
@@ -277,7 +277,7 @@ export default function AdminLayout() {
         <main
           className={
             isVehicleEntryPage
-              ? 'min-h-0 min-w-0 flex-1 overflow-hidden p-4 sm:p-5 lg:p-6'
+              ? 'min-h-0 min-w-0 flex-1 overflow-hidden p-3 sm:p-4'
               : 'min-w-0 flex-1 p-4 sm:p-5 lg:p-8'
           }
         >
