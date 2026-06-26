@@ -4,7 +4,7 @@ import { ROUTES } from '../constants/routes';
 import MainLayout from '../layouts/MainLayout';
 import AdminLayout from '../layouts/AdminLayout';
 import DriverLayout from '../layouts/DriverLayout';
-import LoginPage from '../features/auth/pages/LoginPage';
+import LoginPage from '../features/auth/pages/LoginPage/LoginPage.jsx';
 import HomePage from '../pages/HomePage';
 import ParkingMapPage from '../pages/ParkingMapPage';
 import WelcomePage from '../features/auth/pages/WelcomePage';

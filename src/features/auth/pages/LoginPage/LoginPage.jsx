@@ -1,4 +1,4 @@
-/*  */import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
