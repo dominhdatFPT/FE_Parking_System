@@ -89,20 +89,20 @@ export default function DriverHeader({ onToggleSidebar }) {
 
   return (
     <>
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-slate-100 bg-white px-4 transition-all duration-300 lg:px-6">
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-[#E5E7EB] bg-white/90 px-4 shadow-[0_1px_0_rgba(15,23,42,0.02)] backdrop-blur-xl transition-all duration-300 lg:px-7">
       <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={onToggleSidebar}
-          className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition-all duration-300 hover:bg-slate-50 active:scale-95 lg:hidden"
+          className="flex h-9 w-9 items-center justify-center rounded-xl text-[#64748B] transition-all duration-300 hover:bg-[#F5F7FB] hover:text-[#0F172A] active:scale-95 lg:hidden"
         >
           <span className="material-symbols-outlined">menu</span>
         </button>
       </div>
 
       <div className="flex items-center gap-3">
-        <p className="hidden text-sm text-slate-500 md:block">
-          {t('header.greeting')}, <span className="font-semibold text-slate-800">{displayName}</span>
+        <p className="hidden text-sm text-[#64748B] md:block">
+          {t('header.greeting')}, <span className="font-semibold text-[#0F172A]">{displayName}</span>
         </p>
 
         {/* Language Switcher */}
@@ -110,24 +110,24 @@ export default function DriverHeader({ onToggleSidebar }) {
           <button
             type="button"
             onClick={() => setLangOpen((p) => !p)}
-            className="flex h-9 items-center gap-1.5 rounded-xl border border-slate-200/60 bg-white px-3 text-sm font-medium text-slate-600 shadow-sm transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-slate-300 hover:bg-slate-50 active:scale-95"
+            className="flex h-9 items-center gap-1.5 rounded-xl border border-[#E5E7EB] bg-white px-3 text-sm font-medium text-[#64748B] shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-[#BAE6FD] hover:bg-[#F8FAFC] hover:text-[#0F172A] active:scale-95"
           >
             <span className="text-sm">{currentLang === 'vi' ? '🇻🇳' : '🇺🇸'}</span>
-            <span className="material-symbols-outlined text-[16px] text-slate-400">expand_more</span>
+            <span className="material-symbols-outlined text-[16px] text-[#64748B]">expand_more</span>
           </button>
           {langOpen && (
-            <div className="absolute right-0 top-full z-50 mt-2 w-40 overflow-hidden rounded-xl border border-slate-100 bg-white p-1 shadow-[0_12px_30px_-5px_rgba(0,0,0,0.08)]">
+            <div className="absolute right-0 top-full z-50 mt-2 w-40 overflow-hidden rounded-xl border border-[#E5E7EB] bg-white p-1 shadow-[0_18px_44px_rgba(15,23,42,0.10)]">
               <button
                 type="button"
                 onClick={() => switchLang('vi')}
-                className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all duration-300 hover:bg-slate-50 ${currentLang === 'vi' ? 'font-semibold text-sky-600' : 'text-slate-600'}`}
+                className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all duration-300 hover:bg-[#F5F7FB] ${currentLang === 'vi' ? 'font-semibold text-[#0EA5E9]' : 'text-[#64748B]'}`}
               >
                 <span>🇻🇳</span> Tiếng Việt
               </button>
               <button
                 type="button"
                 onClick={() => switchLang('en')}
-                className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all duration-300 hover:bg-slate-50 ${currentLang === 'en' ? 'font-semibold text-sky-600' : 'text-slate-600'}`}
+                className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all duration-300 hover:bg-[#F5F7FB] ${currentLang === 'en' ? 'font-semibold text-[#0EA5E9]' : 'text-[#64748B]'}`}
               >
                 <span>🇺🇸</span> English
               </button>
@@ -140,54 +140,54 @@ export default function DriverHeader({ onToggleSidebar }) {
           <button
             type="button"
             onClick={() => setNotifOpen((p) => !p)}
-            className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/60 bg-white text-slate-500 shadow-sm transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 active:scale-95"
+            className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-[#E5E7EB] bg-white text-[#64748B] shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-[#BAE6FD] hover:bg-[#F8FAFC] hover:text-[#0F172A] active:scale-95"
           >
             <span className="material-symbols-outlined text-[20px]">notifications</span>
             {unreadCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#EF4444] px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
                 {unreadCount}
               </span>
             )}
           </button>
 
           {notifOpen && (
-            <div className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)]">
-              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-                <p className="text-sm font-semibold text-slate-800">{t('header.notifications')}</p>
+            <div className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_24px_54px_rgba(15,23,42,0.12)]">
+              <div className="flex items-center justify-between border-b border-[#E5E7EB] px-4 py-3">
+                <p className="text-sm font-semibold text-[#0F172A]">{t('header.notifications')}</p>
                 {unreadCount > 0 && (
-                  <button type="button" onClick={handleMarkAllRead} className="text-xs font-semibold text-sky-600 transition-all duration-300 hover:text-sky-700">
+                  <button type="button" onClick={handleMarkAllRead} className="text-xs font-semibold text-[#0EA5E9] transition-all duration-300 hover:text-[#0284C7]">
                     {t('common.markAllRead')}
                   </button>
                 )}
               </div>
               <div className="max-h-72 overflow-y-auto">
                 {notifications.length === 0 ? (
-                  <div className="py-8 text-center text-xs text-slate-400 font-medium">{t('header.noNotifications')}</div>
+                  <div className="py-8 text-center text-xs font-medium text-[#64748B]">{t('header.noNotifications')}</div>
                 ) : (
                   notifications.slice(0, 6).map((n) => (
                     <button
                       key={n.id}
                       type="button"
                       onClick={() => openNotification(n)}
-                      className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-all duration-300 hover:bg-slate-50/50 ${!n.read ? 'bg-sky-50/20' : ''}`}
+                      className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-all duration-300 hover:bg-[#F5F7FB] ${!n.read ? 'bg-[#F0F9FF]' : ''}`}
                     >
                       <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${typeColor[n.type] || typeColor.info}`}>
                         <span className="material-symbols-outlined text-[16px]">{typeIcon[n.type] || 'info'}</span>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className={`text-xs font-semibold ${n.read ? 'text-slate-500' : 'text-slate-800'}`}>{n.title}</p>
-                        <p className="mt-0.5 text-[11px] text-slate-400 line-clamp-2 leading-relaxed">{n.message}</p>
+                        <p className={`text-xs font-semibold ${n.read ? 'text-[#64748B]' : 'text-[#0F172A]'}`}>{n.title}</p>
+                        <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-[#64748B]">{n.message}</p>
                       </div>
-                      <span className="shrink-0 text-[10px] text-slate-400">{timeAgo(n.time)}</span>
+                      <span className="shrink-0 text-[10px] text-[#64748B]">{timeAgo(n.time)}</span>
                     </button>
                   ))
                 )}
               </div>
-              <div className="border-t border-slate-100 p-2">
+              <div className="border-t border-[#E5E7EB] p-2">
                 <button
                   type="button"
                   onClick={() => { setNotifOpen(false); navigate(ROUTES.DRIVER.NOTIFICATIONS); }}
-                  className="w-full rounded-xl py-2 text-center text-xs font-semibold text-sky-600 transition-all duration-300 hover:bg-slate-50"
+                  className="w-full rounded-xl py-2 text-center text-xs font-semibold text-[#0EA5E9] transition-all duration-300 hover:bg-[#F5F7FB] hover:text-[#0284C7]"
                 >
                   {t('header.viewAllNotifications')}
                 </button>
@@ -200,7 +200,7 @@ export default function DriverHeader({ onToggleSidebar }) {
         <button
           type="button"
           onClick={() => navigate(ROUTES.DRIVER.PROFILE)}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold text-white transition-all duration-300 hover:bg-slate-700 active:scale-95 shadow-sm"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0EA5E9] text-xs font-semibold text-white shadow-[0_10px_22px_rgba(14,165,233,0.22)] transition-all duration-300 hover:bg-[#0284C7] active:scale-95"
         >
           {displayName.charAt(0).toUpperCase()}
         </button>

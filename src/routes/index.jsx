@@ -29,6 +29,7 @@ import NotificationDetailPage from '../pages/NotificationDetailPage';
 import NotificationManagement from '../pages/NotificationManagement';
 import SystemConfigurationPage from '../pages/SystemConfigurationPage';
 import AuditLogPage from '../pages/AuditLogPage';
+import PermissionPage from '../pages/PermissionPage';
 import StaffDashboard from '../features/staff/pages/StaffDashboard';
 import StaffBookingReview from '../features/staff/pages/StaffBookingReview';
 import StaffVehicleEntry from '../features/staff/pages/StaffVehicleEntry';
@@ -111,6 +112,7 @@ export function AppRoutes() {
         <Route path={ROUTES.ADMIN.ROLES} element={<Navigate to={ROUTES.ADMIN.VEHICLE_EXIT} replace />} />
         <Route path={ROUTES.ADMIN.SYSTEM_CONFIG} element={<SystemConfigurationPage />} />
         <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AuditLogPage />} />
+        <Route path={ROUTES.ADMIN.PERMISSIONS} element={<PermissionPage />} />
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.BASE} element={<NotificationManagement />} />
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.DETAIL} element={<NotificationDetailPage />} />
         <Route path={ROUTES.FORBIDDEN} element={<ForbiddenPage />} />

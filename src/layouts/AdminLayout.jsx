@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   LogOut,
   Package,
+  Shield,
 } from 'lucide-react';
 import { useAuth } from '../contexts/useAuth';
 import { ROUTES } from '../constants/routes';
@@ -26,6 +27,7 @@ const mainNavigationItems = [
   { icon: Boxes, label: 'Phiên gửi xe', path: ROUTES.ADMIN.PARKING_SESSIONS },
   { icon: Package, label: 'Quản lý gói', path: ROUTES.STAFF.BOOKINGS },
   { icon: BellRing, label: 'Thông báo', path: ROUTES.ADMIN.NOTIFICATIONS.BASE },
+  { icon: Shield, label: 'Phân quyền', path: ROUTES.ADMIN.PERMISSIONS },
 ];
 
 const incidentNavigationItem = {
@@ -42,6 +44,7 @@ const pageTitles = [
   { path: ROUTES.ADMIN.VEHICLE_EXIT, title: 'Xe ra' },
   { path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`, title: 'Quản lí sự cố và hỗ trợ' },
   { path: ROUTES.ADMIN.NOTIFICATIONS.BASE, title: 'Thông báo' },
+  { path: ROUTES.ADMIN.PERMISSIONS, title: 'Phân quyền & Tài khoản' },
 ];
 
 function getCurrentPageTitle(pathname, search) {

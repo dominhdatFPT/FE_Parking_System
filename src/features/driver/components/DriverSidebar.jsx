@@ -56,17 +56,21 @@ export default function DriverSidebar({ isOpen, onClose }) {
           isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
         }`}
         style={{
-          background: 'linear-gradient(180deg, #E0F2FE 0%, #BAE6FD 100%)',
+          background: '#DBEAFE',
         }}
       >
-        <div className="flex flex-col px-5 py-3 gap-1 border-b border-sky-300/30">
+        <div 
+          onClick={() => { window.location.href = ROUTES.DRIVER.DASHBOARD; }}
+          className="flex flex-col px-5 py-3 gap-1 border-b border-slate-200/60 cursor-pointer select-none"
+          title="Về trang tổng quan"
+        >
           <Logo variant="horizontal" theme="brand" size="sm" />
-          <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-sky-700/70 ml-[44px]">Driver Workspace</p>
+          <p className="ml-[44px] text-[9px] font-bold uppercase tracking-[0.2em] text-slate-700">Driver Workspace</p>
         </div>
 
         {/* Navigation */}
         <nav className="flex flex-1 flex-col gap-1 px-3 py-3">
-          <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-sky-700/50">{t('sidebar.menu')}</p>
+          <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-[#64748B]">{t('sidebar.menu')}</p>
           {navItems.map((item) => {
             const active = location.pathname === item.path;
             return (
@@ -76,15 +80,15 @@ export default function DriverSidebar({ isOpen, onClose }) {
                 onClick={() => handleNav(item)}
                 className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium transition-all duration-300 ${
                   active
-                    ? 'bg-gradient-to-r from-[#0EA5E9] to-[#06B6D4] text-white shadow-lg shadow-sky-400/40'
-                    : 'text-slate-700 hover:bg-white/70 hover:text-slate-900 hover:shadow-md hover:shadow-sky-300/20 hover:-translate-y-[0.5px]'
+                    ? 'border border-[#BAE6FD] bg-[#E0F2FE] text-[#0369A1] shadow-[0_10px_24px_rgba(14,165,233,0.12)]'
+                    : 'text-[#64748B] hover:-translate-y-[0.5px] hover:bg-white/70 hover:text-[#0F172A] hover:shadow-[0_10px_24px_rgba(15,23,42,0.06)]'
                 }`}
               >
                 {active && (
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#06B6D4] shadow-lg shadow-sky-400/40" />
+                  <div className="absolute inset-0 rounded-xl bg-[#E0F2FE]" />
                 )}
                 <span className={`relative z-10 material-symbols-outlined text-[19px] transition-colors duration-300 ${
-                  active ? 'text-white' : 'text-sky-600/80 group-hover:text-slate-700'
+                  active ? 'text-[#0EA5E9]' : 'text-[#64748B] group-hover:text-[#0EA5E9]'
                 }`}>
                   {item.icon}
                 </span>
@@ -95,7 +99,7 @@ export default function DriverSidebar({ isOpen, onClose }) {
         </nav>
 
         {/* Divider */}
-        <div className="mx-5 border-t border-sky-300/30" />
+        <div className="mx-5 border-t border-[#E5E7EB]" />
 
         {/* Bottom */}
         <div className="p-3 space-y-1">
@@ -104,15 +108,15 @@ export default function DriverSidebar({ isOpen, onClose }) {
             onClick={() => handleNav(ROUTES.DRIVER.PROFILE)}
             className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium transition-all duration-300 ${
               isProfileActive
-                ? 'bg-gradient-to-r from-[#0EA5E9] to-[#06B6D4] text-white shadow-lg shadow-sky-400/40'
-                : 'text-slate-700 hover:bg-white/70 hover:text-slate-900 hover:shadow-md hover:shadow-sky-300/20'
+                ? 'border border-[#BAE6FD] bg-[#E0F2FE] text-[#0369A1] shadow-[0_10px_24px_rgba(14,165,233,0.12)]'
+                : 'text-[#64748B] hover:bg-white/70 hover:text-[#0F172A] hover:shadow-[0_10px_24px_rgba(15,23,42,0.06)]'
             }`}
           >
             {isProfileActive && (
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#06B6D4] shadow-lg shadow-sky-400/40" />
+              <div className="absolute inset-0 rounded-xl bg-[#E0F2FE]" />
             )}
             <span className={`relative z-10 material-symbols-outlined text-[19px] transition-colors duration-300 ${
-              isProfileActive ? 'text-white' : 'text-sky-600/80 group-hover:text-slate-700'
+              isProfileActive ? 'text-[#0EA5E9]' : 'text-[#64748B] group-hover:text-[#0EA5E9]'
             }`}>
               person
             </span>
@@ -122,9 +126,9 @@ export default function DriverSidebar({ isOpen, onClose }) {
           <button
             type="button"
             onClick={handleLogout}
-            className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium text-slate-700 transition-all duration-300 hover:bg-red-50/80 hover:text-red-500 hover:shadow-sm"
+            className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium text-[#64748B] transition-all duration-300 hover:bg-[#FEF2F2] hover:text-[#DC2626] hover:shadow-sm"
           >
-            <span className="material-symbols-outlined text-[19px] text-sky-600/80 group-hover:text-red-500">logout</span>
+            <span className="material-symbols-outlined text-[19px] text-[#64748B] group-hover:text-[#DC2626]">logout</span>
             {t('sidebar.logout')}
           </button>
         </div>

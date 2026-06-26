@@ -211,9 +211,9 @@ export default function AiChatWidget() {
             type="button"
             onClick={() => setIsOpen(true)}
             aria-label="Mở trung tâm dịch vụ"
-            className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-2xl shadow-blue-600/30 ring-2 ring-white/30 sm:bottom-6 sm:right-6"
+            className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#4BB8FA] text-white shadow-2xl shadow-[#4BB8FA]/30 ring-2 ring-white/30 sm:bottom-6 sm:right-6"
           >
-            <MessageCircle className="h-6 w-6" aria-hidden="true" />
+            <MessageCircle className="h-6 w-6 text-white" aria-hidden="true" />
             <span className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-emerald-500 ring-2 ring-white" aria-hidden="true" />
           </motion.button>
         )}
@@ -230,14 +230,14 @@ export default function AiChatWidget() {
             aria-labelledby="service-widget-title"
             className="fixed bottom-4 right-4 z-50 flex h-[min(720px,calc(100vh-2rem))] w-[calc(100vw-2rem)] max-w-md origin-bottom-right flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/15 sm:bottom-24 sm:right-6 sm:h-[min(680px,calc(100vh-7rem))]"
           >
-            <header className="flex items-start justify-between bg-gradient-to-r from-blue-600 to-indigo-700 px-4 py-4 text-white">
+            <header className="flex items-start justify-between bg-[#4BB8FA] px-4 py-4 text-white">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
-                  <Car className="h-6 w-6" aria-hidden="true" />
+                  <Car className="h-6 w-6 text-white" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <h2 id="service-widget-title" className="text-sm font-semibold">Dịch vụ Smart Parking</h2>
-                  <p className="mt-0.5 truncate text-xs text-blue-100">
+                  <h2 id="service-widget-title" className="text-sm font-semibold text-white">Dịch vụ Smart Parking</h2>
+                  <p className="mt-0.5 truncate text-xs text-white">
                     {step === 0 ? 'Chọn dịch vụ bạn cần' : `Đăng ký thẻ xe · Bước ${Math.min(step, 4)}/4`}
                   </p>
                 </div>
@@ -252,7 +252,7 @@ export default function AiChatWidget() {
                     title="Làm lại từ đầu"
                     className="rounded-lg p-1.5 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50"
                   >
-                    <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                    <RotateCcw className="h-4 w-4 text-white" aria-hidden="true" />
                   </button>
                 )}
                 <button
@@ -261,7 +261,7 @@ export default function AiChatWidget() {
                   aria-label="Thu nhỏ cửa sổ dịch vụ"
                   className="rounded-lg p-1.5 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white"
                 >
-                  <Minus className="h-4 w-4" aria-hidden="true" />
+                  <Minus className="h-4 w-4 text-white" aria-hidden="true" />
                 </button>
                 <button
                   type="button"
@@ -269,7 +269,7 @@ export default function AiChatWidget() {
                   aria-label="Đóng cửa sổ dịch vụ"
                   className="rounded-lg p-1.5 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white"
                 >
-                  <X className="h-4 w-4" aria-hidden="true" />
+                  <X className="h-4 w-4 text-white" aria-hidden="true" />
                 </button>
               </div>
             </header>

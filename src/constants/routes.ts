@@ -16,6 +16,7 @@ export const ROUTES = {
     ROLES: '/admin/roles',
     SYSTEM_CONFIG: '/admin/system-configuration',
     AUDIT_LOG: '/admin/audit-log',
+    PERMISSIONS: '/admin/permissions',
     NOTIFICATIONS: {
       BASE: '/admin/notifications',
       DETAIL: '/admin/notifications/:id',

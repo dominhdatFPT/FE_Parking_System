@@ -334,6 +334,18 @@ const useScrollSpy = (ids, offset = 100) => {
 const Navbar = ({ lang, setLang, t }) => {
   const navigate = useNavigate();
   const activeSection = useScrollSpy(['hero', 'dashboard', 'thong-bao', 'kham-pha'], 200);
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const isScrolled = scrollY > 20;
   
   const handleScrollToSection = (e, id) => {
     e.preventDefault();
@@ -355,25 +367,43 @@ const Navbar = ({ lang, setLang, t }) => {
     window.location.href = '/';
   };
 
+  const getNavLinkClass = (sectionId) => {
+    const isActive = activeSection === sectionId;
+    if (isActive) {
+      return isScrolled
+        ? 'px-4 py-2 text-sm font-bold rounded-lg text-sky-700 bg-sky-50 transition-all duration-300'
+        : 'px-4 py-2 text-sm font-bold rounded-lg text-sky-400 bg-white/10 transition-all duration-300';
+    }
+    return isScrolled
+      ? 'px-4 py-2 text-sm font-bold rounded-lg text-slate-600 hover:text-sky-600 hover:bg-slate-50 transition-all duration-300'
+      : 'px-4 py-2 text-sm font-bold rounded-lg text-white hover:text-sky-300 hover:bg-white/5 transition-all duration-300';
+  };
+
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 transition-all">
+    <header 
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+        isScrolled 
+          ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200' 
+          : 'bg-transparent border-b border-transparent'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <div className="cursor-pointer" onClick={reloadPage}>
-            <Logo variant="horizontal" size="md" />
+            <Logo variant="horizontal" size="md" theme={isScrolled ? 'brand' : 'dark'} />
           </div>
 
           <nav className="hidden md:flex items-center gap-2">
-            <a href="#" onClick={handleScrollToTop} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeSection === 'hero' ? 'text-sky-700 bg-sky-50' : 'text-slate-500 hover:text-sky-600 hover:bg-slate-50'}`}>
+            <a href="#" onClick={handleScrollToTop} className={getNavLinkClass('hero')}>
               {t.nav.home}
             </a>
-            <a href="#dashboard" onClick={(e) => handleScrollToSection(e, 'dashboard')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeSection === 'dashboard' ? 'text-sky-700 bg-sky-50' : 'text-slate-500 hover:text-sky-600 hover:bg-slate-50'}`}>
+            <a href="#dashboard" onClick={(e) => handleScrollToSection(e, 'dashboard')} className={getNavLinkClass('dashboard')}>
               {t.nav.dashboard}
             </a>
-            <a href="#thong-bao" onClick={(e) => handleScrollToSection(e, 'thong-bao')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeSection === 'thong-bao' ? 'text-sky-700 bg-sky-50' : 'text-slate-500 hover:text-sky-600 hover:bg-slate-50'}`}>
+            <a href="#thong-bao" onClick={(e) => handleScrollToSection(e, 'thong-bao')} className={getNavLinkClass('thong-bao')}>
               {t.nav.notice}
             </a>
-            <a href="#kham-pha" onClick={(e) => handleScrollToSection(e, 'kham-pha')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeSection === 'kham-pha' ? 'text-sky-700 bg-sky-50' : 'text-slate-500 hover:text-sky-600 hover:bg-slate-50'}`}>
+            <a href="#kham-pha" onClick={(e) => handleScrollToSection(e, 'kham-pha')} className={getNavLinkClass('kham-pha')}>
               {t.nav.explore}
             </a>
           </nav>
@@ -382,22 +412,33 @@ const Navbar = ({ lang, setLang, t }) => {
         <div className="flex items-center gap-4">
           <button 
             onClick={() => setLang(lang === 'vi' ? 'en' : 'vi')}
-            className="flex items-center gap-1.5 text-sm font-bold text-slate-600 hover:text-sky-600 transition-colors bg-slate-100 px-3 py-1.5 rounded-lg"
+            className={`flex items-center gap-1.5 text-sm font-bold transition-all px-3 py-1.5 rounded-lg ${
+              isScrolled 
+                ? 'bg-slate-100 hover:bg-slate-200 hover:text-sky-600' 
+                : 'bg-white/10 hover:bg-white/20 hover:text-sky-300'
+            }`}
+            style={{ color: isScrolled ? '#475569' : '#ffffff' }}
           >
             <Globe className="w-4 h-4" />
             <span>{lang === 'vi' ? 'VN' : 'EN'}</span>
           </button>
-          <div className="h-5 w-px bg-slate-200 hidden sm:block"></div>
+          <div className={`h-5 w-px hidden sm:block transition-all duration-300 ${isScrolled ? 'bg-slate-200' : 'bg-white/40'}`}></div>
           <button 
             onClick={() => navigate('/login')}
-            className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 hover:text-sky-600 hover:bg-slate-50 rounded-lg transition-colors"
+            className={`hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg transition-all ${
+              isScrolled 
+                ? 'hover:bg-slate-50 hover:text-sky-600' 
+                : 'hover:bg-white/10 hover:text-sky-300'
+            }`}
+            style={{ color: isScrolled ? '#334155' : '#ffffff' }}
           >
             <LogIn className="w-4 h-4" />
-            {t.nav.login}
+            <span>{t.nav.login}</span>
           </button>
           <button 
             onClick={() => navigate('/signup')}
-            className="flex items-center gap-2 bg-[#0EA5E9] hover:bg-[#0284c7] px-5 py-2.5 rounded-lg text-sm font-bold shadow-md shadow-sky-500/20 transition-all hover:-translate-y-0.5"
+            className="flex items-center gap-2 bg-[#0EA5E9] hover:bg-[#0284c7] px-5 py-2.5 rounded-lg text-sm font-bold shadow-md shadow-sky-500/20 transition-all hover:-translate-y-0.5 text-white"
+            style={{ color: '#FFFFFF' }}
           >
             <UserPlus className="w-4 h-4 text-white" style={{ color: '#FFFFFF' }} />
             <span className="text-white" style={{ color: '#FFFFFF' }}>{t.nav.signup}</span>
@@ -446,7 +487,7 @@ const HeroSection = ({ t }) => {
   };
 
   return (
-    <section id="hero" className="relative pt-24 pb-28 px-4 sm:px-6 lg:px-8 flex items-center justify-center min-h-[480px]">
+    <section id="hero" className="relative pt-36 pb-28 px-4 sm:px-6 lg:px-8 flex items-center justify-center min-h-[480px]">
       <div className="absolute inset-0 z-0 overflow-hidden bg-slate-900">
         <motion.div
           initial={{ scale: 1.05 }}
@@ -497,17 +538,6 @@ const HeroSection = ({ t }) => {
             whileHover={{ scale: 1.02, borderColor: "rgba(255, 255, 255, 0.25)", boxShadow: "0 12px 40px 0 rgba(0,0,0,0.25)" }}
             className="flex items-center gap-3.5 bg-white/5 backdrop-blur-md border border-white/10 px-6 py-4 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.15)] transition-all duration-300 cursor-default"
           >
-            <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/30 flex items-center justify-center text-sky-400">
-              <CalendarDays className="w-5 h-5" />
-            </div>
-            <span className="text-white tracking-wide font-semibold text-base">{t.hero.f1}</span>
-          </motion.div>
-          
-          <motion.div 
-            variants={itemVariants}
-            whileHover={{ scale: 1.02, borderColor: "rgba(255, 255, 255, 0.25)", boxShadow: "0 12px 40px 0 rgba(0,0,0,0.25)" }}
-            className="flex items-center gap-3.5 bg-white/5 backdrop-blur-md border border-white/10 px-6 py-4 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.15)] transition-all duration-300 cursor-default"
-          >
             <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400">
               <ScanLine className="w-5 h-5" />
             </div>
@@ -541,11 +571,11 @@ const MainDashboard = ({ t }) => {
       <KPIDashboard t={t} zone={zone} floor={floor} />
 
       {/* 2. Main Section & Side Panel */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div className="md:col-span-3">
           <VehicleInOutLog />
         </div>
-         <div className="lg:col-span-1">
+        <div className="md:col-span-2">
           <GateControlPanel />
         </div>
       </div>
@@ -641,26 +671,18 @@ const VehicleInOutLog = () => {
     },
     {
       id: 4,
-      title: i18n.language === 'en' ? 'Locate Parking Space' : 'Tìm vị trí đỗ xe',
-      desc: i18n.language === 'en' ? 'Follow smart indoor navigation panels directly to your reserved slot.' : 'Hệ thống bảng LED chỉ dẫn thông minh dẫn bạn đến đúng ô đỗ xe đã đặt.',
-      tag: i18n.language === 'en' ? 'Step 4' : 'Bước 4',
-      icon: MapPin,
-      color: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-    },
-    {
-      id: 5,
       title: i18n.language === 'en' ? 'Cashless Checkout' : 'Thanh toán không tiền mặt',
       desc: i18n.language === 'en' ? 'Scan QR or auto-deduct fee from e-wallet upon exit seamlessly.' : 'Quét mã QR hoặc tự động trừ tiền ví điện tử khi ra cổng. Không cần dùng tiền mặt.',
-      tag: i18n.language === 'en' ? 'Step 5' : 'Bước 5',
+      tag: i18n.language === 'en' ? 'Step 4' : 'Bước 4',
       icon: CreditCard,
       color: 'bg-amber-50 text-amber-600 border-amber-100',
     },
   ];
 
   return (
-    <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200 h-full flex flex-col justify-between">
-      <div className="mb-6">
-        <div className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.2em] font-bold text-sky-600 bg-sky-50 px-3 py-1 rounded-full uppercase mb-3">
+    <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200 h-full flex flex-col justify-start gap-5">
+      <div>
+        <div className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.2em] font-bold text-sky-600 bg-sky-50 px-3 py-1 rounded-full uppercase mb-2">
           {i18n.language === 'en' ? 'User Journey' : 'Hành trình trải nghiệm'}
         </div>
         <h3 className="font-extrabold text-slate-800 text-2xl tracking-tight mb-2">
@@ -673,7 +695,7 @@ const VehicleInOutLog = () => {
         </p>
       </div>
 
-      <div className="relative pl-6 sm:pl-8 border-l border-slate-100 space-y-6 sm:space-y-8 my-2">
+      <div className="relative pl-7 sm:pl-9 border-l border-slate-100 space-y-8 sm:space-y-10 my-1">
         {steps.map((step) => {
           const StepIcon = step.icon;
           return (
@@ -686,7 +708,7 @@ const VehicleInOutLog = () => {
               transition={{ duration: 0.4, delay: step.id * 0.1 }}
             >
               {/* Outer timeline node bezel */}
-              <div className="absolute -left-[45px] sm:-left-[53px] top-1 flex items-center justify-center">
+              <div className="absolute -left-[46px] sm:-left-[54px] top-1 flex items-center justify-center">
                 <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center transition-all duration-300 shadow-sm ${step.color} group-hover:scale-110 group-hover:shadow`}>
                   <StepIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
@@ -774,12 +796,12 @@ const GateControlPanel = () => {
   ];
 
   return (
-    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm h-full flex flex-col justify-between">
-      <div className="mb-5">
-        <div className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.2em] font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase mb-3">
+    <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm h-full flex flex-col justify-start gap-5">
+      <div>
+        <div className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.2em] font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase mb-2">
           {i18n.language === 'en' ? 'Key Features' : 'Tính năng nổi bật'}
         </div>
-        <h3 className="font-extrabold text-slate-800 text-xl tracking-tight mb-1">
+        <h3 className="font-extrabold text-slate-800 text-xl tracking-tight mb-2">
           {i18n.language === 'en' ? 'Platform Features' : 'Tính năng cốt lõi'}
         </h3>
         <p className="text-slate-500 text-xs font-semibold leading-relaxed">
@@ -793,10 +815,10 @@ const GateControlPanel = () => {
           return (
             <motion.div
               key={item.id}
-              className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-sky-100 hover:shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all duration-300 group cursor-default"
+              className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-sky-100 hover:shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all duration-300 group cursor-default flex flex-col justify-center min-h-[76px]"
               whileHover={{ y: -2 }}
             >
-              <div className="flex gap-3">
+              <div className="flex items-center gap-3">
                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${item.color} group-hover:bg-sky-600 group-hover:text-white group-hover:border-sky-600 transition-colors duration-300`}>
                   <FeatureIcon className="w-4.5 h-4.5" />
                 </div>
