@@ -184,6 +184,7 @@
     "licensePlate": "Real Plate Photo *",
     "licensePlateNumber": "License Plate *",
     "platePlaceholder": "Enter license plate...",
+    "manualPlateNotice": "The full name is taken from your account. Staff will compare the plate you enter with the plate photo and vehicle registration document during review.",
     "uploadPhoto": "Upload photo",
     "errorCccdFront": "Please upload CCCD Front Side photo.",
     "errorCccdBack": "Please upload CCCD Back Side photo.",
