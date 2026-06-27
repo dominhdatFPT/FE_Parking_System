@@ -41,7 +41,7 @@ export default function NotificationDropdown() {
 
   return (
     <div className="relative">
-      <button ref={buttonRef} type="button" onClick={() => setVisible((value) => !value)} aria-label="Thông báo" className="relative inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/80 bg-white/75 text-slate-700 shadow-sm">
+      <button ref={buttonRef} type="button" onClick={() => setVisible((value) => !value)} aria-label="Thông báo" className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition-all duration-300 hover:scale-[1.03] hover:shadow-md">
         <Icon name="notifications" />
         {unreadCount > 0 ? <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[11px] font-semibold text-white ring-2 ring-white">{unreadCount}</span> : null}
       </button>

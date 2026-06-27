@@ -7,8 +7,11 @@ import {
   ChevronDown,
   CheckCircle2,
   Clock3,
+  Info,
   Search,
   ShieldCheck,
+  UserRound,
+  X,
 } from 'lucide-react';
 import { checkParkingEntry, confirmParkingEntry } from '../../services/staffService';
 
@@ -67,13 +70,13 @@ function CameraCard({ feed }) {
 
   return (
     <article
-      className={`group relative h-[245px] overflow-hidden rounded-[26px] bg-gradient-to-br p-[2px] shadow-[0_16px_38px_rgba(15,35,66,0.12)] transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] 2xl:h-[265px] ${
+      className={`group relative h-[248px] overflow-hidden rounded-[28px] bg-gradient-to-br p-[2px] shadow-[0_16px_38px_rgba(15,35,66,0.12)] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:shadow-xl 2xl:h-[268px] ${
         live
-          ? 'from-sky-300/80 via-cyan-200/40 to-slate-100 ring-1 ring-sky-300/70 hover:shadow-[0_22px_55px_rgba(14,165,233,0.22)]'
-          : 'from-emerald-300/80 via-cyan-200/40 to-slate-100 ring-1 ring-emerald-300/70'
+          ? 'from-cyan-300/80 via-blue-300/50 to-slate-200 ring-1 ring-cyan-300/70'
+          : 'from-blue-300/70 via-cyan-300/40 to-slate-200 ring-1 ring-blue-300/70'
       }`}
     >
-      <div className="relative h-full overflow-hidden rounded-[24px] bg-[#08111b] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]">
+      <div className="relative h-full overflow-hidden rounded-[26px] bg-[#071321] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_48%_62%,rgba(125,211,252,0.2),transparent_26%),linear-gradient(180deg,#10283b_0%,#0a1724_46%,#050b13_100%)]" />
         <div className="absolute inset-0 opacity-[0.2] [background-image:radial-gradient(rgba(203,213,225,0.35)_1px,transparent_1px)] [background-size:6px_6px]" />
         <div className="absolute inset-x-0 bottom-0 h-[66%] bg-[linear-gradient(160deg,transparent_0_34%,rgba(148,163,184,0.18)_34.4%,transparent_35.1%_63%,rgba(148,163,184,0.16)_63.4%,transparent_64%),linear-gradient(180deg,rgba(15,23,42,0.16),rgba(2,6,23,0.58))]" />
@@ -87,6 +90,11 @@ function CameraCard({ feed }) {
         <div className="absolute left-4 top-4 z-20 flex items-center gap-2 rounded-2xl bg-slate-950/48 px-3 py-2 text-[11px] font-semibold text-slate-100 shadow-[0_10px_24px_rgba(0,0,0,0.24)] ring-1 ring-cyan-100/15 backdrop-blur">
           <Camera className="h-3.5 w-3.5 text-cyan-200" strokeWidth={1.7} />
           <span className="leading-none">Camera {feed.id}</span>
+        </div>
+
+        <div className="absolute right-4 top-4 z-20 inline-flex items-center gap-2 rounded-full bg-rose-500/90 px-3 py-1.5 text-[10px] font-black tracking-[0.08em] text-white shadow-[0_8px_24px_rgba(244,63,94,0.45)] ring-1 ring-white/20 backdrop-blur">
+          <span className={`h-2 w-2 rounded-full ${live ? 'animate-pulse bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)]' : 'bg-rose-100'}`} />
+          LIVE
         </div>
 
         <div className="absolute inset-x-4 bottom-4 z-20 flex items-center justify-between gap-3">
@@ -181,6 +189,9 @@ export default function VehicleEntryPage() {
     canConfirm: Boolean(result?.canConfirm),
   }), [licensePlate, result, vehicleType]);
 
+  const hasPlate = data.plate !== 'Chưa có biển số';
+  const statusPill = !hasPlate ? 'Chờ kiểm tra' : result?.licensePlate ? 'Đã nhận diện' : theme.label;
+
   const check = async (event) => {
     event?.preventDefault();
     const plate = licensePlate.trim().toUpperCase();
@@ -216,50 +227,31 @@ export default function VehicleEntryPage() {
   };
 
   return (
-    <div className="h-full overflow-hidden rounded-[30px] bg-[radial-gradient(circle_at_0%_0%,rgba(14,165,233,0.16),transparent_30%),linear-gradient(135deg,#eef7ff_0%,#f8fbff_48%,#eafdf7_100%)] p-3 text-slate-950 sm:p-4">
+    <div className="h-full overflow-hidden rounded-[30px] bg-[#F6F8FC] p-3 text-slate-950 sm:p-4">
       <div className="mx-auto flex h-full max-w-[1540px] flex-col">
-        <header className="mb-3 flex shrink-0 items-center justify-between gap-4 rounded-[24px] bg-white/58 px-3.5 py-2 shadow-[0_10px_28px_rgba(15,35,66,0.06)] ring-1 ring-white/70 backdrop-blur">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[18px] bg-slate-950 text-cyan-300 shadow-[0_12px_28px_rgba(15,23,42,0.18)] ring-1 ring-white/40">
-              <CarFront className="h-6 w-6" strokeWidth={1.7} />
-            </span>
-            <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-600">Smart parking gate</p>
-              <p className="mt-0.5 max-w-2xl text-sm font-semibold leading-5 text-slate-600">
-                Kiểm tra biển số và xác nhận phương tiện vào bãi
-              </p>
-            </div>
-          </div>
-
-          <div className="hidden shrink-0 items-center gap-2.5 rounded-[18px] bg-white/84 px-3 py-2 shadow-[0_10px_24px_rgba(15,35,66,0.06)] ring-1 ring-emerald-100 md:flex">
-            <span className="relative flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70" />
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
-            </span>
-            <span className="text-sm font-black text-emerald-700">Cổng vào A đang hoạt động</span>
-          </div>
-        </header>
-
-        <section className="grid min-h-0 flex-1 grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(340px,28%)_minmax(0,1fr)]">
+        <section className="grid min-h-0 flex-1 grid-cols-1 items-start gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
           <aside className="min-h-0 xl:sticky xl:top-0">
             <form
               onSubmit={check}
-              className="rounded-[28px] bg-white/92 p-4 shadow-[0_18px_42px_rgba(15,35,66,0.1)] ring-1 ring-slate-200/80 sm:p-5"
+              className="rounded-[28px] bg-white p-7 shadow-[0_20px_42px_rgba(15,35,66,0.08)] ring-1 ring-slate-200/80 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
             >
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-sky-600">Điều khiển</p>
-                  <h2 className="mt-0.5 text-lg font-black tracking-tight text-slate-950">Kiểm tra biển số</h2>
+                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Điều khiển</p>
+                  <h2 className="mt-0.5 text-[28px] font-bold tracking-tight text-slate-900">Kiểm tra biển số</h2>
                 </div>
-                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-sky-50 text-sky-600 ring-1 ring-sky-100">
+                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-sky-50 text-sky-600 ring-1 ring-sky-100">
                   <ShieldCheck className="h-5 w-5" strokeWidth={1.7} />
                 </span>
               </div>
 
-              <div className="mt-4 space-y-3">
+              <div className="mt-6 space-y-4">
                 <label className="block">
-                  <span className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">Biển số</span>
+                  <span className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">Biển số</span>
                   <div className="relative mt-1.5">
+                    <span className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-slate-400">
+                      <Search className="h-5 w-5" strokeWidth={2} />
+                    </span>
                     <input
                       autoFocus
                       value={licensePlate}
@@ -269,12 +261,15 @@ export default function VehicleEntryPage() {
                         setError('');
                       }}
                       placeholder="29HT-12345"
-                      className={`h-12 w-full rounded-[18px] border-0 bg-slate-50 px-4 font-mono text-base font-black uppercase tracking-wide text-slate-950 outline-none ring-1 transition duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] placeholder:text-slate-400 focus:bg-white focus:ring-2 ${
+                      className={`h-14 w-full rounded-2xl border-0 bg-slate-50 pl-12 pr-12 font-mono text-base font-black uppercase tracking-wide text-slate-950 outline-none ring-1 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] placeholder:text-slate-400 focus:bg-white focus:ring-2 ${
                         plateRequiredError
                           ? 'ring-rose-300 focus:ring-rose-300'
                           : 'ring-slate-200 focus:ring-sky-300'
                       }`}
                     />
+                    <span className="pointer-events-none absolute right-4 top-1/2 z-10 -translate-y-1/2 text-slate-400">
+                      <X className="h-4 w-4" strokeWidth={2.2} />
+                    </span>
                   </div>
                   {plateRequiredError ? (
                     <p className="mt-2 rounded-2xl bg-rose-50 px-3 py-2 text-xs font-bold text-rose-600 ring-1 ring-rose-100">
@@ -284,7 +279,7 @@ export default function VehicleEntryPage() {
                 </label>
 
                 <label className="block">
-                  <span className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">Loại xe</span>
+                  <span className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">Loại xe</span>
                   <div className="group relative mt-1.5">
                     <div className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-sky-600">
                       {vehicleType === 'CAR' ? <CarFront className="h-5 w-5" strokeWidth={1.7} /> : <Bike className="h-5 w-5" strokeWidth={1.7} />}
@@ -296,7 +291,7 @@ export default function VehicleEntryPage() {
                         setResult(null);
                         setError('');
                       }}
-                      className="h-12 w-full cursor-pointer appearance-none rounded-[18px] border-0 bg-white/88 pl-12 pr-14 text-sm font-black text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_8px_22px_rgba(15,35,66,0.04)] outline-none ring-1 ring-slate-200/90 transition duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-white hover:ring-sky-200 focus:bg-white focus:ring-2 focus:ring-sky-300"
+                      className="h-14 w-full cursor-pointer appearance-none rounded-2xl border-0 bg-white/88 pl-12 pr-14 text-sm font-semibold text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_8px_22px_rgba(15,35,66,0.04)] outline-none ring-1 ring-slate-200/90 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-white hover:ring-sky-200 focus:bg-white focus:ring-2 focus:ring-sky-300"
                     >
                       <option value="MOTORBIKE">Xe máy</option>
                       <option value="CAR">Ô tô</option>
@@ -311,17 +306,25 @@ export default function VehicleEntryPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="group mt-4 flex h-12 w-full items-center justify-center gap-2.5 rounded-[18px] bg-sky-600 px-5 text-sm font-black text-white shadow-[0_16px_30px_rgba(37,99,235,0.24)] transition duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:bg-sky-700 active:scale-[0.98] disabled:translate-y-0 disabled:opacity-70"
+                className="group mt-6 flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 px-5 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(37,99,235,0.24)] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] disabled:translate-y-0 disabled:opacity-70"
               >
                 <span className="grid h-7 w-7 place-items-center rounded-full bg-white/16 transition duration-300 group-hover:translate-x-0.5">
                   <Search className="h-4 w-4" strokeWidth={2.2} />
                 </span>
                 {loading ? 'Đang kiểm tra' : 'Kiểm tra biển số'}
               </button>
+
+              <div className="mt-5 inline-flex w-full items-center gap-2 rounded-2xl bg-slate-100 px-3.5 py-2.5 text-xs font-semibold text-slate-500 ring-1 ring-slate-200">
+                <Info className="h-4 w-4 text-blue-500" strokeWidth={2} />
+                Nhập biển số hoặc chờ nhận diện từ camera
+              </div>
             </form>
           </aside>
 
-          <main className="flex min-h-0 flex-col">
+          <main className="relative flex min-h-0 flex-col">
+            <div className="pointer-events-none absolute -right-16 top-8 h-64 w-64 rounded-full bg-blue-200/35 blur-3xl" />
+            <div className="pointer-events-none absolute left-1/3 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-cyan-200/28 blur-3xl" />
+
             <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {CAMERA_FEEDS.map((feed) => (
                 <CameraCard key={feed.id} feed={feed} />
@@ -329,21 +332,45 @@ export default function VehicleEntryPage() {
             </section>
 
             <section
-              className={`relative mt-4 overflow-hidden rounded-[30px] bg-gradient-to-br ${theme.shellClass} p-4 shadow-[0_18px_42px_rgba(15,35,66,0.1)] ring-1`}
+              className={`relative mt-6 overflow-hidden rounded-[30px] bg-gradient-to-br ${theme.shellClass} p-6 shadow-[0_18px_42px_rgba(15,35,66,0.1)] ring-1 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl`}
             >
-              <div className={`absolute inset-y-4 left-0 w-1.5 rounded-r-full ${theme.accentClass}`} />
+              {hasPlate ? <div className={`absolute inset-y-6 left-0 w-1 rounded-r-full ${theme.accentClass}`} /> : null}
               <div className="relative">
                 <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-black ${theme.badgeClass} ring-1`}>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="inline-flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-blue-600">
+                      <Clock3 className="h-4 w-4" strokeWidth={2} />
+                      Kết quả kiểm tra
+                    </p>
+                    <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold ${theme.badgeClass} ring-1`}>
                       <StatusIcon className="h-4 w-4" strokeWidth={1.8} />
-                      {theme.label}
+                      {statusPill}
                     </span>
                   </div>
 
-                  <h2 className="mt-3 truncate font-mono text-[2.4rem] font-black leading-none tracking-tight text-slate-950 lg:text-[2.6rem]">
-                    {data.plate}
-                  </h2>
+                  <div className="mt-5 flex items-center gap-4 rounded-2xl bg-white/70 p-4 ring-1 ring-slate-200/70">
+                    <span className="grid h-20 w-20 shrink-0 place-items-center rounded-3xl bg-gradient-to-br from-blue-100 to-cyan-100 text-blue-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] ring-1 ring-blue-100">
+                      <Search className="h-10 w-10" strokeWidth={1.8} />
+                    </span>
+
+                    {hasPlate ? (
+                      <div className="min-w-0">
+                        <h2 className="truncate font-mono text-[30px] font-bold leading-none tracking-tight text-slate-950">{data.plate}</h2>
+                        <p className="mt-2 text-sm font-medium text-slate-500">
+                          Biển số đã được nhận diện. Kiểm tra thông tin và xác nhận xe vào bãi.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="min-w-0">
+                        <h2 className="text-[32px] font-bold leading-tight tracking-tight text-slate-900">
+                          Đang chờ kiểm tra biển số
+                        </h2>
+                        <p className="mt-2 text-sm font-medium text-slate-500">
+                          Nhập biển số hoặc quét camera để xác nhận xe vào bãi.
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
                   {error && !plateRequiredError ? (
                     <p className="mt-3 rounded-2xl bg-rose-50 px-4 py-2.5 text-sm font-bold text-rose-700 ring-1 ring-rose-100">
@@ -351,28 +378,41 @@ export default function VehicleEntryPage() {
                     </p>
                   ) : null}
 
-                  <div className="mt-3.5 grid items-stretch gap-3 md:grid-cols-[repeat(3,minmax(0,1fr))_300px]">
+                  <div className="mt-5 grid items-stretch gap-3 md:grid-cols-[repeat(3,minmax(0,1fr))_300px]">
                     {[
-                      { label: 'Loại xe', value: data.type },
-                      { label: 'Loại khách', value: data.customer },
-                      { label: 'Thời gian vào', value: data.time },
-                    ].map((item) => (
-                      <div key={item.label} className="rounded-[20px] bg-white/76 px-4 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] ring-1 ring-slate-200/70">
-                        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">{item.label}</p>
-                        <p className="mt-1 truncate text-sm font-black text-slate-900">{item.value}</p>
-                      </div>
-                    ))}
+                      { label: 'Loại xe', value: data.type, icon: CarFront },
+                      { label: 'Loại khách', value: data.customer, icon: UserRound },
+                      { label: 'Thời gian vào', value: data.time, icon: Clock3 },
+                    ].map((item) => {
+                      const MetricIcon = item.icon;
+
+                      return (
+                        <div
+                          key={item.label}
+                          className="rounded-2xl bg-white/82 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-slate-200/70 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+                        >
+                          <div className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                            <MetricIcon className="h-4 w-4" strokeWidth={1.8} />
+                          </div>
+                          <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">{item.label}</p>
+                          <p className="mt-1 truncate text-sm font-semibold text-slate-900">{item.value}</p>
+                        </div>
+                      );
+                    })}
+
                     <button
                       type="button"
                       onClick={confirm}
                       disabled={!data.canConfirm || confirming}
-                      className={`flex min-h-[76px] w-full items-center justify-center gap-2 rounded-[20px] px-4 text-base font-black transition duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] disabled:active:scale-100 ${
+                      className={`flex min-h-[92px] w-full items-center justify-center gap-2 rounded-2xl px-4 text-base font-semibold transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] disabled:active:scale-100 ${
                         data.canConfirm
-                          ? 'bg-sky-600 text-white shadow-[0_14px_28px_rgba(14,165,233,0.24)] hover:-translate-y-0.5 hover:bg-sky-700'
-                          : 'cursor-not-allowed bg-slate-100 text-slate-500 ring-1 ring-slate-200'
+                          ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-[0_14px_28px_rgba(14,165,233,0.24)] hover:-translate-y-0.5 hover:shadow-lg'
+                          : 'cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200'
                       }`}
                     >
-                      <CheckCircle2 className="h-5 w-5" strokeWidth={2} />
+                      <span className={`grid h-7 w-7 place-items-center rounded-full ${data.canConfirm ? 'bg-white/15' : 'bg-slate-200 text-slate-400'}`}>
+                        <CheckCircle2 className="h-5 w-5" strokeWidth={2} />
+                      </span>
                       {confirming ? 'Đang xác nhận' : 'Xác nhận cho vào'}
                     </button>
                   </div>

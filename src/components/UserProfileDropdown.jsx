@@ -108,12 +108,12 @@ export default function UserProfileDropdown({ onViewProfile, onChangePassword, p
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="User menu"
-        className="grid h-12 w-12 place-items-center rounded-2xl border border-white/70 bg-white/70 shadow-[0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur-xl transition duration-200 hover:bg-white/85 hover:shadow-md active:scale-[0.98]"
+        className="grid h-11 w-11 place-items-center rounded-full border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:scale-[1.03] hover:shadow-md active:scale-[0.98]"
       >
         <AvatarImage
           src={selectedAvatar}
           initials={initials}
-          className="h-10 w-10 text-xs ring-2 ring-white"
+          className="h-9 w-9 text-xs ring-2 ring-white"
         />
       </button>
 

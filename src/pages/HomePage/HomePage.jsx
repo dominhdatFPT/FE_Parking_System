@@ -1,5 +1,20 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
+import {
+  Activity,
+  ArrowDownToLine,
+  ArrowRight,
+  ArrowUpFromLine,
+  Building2,
+  CarFront,
+  CalendarDays,
+  CircleDollarSign,
+  ClipboardList,
+  Clock3,
+  RefreshCw,
+  SquareParking,
+  Ticket,
+} from 'lucide-react';
 import SessionDetailDrawer from '../../components/parking/SessionDetailDrawer';
 import { getStaffOperationsDashboard } from '../../services/staffService';
 import { apiDateTimeMillis, formatVietnamTime } from '../../utils/dateTime';
@@ -318,6 +333,13 @@ function KpiDropdown({ type, data }) {
 }
 
 function OperationsDock({ stats, capacityPercent, openKpi, onKpiClick, currentData }) {
+  const cardIconMap = {
+    entries: ArrowDownToLine,
+    exits: ArrowUpFromLine,
+    revenue: CircleDollarSign,
+    capacity: SquareParking,
+  };
+
   return (
     <Card className="overflow-visible" p="p-2">
       <div className="grid grid-cols-1 gap-1 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1.35fr]">
@@ -349,7 +371,6 @@ function OperationsDock({ stats, capacityPercent, openKpi, onKpiClick, currentDa
                     </span>
                   </div>
 
-                  {isCapacity ? (
                     <div>
                       <div className="mb-1.5 flex items-center justify-between text-[10px] font-semibold text-slate-400">
                         <span>{capacityPercent}% sử dụng</span>
@@ -358,20 +379,52 @@ function OperationsDock({ stats, capacityPercent, openKpi, onKpiClick, currentDa
                       <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
                         <div className="h-full rounded-full bg-sky-500 transition-all duration-500" style={{ width: `${capacityPercent}%` }} />
                       </div>
+                      <p className="mt-4 text-[16px] font-medium">
+                        <span className="bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text font-semibold text-transparent">
+                          {capacityPercent}%
+                        </span>
+                        <span className="ml-2 text-[#64748B]">Occupied</span>
+                      </p>
                     </div>
-                  ) : null}
-                </div>
+                  </div>
+                ) : (
+                  <div className="flex h-full flex-col justify-between gap-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-[17px] font-semibold text-[#111827]">{stat.label}</p>
+                        <p className="mt-2.5 text-[42px] font-bold leading-none tracking-tight text-[#111827]">{stat.value}</p>
+                        <p className="mt-2 text-[15px] font-medium text-[#64748B]">{stat.description}</p>
+                      </div>
+                      <span className="relative">
+                        <span className={`absolute inset-0 rounded-full bg-gradient-to-br opacity-60 blur-md ${iconTone}`} />
+                        <span className={`relative grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br text-white shadow-[0_10px_22px_rgba(15,23,42,0.16)] ${iconTone}`}>
+                          <StatIcon className="h-6 w-6" />
+                        </span>
+                      </span>
+                    </div>
+
+                    <div className="flex items-end justify-between gap-3">
+                      <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${badgeTone}`}>
+                        {stat.key === 'entries' && 'Cập nhật hôm nay'}
+                        {stat.key === 'exits' && 'Lượt xe hoàn tất'}
+                        {stat.key === 'revenue' && 'Doanh thu trong ngày'}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </button>
               {isOpen ? <KpiDropdown type={stat.key} data={stat.data} /> : null}
             </div>
           );
-        })}
-      </div>
-    </Card>
+      })}
+    </div>
   );
 }
 
-function SessionTable({ title, sessions, emptyText, onViewAll, onDetail, completed = false }) {
+function SessionTable({ title, subtitle, sessions, emptyText, onViewAll, onDetail, completed = false }) {
+  const isActiveSection = !completed;
+  const HeaderIcon = isActiveSection ? Activity : Clock3;
+
   return (
     <Card p="p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -381,7 +434,7 @@ function SessionTable({ title, sessions, emptyText, onViewAll, onDetail, complet
           onClick={onViewAll}
           className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition-all duration-300 hover:bg-slate-50 hover:text-slate-800"
         >
-          Xem tất cả
+          Xem tất cả <ArrowRight className="h-4 w-4" />
         </button>
       </div>
 
@@ -412,7 +465,6 @@ function SessionTable({ title, sessions, emptyText, onViewAll, onDetail, complet
                     <span className="text-[10px] font-bold text-slate-400">{getCompletedFee(session)}</span>
                   ) : null}
                 </div>
-              </div>
 
               <div className="min-w-0 text-center sm:justify-self-center">
                 <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Giờ vào</p>
@@ -435,8 +487,8 @@ function SessionTable({ title, sessions, emptyText, onViewAll, onDetail, complet
                   Chi tiết
                 </button>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </div>
     </Card>
@@ -483,8 +535,6 @@ export default function HomePage() {
         label: 'Xe vào',
         value: loading ? '...' : currentData.entries,
         description: 'Lượt vào trong ngày',
-        icon: 'IN',
-        tone: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
         data: currentData,
       },
       {
@@ -492,8 +542,6 @@ export default function HomePage() {
         label: 'Xe ra',
         value: loading ? '...' : currentData.exits,
         description: 'Lượt ra trong ngày',
-        icon: 'OUT',
-        tone: 'bg-slate-100 text-slate-700 ring-slate-200',
         data: currentData,
       },
       {
@@ -501,8 +549,6 @@ export default function HomePage() {
         label: 'Doanh thu',
         value: loading ? '...' : currentData.revenue,
         description: 'Đã thu trong ngày',
-        icon: 'đ',
-        tone: 'bg-amber-50 text-amber-700 ring-amber-100',
         data: currentData,
       },
       {
@@ -510,8 +556,6 @@ export default function HomePage() {
         label: 'Công suất bãi',
         value: loading ? '...' : currentData.capacity,
         description: `${currentData.availableSlots} chỗ còn trống`,
-        icon: '%',
-        tone: 'bg-sky-50 text-sky-700 ring-sky-100',
         progress: capacity.percent,
         wide: true,
         data: currentData,
@@ -546,42 +590,89 @@ export default function HomePage() {
   }, [openKpi]);
 
   return (
-    <div className="space-y-6">
-      <Card className="relative overflow-hidden p-5 sm:p-6">
-        <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-sky-200/40 blur-3xl" />
-        <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-950">Tình hình hôm nay</h1>
-            <p className="mt-2 max-w-2xl text-sm font-medium text-slate-500">
-              Theo dõi nhanh lượt xe, doanh thu và công suất bãi
-            </p>
-            {error ? <p className="mt-2 text-sm font-semibold text-rose-600">{error}</p> : null}
+    <div className="space-y-8 font-[Inter]">
+      <section className="relative min-h-[210px] overflow-hidden rounded-[32px] border border-white/90 bg-[linear-gradient(135deg,#ffffff,#eef6ff)] px-6 py-6 shadow-sm lg:px-8">
+        <div className="pointer-events-none absolute -left-12 -top-12 h-56 w-56 rounded-full bg-blue-100/80 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-20 right-24 h-52 w-52 rounded-full bg-sky-100/70 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-3 right-8 hidden h-[154px] w-[392px] lg:block">
+          <div
+            className="absolute inset-0 bg-contain bg-right-bottom bg-no-repeat opacity-95"
+            style={{ backgroundImage: "url('/illustrations/parking-hero.svg')" }}
+          />
+          <div className="absolute inset-x-3 bottom-2 h-5 rounded-full bg-blue-400/25 blur-2xl" />
+        </div>
+
+        <div className="absolute right-8 top-6 z-20 hidden items-center gap-3 lg:flex">
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(event) => setSelectedDate(event.target.value)}
+            className="h-12 rounded-full border border-[#E5E7EB] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition-all duration-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+          />
+          <button
+            type="button"
+            onClick={() => setSelectedDate(getToday())}
+            className="inline-flex h-12 items-center gap-2 rounded-full border border-[#E5E7EB] bg-white px-5 text-sm font-semibold text-[#111827] transition-all duration-300 hover:scale-[1.02] hover:shadow-md"
+          >
+            <CalendarDays className="h-4 w-4 text-blue-600" />
+            Hôm nay
+          </button>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            className="inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-sky-500 px-5 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-xl active:shadow-[0_0_0_6px_rgba(37,99,235,0.18)]"
+          >
+            <RefreshCw className={`h-4 w-4 ${(refreshing || loading) ? 'animate-spin' : ''}`} />
+            {refreshing || loading ? 'Đang tải...' : 'Làm mới'}
+          </button>
+        </div>
+
+        <div className="relative flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+          <div className="flex items-start gap-4">
+            <span className="relative mt-1 grid h-14 w-14 shrink-0 place-items-center rounded-[18px] bg-gradient-to-br from-blue-600 to-sky-500 text-white shadow-[0_12px_24px_rgba(37,99,235,0.32)]">
+              <SquareParking className="h-7 w-7" />
+            </span>
+            <div>
+              <h1 className="text-[36px] font-bold leading-none tracking-tight text-[#111827] sm:text-[48px]">Tình hình hôm nay</h1>
+              <p className="mt-3 max-w-2xl text-[15px] font-medium text-[#64748B]">
+                Theo dõi nhanh lượt xe, doanh thu và công suất bãi.
+              </p>
+              {error ? <p className="mt-2 text-sm font-semibold text-rose-600">{error}</p> : null}
+            </div>
           </div>
 
-          <div className="flex w-full flex-wrap items-center gap-2 xl:w-auto xl:justify-end">
+          <div className="flex w-full flex-wrap items-center gap-3 lg:mt-12 xl:w-auto xl:justify-end lg:hidden">
             <input
               type="date"
               value={selectedDate}
               onChange={(event) => setSelectedDate(event.target.value)}
-              className="h-10 rounded-2xl border border-white/80 bg-white/80 px-3 text-sm font-semibold text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+              className="h-12 rounded-full border border-[#E5E7EB] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition-all duration-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
             />
             <button
               type="button"
               onClick={() => setSelectedDate(getToday())}
-              className="h-10 rounded-2xl border border-white/80 bg-white/80 px-4 text-sm font-semibold text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.05)] transition hover:bg-white active:scale-[0.98]"
+              className="inline-flex h-12 items-center gap-2 rounded-full border border-[#E5E7EB] bg-white px-5 text-sm font-semibold text-[#111827] transition-all duration-300 hover:scale-[1.02] hover:shadow-md"
             >
+              <CalendarDays className="h-4 w-4 text-blue-600" />
               Hôm nay
             </button>
             <button
               type="button"
               onClick={handleRefresh}
-              className="h-10 rounded-2xl bg-sky-500 px-4 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(14,165,233,0.24)] transition hover:bg-sky-600 active:scale-[0.98]"
+              className="inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-sky-500 px-5 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-xl active:shadow-[0_0_0_6px_rgba(37,99,235,0.18)]"
             >
+              <RefreshCw className={`h-4 w-4 ${(refreshing || loading) ? 'animate-spin' : ''}`} />
               {refreshing || loading ? 'Đang tải...' : 'Làm mới'}
             </button>
           </div>
         </div>
-      </Card>
+
+        <div className="pointer-events-none absolute bottom-4 left-8 hidden items-center gap-3 text-blue-300 opacity-60 lg:flex">
+          <CarFront className="h-5 w-5" />
+          <Building2 className="h-5 w-5" />
+          <SquareParking className="h-5 w-5" />
+        </div>
+      </section>
 
       <section ref={kpiRowRef} className="relative z-30">
         <OperationsDock
@@ -592,9 +683,10 @@ export default function HomePage() {
           currentData={currentData}
         />
       </section>
-      <section className="relative z-0 grid grid-cols-1 gap-4 2xl:grid-cols-2">
+      <section className="relative z-0 grid grid-cols-1 gap-8 2xl:auto-rows-fr 2xl:grid-cols-2">
         <SessionTable
           title="Phiên đang hoạt động"
+          subtitle="Theo dõi các phương tiện trong bãi."
           sessions={currentData.sessions}
           emptyText={loading ? 'Đang tải dữ liệu...' : 'Chưa có phiên đang hoạt động.'}
           onViewAll={() => navigate('/admin/parking-sessions')}
@@ -602,6 +694,7 @@ export default function HomePage() {
         />
         <SessionTable
           title="Phiên gần đây"
+          subtitle="Danh sách lượt xe đã hoàn thành gần nhất."
           sessions={currentData.completedSessions}
           emptyText={loading ? 'Đang tải dữ liệu...' : 'Chưa có phiên gần đây.'}
           onViewAll={() => navigate('/admin/parking-sessions')}
