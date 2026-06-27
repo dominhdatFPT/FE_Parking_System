@@ -18,7 +18,6 @@ export default function DriverVehicleRegistration() {
   // Form Fields State
   const [vehicleType, setVehicleType] = useState(preselectedType);
   const [selectedPlans, setSelectedPlans] = useState(preselectedPlans);
-  const [licensePlate, setLicensePlate] = useState('');
 
   // File Upload State (CCCD requires 2 sides)
   const [cccdFrontFile, setCccdFrontFile] = useState(null);
@@ -104,17 +103,10 @@ export default function DriverVehicleRegistration() {
       setError(t('vehicleRegistration.errorLicensePlate'));
       return;
     }
-    const normalizedLicensePlate = licensePlate.trim().toUpperCase();
-    if (!normalizedLicensePlate) {
-      setError(t('vehicleRegistration.errorEnterPlate', { defaultValue: 'Vui long nhap bien so xe.' }));
-      return;
-    }
-
     setSubmitting(true);
     try {
     const payload = {
       vehicleTypeId: vehicleType === 'CAR' ? 2 : 1,
-      licensePlate: normalizedLicensePlate,
       cccdFrontImage: await fileToBase64(cccdFrontFile),
       cccdBackImage: await fileToBase64(cccdBackFile),
       licenseImage: await fileToBase64(driverLicenseFile),
@@ -240,7 +232,6 @@ export default function DriverVehicleRegistration() {
                       setDriverLicenseFile(null);
                       setVehicleDocsFile(null);
                       setLicensePlateFile(null);
-                      setLicensePlate('');
                       setSelectedPlans([]);
                     }}
                   >
@@ -297,24 +288,8 @@ export default function DriverVehicleRegistration() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="mb-1.5 block text-xs font-bold text-slate-500">{t('vehicleRegistration.licensePlateNumber', { defaultValue: 'Bien so xe *' })}</label>
-                  <div className="relative">
-                    <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">
-                      confirmation_number
-                    </span>
-                    <input
-                      type="text"
-                      value={licensePlate}
-                      onChange={(e) => setLicensePlate(e.target.value.toUpperCase())}
-                      placeholder={t('vehicleRegistration.platePlaceholder', { defaultValue: 'Nhap bien so xe...' })}
-                      className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm font-bold uppercase tracking-wide text-slate-700 outline-none transition-all duration-200 placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-400 focus:border-[#0EA5E9] focus:ring-4 focus:ring-sky-100"
-                    />
-                  </div>
-                </div>
-
                 <div className="rounded-xl border border-sky-100 bg-sky-50/70 p-3 text-xs leading-relaxed text-sky-800">
-                  Ho ten duoc lay tu tai khoan. Bien so ban nhap se duoc staff doi chieu voi anh bien so va giay dang ky xe khi duyet.
+                  Họ tên được lấy từ tài khoản. Biển số, hãng và màu xe được hệ thống đọc từ ảnh bạn cung cấp để staff đối chiếu khi duyệt.
                 </div>
 
                 {/* Selected Plans List */}
@@ -411,13 +386,6 @@ export default function DriverVehicleRegistration() {
                   </div>
 
                   <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-50">
-                    <span className="text-slate-500 font-medium">{t('vehicleRegistration.licensePlateNumber', { defaultValue: 'Bien so xe *' })}</span>
-                    <span className="font-bold text-slate-700">
-                      {licensePlate.trim() || t('vehicleRegistration.ocrPlateWaiting')}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-50">
                     <span className="text-slate-500 font-medium">{t('vehicleRegistration.selectedPlans')}</span>
                     <span className="font-bold text-slate-700 text-right max-w-[150px] truncate">
                       {selectedPlans.length > 0
@@ -481,8 +449,8 @@ export default function DriverVehicleRegistration() {
                       </div>
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-slate-500">{t('vehicleRegistration.ocrPlate')}</span>
-                        <span className={`font-bold ${licensePlate.trim() ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-                          {licensePlate.trim() || t('vehicleRegistration.ocrPlateWaiting')}
+                        <span className={`font-bold ${licensePlateFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
+                          {licensePlateFile ? 'Sẽ đọc khi gửi hồ sơ' : t('vehicleRegistration.ocrPlateWaiting')}
                         </span>
                       </div>
                     </div>
