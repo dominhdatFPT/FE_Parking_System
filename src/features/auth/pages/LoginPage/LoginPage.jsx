@@ -74,7 +74,7 @@ const loginTranslations = {
     hidePassword: 'Ẩn mật khẩu',
     showPassword: 'Hiện mật khẩu',
     trust: {
-      lpr: 'AI nhận diện biển số',
+      lpr: 'Nhận diện biển số',
       monitoring: 'Giám sát bãi xe thời gian thực',
       barrier: 'Điều khiển Barrier thông minh',
       cloud: 'Hạ tầng Cloud bảo mật',
@@ -126,7 +126,7 @@ const loginTranslations = {
     hidePassword: 'Hide password',
     showPassword: 'Show password',
     trust: {
-      lpr: 'AI license plate recognition',
+      lpr: 'License plate recognition',
       monitoring: 'Real-time parking monitoring',
       barrier: 'Smart Barrier control',
       cloud: 'Secure Cloud infrastructure',

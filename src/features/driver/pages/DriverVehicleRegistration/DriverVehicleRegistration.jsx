@@ -200,7 +200,7 @@ export default function DriverVehicleRegistration() {
       <PageHeader
         title={t('vehicleRegistration.title')}
         subtitle={t('vehicleRegistration.subtitle')}
-        icon="assignment_ind"
+        icon="assignment_ind" variant="banner"
       />
 
       <div className="grid gap-6 lg:grid-cols-5">

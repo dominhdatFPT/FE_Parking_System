@@ -218,7 +218,7 @@ export default function DriverFeePlans() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('feePlans.title')} subtitle={t('feePlans.subtitle')} icon="sell" />
+      <PageHeader title={t('feePlans.title')} subtitle={t('feePlans.subtitle')} icon="sell" variant="banner" />
 
       {errorMessage && !submittedSuccess && (
         <div className="rounded-2xl bg-red-50 border border-red-200 p-4 flex items-start gap-3">

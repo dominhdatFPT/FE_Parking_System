@@ -170,7 +170,7 @@ export default function DriverPayment() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('payment.title')} subtitle={t('payment.subtitle')} icon="payments" />
+      <PageHeader title={t('payment.title')} subtitle={t('payment.subtitle')} icon="payments" variant="banner" />
 
       {success && success.status === 'PENDING' && (
         <div className="flex items-center gap-3 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-700 shadow-sm ring-1 ring-amber-100">

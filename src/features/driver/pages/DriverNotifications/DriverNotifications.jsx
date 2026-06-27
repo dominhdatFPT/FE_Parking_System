@@ -73,7 +73,7 @@ export default function DriverNotifications() {
       <PageHeader
         title={t('notifications.title')}
         subtitle={unreadCount > 0 ? t('notifications.unreadCount', { count: unreadCount }) : t('dashboard.confirmedBookings')}
-        icon="notifications"
+        icon="notifications" variant="banner"
         actions={
           unreadCount > 0 ? (
             <Button variant="secondary" size="md" icon="done_all" onClick={handleMarkAllRead}>

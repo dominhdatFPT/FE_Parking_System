@@ -62,7 +62,7 @@ export default function DriverSupport() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('support.title')} subtitle={t('support.subtitle')} icon="help" />
+      <PageHeader title={t('support.title')} subtitle={t('support.subtitle')} icon="help" variant="banner" />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="group rounded-2xl border border-slate-100/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:-translate-y-0.5">
