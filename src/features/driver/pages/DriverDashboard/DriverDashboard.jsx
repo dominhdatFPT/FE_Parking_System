@@ -1,78 +1,266 @@
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 import { useAuth } from '../../../../contexts/useAuth';
 import { ROUTES } from '../../../../constants/routes';
 import NotificationPanel from '../../components/NotificationPanel';
 
 const quickActions = [
   {
-    route: ROUTES.DRIVER.VEHICLE_REGISTRATION,
+    key: 'registerVehicle',
+    path: ROUTES.DRIVER.VEHICLE_REGISTRATION,
+    labelVi: 'Đăng ký thẻ xe',
+    labelEn: 'Vehicle card',
+    descVi: 'Gửi hồ sơ thẻ tháng',
+    descEn: 'Submit monthly pass',
     icon: 'assignment_ind',
-    title: 'Đăng ký thẻ xe',
-    description: 'Gửi hồ sơ đăng ký phương tiện và theo dõi kết quả xét duyệt.',
-    tone: 'from-sky-500 to-cyan-500',
+    color: 'text-[#0EA5E9] bg-[#E0F2FE]',
   },
   {
-    route: ROUTES.DRIVER.FEE_PLANS,
+    key: 'feePlans',
+    path: ROUTES.DRIVER.FEE_PLANS,
+    labelVi: 'Biểu phí',
+    labelEn: 'Fee plans',
+    descVi: 'Chọn gói phù hợp',
+    descEn: 'Choose your package',
     icon: 'sell',
-    title: 'Biểu phí thẻ xe',
-    description: 'Chọn phương tiện và mua gói gửi xe phù hợp.',
-    tone: 'from-blue-600 to-indigo-600',
+    color: 'text-[#2563EB] bg-[#EFF6FF]',
   },
   {
-    route: ROUTES.DRIVER.PAYMENT,
+    key: 'payment',
+    path: ROUTES.DRIVER.PAYMENT,
+    labelVi: 'Thanh toán',
+    labelEn: 'Payments',
+    descVi: 'Hóa đơn & giao dịch',
+    descEn: 'Invoices & payments',
     icon: 'payments',
-    title: 'Thanh toán',
-    description: 'Thanh toán gói và kiểm tra lịch sử hóa đơn.',
-    tone: 'from-emerald-500 to-teal-500',
+    color: 'text-[#059669] bg-[#ECFDF5]',
   },
   {
-    route: ROUTES.DRIVER.SUPPORT,
-    icon: 'help',
-    title: 'Hỗ trợ',
-    description: 'Gửi yêu cầu và nhận phản hồi từ nhân viên hỗ trợ.',
-    tone: 'from-violet-500 to-purple-600',
+    key: 'support',
+    path: ROUTES.DRIVER.SUPPORT,
+    labelVi: 'Hỗ trợ',
+    labelEn: 'Support',
+    descVi: 'Trợ lý và yêu cầu',
+    descEn: 'Help and tickets',
+    icon: 'smart_toy',
+    color: 'text-[#7C3AED] bg-[#F3E8FF]',
   },
 ];
+
+const suggestedLots = [
+  {
+    id: 'zone-a',
+    name: 'Khu gửi xe trung tâm',
+    address: 'Cổng chính, tầng trệt',
+    availableSlots: 42,
+    totalSlots: 100,
+  },
+  {
+    id: 'zone-b',
+    name: 'Khu thẻ tháng',
+    address: 'Lối vào khu B',
+    availableSlots: 18,
+    totalSlots: 64,
+  },
+];
+
+const steps = [
+  { icon: 'badge', title: 'Hồ sơ', text: 'Chuẩn bị CCCD, bằng lái và ảnh đăng ký xe.' },
+  { icon: 'approval_delegation', title: 'Xét duyệt', text: 'Staff đối chiếu thông tin trước khi kích hoạt.' },
+  { icon: 'credit_card', title: 'Thanh toán', text: 'Mua gói thẻ xe sau khi hồ sơ hợp lệ.' },
+];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 14 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring', stiffness: 120, damping: 18 },
+  },
+};
 
 export default function DriverDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const displayName = user?.fullName || user?.name || t('driverDashboard.driver');
+  const isVietnamese = i18n.language === 'vi';
 
   return (
-    <div className="space-y-6">
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-sky-950 p-7 text-white shadow-xl shadow-sky-950/10">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-sky-300">Smart Parking</p>
-        <h1 className="mt-3 text-3xl font-black">Xin chào, {displayName}</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-          Quản lý đăng ký thẻ xe, mua biểu phí, thanh toán và yêu cầu hỗ trợ tại một nơi.
-          Nút trợ lý ở góc màn hình sẽ hướng dẫn đăng ký xe từng bước.
-        </p>
-      </section>
-
-      <section>
-        <h2 className="mb-4 text-sm font-black uppercase tracking-wider text-slate-400">Chức năng chính</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {quickActions.map((action) => (
-            <button
-              key={action.route}
-              type="button"
-              onClick={() => navigate(action.route)}
-              className="group rounded-3xl border border-slate-100 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
-            >
-              <span className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${action.tone} text-white shadow-md`}>
-                <span className="material-symbols-outlined">{action.icon}</span>
-              </span>
-              <h3 className="mt-4 text-base font-black text-slate-800">{action.title}</h3>
-              <p className="mt-1 text-sm leading-6 text-slate-500">{action.description}</p>
-            </button>
-          ))}
+    <motion.div
+      className="mx-auto flex max-w-[1400px] flex-col px-1"
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+    >
+      <motion.section
+        variants={itemVariants}
+        className="relative mb-8 overflow-hidden rounded-[24px] border border-[#4BB8FA] bg-[#4BB8FA] p-5 shadow-[0_18px_46px_rgba(14,165,233,0.16)] md:mb-10 md:p-6"
+      >
+        <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-white/20 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-1/3 h-20 w-80 rounded-full bg-[#0EA5E9]/20 blur-2xl" />
+        <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/80">Driver workspace</p>
+            <h1 className="mt-2 text-2xl font-black tracking-tight text-white md:text-3xl">
+              Xin chào, {displayName}
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm font-semibold leading-relaxed text-white/90">
+              Theo dõi hồ sơ thẻ xe, biểu phí, thanh toán và thông báo trong một màn hình tổng quan.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate(ROUTES.DRIVER.VEHICLE_REGISTRATION)}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/70 bg-white px-4 py-2.5 text-sm font-bold text-[#0369A1] shadow-[0_14px_30px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 hover:bg-[#F8FAFC] active:scale-[0.98]"
+          >
+            <span className="material-symbols-outlined text-[18px]">add_circle</span>
+            Đăng ký thẻ xe
+          </button>
         </div>
-      </section>
+      </motion.section>
 
-      <NotificationPanel />
-    </div>
+      <div className="grid gap-8 lg:grid-cols-3">
+        <div className="flex flex-col gap-8 lg:col-span-2">
+          <motion.section variants={itemVariants} className="rounded-[24px] border border-[#E5E7EB] bg-white p-1.5 shadow-[0_18px_46px_rgba(15,23,42,0.06)]">
+            <div className="grid gap-6 rounded-[18px] border border-[#E5E7EB] bg-gradient-to-br from-white via-[#F8FAFC] to-[#E0F2FE] p-5 md:grid-cols-5 md:items-center">
+              <div className="space-y-4 md:col-span-3">
+                <span className="inline-flex rounded-full bg-[#E0F2FE] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#0369A1]">
+                  Tổng quan thẻ xe
+                </span>
+                <div>
+                  <h2 className="text-xl font-black tracking-tight text-[#0F172A]">Bắt đầu bằng hồ sơ đăng ký</h2>
+                  <p className="mt-2 max-w-[52ch] text-sm font-medium leading-relaxed text-[#64748B]">
+                    Nhập biển số, chọn loại phương tiện và gửi 4 ảnh minh chứng để staff xét duyệt thẻ tháng.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => navigate(ROUTES.DRIVER.VEHICLE_REGISTRATION)}
+                    className="inline-flex items-center gap-2 rounded-full bg-[#0EA5E9] px-4 py-2 text-xs font-bold text-white shadow-[0_12px_24px_rgba(14,165,233,0.22)] transition hover:bg-[#0284C7] active:scale-[0.98]"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">assignment_ind</span>
+                    Gửi hồ sơ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate(ROUTES.DRIVER.FEE_PLANS)}
+                    className="inline-flex items-center gap-2 rounded-full border border-[#BAE6FD] bg-white px-4 py-2 text-xs font-bold text-[#0369A1] transition hover:bg-[#F0F9FF] active:scale-[0.98]"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">sell</span>
+                    Xem biểu phí
+                  </button>
+                </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <div className="relative mx-auto aspect-square max-w-[180px] overflow-hidden rounded-3xl border border-white bg-white/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_18px_38px_rgba(14,165,233,0.12)]">
+                  <div className="absolute inset-x-5 top-1/2 h-[2px] -translate-y-1/2 bg-[#0EA5E9] shadow-[0_0_18px_rgba(14,165,233,0.75)]" />
+                  <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#F8FAFC]">
+                    <span className="material-symbols-outlined text-[68px] text-[#0EA5E9]" style={{ fontVariationSettings: "'wght' 220" }}>
+                      qr_code_2
+                    </span>
+                    <span className="mt-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#64748B]">Smart pass</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.section>
+
+          <motion.section variants={itemVariants} className="space-y-3">
+            <h3 className="px-1 text-xs font-black uppercase tracking-[0.18em] text-[#64748B]">Thao tác nhanh</h3>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              {quickActions.map((action) => (
+                <button
+                  key={action.key}
+                  type="button"
+                  onClick={() => navigate(action.path)}
+                  className="group flex min-h-[132px] flex-col justify-between rounded-[22px] border border-[#E5E7EB] bg-white p-4 text-left shadow-[0_12px_30px_rgba(15,23,42,0.04)] transition duration-300 hover:-translate-y-0.5 hover:border-[#BAE6FD] hover:shadow-[0_18px_42px_rgba(14,165,233,0.1)] active:scale-[0.98]"
+                >
+                  <span className={`flex h-10 w-10 items-center justify-center rounded-xl transition group-hover:scale-105 ${action.color}`}>
+                    <span className="material-symbols-outlined text-[20px]">{action.icon}</span>
+                  </span>
+                  <span>
+                    <span className="block text-sm font-black tracking-tight text-[#0F172A] group-hover:text-[#0EA5E9]">
+                      {isVietnamese ? action.labelVi : action.labelEn}
+                    </span>
+                    <span className="mt-1 block text-xs font-semibold text-[#64748B]">
+                      {isVietnamese ? action.descVi : action.descEn}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </motion.section>
+
+          <motion.section variants={itemVariants} className="grid gap-4 md:grid-cols-3">
+            {steps.map((step) => (
+              <div key={step.title} className="rounded-[22px] border border-[#E5E7EB] bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F1F5F9] text-[#0EA5E9]">
+                  <span className="material-symbols-outlined text-[20px]">{step.icon}</span>
+                </span>
+                <h4 className="mt-4 text-sm font-black text-[#0F172A]">{step.title}</h4>
+                <p className="mt-1 text-xs font-medium leading-relaxed text-[#64748B]">{step.text}</p>
+              </div>
+            ))}
+          </motion.section>
+        </div>
+
+        <div className="space-y-6">
+          <motion.section variants={itemVariants} className="rounded-[24px] border border-[#E5E7EB] bg-white p-5 shadow-[0_18px_46px_rgba(15,23,42,0.06)]">
+            <h3 className="border-b border-[#E5E7EB] pb-3 text-xs font-black uppercase tracking-[0.18em] text-[#64748B]">
+              Khu gửi xe gợi ý
+            </h3>
+            <div className="mt-4 space-y-4">
+              {suggestedLots.map((area) => {
+                const fillRate = Math.round(((area.totalSlots - area.availableSlots) / area.totalSlots) * 100);
+                return (
+                  <button
+                    key={area.id}
+                    type="button"
+                    onClick={() => navigate(ROUTES.DRIVER.FEE_PLANS)}
+                    className="group w-full rounded-2xl border border-[#E5E7EB] p-4 text-left transition duration-300 hover:-translate-y-0.5 hover:border-[#BAE6FD] hover:bg-[#F8FAFC] hover:shadow-[0_14px_30px_rgba(14,165,233,0.08)]"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h4 className="text-sm font-black tracking-tight text-[#0F172A] group-hover:text-[#0EA5E9]">{area.name}</h4>
+                        <p className="mt-1 text-xs font-medium text-[#64748B]">{area.address}</p>
+                      </div>
+                      <span className="material-symbols-outlined text-[18px] text-[#0EA5E9]">location_on</span>
+                    </div>
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.12em] text-[#64748B]">
+                        <span>Còn trống</span>
+                        <span className="font-mono text-[#334155]">{area.availableSlots} / {area.totalSlots}</span>
+                      </div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-[#E5E7EB]">
+                        <div
+                          className={`h-full rounded-full ${fillRate >= 75 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                          style={{ width: `${fillRate}%` }}
+                        />
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </motion.section>
+
+          <motion.div variants={itemVariants}>
+            <NotificationPanel />
+          </motion.div>
+        </div>
+      </div>
+    </motion.div>
   );
 }

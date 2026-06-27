@@ -1,17 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { NavLink, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import i18n from 'i18next';
 import {
-  Car, Bike, Zap, MapPin, CreditCard, Globe, ScanLine, CalendarDays,
-  Smartphone, CheckCircle2, AlertTriangle, Clock, ShieldCheck,
-  BatteryCharging, Maximize, Bell, ChevronRight, ChevronDown, Info,
-  TrendingUp, TrendingDown, Activity, BarChart3, Users,
-  LayoutDashboard, LogIn, UserPlus, Facebook, Github, Check,
-  AlertCircle, Sparkles, X, Shield, Settings, Eye, CheckSquare
+  Car, Zap, MapPin, CreditCard, Globe, ScanLine, CalendarDays,
+  Smartphone, CheckCircle2, Clock, ShieldCheck,
+  Bell, ChevronRight, ChevronDown,
+  TrendingUp, TrendingDown, BarChart3,
+  LayoutDashboard, LogIn, UserPlus, Facebook, Github, X,
+  Mail, Phone, Coins, Sparkles, Camera, DoorOpen, ClipboardList, Database
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { parkingAreaSummaryService } from '../../../../services/parkingAreaSummaryService';
 import {
   notificationService,
   getCategoryToneClass,
@@ -24,7 +23,7 @@ import Logo from '../../../../components/Logo';
 const translations = {
   vi: {
     nav: { home: "Trang chủ", dashboard: "Bảng điều khiển", notice: "Thông báo", explore: "Khám phá", login: "Đăng nhập", signup: "Đăng ký" },
-    hero: { badge: "Hệ thống đang hoạt động 24/7", title1: "Quản lý bãi đỗ xe", title2: "tòa nhà thông minh", desc: "Nền tảng Smart Parking hỗ trợ đăng ký thẻ xe, mua biểu phí, nhận diện biển số LPR và thanh toán không chạm.", f1: "Thanh toán không chạm", f2: "Nhận diện biển số LPR", f3: "Theo dõi thời gian thực" },
+    hero: { title1: "Quản lý bãi đỗ xe", title2: "tòa nhà thông minh", desc: "Nền tảng Smart Parking dành cho chung cư, văn phòng và trung tâm thương mại với đặt chỗ trước, nhận diện biển số LPR và theo dõi trạng thái thời gian thực.", f1: "Đặt chỗ trước", f2: "Nhận diện biển số LPR", f3: "Theo dõi thời gian thực" },
     kpi: { 
       c1: { title: "Tổng số Slot", unit: "chỗ" }, 
       c2: { title: "Slot còn trống", unit: "chỗ" }, 
@@ -73,13 +72,13 @@ const translations = {
     features: {
       title: "Công nghệ nổi bật",
       f1Title: "An toàn bảo mật",
-      f1Desc: "Camera AI giám sát 24/7, nhận diện biển số chuẩn xác 99.9%!",
+      f1Desc: "Camera giám sát 24/7, nhận diện biển số chuẩn xác 99.9%!",
       f2Title: "Tối ưu tốc độ",
       f2Desc: "Ra vào không chạm, không cần chờ đợi lấy thẻ từ.",
       f3Title: "Thanh toán dễ dàng",
       f3Desc: "Quét mã QR hoặc ví điện tử siêu nhanh gọn, không cần tiền mặt.",
       f4Title: "Ứng dụng di động",
-      f4Desc: "Đăng ký thẻ xe, mua gói và thanh toán dễ dàng ngay trên điện thoại!",
+      f4Desc: "Đặt chỗ trước, tìm vị trí xe đậu dễ dàng ngay trên điện thoại!",
       badge: "Hơn 10,000+ người dùng tin cậy"
     },
     process: {
@@ -89,11 +88,27 @@ const translations = {
       s3Title: "3. Thanh toán", s3Desc: "Thanh toán không tiền mặt khi ra.",
       rulesTitle: "Quy định", r1: "Cao: 2.2m", r2: "Tắt máy", r3: "Đỗ đúng vạch"
     },
+    showcase: {
+      title: "Trải nghiệm Đỗ xe Thông minh",
+      subtitle: "Khám phá quy trình khép kín tự động hóa, giúp bạn đỗ xe nhanh chóng và thuận tiện.",
+      tag: "HÀNH TRÌNH TRẢI NGHIỆM",
+      card1Title: "Đăng ký phương tiện",
+      card1Desc: "Đăng ký biển số và thông tin phương tiện để bắt đầu sử dụng hệ thống.",
+      card2Title: "Biểu phí minh bạch",
+      card2Desc: "Xem bảng giá rõ ràng và đầy đủ trước khi sử dụng dịch vụ.",
+      card3Title: "Nhận diện biển số",
+      card3Desc: "Camera tự động nhận diện biển số nhanh chóng và chính xác để hỗ trợ kiểm soát phương tiện.",
+      card4Title: "Trải nghiệm thông minh",
+      card4Desc: "Quản lý phương tiện, theo dõi lịch sử gửi xe và sử dụng dịch vụ trên giao diện trực quan, hiện đại.",
+      card5Title: "Thanh toán tiện lợi",
+      card5Desc: "Thanh toán nhanh chóng bằng QR hoặc các phương thức không tiền mặt."
+    },
     footer: { 
-      desc: "Giải pháp đỗ xe thông minh hàng đầu dành cho khu đô thị, trung tâm thương mại và tòa nhà văn phòng.",
-      products: "Sản phẩm", support: "Hỗ trợ", helpCenter: "Trung tâm trợ giúp", apiDocs: "Tài liệu API", community: "Cộng đồng",
-      contact: "Liên hệ", addressLabel: "Địa chỉ", addressVal: "Tòa nhà Nexus, 123 Trần Phú, Q.1, TP.HCM",
-      rights: "All rights reserved.", terms: "Điều khoản", privacy: "Bảo mật", cookies: "Cookies" 
+      desc: "Nền tảng quản lý bãi đỗ xe thông minh cho tòa nhà, chung cư và trung tâm thương mại.",
+      products: "Chức năng", f1: "Đăng ký thẻ xe", f3: "Quản lý phương tiện", f4: "Thanh toán",
+      support: "Hỗ trợ", faq: "Câu hỏi thường gặp", guide: "Hướng dẫn sử dụng",
+      contact: "Liên hệ", addressLabel: "Địa chỉ", addressVal: "TP. Hồ Chí Minh",
+      rights: "All rights reserved.", terms: "Điều khoản sử dụng", privacy: "Chính sách bảo mật" 
     },
     vehicleLog: {
       title: "Lịch sử Xe Ra / Vào",
@@ -121,7 +136,7 @@ const translations = {
   },
   en: {
     nav: { home: "Home", dashboard: "Dashboard", notice: "Notices", explore: "Explore", login: "Login", signup: "Sign Up" },
-    hero: { badge: "System running 24/7", title1: "Smart Building", title2: "Parking Management", desc: "Smart Parking platform for vehicle registration, monthly parking plans, LPR and contactless payment.", f1: "Contactless Payment", f2: "LPR System", f3: "Real-time Tracking" },
+    hero: { title1: "Smart Building", title2: "Parking Management", desc: "Smart Parking platform for apartments, offices and commercial centers with pre-booking, LPR system, and real-time tracking.", f1: "Pre-booking", f2: "LPR System", f3: "Real-time Tracking" },
     kpi: { 
       c1: { title: "Total Slots", unit: "slots" }, 
       c2: { title: "Available Slots", unit: "slots" }, 
@@ -170,13 +185,13 @@ const translations = {
     features: {
       title: "Key Features",
       f1Title: "Secure System",
-      f1Desc: "24/7 AI Camera monitoring, 99.9% accurate LPR!",
+      f1Desc: "24/7 Camera monitoring, 99.9% accurate LPR!",
       f2Title: "High Performance",
       f2Desc: "Contactless entry/exit, no need to wait for cards.",
       f3Title: "Seamless Payment",
       f3Desc: "Scan QR code or use e-wallets fast, cash-free.",
       f4Title: "Mobile Application",
-      f4Desc: "Register a vehicle card, buy a parking plan, and pay on your phone!",
+      f4Desc: "Pre-book slots, find your parking spot easily on your phone!",
       badge: "Trusted by over 10,000+ users"
     },
     process: {
@@ -186,11 +201,27 @@ const translations = {
       s3Title: "3. Pay", s3Desc: "Cashless payment upon exit.",
       rulesTitle: "Rules", r1: "Height: 2.2m", r2: "Engine off", r3: "Park within lines"
     },
+    showcase: {
+      title: "Smart Parking Journey",
+      subtitle: "Discover how simple and automated the parking cycle is with our SaaS infrastructure.",
+      tag: "USER JOURNEY",
+      card1Title: "Register Vehicle",
+      card1Desc: "Register your license plate and vehicle information to start using the system.",
+      card2Title: "Transparent Pricing",
+      card2Desc: "View clear and complete pricing details before using the service.",
+      card3Title: "License Plate Recognition",
+      card3Desc: "Camera automatically recognizes plates quickly and accurately to support vehicle control.",
+      card4Title: "Smart Parking Experience",
+      card4Desc: "Manage vehicles, track parking history, and use services on a modern, intuitive interface.",
+      card5Title: "Convenient Payment",
+      card5Desc: "Pay quickly with QR codes or other cashless methods."
+    },
     footer: { 
-      desc: "Leading smart parking solution for urban areas, commercial centers, and office buildings.",
-      products: "Products", support: "Support", helpCenter: "Help Center", apiDocs: "API Documentation", community: "Community",
-      contact: "Contact", addressLabel: "Address", addressVal: "Nexus Building, 123 Tran Phu, Dist 1, HCMC",
-      rights: "All rights reserved.", terms: "Terms", privacy: "Privacy", cookies: "Cookies" 
+      desc: "Smart parking management platform for buildings, apartments and shopping centers.",
+      products: "Features", f1: "Register parking card", f3: "Manage vehicle", f4: "Payment",
+      support: "Support", faq: "FAQs", guide: "User guide",
+      contact: "Contact", addressLabel: "Address", addressVal: "Ho Chi Minh City",
+      rights: "All rights reserved.", terms: "Terms of Use", privacy: "Privacy Policy" 
     },
     vehicleLog: {
       title: "Vehicle In / Out History",
@@ -300,6 +331,11 @@ const getAreaTone = (percent) => {
   };
 };
 
+void zoneData;
+void floorOptions;
+void generateParkingAreas;
+void getAreaTone;
+
 // --- HELPER HOOK ---
 const useScrollSpy = (ids, offset = 100) => {
   const [activeId, setActiveId] = useState('');
@@ -328,6 +364,18 @@ const useScrollSpy = (ids, offset = 100) => {
 const Navbar = ({ lang, setLang, t }) => {
   const navigate = useNavigate();
   const activeSection = useScrollSpy(['hero', 'dashboard', 'thong-bao', 'kham-pha'], 200);
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const isScrolled = scrollY > 20;
   
   const handleScrollToSection = (e, id) => {
     e.preventDefault();
@@ -349,25 +397,43 @@ const Navbar = ({ lang, setLang, t }) => {
     window.location.href = '/';
   };
 
+  const getNavLinkClass = (sectionId) => {
+    const isActive = activeSection === sectionId;
+    if (isActive) {
+      return isScrolled
+        ? 'px-4 py-2 text-sm font-semibold rounded-lg text-sky-700 bg-sky-50 transition-all duration-300'
+        : 'px-4 py-2 text-sm font-semibold rounded-lg text-sky-400 bg-white/10 transition-all duration-300';
+    }
+    return isScrolled
+      ? 'px-4 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-sky-600 hover:bg-slate-50 transition-all duration-300'
+      : 'px-4 py-2 text-sm font-semibold rounded-lg text-white hover:text-sky-300 hover:bg-white/5 transition-all duration-300';
+  };
+
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 transition-all">
+    <header 
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+        isScrolled 
+          ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200' 
+          : 'bg-transparent border-b border-transparent'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <div className="cursor-pointer" onClick={reloadPage}>
-            <Logo variant="horizontal" size="md" />
+            <Logo variant="horizontal" size="md" theme={isScrolled ? 'brand' : 'dark'} />
           </div>
 
           <nav className="hidden md:flex items-center gap-2">
-            <a href="#" onClick={handleScrollToTop} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeSection === 'hero' ? 'text-sky-700 bg-sky-50' : 'text-slate-500 hover:text-sky-600 hover:bg-slate-50'}`}>
+            <a href="#" onClick={handleScrollToTop} className={getNavLinkClass('hero')}>
               {t.nav.home}
             </a>
-            <a href="#dashboard" onClick={(e) => handleScrollToSection(e, 'dashboard')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeSection === 'dashboard' ? 'text-sky-700 bg-sky-50' : 'text-slate-500 hover:text-sky-600 hover:bg-slate-50'}`}>
+            <a href="#dashboard" onClick={(e) => handleScrollToSection(e, 'dashboard')} className={getNavLinkClass('dashboard')}>
               {t.nav.dashboard}
             </a>
-            <a href="#thong-bao" onClick={(e) => handleScrollToSection(e, 'thong-bao')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeSection === 'thong-bao' ? 'text-sky-700 bg-sky-50' : 'text-slate-500 hover:text-sky-600 hover:bg-slate-50'}`}>
+            <a href="#thong-bao" onClick={(e) => handleScrollToSection(e, 'thong-bao')} className={getNavLinkClass('thong-bao')}>
               {t.nav.notice}
             </a>
-            <a href="#kham-pha" onClick={(e) => handleScrollToSection(e, 'kham-pha')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeSection === 'kham-pha' ? 'text-sky-700 bg-sky-50' : 'text-slate-500 hover:text-sky-600 hover:bg-slate-50'}`}>
+            <a href="#kham-pha" onClick={(e) => handleScrollToSection(e, 'kham-pha')} className={getNavLinkClass('kham-pha')}>
               {t.nav.explore}
             </a>
           </nav>
@@ -376,22 +442,33 @@ const Navbar = ({ lang, setLang, t }) => {
         <div className="flex items-center gap-4">
           <button 
             onClick={() => setLang(lang === 'vi' ? 'en' : 'vi')}
-            className="flex items-center gap-1.5 text-sm font-bold text-slate-600 hover:text-sky-600 transition-colors bg-slate-100 px-3 py-1.5 rounded-lg"
+            className={`flex items-center gap-1.5 text-sm font-semibold transition-all px-3 py-1.5 rounded-lg ${
+              isScrolled 
+                ? 'bg-slate-100 hover:bg-slate-200 hover:text-sky-600' 
+                : 'bg-white/10 hover:bg-white/20 hover:text-sky-300'
+            }`}
+            style={{ color: isScrolled ? '#475569' : '#ffffff' }}
           >
             <Globe className="w-4 h-4" />
             <span>{lang === 'vi' ? 'VN' : 'EN'}</span>
           </button>
-          <div className="h-5 w-px bg-slate-200 hidden sm:block"></div>
+          <div className={`h-5 w-px hidden sm:block transition-all duration-300 ${isScrolled ? 'bg-slate-200' : 'bg-white/40'}`}></div>
           <button 
             onClick={() => navigate('/login')}
-            className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 hover:text-sky-600 hover:bg-slate-50 rounded-lg transition-colors"
+            className={`hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+              isScrolled 
+                ? 'hover:bg-slate-50 hover:text-sky-600' 
+                : 'hover:bg-white/10 hover:text-sky-300'
+            }`}
+            style={{ color: isScrolled ? '#334155' : '#ffffff' }}
           >
             <LogIn className="w-4 h-4" />
-            {t.nav.login}
+            <span>{t.nav.login}</span>
           </button>
           <button 
             onClick={() => navigate('/signup')}
-            className="flex items-center gap-2 bg-[#0EA5E9] hover:bg-[#0284c7] px-5 py-2.5 rounded-lg text-sm font-bold shadow-md shadow-sky-500/20 transition-all hover:-translate-y-0.5"
+            className="flex items-center gap-2 bg-[#0EA5E9] hover:bg-[#0284c7] px-5 py-2.5 rounded-lg text-sm font-semibold shadow-md shadow-sky-500/20 transition-all hover:-translate-y-0.5 text-white"
+            style={{ color: '#FFFFFF' }}
           >
             <UserPlus className="w-4 h-4 text-white" style={{ color: '#FFFFFF' }} />
             <span className="text-white" style={{ color: '#FFFFFF' }}>{t.nav.signup}</span>
@@ -420,48 +497,94 @@ const HeroSection = ({ t }) => {
     return () => clearInterval(timer);
   }, [backgrounds.length]);
 
+  const containerVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.4
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" }
+    }
+  };
+
   return (
-    <section id="hero" className="relative pt-20 pb-24 px-4 sm:px-6 lg:px-8 flex items-center justify-center min-h-[400px]">
+    <section id="hero" className="relative pt-32 pb-24 px-4 sm:px-6 lg:px-8 flex items-center justify-center min-h-[480px]">
       <div className="absolute inset-0 z-0 overflow-hidden bg-slate-900">
-        {backgrounds.map((bg, idx) => (
-          <img 
-            key={idx}
-            src={bg} 
-            alt={`Parking Background ${idx + 1}`} 
-            className={`absolute inset-0 w-full h-full object-cover scale-105 transition-opacity duration-1000 ease-in-out ${currentBg === idx ? 'opacity-100' : 'opacity-0'}`}
-          />
-        ))}
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/95 via-slate-900/80 to-sky-900/80"></div>
+        <motion.div
+          initial={{ scale: 1.05 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 1.8, ease: "easeOut" }}
+          className="absolute inset-0 w-full h-full"
+        >
+          {backgrounds.map((bg, idx) => (
+            <img 
+              key={idx}
+              src={bg} 
+              alt={`Parking Background ${idx + 1}`} 
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${currentBg === idx ? 'opacity-100' : 'opacity-0'}`}
+            />
+          ))}
+        </motion.div>
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/70 to-sky-950/65"></div>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto text-center w-full">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-sm font-bold mb-6 backdrop-blur-md shadow-lg">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-          </span>
-          {t.hero.badge}
-        </div>
-        
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight mb-6 drop-shadow-lg">
+      <div className="relative z-10 max-w-7xl mx-auto text-center w-full flex flex-col items-center">
+        <motion.h1 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="text-[28px] md:text-[34px] font-bold text-white tracking-tight mb-4 drop-shadow-lg leading-[1.2]"
+        >
           {t.hero.title1} <br className="hidden sm:block" />
           <span className="text-sky-400">{t.hero.title2}</span>
-        </h1>
-        <p className="text-lg text-slate-300 max-w-2xl mx-auto mb-10 drop-shadow font-medium">
+        </motion.h1>
+        
+        <motion.p 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          className="text-[16px] text-slate-300 max-w-[60ch] mx-auto mb-5 drop-shadow leading-[1.6] font-normal"
+        >
           {t.hero.desc}
-        </p>
+        </motion.p>
 
-        <div className="flex flex-wrap justify-center gap-6 text-slate-200 text-sm font-bold">
-          <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/10">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" /> {t.hero.f1}
-          </div>
-          <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/10">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" /> {t.hero.f2}
-          </div>
-          <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/10">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" /> {t.hero.f3}
-          </div>
-        </div>
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="flex flex-wrap justify-center gap-6 text-slate-100 text-sm font-bold"
+        >
+          <motion.div 
+            variants={itemVariants}
+            whileHover={{ scale: 1.02, borderColor: "rgba(255, 255, 255, 0.25)", boxShadow: "0 12px 40px 0 rgba(0,0,0,0.25)" }}
+            className="flex items-center gap-4 bg-white/5 backdrop-blur-md border border-white/10 px-6 py-4 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.15)] transition-all duration-300 cursor-default"
+          >
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400">
+              <ScanLine className="w-5 h-5" />
+            </div>
+            <span className="text-white tracking-wide font-semibold text-base">{t.hero.f2}</span>
+          </motion.div>
+          
+          <motion.div 
+            variants={itemVariants}
+            whileHover={{ scale: 1.02, borderColor: "rgba(255, 255, 255, 0.25)", boxShadow: "0 12px 40px 0 rgba(0,0,0,0.25)" }}
+            className="flex items-center gap-4 bg-white/5 backdrop-blur-md border border-white/10 px-6 py-4 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.15)] transition-all duration-300 cursor-default"
+          >
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-400">
+              <Clock className="w-5 h-5" />
+            </div>
+            <span className="text-white tracking-wide font-semibold text-base">{t.hero.f3}</span>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );
@@ -469,8 +592,8 @@ const HeroSection = ({ t }) => {
 
 // --- DASHBOARD WRAPPER ---
 const MainDashboard = ({ t }) => {
-  const [zone, setZone] = useState('LK');
-  const [floor, setFloor] = useState('1');
+  const zone = 'LK';
+  const floor = '1';
 
   return (
     <section id="dashboard" className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative z-20 py-12 space-y-8">
@@ -478,12 +601,12 @@ const MainDashboard = ({ t }) => {
       <KPIDashboard t={t} zone={zone} floor={floor} />
 
       {/* 2. Main Section & Side Panel */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div className="md:col-span-3">
           <VehicleInOutLog t={t} />
         </div>
-         <div className="lg:col-span-1">
-          <GateControlPanel t={t} />
+        <div className="md:col-span-2">
+          <GateControlPanel />
         </div>
       </div>
 
@@ -509,8 +632,6 @@ const KPIDashboard = ({ t, zone, floor }) => {
   
   const availableProgress = totalSlots > 0 ? Math.round((availableSlots / totalSlots) * 100) : 0;
   
-  const todayTraffic = Math.round(totalSlots * 3.5 * floorMult);
-  
   const peakStart = zone === 'A' ? 17 : zone === 'B' ? 18 : 16;
   const peakEnd = peakStart + 2;
 
@@ -529,16 +650,16 @@ const KPIDashboard = ({ t, zone, floor }) => {
               <kpi.icon className="w-6 h-6" />
             </div>
             {kpi.trend && (
-              <div className={`flex items-center gap-1 text-sm font-bold px-2.5 py-1 rounded-full ${kpi.trendDir === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+              <div className={`flex items-center gap-1 text-sm font-semibold px-2.5 py-1 rounded-full ${kpi.trendDir === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
                 {kpi.trendDir === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                 {kpi.trend}
               </div>
             )}
           </div>
-          <p className="text-slate-500 font-bold mb-1 text-sm">{kpi.title}</p>
+          <p className="text-slate-500 font-semibold mb-3 text-[12px] uppercase tracking-[0.08em]">{kpi.title}</p>
           <div className="flex items-baseline gap-1 mb-4">
-            <span className="text-3xl font-black text-slate-800 tracking-tight">{kpi.value}</span>
-            <span className="text-sm font-bold text-slate-400">{kpi.unit}</span>
+            <span className="text-[26px] font-bold text-slate-800 tracking-tight">{kpi.value}</span>
+            <span className="text-[13px] font-medium text-slate-400">{kpi.unit}</span>
           </div>
           {/* Mini progress */}
           {kpi.progress > 0 && (
@@ -556,91 +677,81 @@ const VehicleInOutLog = ({ t }) => {
   const steps = [
     {
       id: 1,
-      title: i18n.language === 'en' ? 'Register Vehicle' : 'Đăng ký phương tiện',
-      desc: i18n.language === 'en' ? 'Quickly link your vehicle plate and details to your profile online.' : 'Đăng ký thông tin biển số và loại xe của bạn dễ dàng trực tuyến.',
-      tag: i18n.language === 'en' ? 'Step 1' : 'Bước 1',
+      title: t.showcase.card1Title,
+      desc: t.showcase.card1Desc,
       icon: Car,
       color: 'bg-blue-50 text-blue-600 border-blue-100',
     },
     {
       id: 2,
-      title: i18n.language === 'en' ? 'Buy Parking Plans' : 'Mua biểu phí thẻ xe',
-      desc: i18n.language === 'en' ? 'Choose a monthly parking plan and pay directly in the application.' : 'Chọn gói gửi xe phù hợp và thanh toán trực tiếp trên ứng dụng.',
-      tag: i18n.language === 'en' ? 'Step 2' : 'Bước 2',
-      icon: CalendarDays,
-      color: 'bg-sky-50 text-sky-600 border-sky-100',
+      title: t.showcase.card2Title,
+      desc: t.showcase.card2Desc,
+      icon: Coins,
+      color: 'bg-emerald-50 text-emerald-600 border-emerald-100',
     },
     {
       id: 3,
-      title: i18n.language === 'en' ? 'AI License Plate Recognition' : 'Nhận diện biển số AI',
-      desc: i18n.language === 'en' ? 'High-accuracy camera scans plate and opens barrier without card touch.' : 'Camera AI quét biển số tự động nhận diện xe và mở cổng barrier chỉ trong 2 giây.',
-      tag: i18n.language === 'en' ? 'Step 3' : 'Bước 3',
+      title: t.showcase.card3Title,
+      desc: t.showcase.card3Desc,
       icon: ScanLine,
       color: 'bg-indigo-50 text-indigo-600 border-indigo-100',
     },
     {
       id: 4,
-      title: i18n.language === 'en' ? 'Locate Parking Space' : 'Tìm vị trí đỗ xe',
-      desc: i18n.language === 'en' ? 'Follow smart indoor navigation panels directly to your reserved slot.' : 'Hệ thống bảng LED chỉ dẫn thông minh dẫn bạn đến đúng ô đỗ xe đã đặt.',
-      tag: i18n.language === 'en' ? 'Step 4' : 'Bước 4',
-      icon: MapPin,
-      color: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+      title: t.showcase.card4Title,
+      desc: t.showcase.card4Desc,
+      icon: Sparkles,
+      color: 'bg-sky-50 text-sky-600 border-sky-100',
     },
     {
       id: 5,
-      title: i18n.language === 'en' ? 'Cashless Checkout' : 'Thanh toán không tiền mặt',
-      desc: i18n.language === 'en' ? 'Scan QR or auto-deduct fee from e-wallet upon exit seamlessly.' : 'Quét mã QR hoặc tự động trừ tiền ví điện tử khi ra cổng. Không cần dùng tiền mặt.',
-      tag: i18n.language === 'en' ? 'Step 5' : 'Bước 5',
+      title: t.showcase.card5Title,
+      desc: t.showcase.card5Desc,
       icon: CreditCard,
       color: 'bg-amber-50 text-amber-600 border-amber-100',
     },
   ];
 
   return (
-    <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200 h-full flex flex-col justify-between">
-      <div className="mb-6">
-        <div className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.2em] font-bold text-sky-600 bg-sky-50 px-3 py-1 rounded-full uppercase mb-3">
-          {i18n.language === 'en' ? 'User Journey' : 'Hành trình trải nghiệm'}
+    <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200 h-full flex flex-col justify-start gap-6">
+      <div>
+        <div className="inline-flex items-center gap-1.5 text-[12px] tracking-[0.08em] font-semibold text-sky-600 bg-sky-50 px-3 py-1 rounded-full uppercase mb-3">
+          {t.showcase.tag}
         </div>
-        <h3 className="font-extrabold text-slate-800 text-2xl tracking-tight mb-2">
-          {i18n.language === 'en' ? 'Smart Parking Journey' : 'Trải nghiệm Đỗ xe Thông minh'}
+        <h3 className="font-bold text-slate-800 text-[26px] tracking-tight mb-4">
+          {t.showcase.title}
         </h3>
-        <p className="text-slate-500 text-sm font-medium leading-relaxed">
-          {i18n.language === 'en'
-            ? 'Discover how simple and automated the parking cycle is with our SaaS infrastructure.'
-            : 'Khám phá quy trình khép kín tự động hóa, giúp bạn đỗ xe nhanh chóng và thuận tiện.'}
+        <p className="text-slate-500 text-[16px] font-normal leading-[1.6] max-w-[65ch] mb-2">
+          {t.showcase.subtitle}
         </p>
       </div>
 
-      <div className="relative pl-6 sm:pl-8 border-l border-slate-100 space-y-6 sm:space-y-8 my-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-1 flex-1">
         {steps.map((step) => {
           const StepIcon = step.icon;
           return (
             <motion.div
               key={step.id}
-              className="relative group cursor-default"
-              initial={{ opacity: 0, x: -10 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              className={`p-4 rounded-xl border border-slate-100 bg-slate-50/40 hover:bg-white hover:border-sky-100 hover:shadow-[0_4px_20px_rgba(14,165,233,0.08)] transition-all duration-300 group cursor-default flex flex-col gap-3 ${
+                step.id === 5 ? 'sm:col-span-2' : ''
+              }`}
+              whileHover={{ y: -4 }}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: step.id * 0.1 }}
+              transition={{ duration: 0.4, delay: step.id * 0.08 }}
             >
-              {/* Outer timeline node bezel */}
-              <div className="absolute -left-[45px] sm:-left-[53px] top-1 flex items-center justify-center">
-                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center transition-all duration-300 shadow-sm ${step.color} group-hover:scale-110 group-hover:shadow`}>
-                  <StepIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${step.color} group-hover:bg-sky-600 group-hover:text-white group-hover:border-sky-600 transition-colors duration-300 shadow-sm`}>
+                  <StepIcon className="w-4.5 h-4.5" />
                 </div>
+                <h4 className="font-bold text-slate-800 text-[15px] group-hover:text-sky-600 transition-colors">
+                  {step.title}
+                </h4>
               </div>
-
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{step.tag}</span>
-                  <div className="h-1 w-1 rounded-full bg-slate-200"></div>
-                  <h4 className="font-bold text-slate-800 text-base group-hover:text-sky-600 transition-colors">{step.title}</h4>
-                </div>
-                <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed max-w-xl">
-                  {step.desc}
-                </p>
-              </div>
+              <p className="text-[13px] text-slate-500 font-medium leading-relaxed">
+                {step.desc}
+              </p>
             </motion.div>
           );
         })}
@@ -653,7 +764,7 @@ const VehicleInOutLog = ({ t }) => {
 const ParkingTrendChart = ({ t }) => {
   return (
     <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm h-full">
-      <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
+      <h3 className="font-bold text-slate-800 text-[26px] mb-6 flex items-center gap-2">
         <BarChart3 className="w-5 h-5 text-sky-500" /> {t.trend.title}
       </h3>
       <div className="w-full h-[300px] min-h-[300px]">
@@ -666,10 +777,10 @@ const ParkingTrendChart = ({ t }) => {
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8', fontWeight: 'bold' }} dy={10} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8', fontWeight: 'bold' }} />
+            <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8', fontWeight: 600 }} dy={10} />
+            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8', fontWeight: 600 }} />
             <Tooltip 
-              contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }}
+              contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontWeight: 600 }}
               labelStyle={{ color: '#64748b' }}
             />
             <Area type="monotone" dataKey="value" stroke="#0ea5e9" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
@@ -680,19 +791,19 @@ const ParkingTrendChart = ({ t }) => {
   );
 };
 
-const GateControlPanel = ({ t }) => {
+const GateControlPanel = () => {
   const features = [
     {
       id: 1,
-      title: i18n.language === 'en' ? 'AI LPR Recognition' : 'AI Nhận diện Biển số',
+      title: i18n.language === 'en' ? 'LPR Recognition' : 'Nhận diện Biển số',
       desc: i18n.language === 'en' ? 'Automated vehicle recognition and access with high accuracy.' : 'Nhận diện phương tiện tự động ra vào bãi với độ chính xác cao.',
       icon: ScanLine,
       color: 'text-blue-500 bg-blue-50 border-blue-100/50',
     },
     {
       id: 2,
-      title: i18n.language === 'en' ? 'AI Registration Assistant' : 'Trợ lý đăng ký xe',
-      desc: i18n.language === 'en' ? 'A guided assistant helps users submit vehicle registration documents.' : 'Trợ lý hướng dẫn từng bước để người dùng gửi hồ sơ đăng ký thẻ xe.',
+      title: i18n.language === 'en' ? 'Pre-Booking' : 'Đặt chỗ trước',
+      desc: i18n.language === 'en' ? 'Reserve your desired parking slot easily before arrival.' : 'Đặt trước vị trí gửi xe nhanh chóng và tiện lợi trước khi di chuyển.',
       icon: CalendarDays,
       color: 'text-amber-500 bg-amber-50 border-amber-100/50',
     },
@@ -713,15 +824,15 @@ const GateControlPanel = ({ t }) => {
   ];
 
   return (
-    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm h-full flex flex-col justify-between">
-      <div className="mb-5">
-        <div className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.2em] font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase mb-3">
+    <div className="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm h-full flex flex-col justify-start gap-6">
+      <div>
+        <div className="inline-flex items-center gap-1.5 text-[12px] tracking-[0.08em] font-semibold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase mb-3">
           {i18n.language === 'en' ? 'Key Features' : 'Tính năng nổi bật'}
         </div>
-        <h3 className="font-extrabold text-slate-800 text-xl tracking-tight mb-1">
+        <h3 className="font-bold text-slate-800 text-[26px] tracking-tight mb-4">
           {i18n.language === 'en' ? 'Platform Features' : 'Tính năng cốt lõi'}
         </h3>
-        <p className="text-slate-500 text-xs font-semibold leading-relaxed">
+        <p className="text-slate-500 text-[16px] font-normal leading-[1.6] max-w-[65ch] mb-5">
           {i18n.language === 'en' ? 'Outstanding capabilities for modern buildings.' : 'Giải pháp công nghệ tối ưu hóa hiệu suất bãi xe.'}
         </p>
       </div>
@@ -732,16 +843,16 @@ const GateControlPanel = ({ t }) => {
           return (
             <motion.div
               key={item.id}
-              className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-sky-100 hover:shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all duration-300 group cursor-default"
+              className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-sky-100 hover:shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all duration-300 group cursor-default flex flex-col justify-center min-h-[76px]"
               whileHover={{ y: -2 }}
             >
-              <div className="flex gap-3">
+              <div className="flex items-center gap-3">
                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${item.color} group-hover:bg-sky-600 group-hover:text-white group-hover:border-sky-600 transition-colors duration-300`}>
                   <FeatureIcon className="w-4.5 h-4.5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-800 text-sm group-hover:text-sky-600 transition-colors mb-0.5">{item.title}</h4>
-                  <p className="text-[11px] sm:text-xs text-slate-500 font-medium leading-relaxed">{item.desc}</p>
+                  <h4 className="font-bold text-slate-800 text-[16px] group-hover:text-sky-600 transition-colors mb-2">{item.title}</h4>
+                  <p className="text-[13px] text-slate-500 font-medium leading-relaxed">{item.desc}</p>
                 </div>
               </div>
             </motion.div>
@@ -801,6 +912,8 @@ const CustomSelect = ({ value, options, onChange }) => {
     </div>
   );
 };
+
+void CustomSelect;
 
 const NotificationCenter = ({ t }) => {
   const [notices, setNotices] = useState([]);
@@ -874,16 +987,16 @@ const NotificationCenter = ({ t }) => {
         className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition-all cursor-pointer flex flex-col h-full group"
       >
         <div className="flex items-center justify-between mb-4">
-          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${getCategoryToneClass(ann.category)} uppercase tracking-wider`}>
+          <span className={`text-[12px] font-semibold px-2.5 py-1 rounded-lg border ${getCategoryToneClass(ann.category)} uppercase tracking-[0.08em]`}>
             {getCategoryLabel(ann.category)}
           </span>
-          <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
-            <Clock className="w-3 h-3" /> {formatDate(ann.publishedAt)}
+          <span className="text-[13px] font-medium text-slate-400 flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5" /> {formatDate(ann.publishedAt)}
           </span>
         </div>
-        <h3 className="font-bold text-slate-800 mb-2 leading-snug group-hover:text-sky-600 transition-colors">{ann.title}</h3>
-        <p className="text-sm text-slate-500 line-clamp-2 mb-4 flex-1">{ann.summary}</p>
-        <div className="flex items-center gap-1 text-sky-600 text-sm font-bold mt-auto">
+        <h3 className="font-bold text-slate-800 text-[24px] leading-snug mb-4 group-hover:text-sky-600 transition-colors">{ann.title}</h3>
+        <p className="text-[16px] text-slate-500 font-normal leading-[1.6] line-clamp-2 mb-5 flex-1 max-w-[65ch]">{ann.summary}</p>
+        <div className="flex items-center gap-1 text-sky-600 text-[13px] font-medium mt-auto">
           {t.notice.readMore} <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
         </div>
       </div>
@@ -893,8 +1006,8 @@ const NotificationCenter = ({ t }) => {
   return (
     <section id="thong-bao" className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-16 relative">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
-          <Bell className="text-sky-600 w-6 h-6" /> {t.notice.title}
+        <h2 className="text-[28px] md:text-[34px] font-bold text-slate-800 leading-[1.2] flex items-center gap-3">
+          <Bell className="text-sky-600 w-8 h-8" /> {t.notice.title}
         </h2>
       </div>
 
@@ -918,7 +1031,7 @@ const NotificationCenter = ({ t }) => {
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-800">{getCategoryLabel(selectedNotice.category)}</h3>
-                  <p className="text-xs font-bold text-slate-400">
+                  <p className="text-xs font-semibold text-slate-400">
                     {selectedNotice._error ? 'Không tải được nội dung' : formatDate(selectedNotice.publishedAt)}
                   </p>
                 </div>
@@ -931,7 +1044,7 @@ const NotificationCenter = ({ t }) => {
               </button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[60vh] custom-scrollbar">
-              <h2 className="text-xl font-extrabold text-slate-800 mb-4">{selectedNotice.title}</h2>
+              <h2 className="text-[24px] font-bold text-slate-800 mb-4 leading-tight">{selectedNotice.title}</h2>
               {detailLoading ? (
                 <div className="space-y-2 animate-pulse">
                   <div className="h-3 w-full bg-slate-100 rounded" />
@@ -939,7 +1052,7 @@ const NotificationCenter = ({ t }) => {
                   <div className="h-3 w-4/6 bg-slate-100 rounded" />
                 </div>
               ) : (
-                <div className="text-slate-600 text-sm font-medium leading-relaxed whitespace-pre-wrap">
+                <div className="text-slate-600 text-[16px] font-normal leading-[1.6] whitespace-pre-wrap max-w-[65ch]">
                   {selectedNotice.content || selectedNotice.summary || 'Chưa có nội dung chi tiết.'}
                 </div>
               )}
@@ -947,7 +1060,8 @@ const NotificationCenter = ({ t }) => {
             <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
               <button
                 onClick={closeDetail}
-                className="px-6 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-lg transition-colors"
+                className="px-6 py-2 bg-sky-500 hover:bg-sky-600 !text-white font-bold rounded-lg transition-colors"
+                style={{ color: '#FFFFFF' }}
               >
                 Đóng
               </button>
@@ -964,13 +1078,13 @@ const PricingAndMap = ({ t }) => {
     <div id="kham-pha" className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-24">
       {/* Section Header */}
       <div className="mb-12 text-center lg:text-left">
-        <div className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.2em] font-bold text-sky-600 bg-sky-50 px-3 py-1 rounded-full uppercase mb-4 w-fit">
+        <div className="inline-flex items-center gap-1.5 text-[12px] tracking-[0.08em] font-semibold text-sky-600 bg-sky-50 px-3 py-1 rounded-full uppercase mb-3 w-fit">
           {i18n.language === 'en' ? 'Core Capabilities' : 'Năng lực cốt lõi'}
         </div>
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight mb-4">
+        <h2 className="text-[28px] md:text-[34px] font-bold text-slate-800 tracking-tight mb-4 leading-[1.2]">
           {t.features.title}
         </h2>
-        <p className="text-slate-500 font-medium text-lg max-w-3xl leading-relaxed">
+        <p className="text-slate-500 font-normal text-[16px] max-w-[65ch] leading-[1.6]">
           {i18n.language === 'en' 
             ? 'Our infrastructure leverages state-of-the-art computer vision and digital orchestration to deliver absolute efficiency.'
             : 'Hệ thống hạ tầng kết hợp thị giác máy tính và điều phối số nhằm đem lại hiệu suất vận hành tối đa.'}
@@ -979,86 +1093,156 @@ const PricingAndMap = ({ t }) => {
 
       {/* Bento Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Big Feature: AI LPR (Occupies 2 columns on lg screens) */}
-        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-[0_2px_20px_rgba(0,0,0,0.015)] p-6 sm:p-8 flex flex-col justify-between overflow-hidden relative min-h-[480px] group transition-all duration-300 hover:border-sky-200/60">
-          <div className="max-w-xl z-10 mb-6">
-            <span className="text-[10px] font-bold text-sky-600 uppercase tracking-widest bg-sky-50 px-2.5 py-1 rounded-lg">AI Computer Vision</span>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight mt-4 mb-3">
+        {/* Big Feature: LPR (Occupies 2 columns on lg screens) */}
+        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-[0_2px_20px_rgba(0,0,0,0.015)] p-6 md:p-8 flex flex-col gap-6 overflow-hidden relative group transition-all duration-300 hover:border-sky-200/60">
+          {/* Header */}
+          <div>
+            <span className="text-[12px] font-semibold text-sky-600 uppercase tracking-[0.08em] bg-sky-50 px-2.5 py-1 rounded-lg inline-block w-fit">Computer Vision</span>
+            <h3 className="text-[24px] md:text-[26px] font-bold text-slate-800 tracking-tight mt-2 mb-1">
               {t.features.f1Title}
             </h3>
-            <p className="text-sm sm:text-base text-slate-500 font-medium leading-relaxed mb-6">
+            <p className="text-[15px] text-slate-500 font-normal leading-[1.6]">
               {t.features.f1Desc}
             </p>
-            
-            {/* Bullets with subtle lines */}
-            <ul className="space-y-3.5 text-sm font-semibold text-slate-700">
-              <li className="flex items-center gap-3">
-                <div className="h-1.5 w-1.5 rounded-full bg-sky-500"></div>
-                <span>{i18n.language === 'en' ? 'AI camera recognizes vehicle license plate automatically' : 'Camera AI tự động phát hiện và nhận diện biển số'}</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <div className="h-1.5 w-1.5 rounded-full bg-sky-500"></div>
-                <span>{i18n.language === 'en' ? 'Barrier gate opens automatically upon detection' : 'Cổng tự động barrier mở ngay lập tức'}</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <div className="h-1.5 w-1.5 rounded-full bg-sky-500"></div>
-                <span>{i18n.language === 'en' ? 'Real-time vehicle tracking and logging' : 'Theo dõi trạng thái và ghi nhật ký xe thời gian thực'}</span>
-              </li>
-            </ul>
           </div>
-          
-          {/* Visual placeholder / graphic for LPR */}
-          <div className="w-full h-[240px] rounded-2xl border border-slate-100 bg-slate-50/50 p-4 sm:p-5 flex flex-col justify-between mt-auto">
-            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest text-center border-b border-slate-100 pb-2">
+
+          {/* Feature rows */}
+          <div className="space-y-4">
+            {/* Row 1 */}
+            <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50/60 border border-slate-100 hover:border-sky-100 hover:bg-sky-50/30 transition-all duration-200 group/row">
+              <div className="w-10 h-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0 group-hover/row:bg-sky-100 transition-colors">
+                <Camera className="w-5 h-5 text-sky-600" />
+              </div>
+              <div>
+                <p className="text-[15px] font-bold text-slate-800 mb-0.5">
+                  {i18n.language === 'en' ? 'Automatic license plate detection & recognition' : 'Camera tự động phát hiện và nhận diện biển số'}
+                </p>
+                <p className="text-[13px] text-slate-500 leading-relaxed">
+                  {i18n.language === 'en' ? 'Real-time license plate recognition system with high accuracy.' : 'Hệ thống nhận diện biển số theo thời gian thực với độ chính xác cao.'}
+                </p>
+              </div>
+            </div>
+            {/* Row 2 */}
+            <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50/60 border border-slate-100 hover:border-sky-100 hover:bg-sky-50/30 transition-all duration-200 group/row">
+              <div className="w-10 h-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0 group-hover/row:bg-sky-100 transition-colors">
+                <DoorOpen className="w-5 h-5 text-sky-600" />
+              </div>
+              <div>
+                <p className="text-[15px] font-bold text-slate-800 mb-0.5">
+                  {i18n.language === 'en' ? 'Barrier gate opens automatically & instantly' : 'Cổng tự động barrier mở ngay lập tức'}
+                </p>
+                <p className="text-[13px] text-slate-500 leading-relaxed">
+                  {i18n.language === 'en' ? 'On valid recognition, barrier opens in 1–2 seconds, optimizing traffic flow.' : 'Nhận diện hợp lệ, barrier tự động mở trong 1–2 giây, tối ưu lưu thông.'}
+                </p>
+              </div>
+            </div>
+            {/* Row 3 */}
+            <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50/60 border border-slate-100 hover:border-sky-100 hover:bg-sky-50/30 transition-all duration-200 group/row">
+              <div className="w-10 h-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0 group-hover/row:bg-sky-100 transition-colors">
+                <ClipboardList className="w-5 h-5 text-sky-600" />
+              </div>
+              <div>
+                <p className="text-[15px] font-bold text-slate-800 mb-0.5">
+                  {i18n.language === 'en' ? 'Real-time vehicle status tracking & logging' : 'Theo dõi trạng thái và ghi nhật ký xe thời gian thực'}
+                </p>
+                <p className="text-[13px] text-slate-500 leading-relaxed">
+                  {i18n.language === 'en' ? 'Complete in/out history logging for easy retrieval and management.' : 'Ghi nhận đầy đủ lịch sử ra vào, hỗ trợ tra cứu và quản lý dễ dàng.'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-slate-50 rounded-2xl p-3 flex items-center gap-3 border border-slate-100">
+              <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-4.5 h-4.5 text-sky-600" />
+              </div>
+              <div>
+                <p className="text-[17px] font-bold text-sky-600 leading-none">99.9%</p>
+                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-[0.05em] mt-0.5">{i18n.language === 'en' ? 'Accuracy' : 'Độ chính xác'}</p>
+                <p className="text-[10px] text-slate-400 font-medium">{i18n.language === 'en' ? 'Plate recognition' : 'Nhận diện biển số'}</p>
+              </div>
+            </div>
+            <div className="bg-slate-50 rounded-2xl p-3 flex items-center gap-3 border border-slate-100">
+              <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0">
+                <Clock className="w-4.5 h-4.5 text-sky-600" />
+              </div>
+              <div>
+                <p className="text-[17px] font-bold text-sky-600 leading-none">24/7</p>
+                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-[0.05em] mt-0.5">{i18n.language === 'en' ? 'Monitoring' : 'Giám sát liên tục'}</p>
+                <p className="text-[10px] text-slate-400 font-medium">{i18n.language === 'en' ? 'Always on' : 'Hoạt động không gián đoạn'}</p>
+              </div>
+            </div>
+            <div className="bg-slate-50 rounded-2xl p-3 flex items-center gap-3 border border-slate-100">
+              <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0">
+                <Zap className="w-4.5 h-4.5 text-sky-600" />
+              </div>
+              <div>
+                <p className="text-[17px] font-bold text-sky-600 leading-none">1–2s</p>
+                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-[0.05em] mt-0.5">{i18n.language === 'en' ? 'Fast barrier' : 'Mở barrier nhanh'}</p>
+                <p className="text-[10px] text-slate-400 font-medium">{i18n.language === 'en' ? 'Save waiting time' : 'Tiết kiệm thời gian chờ'}</p>
+              </div>
+            </div>
+            <div className="bg-slate-50 rounded-2xl p-3 flex items-center gap-3 border border-slate-100">
+              <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0">
+                <Database className="w-4.5 h-4.5 text-sky-600" />
+              </div>
+              <div>
+                <p className="text-[17px] font-bold text-sky-600 leading-none">100%</p>
+                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-[0.05em] mt-0.5">{i18n.language === 'en' ? 'Data stored' : 'Dữ liệu được lưu trữ'}</p>
+                <p className="text-[10px] text-slate-400 font-medium">{i18n.language === 'en' ? 'Safe & secure' : 'An toàn và bảo mật'}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* System flow diagram */}
+          <div className="w-full rounded-2xl border border-slate-100 bg-slate-50/50 p-4 sm:p-5 flex flex-col gap-3">
+            <div className="text-[12px] font-semibold text-slate-400 uppercase tracking-[0.08em] text-center border-b border-slate-100 pb-2">
               {i18n.language === 'en' ? 'Integrated System Workflow' : 'Luồng Vận Hành Hệ Thống Tích Hợp'}
             </div>
-            
-            <div className="flex items-center justify-between gap-2 my-auto">
+            <div className="flex items-center justify-between gap-2">
               {/* Node 1 */}
-              <div className="flex-1 bg-white border border-slate-100 rounded-xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.015)] h-[120px] flex flex-col justify-between items-center text-center">
-                <span className="text-[9px] font-bold text-slate-400 uppercase">{i18n.language === 'en' ? 'User' : 'Cá nhân'}</span>
-                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 leading-snug">{i18n.language === 'en' ? 'Registration' : 'Đăng ký xe'}</span>
+              <div className="flex-1 bg-white border border-slate-100 rounded-xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.015)] h-[110px] flex flex-col justify-between items-center text-center">
+                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.05em]">{i18n.language === 'en' ? 'User' : 'Cá nhân'}</span>
+                <span className="text-[12px] font-bold text-slate-700 leading-tight">{i18n.language === 'en' ? 'Vehicle Registration' : 'Đăng ký xe'}</span>
+                <span className="text-[10px] text-slate-400 font-medium leading-tight">{i18n.language === 'en' ? 'Register vehicle info' : 'Đăng ký thông tin phương tiện'}</span>
                 <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
               </div>
-
-              <div className="text-slate-300 text-xs font-bold font-mono">→</div>
-
+              <div className="text-slate-300 text-xs font-bold">→</div>
               {/* Node 2 */}
-              <div className="flex-1 bg-white border border-slate-100 rounded-xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.015)] h-[120px] flex flex-col justify-between items-center text-center">
-                <span className="text-[9px] font-bold text-slate-400 uppercase">{i18n.language === 'en' ? 'Plans' : 'Biểu phí'}</span>
-                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 leading-snug">{i18n.language === 'en' ? 'Monthly pass' : 'Mua gói thẻ xe'}</span>
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+              <div className="flex-1 bg-white border border-emerald-100 rounded-xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.015)] h-[110px] flex flex-col justify-between items-center text-center">
+                <span className="text-[11px] font-semibold text-emerald-500 uppercase tracking-[0.05em]">{i18n.language === 'en' ? 'Pricing' : 'Biểu phí'}</span>
+                <span className="text-[12px] font-bold text-slate-700 leading-tight">{i18n.language === 'en' ? 'View pricing' : 'Xem biểu phí'}</span>
+                <span className="text-[10px] text-slate-400 font-medium leading-tight">{i18n.language === 'en' ? 'Clear, transparent pricing' : 'Bảng giá rõ ràng, minh bạch'}</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
               </div>
-
-              <div className="text-slate-300 text-xs font-bold font-mono">→</div>
-
-              {/* Node 3 */}
-              <div className="flex-1 bg-sky-50 border border-sky-100 rounded-xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.015)] h-[120px] flex flex-col justify-between items-center text-center">
-                <span className="text-[9px] font-bold text-sky-500 uppercase">{i18n.language === 'en' ? 'Gate' : 'Cổng vào/ra'}</span>
-                <span className="text-[10px] sm:text-[11px] font-bold text-sky-800 leading-snug">{i18n.language === 'en' ? 'LPR Scan' : 'Nhận diện LPR'}</span>
+              <div className="text-slate-300 text-xs font-bold">→</div>
+              {/* Node 3 - Highlighted */}
+              <div className="flex-1 bg-sky-50 border border-sky-100 rounded-xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.015)] h-[110px] flex flex-col justify-between items-center text-center">
+                <span className="text-[11px] font-semibold text-sky-500 uppercase tracking-[0.05em]">{i18n.language === 'en' ? 'Gate' : 'Cổng Vào/Ra'}</span>
+                <span className="text-[12px] font-bold text-sky-800 leading-tight">{i18n.language === 'en' ? 'LPR Recognition' : 'Nhận diện LPR'}</span>
+                <span className="text-[10px] text-sky-600/70 font-medium leading-tight">{i18n.language === 'en' ? 'Plate scan & barrier open' : 'Nhận diện biển số và mở barrier'}</span>
                 <div className="w-1.5 h-1.5 rounded-full bg-sky-500"></div>
               </div>
-
-              <div className="text-slate-300 text-xs font-bold font-mono">→</div>
-
+              <div className="text-slate-300 text-xs font-bold">→</div>
               {/* Node 4 */}
-              <div className="flex-1 bg-white border border-slate-100 rounded-xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.015)] h-[120px] flex flex-col justify-between items-center text-center">
-                <span className="text-[9px] font-bold text-slate-400 uppercase">{i18n.language === 'en' ? 'Parking' : 'Chỗ đỗ'}</span>
-                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 leading-snug">{i18n.language === 'en' ? 'Slot Sensor' : 'Cảm biến ô'}</span>
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+              <div className="flex-1 bg-white border border-violet-100 rounded-xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.015)] h-[110px] flex flex-col justify-between items-center text-center">
+                <span className="text-[11px] font-semibold text-violet-500 uppercase tracking-[0.05em]">{i18n.language === 'en' ? 'Management' : 'Quản lý'}</span>
+                <span className="text-[12px] font-bold text-slate-700 leading-tight">{i18n.language === 'en' ? 'Session tracking' : 'Theo dõi phiên gửi xe'}</span>
+                <span className="text-[10px] text-slate-400 font-medium leading-tight">{i18n.language === 'en' ? 'Manage, store & track history' : 'Quản lý, lưu trữ và theo dõi lịch sử'}</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-violet-400"></div>
               </div>
-
-              <div className="text-slate-300 text-xs font-bold font-mono">→</div>
-
+              <div className="text-slate-300 text-xs font-bold">→</div>
               {/* Node 5 */}
-              <div className="flex-1 bg-white border border-slate-100 rounded-xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.015)] h-[120px] flex flex-col justify-between items-center text-center">
-                <span className="text-[9px] font-bold text-slate-400 uppercase">{i18n.language === 'en' ? 'Payment' : 'Thanh toán'}</span>
-                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 leading-snug">{i18n.language === 'en' ? 'Cashless' : 'Cổng thanh toán'}</span>
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+              <div className="flex-1 bg-white border border-amber-100 rounded-xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.015)] h-[110px] flex flex-col justify-between items-center text-center">
+                <span className="text-[11px] font-semibold text-amber-500 uppercase tracking-[0.05em]">{i18n.language === 'en' ? 'Payment' : 'Thanh Toán'}</span>
+                <span className="text-[12px] font-bold text-slate-700 leading-tight">{i18n.language === 'en' ? 'Convenient payment' : 'Thanh toán tiện lợi'}</span>
+                <span className="text-[10px] text-slate-400 font-medium leading-tight">{i18n.language === 'en' ? 'Pay via QR or e-wallet' : 'Thanh toán QR hoặc ví điện tử'}</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
               </div>
             </div>
-
-            <div className="border-t border-slate-100 pt-2 flex items-center justify-between text-[9px] font-bold text-slate-400 font-mono">
+            <div className="border-t border-slate-100 pt-2 flex items-center justify-between text-[12px] font-semibold text-slate-400 tracking-[0.08em]">
               <span>PLATFORM FLOW</span>
               <span>CORE ARCHITECTURE INTEGRATED</span>
             </div>
@@ -1070,12 +1254,12 @@ const PricingAndMap = ({ t }) => {
           {/* Spot 2: Parking Reservation */}
           <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_2px_20px_rgba(0,0,0,0.015)] flex-1 flex flex-col justify-between hover:border-sky-200/60 transition-all duration-300 group">
             <div>
-              <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest bg-amber-50 px-2.5 py-1 rounded-lg">{i18n.language === 'en' ? 'AI Assistant' : 'Trợ lý đăng ký xe'}</span>
-              <h3 className="text-xl font-extrabold text-slate-800 tracking-tight mt-3 mb-2">{t.features.f2Title}</h3>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">{t.features.f2Desc}</p>
+              <span className="text-[12px] font-semibold text-amber-600 uppercase tracking-[0.08em] bg-amber-50 px-2.5 py-1 rounded-lg w-fit inline-block">{i18n.language === 'en' ? 'Booking' : 'Đặt chỗ trước'}</span>
+              <h3 className="text-[20px] md:text-[22px] font-bold text-slate-800 tracking-tight mt-2 mb-3">{t.features.f2Title}</h3>
+              <p className="text-[14px] text-slate-500 font-normal leading-[1.6] max-w-[65ch] mb-4">{t.features.f2Desc}</p>
             </div>
-            <div className="h-px bg-slate-100 my-4"></div>
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <div className="h-px bg-slate-100 mb-6"></div>
+            <div className="text-[12px] font-semibold text-slate-400 uppercase tracking-[0.08em]">
               {i18n.language === 'en' ? 'Optimized Space Allocation' : 'Tối ưu phân bổ không gian đỗ'}
             </div>
           </div>
@@ -1083,12 +1267,12 @@ const PricingAndMap = ({ t }) => {
           {/* Spot 3: Cashless Payment */}
           <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_2px_20px_rgba(0,0,0,0.015)] flex-1 flex flex-col justify-between hover:border-sky-200/60 transition-all duration-300 group">
             <div>
-              <span className="text-[10px] font-bold text-sky-600 uppercase tracking-widest bg-sky-50 px-2.5 py-1 rounded-lg">{i18n.language === 'en' ? 'Payment' : 'Thanh toán'}</span>
-              <h3 className="text-xl font-extrabold text-slate-800 tracking-tight mt-3 mb-2">{t.features.f3Title}</h3>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">{t.features.f3Desc}</p>
+              <span className="text-[12px] font-semibold text-sky-600 uppercase tracking-[0.08em] bg-sky-50 px-2.5 py-1 rounded-lg w-fit inline-block">{i18n.language === 'en' ? 'Payment' : 'Thanh toán'}</span>
+              <h3 className="text-[20px] md:text-[22px] font-bold text-slate-800 tracking-tight mt-2 mb-3">{t.features.f3Title}</h3>
+              <p className="text-[14px] text-slate-500 font-normal leading-[1.6] max-w-[65ch] mb-4">{t.features.f3Desc}</p>
             </div>
-            <div className="h-px bg-slate-100 my-4"></div>
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <div className="h-px bg-slate-100 mb-6"></div>
+            <div className="text-[12px] font-semibold text-slate-400 uppercase tracking-[0.08em]">
               {i18n.language === 'en' ? 'QR & E-Wallet integration' : 'Hỗ trợ QR và Ví điện tử'}
             </div>
           </div>
@@ -1096,12 +1280,12 @@ const PricingAndMap = ({ t }) => {
           {/* Spot 4: Mobile App */}
           <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_2px_20px_rgba(0,0,0,0.015)] flex-1 flex flex-col justify-between hover:border-sky-200/60 transition-all duration-300 group">
             <div>
-              <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2.5 py-1 rounded-lg">{i18n.language === 'en' ? 'App' : 'Ứng dụng'}</span>
-              <h3 className="text-xl font-extrabold text-slate-800 tracking-tight mt-3 mb-2">{t.features.f4Title}</h3>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">{t.features.f4Desc}</p>
+              <span className="text-[12px] font-semibold text-emerald-600 uppercase tracking-[0.08em] bg-emerald-50 px-2.5 py-1 rounded-lg w-fit inline-block">{i18n.language === 'en' ? 'App' : 'Ứng dụng'}</span>
+              <h3 className="text-[20px] md:text-[22px] font-bold text-slate-800 tracking-tight mt-2 mb-3">{t.features.f4Title}</h3>
+              <p className="text-[14px] text-slate-500 font-normal leading-[1.6] max-w-[65ch] mb-4">{t.features.f4Desc}</p>
             </div>
-            <div className="h-px bg-slate-100 my-4"></div>
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <div className="h-px bg-slate-100 mb-6"></div>
+            <div className="text-[12px] font-semibold text-slate-400 uppercase tracking-[0.08em]">
               {i18n.language === 'en' ? 'iOS & Android support' : 'Hỗ trợ iOS và Android'}
             </div>
           </div>
@@ -1122,10 +1306,10 @@ const ProcessTimeline = ({ t }) => {
         <div className="relative z-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
             <div>
-              <h2 className="text-3xl font-extrabold mb-2">{t.process.title}</h2>
-              <p className="text-slate-400 font-medium">Đơn giản hóa trải nghiệm đỗ xe của bạn</p>
+              <h2 className="text-[28px] md:text-[34px] font-bold text-white leading-[1.2] mb-2">{t.process.title}</h2>
+              <p className="text-slate-400 text-[16px] font-normal leading-[1.6] max-w-[65ch]">Đơn giản hóa trải nghiệm đỗ xe của bạn</p>
             </div>
-            <div className="bg-sky-500/20 border border-sky-500/30 text-sky-400 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 w-fit">
+            <div className="bg-sky-500/20 border border-sky-500/30 text-sky-400 px-4 py-2 rounded-lg text-[13px] font-semibold flex items-center gap-2 w-fit">
               <Clock className="w-4 h-4" /> Toàn bộ quy trình dưới 30 giây
             </div>
           </div>
@@ -1139,8 +1323,8 @@ const ProcessTimeline = ({ t }) => {
                   <ScanLine className="w-7 h-7 text-sky-400" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold mb-2 text-white">{t.process.s1Title}</h3>
-                  <p className="text-slate-400 text-sm leading-relaxed font-medium">{t.process.s1Desc}</p>
+                  <h3 className="text-[24px] font-bold text-white mb-4">{t.process.s1Title}</h3>
+                  <p className="text-slate-400 text-[16px] font-normal leading-[1.6] max-w-[65ch]">{t.process.s1Desc}</p>
                 </div>
               </div>
               
@@ -1149,8 +1333,8 @@ const ProcessTimeline = ({ t }) => {
                   <MapPin className="w-7 h-7 text-sky-400" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold mb-2 text-white">{t.process.s2Title}</h3>
-                  <p className="text-slate-400 text-sm leading-relaxed font-medium">{t.process.s2Desc}</p>
+                  <h3 className="text-[24px] font-bold text-white mb-4">{t.process.s2Title}</h3>
+                  <p className="text-slate-400 text-[16px] font-normal leading-[1.6] max-w-[65ch]">{t.process.s2Desc}</p>
                 </div>
               </div>
 
@@ -1159,8 +1343,8 @@ const ProcessTimeline = ({ t }) => {
                   <Smartphone className="w-7 h-7 text-sky-400" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold mb-2 text-white">{t.process.s3Title}</h3>
-                  <p className="text-slate-400 text-sm leading-relaxed font-medium">{t.process.s3Desc}</p>
+                  <h3 className="text-[24px] font-bold text-white mb-4">{t.process.s3Title}</h3>
+                  <p className="text-slate-400 text-[16px] font-normal leading-[1.6] max-w-[65ch]">{t.process.s3Desc}</p>
                 </div>
               </div>
             </div>
@@ -1171,70 +1355,207 @@ const ProcessTimeline = ({ t }) => {
   );
 };
 
-const Footer = ({ t }) => {
+const ModalContainer = ({ isOpen, onClose, title, children }) => {
+  if (!isOpen) return null;
   return (
-    <footer className="bg-white border-t border-slate-200 pt-16 pb-8">
+    <div
+      className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col border border-slate-200 animate-in fade-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+          <h3 className="font-bold text-slate-800 text-lg">{title}</h3>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-6 overflow-y-auto max-h-[60vh] custom-scrollbar text-slate-600 text-sm font-medium leading-relaxed">
+          {children}
+        </div>
+        <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-sky-500 hover:bg-sky-600 !text-white font-bold rounded-lg transition-colors"
+            style={{ color: '#FFFFFF' }}
+          >
+            Đóng
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Footer = ({ t, onOpenModal }) => {
+  const navigate = useNavigate();
+  const currentPath = window.location.pathname;
+
+  const handleFeatureClick = (e, path) => {
+    e.preventDefault();
+    const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+    if (token) {
+      navigate(path);
+    } else {
+      sessionStorage.setItem('redirect_after_login', path);
+      navigate('/login');
+    }
+  };
+
+  const handleFaqClick = (e) => {
+    e.preventDefault();
+    const target = document.getElementById('thong-bao');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleContactClick = (e) => {
+    e.preventDefault();
+    window.location.href = "mailto:smartparkingswp202@gmail.com";
+  };
+
+  const linkClass = (path) => {
+    const isActive = currentPath === path;
+    return `group flex items-center gap-2 cursor-pointer focus:ring-2 focus:ring-sky-500/40 focus:outline-none min-h-[40px] px-1 py-1 rounded transition-all duration-200 ease-out text-slate-500 hover:text-sky-600 hover:translate-x-1 ${
+      isActive ? 'text-sky-600 font-semibold border-b border-sky-600 w-fit' : ''
+    }`;
+  };
+
+  return (
+    <footer className="bg-slate-50 border-t border-slate-200/60 pt-12 pb-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="col-span-1 md:col-span-1">
             <Logo variant="horizontal" size="sm" />
-            <p className="text-slate-500 text-sm font-medium leading-relaxed mb-6">
+            <p className="text-slate-500 text-[13px] font-medium leading-[1.6] mt-4 max-w-[30ch]">
               {t.footer.desc}
             </p>
-            <div className="flex gap-4">
-              <a href="#" className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-sky-100 hover:text-sky-600 transition-colors">
-                <Facebook className="w-4 h-4" />
-              </a>
-              <a href="#" className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-sky-100 hover:text-sky-600 transition-colors">
-                <Github className="w-4 h-4" />
-              </a>
-            </div>
           </div>
           
           <div>
-            <h4 className="font-bold text-slate-800 mb-4">{t.footer.products}</h4>
-            <ul className="space-y-3 text-sm font-medium text-slate-500">
-              <li><a href="#" className="hover:text-sky-600 transition-colors">Enterprise Dashboard</a></li>
-              <li><a href="#" className="hover:text-sky-600 transition-colors">Mobile App</a></li>
-              <li><a href="#" className="hover:text-sky-600 transition-colors">LPR Camera System</a></li>
-              <li><a href="#" className="hover:text-sky-600 transition-colors">Payment Gateway</a></li>
+            <h4 className="text-[12px] font-semibold text-slate-800 uppercase tracking-[0.08em] mb-4">{t.footer.products}</h4>
+            <ul className="space-y-1">
+              <li>
+                <a 
+                  href="#" 
+                  onClick={(e) => handleFeatureClick(e, '/driver-vehicle-registration')} 
+                  className={linkClass('/driver-vehicle-registration')}
+                >
+                  <span className="hover:underline text-[13px] font-medium">{t.footer.f1}</span>
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#" 
+                  onClick={(e) => handleFeatureClick(e, '/driver-dashboard')} 
+                  className={linkClass('/driver-dashboard')}
+                >
+                  <span className="hover:underline text-[13px] font-medium">{t.footer.f3}</span>
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#" 
+                  onClick={(e) => handleFeatureClick(e, '/driver-payment')} 
+                  className={linkClass('/driver-payment')}
+                >
+                  <span className="hover:underline text-[13px] font-medium">{t.footer.f4}</span>
+                </a>
+              </li>
             </ul>
           </div>
           
           <div>
-            <h4 className="font-bold text-slate-800 mb-4">{t.footer.support}</h4>
-            <ul className="space-y-3 text-sm font-medium text-slate-500">
-              <li><a href="#" className="hover:text-sky-600 transition-colors">{t.footer.helpCenter}</a></li>
-              <li><a href="#" className="hover:text-sky-600 transition-colors">{t.footer.apiDocs}</a></li>
-              <li><a href="#" className="hover:text-sky-600 transition-colors">{t.footer.community}</a></li>
-              <li><a href="#" className="hover:text-sky-600 transition-colors">{t.footer.contact}</a></li>
+            <h4 className="text-[12px] font-semibold text-slate-800 uppercase tracking-[0.08em] mb-4">{t.footer.support}</h4>
+            <ul className="space-y-1">
+              <li>
+                <a 
+                  href="#thong-bao" 
+                  onClick={handleFaqClick} 
+                  className="group flex items-center gap-2 cursor-pointer focus:ring-2 focus:ring-sky-500/40 focus:outline-none min-h-[40px] px-1 py-1 rounded transition-all duration-200 ease-out text-slate-500 hover:text-sky-600 hover:translate-x-1 text-[13px] font-medium"
+                >
+                  <span className="hover:underline">{t.footer.faq}</span>
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#" 
+                  onClick={(e) => { e.preventDefault(); onOpenModal('guide'); }} 
+                  className="group flex items-center gap-2 cursor-pointer focus:ring-2 focus:ring-sky-500/40 focus:outline-none min-h-[40px] px-1 py-1 rounded transition-all duration-200 ease-out text-slate-500 hover:text-sky-600 hover:translate-x-1 text-[13px] font-medium"
+                >
+                  <span className="hover:underline">{t.footer.guide}</span>
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#" 
+                  onClick={handleContactClick} 
+                  className="group flex items-center gap-2 cursor-pointer focus:ring-2 focus:ring-sky-500/40 focus:outline-none min-h-[40px] px-1 py-1 rounded transition-all duration-200 ease-out text-slate-500 hover:text-sky-600 hover:translate-x-1 text-[13px] font-medium"
+                >
+                  <span className="hover:underline">{t.footer.contact}</span>
+                </a>
+              </li>
             </ul>
           </div>
           
           <div>
-            <h4 className="font-bold text-slate-800 mb-4">{t.footer.contact}</h4>
-            <ul className="space-y-3 text-sm font-medium text-slate-500">
-              <li>Email: dat@example.com</li>
-              <li>Hotline: 0123456789</li>
-              <li>{t.footer.addressLabel}: {t.footer.addressVal}</li>
+            <h4 className="text-[12px] font-semibold text-slate-800 uppercase tracking-[0.08em] mb-4">{t.footer.contact}</h4>
+            <ul className="space-y-2.5 text-[13px] font-medium text-slate-500">
+              <li className="flex items-center gap-2 min-h-[40px]">
+                <a 
+                  href="mailto:smartparkingswp202@gmail.com" 
+                  className="inline-flex items-center gap-2 text-slate-500 hover:text-sky-600 transition-colors duration-200 focus:ring-2 focus:ring-sky-500/40 focus:outline-none px-1.5 py-1.5 rounded"
+                >
+                  <Mail className="w-4 h-4 shrink-0 text-sky-500" />
+                  <span>smartparkingswp202@gmail.com</span>
+                </a>
+              </li>
+              <li className="flex items-center gap-2 min-h-[40px]">
+                <a 
+                  href="tel:+840982094533" 
+                  className="inline-flex items-center gap-2 text-slate-500 hover:text-sky-600 transition-colors duration-200 focus:ring-2 focus:ring-sky-500/40 focus:outline-none px-1.5 py-1.5 rounded"
+                >
+                  <Phone className="w-4 h-4 shrink-0 text-sky-500" />
+                  <span>0982 094 533</span>
+                </a>
+              </li>
+              <li className="flex items-center gap-2 min-h-[40px] text-slate-500 px-1.5 py-1.5">
+                <MapPin className="w-4 h-4 shrink-0 text-slate-400" />
+                <span>{t.footer.addressVal}</span>
+              </li>
             </ul>
           </div>
         </div>
         
-        <div className="border-t border-slate-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <span className="text-sm text-slate-500 font-medium">© 2026 Parking System SaaS. {t.footer.rights}</span>
-          <div className="flex gap-6 text-sm font-bold text-slate-500">
-            <a href="#" className="hover:text-sky-600 transition-colors">{t.footer.terms}</a>
-            <a href="#" className="hover:text-sky-600 transition-colors">{t.footer.privacy}</a>
-            <a href="#" className="hover:text-sky-600 transition-colors">{t.footer.cookies}</a>
+        <div className="border-t border-slate-200 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+          <span className="text-[13px] text-slate-500 font-medium">© 2026 Parking Building Management System. {t.footer.rights}</span>
+          <div className="flex gap-6 text-[13px] font-semibold text-slate-500">
+            <a 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); onOpenModal('terms'); }} 
+              className="transition-colors duration-200 hover:text-sky-600 focus:ring-2 focus:ring-sky-500/40 focus:outline-none px-1 py-1 rounded"
+            >
+              {t.footer.terms}
+            </a>
+            <a 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); onOpenModal('privacy'); }} 
+              className="transition-colors duration-200 hover:text-sky-600 focus:ring-2 focus:ring-sky-500/40 focus:outline-none px-1 py-1 rounded"
+            >
+              {t.footer.privacy}
+            </a>
           </div>
         </div>
       </div>
     </footer>
   );
 };
-
-// --- MAIN PAGE COMPONENT ---
 
 export default function WelcomePage() {
   const getInitialLang = () => {
@@ -1260,6 +1581,8 @@ export default function WelcomePage() {
     };
   }, []);
 
+  const [activeModal, setActiveModal] = useState(null);
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800 selection:bg-sky-200">
       <Navbar lang={lang} setLang={setLang} t={t} />
@@ -1270,7 +1593,85 @@ export default function WelcomePage() {
         <PricingAndMap t={t} />
         <ProcessTimeline t={t} />
       </main>
-      <Footer t={t} />
+      <Footer t={t} onOpenModal={setActiveModal} />
+
+      <ModalContainer 
+        isOpen={activeModal === 'guide'} 
+        onClose={() => setActiveModal(null)} 
+        title={lang === 'vi' ? 'Hướng dẫn sử dụng hệ thống' : 'System User Guide'}
+      >
+        {lang === 'vi' ? (
+          <div className="space-y-4 text-[13px] text-slate-600 font-medium leading-[1.6]">
+            <p className="font-semibold text-slate-800">Để sử dụng dịch vụ bãi đỗ xe thông minh, quý khách vui lòng làm theo các bước sau:</p>
+            <ol className="list-decimal pl-5 space-y-2">
+              <li><strong>Đăng ký tài khoản:</strong> Tạo tài khoản và cập nhật thông tin cá nhân.</li>
+              <li><strong>Đăng ký thẻ xe:</strong> Đăng ký biển số xe chính chủ và chọn loại thẻ tháng hoặc lượt.</li>
+              <li><strong>Đặt chỗ trước:</strong> Chọn khu vực, tầng và vị trí đỗ mong muốn trước khi di chuyển đến tòa nhà.</li>
+              <li><strong>Vào bãi xe:</strong> Camera LPR sẽ tự động nhận diện biển số của bạn và mở cổng barie trong 2 giây.</li>
+              <li><strong>Thanh toán trực tuyến:</strong> Thanh toán phí gửi xe dễ dàng qua ứng dụng di động hoặc ví điện tử liên kết khi ra cổng.</li>
+            </ol>
+          </div>
+        ) : (
+          <div className="space-y-4 text-[13px] text-slate-600 font-medium leading-[1.6]">
+            <p className="font-semibold text-slate-800">To use our smart parking services, please follow these steps:</p>
+            <ol className="list-decimal pl-5 space-y-2">
+              <li><strong>Account Registration:</strong> Create an account and update your profile details.</li>
+              <li><strong>Parking Card Registration:</strong> Register your vehicle license plate and choose subscription or single-use card.</li>
+              <li><strong>Pre-booking Slot:</strong> Select your desired parking zone, floor and slot before arriving.</li>
+              <li><strong>Access the Gate:</strong> The LPR camera will automatically scan your plate and open the barrier gate in 2 seconds.</li>
+              <li><strong>Online Payment:</strong> Easily pay parking fees via mobile app or linked e-wallets when exiting.</li>
+            </ol>
+          </div>
+        )}
+      </ModalContainer>
+
+      <ModalContainer 
+        isOpen={activeModal === 'terms'} 
+        onClose={() => setActiveModal(null)} 
+        title={lang === 'vi' ? 'Điều khoản sử dụng' : 'Terms of Use'}
+      >
+        {lang === 'vi' ? (
+          <div className="space-y-4 text-[13px] text-slate-600 font-medium leading-[1.6]">
+            <p>Chào mừng bạn đến với <strong>Parking Building Management System</strong>. Khi truy cập và sử dụng dịch vụ của chúng tôi, bạn đồng ý tuân thủ các điều khoản sau:</p>
+            <h4 className="font-semibold text-slate-800 uppercase text-[13px]">1. Đăng ký & Bảo mật thông tin</h4>
+            <p>Người dùng có trách nhiệm tự bảo mật tài khoản và mật khẩu cá nhân. Mọi hành vi chia sẻ tài khoản cho bên thứ ba hoặc vi phạm nội quy đỗ xe đều có thể bị khóa tài khoản tạm thời hoặc vĩnh viễn.</p>
+            <h4 className="font-semibold text-slate-800 uppercase text-[13px]">2. Quy định trong bãi đỗ xe</h4>
+            <p>Khách hàng phải tuân thủ hướng dẫn của nhân viên điều phối, đỗ đúng vị trí ô đỗ đã đặt, tuân thủ tốc độ giới hạn và tắt động cơ khi xe đã vào vị trí đỗ.</p>
+          </div>
+        ) : (
+          <div className="space-y-4 text-[13px] text-slate-600 font-medium leading-[1.6]">
+            <p>Welcome to <strong>Parking Building Management System</strong>. By accessing and using our service, you agree to comply with the following terms:</p>
+            <h4 className="font-semibold text-slate-800 uppercase text-[13px]">1. Registration & Security</h4>
+            <p>Users are responsible for maintaining the confidentiality of their accounts and passwords. Any sharing of accounts or parking violation may result in temporary or permanent suspension.</p>
+            <h4 className="font-semibold text-slate-800 uppercase text-[13px]">2. Parking Lot Regulations</h4>
+            <p>Customers must follow coordinates and guidelines from operators, park inside designated lines, adhere to speed limits, and turn off engines after parking.</p>
+          </div>
+        )}
+      </ModalContainer>
+
+      <ModalContainer 
+        isOpen={activeModal === 'privacy'} 
+        onClose={() => setActiveModal(null)} 
+        title={lang === 'vi' ? 'Chính sách bảo mật' : 'Privacy Policy'}
+      >
+        {lang === 'vi' ? (
+          <div className="space-y-4 text-[13px] text-slate-600 font-medium leading-[1.6]">
+            <p>Chính sách bảo mật này mô tả cách chúng tôi thu thập, sử dụng và bảo vệ thông tin cá nhân của bạn:</p>
+            <h4 className="font-semibold text-slate-800 uppercase text-[13px]">1. Dữ liệu thu thập</h4>
+            <p>Chúng tôi thu thập thông tin tài khoản (Họ tên, Email, Số điện thoại), thông tin phương tiện (Biển số xe, hình ảnh nhận diện LPR tại cổng) để phục vụ cho mục đích vận hành tự động bãi xe.</p>
+            <h4 className="font-semibold text-slate-800 uppercase text-[13px]">2. Cam kết bảo mật</h4>
+            <p>Thông tin của bạn được lưu trữ trên hạ tầng an toàn bảo mật cao và tuyệt đối không chia sẻ cho bất kỳ bên thứ ba nào nếu không có sự đồng ý của bạn hoặc yêu cầu từ cơ quan có thẩm quyền.</p>
+          </div>
+        ) : (
+          <div className="space-y-4 text-[13px] text-slate-600 font-medium leading-[1.6]">
+            <p>This privacy policy describes how we collect, use and protect your personal information:</p>
+            <h4 className="font-semibold text-slate-800 uppercase text-[13px]">1. Data Collected</h4>
+            <p>We collect account details (Full name, Email, Phone number) and vehicle details (license plates, LPR entry/exit logs) for automated parking operations.</p>
+            <h4 className="font-semibold text-slate-800 uppercase text-[13px]">2. Security Guarantee</h4>
+            <p>Your details are stored in highly secure cloud environments and will never be shared with third parties without your permission or regulatory requirements.</p>
+          </div>
+        )}
+      </ModalContainer>
     </div>
   );
 }
