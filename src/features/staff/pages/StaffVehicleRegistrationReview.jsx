@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  AlertTriangle,
   BadgeCheck,
   CalendarDays,
   CarFront,
@@ -164,9 +163,35 @@ const normalizeRegistration = (item) => ({
     { label: 'CCCD Mặt trước', value: item.cccdFrontImage },
     { label: 'CCCD Mặt sau', value: item.cccdBackImage },
     { label: 'Bằng lái xe', value: item.licenseImage },
-    { label: 'Ảnh biển số', value: item.plateImage },
   ].filter((document) => document.value),
 });
+
+const getEkycChecks = (record) => [
+  {
+    key: 'fullName',
+    ok: record.eKyc.fullNameMatch,
+    successText: 'Họ tên khớp',
+    pendingText: 'Họ tên chờ staff đối chiếu',
+  },
+  {
+    key: 'cccd',
+    ok: record.eKyc.cccdValid,
+    successText: 'CCCD hợp lệ',
+    pendingText: 'CCCD chờ staff đối chiếu',
+  },
+  {
+    key: 'license',
+    ok: record.eKyc.licenseValid,
+    successText: 'GPLX hợp lệ',
+    pendingText: 'GPLX chờ staff đối chiếu',
+  },
+  {
+    key: 'plate',
+    ok: record.eKyc.plateValid,
+    successText: 'Đã nhập biển số',
+    pendingText: 'Chưa có biển số',
+  },
+];
 
 function StatusBadge({ status }) {
   const info = getStatusInfo(status);
@@ -653,22 +678,17 @@ export default function StaffVehicleRegistrationReview() {
                 }
               >
                 <div className="grid gap-3 md:grid-cols-2">
-                  {[
-                    ['Họ tên khớp', selectedRecord.eKyc.fullNameMatch],
-                    ['CCCD hợp lệ', selectedRecord.eKyc.cccdValid],
-                    ['GPLX hợp lệ', selectedRecord.eKyc.licenseValid],
-                    ['Biển số xe hợp lệ', selectedRecord.eKyc.plateValid],
-                  ].map(([label, ok]) => (
+                  {getEkycChecks(selectedRecord).map((check) => (
                     <div
-                      key={label}
+                      key={check.key}
                       className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-black ring-1 ${
-                        ok
+                        check.ok
                           ? 'bg-emerald-50 text-emerald-700 ring-emerald-100'
-                          : 'bg-rose-50 text-rose-700 ring-rose-100'
+                          : 'bg-amber-50 text-amber-700 ring-amber-100'
                       }`}
                     >
-                      {ok ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
-                      {label}
+                      {check.ok ? <CheckCircle2 size={18} /> : <Clock3 size={18} />}
+                      {check.ok ? check.successText : check.pendingText}
                     </div>
                   ))}
                 </div>

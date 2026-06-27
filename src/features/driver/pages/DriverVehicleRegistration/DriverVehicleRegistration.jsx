@@ -25,7 +25,6 @@ export default function DriverVehicleRegistration() {
   const [cccdBackFile, setCccdBackFile] = useState(null);
   const [driverLicenseFile, setDriverLicenseFile] = useState(null);
   const [vehicleDocsFile, setVehicleDocsFile] = useState(null);
-  const [licensePlateFile, setLicensePlateFile] = useState(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -104,10 +103,6 @@ export default function DriverVehicleRegistration() {
       setError(t('vehicleRegistration.errorEnterPlate'));
       return;
     }
-    if (!licensePlateFile) {
-      setError(t('vehicleRegistration.errorLicensePlate'));
-      return;
-    }
     setSubmitting(true);
     try {
     const payload = {
@@ -117,7 +112,6 @@ export default function DriverVehicleRegistration() {
       cccdBackImage: await fileToBase64(cccdBackFile),
       licenseImage: await fileToBase64(driverLicenseFile),
       vehicleDocumentImage: await fileToBase64(vehicleDocsFile),
-      plateImage: await fileToBase64(licensePlateFile),
     };
 
     const { error: err, message } = await customerService.registerVehicleCard(payload);
@@ -192,9 +186,8 @@ export default function DriverVehicleRegistration() {
   const totalPrice = selectedPlans.reduce((sum, m) => sum + getPlanPrice(m), 0);
 
   // Calculate completeness percentage
-  const totalSteps = 5;
-  const completedSteps = [cccdFrontFile, cccdBackFile, driverLicenseFile, vehicleDocsFile, licensePlateFile].filter(Boolean).length;
-  const completionPercentage = Math.round((completedSteps / totalSteps) * 100);
+  const totalSteps = 4;
+  const completedSteps = [cccdFrontFile, cccdBackFile, driverLicenseFile, vehicleDocsFile].filter(Boolean).length;
   const hasLicensePlate = licensePlate.trim().length > 0;
 
   const getFormStatus = () => {
@@ -238,7 +231,6 @@ export default function DriverVehicleRegistration() {
                       setCccdBackFile(null);
                       setDriverLicenseFile(null);
                       setVehicleDocsFile(null);
-                      setLicensePlateFile(null);
                       setLicensePlate('');
                       setSelectedPlans([]);
                     }}
@@ -355,9 +347,6 @@ export default function DriverVehicleRegistration() {
                   {renderFileDropzone(t('vehicleRegistration.cccdBack'), cccdBackFile, setCccdBackFile)}
                   {renderFileDropzone(t('vehicleRegistration.driverLicense'), driverLicenseFile, setDriverLicenseFile)}
                   {renderFileDropzone(t('vehicleRegistration.vehicleDocs'), vehicleDocsFile, setVehicleDocsFile)}
-                  <div className="sm:col-span-2">
-                    {renderFileDropzone(t('vehicleRegistration.licensePlate'), licensePlateFile, setLicensePlateFile)}
-                  </div>
                 </div>
 
                 {error && (

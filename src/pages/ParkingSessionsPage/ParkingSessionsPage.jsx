@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { RefreshCw } from 'lucide-react';
 import SessionDetailDrawer from '../../components/parking/SessionDetailDrawer';
 import { getParkingSessions } from '../../services/staffService';
 import { apiDateTimeMillis, formatVietnamDateTime } from '../../utils/dateTime';
@@ -87,7 +88,7 @@ export default function ParkingSessionsPage() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('Đang hoạt động');
+  const [activeTab, setActiveTab] = useState('Tất cả');
   const [search, setSearch] = useState('');
   const [vehicleType, setVehicleType] = useState('Tất cả');
   const [customerType, setCustomerType] = useState('Tất cả');
@@ -96,21 +97,31 @@ export default function ParkingSessionsPage() {
   const [selectedSession, setSelectedSession] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    setLoading(true);
-    getParkingSessions()
-      .then((items) => {
-        if (active) setSessions(items.map(mapSession));
-      })
-      .catch((requestError) => {
-        if (active) setError(requestError?.response?.data?.message || 'Không thể tải dữ liệu phiên gửi xe từ database.');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => { active = false; };
+  const fetchSessions = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
+    setError('');
+    try {
+      const items = await getParkingSessions();
+      setSessions(items.map(mapSession));
+    } catch (requestError) {
+      setError(requestError?.response?.data?.message || 'Không thể tải dữ liệu phiên gửi xe từ database.');
+    } finally {
+      if (!silent) setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchSessions();
+
+    const intervalId = window.setInterval(() => fetchSessions({ silent: true }), 15000);
+    const handleFocus = () => fetchSessions({ silent: true });
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [fetchSessions]);
 
   const filteredSessions = useMemo(() => sessions.filter((session) => {
     const completed = session.status === 'Đã hoàn thành';
@@ -136,7 +147,17 @@ export default function ParkingSessionsPage() {
       <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div><h1 className="text-2xl font-semibold tracking-tight text-slate-950">Tất cả phiên gửi xe</h1><p className="mt-1 text-sm font-medium text-slate-500">Dữ liệu trực tiếp từ hệ thống.</p></div>
-          <div className="flex rounded-xl bg-slate-100 p-1">{tabs.map((tab) => <button key={tab} type="button" onClick={() => setActiveTab(tab)} className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${activeTab === tab ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>{tab}</button>)}</div>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex rounded-xl bg-slate-100 p-1">{tabs.map((tab) => <button key={tab} type="button" onClick={() => setActiveTab(tab)} className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${activeTab === tab ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>{tab}</button>)}</div>
+            <button
+              type="button"
+              onClick={() => fetchSessions({ silent: true })}
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:border-blue-200 hover:text-blue-700"
+            >
+              <RefreshCw size={16} />
+              Làm mới
+            </button>
+          </div>
         </div>
       </section>
 
