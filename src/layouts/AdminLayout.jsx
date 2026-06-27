@@ -4,12 +4,14 @@ import {
   AlertTriangle,
   ArrowDownToLine,
   ArrowUpFromLine,
+  BellRing,
   Boxes,
   ChevronLeft,
   ChevronRight,
   LayoutDashboard,
   LogOut,
   Package,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '../contexts/useAuth';
 import { ROUTES } from '../constants/routes';
@@ -21,14 +23,16 @@ import Logo from '../components/Logo';
 const mainNavigationItems = [
   { icon: LayoutDashboard, label: 'Tổng quan bãi', path: ROUTES.ADMIN.DASHBOARD },
   { icon: ArrowDownToLine, label: 'Xe vào', path: ROUTES.ADMIN.VEHICLE_ENTRY },
-  { icon: ArrowUpFromLine, label: 'Xe ra', path: ROUTES.ADMIN.ROLES },
+  { icon: ArrowUpFromLine, label: 'Xe ra', path: ROUTES.ADMIN.VEHICLE_EXIT },
   { icon: Boxes, label: 'Phiên gửi xe', path: ROUTES.ADMIN.PARKING_SESSIONS },
   { icon: Package, label: 'Quản lý gói', path: ROUTES.STAFF.BOOKINGS },
+  { icon: BellRing, label: 'Thông báo', path: ROUTES.ADMIN.NOTIFICATIONS.BASE },
+  { icon: Users, label: 'Quản lý tài khoản', path: ROUTES.ADMIN.USERS },
 ];
 
 const incidentNavigationItem = {
   icon: AlertTriangle,
-  label: 'Sự cố',
+  label: 'Sự cố & hỗ trợ',
   path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`,
 };
 
@@ -37,9 +41,10 @@ const pageTitles = [
   { path: ROUTES.STAFF.BOOKINGS, title: 'Quản lý gói' },
   { path: ROUTES.ADMIN.VEHICLE_ENTRY, title: 'Xe vào' },
   { path: ROUTES.ADMIN.PARKING_SESSIONS, title: 'Tất cả phiên gửi xe' },
-  { path: ROUTES.ADMIN.ROLES, title: 'Xe ra' },
-  { path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`, title: 'Sự cố' },
+  { path: ROUTES.ADMIN.VEHICLE_EXIT, title: 'Xe ra' },
+  { path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`, title: 'Quản lí sự cố và hỗ trợ' },
   { path: ROUTES.ADMIN.NOTIFICATIONS.BASE, title: 'Thông báo' },
+  { path: ROUTES.ADMIN.USERS, title: 'Quản lý tài khoản' },
 ];
 
 function getCurrentPageTitle(pathname, search) {
@@ -66,6 +71,8 @@ export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
 
   function handleLogout() {
+    sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    sessionStorage.removeItem(STORAGE_KEYS.USER);
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER);
     localStorage.removeItem('smart-parking-user');
@@ -76,14 +83,14 @@ export default function AdminLayout() {
 
   const profile = user
     ? {
-        name: user.fullName || user.name || 'Demo Admin',
-        role: user.role || 'Admin',
+        name: user.fullName || user.name || user.email || 'Người dùng',
+        role: user.role || '',
         email: user.email || '',
         avatar: user.avatarUrl || user.avatar || '',
       }
     : {
-        name: 'Demo Admin',
-        role: 'Admin',
+        name: 'Người dùng',
+        role: '',
         email: '',
         avatar: '',
       };
@@ -100,16 +107,13 @@ export default function AdminLayout() {
         isVehicleEntryPage ? 'h-screen overflow-hidden' : 'min-h-screen overflow-x-hidden'
       }`}
     >
-      <div className="pointer-events-none fixed -left-24 top-24 h-72 w-72 rounded-full bg-sky-200/35 blur-3xl" />
-      <div className="pointer-events-none fixed right-0 top-1/3 h-80 w-80 rounded-full bg-slate-300/25 blur-3xl" />
       <aside
-        className={`hidden min-h-screen flex-shrink-0 border-r border-white/10 bg-slate-950/90 text-white shadow-[18px_0_48px_rgba(15,23,42,0.22)] backdrop-blur-2xl transition-[width] duration-300 ease-out lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:h-screen lg:flex-col ${
+        className={`hidden min-h-screen flex-shrink-0 border-r border-white/10 bg-slate-950 text-white shadow-[18px_0_48px_rgba(15,23,42,0.22)] transition-[width] duration-300 ease-out lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:h-screen lg:flex-col ${
           collapsed ? 'w-20' : 'w-[260px]'
         }`}
       >
-        <div className="relative flex h-full flex-col overflow-hidden bg-[radial-gradient(circle_at_20%_0%,rgba(14,165,233,0.18),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.015)_42%,rgba(15,23,42,0))] p-4">
-          <div className="pointer-events-none absolute -left-20 top-10 h-44 w-44 rounded-full bg-sky-400/10 blur-3xl" />
-          <div className="pointer-events-none absolute -right-24 bottom-20 h-56 w-56 rounded-full bg-slate-400/10 blur-3xl" />
+        <div className="relative flex h-full flex-col overflow-hidden p-4">
+
           <div
             className={`relative flex items-center gap-3 border-b border-white/10 pb-4 ${
               collapsed ? 'justify-center' : 'justify-between'
@@ -165,22 +169,22 @@ export default function AdminLayout() {
                     to={item.path}
                     end={item.path === ROUTES.ADMIN.DASHBOARD}
                     title={collapsed ? item.label : undefined}
-                    className={`group relative flex h-12 items-center rounded-2xl text-sm font-semibold transition-all duration-200 ${
-                      collapsed ? 'justify-center px-0' : 'gap-3 px-2'
+                    className={`group relative flex h-11 items-center rounded-xl text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                      collapsed ? 'justify-center px-0' : 'gap-3 px-2.5'
                     } ${
                       isActive
-                        ? 'border border-sky-300/20 bg-sky-500/85 text-white shadow-[0_14px_34px_rgba(14,165,233,0.24)]'
-                        : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                        ? 'bg-sky-600 text-white shadow-sm shadow-sky-600/10'
+                        : 'text-slate-300 hover:bg-white/5 hover:text-white'
                     }`}
                   >
                     <span
-                      className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ring-1 transition ${
+                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ring-1 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
                         isActive
-                          ? 'bg-white/15 text-white ring-white/10'
+                          ? 'bg-white/10 text-white ring-white/10'
                           : 'bg-white/5 text-slate-300 ring-white/5 group-hover:bg-white/10 group-hover:text-white'
                       }`}
                     >
-                      <ItemIcon className="h-[18px] w-[18px] shrink-0" />
+                      <ItemIcon className="h-4 w-4 shrink-0" />
                     </span>
                     {!collapsed ? <span className="truncate">{item.label}</span> : null}
                   </NavLink>
@@ -202,22 +206,22 @@ export default function AdminLayout() {
                 <NavLink
                   to={incidentNavigationItem.path}
                   title={collapsed ? incidentNavigationItem.label : undefined}
-                  className={`group flex h-12 items-center rounded-2xl border text-sm font-semibold shadow-[0_12px_28px_rgba(245,158,11,0.10),inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-amber-500/20 hover:text-white active:scale-[0.98] ${
-                    collapsed ? 'w-full justify-center px-0' : 'min-w-0 flex-[7] gap-2 px-2'
+                  className={`group flex h-11 items-center rounded-xl border text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] ${
+                    collapsed ? 'w-full justify-center px-0' : 'min-w-0 flex-[7] gap-2 px-2.5'
                   } ${
                     isIncidentActive
-                      ? 'border-amber-300/30 bg-amber-500/20 text-amber-50'
-                      : 'border-amber-400/20 bg-amber-500/10 text-amber-100'
+                      ? 'border-amber-500/20 bg-amber-500/20 text-amber-50'
+                      : 'border-amber-500/10 bg-amber-500/5 text-amber-200 hover:bg-amber-500/15'
                   }`}
                 >
                   <span
-                    className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ring-1 transition ${
+                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ring-1 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
                       isIncidentActive
-                        ? 'bg-amber-300/20 text-amber-50 ring-amber-200/20'
-                        : 'bg-amber-400/15 text-amber-100 ring-amber-300/10 group-hover:bg-amber-400/20'
+                        ? 'bg-amber-500/20 text-amber-50 ring-amber-500/20'
+                        : 'bg-amber-500/10 text-amber-200 ring-amber-500/10 group-hover:bg-amber-500/20'
                     }`}
                   >
-                    <IncidentIcon className="h-[18px] w-[18px] shrink-0" />
+                    <IncidentIcon className="h-4 w-4 shrink-0" />
                   </span>
                   {!collapsed ? <span className="truncate">{incidentNavigationItem.label}</span> : null}
                 </NavLink>
@@ -228,12 +232,12 @@ export default function AdminLayout() {
               type="button"
               title="Đăng xuất"
               onClick={handleLogout}
-              className={`flex h-12 items-center rounded-2xl border border-rose-400/20 bg-rose-500/10 text-sm font-semibold text-rose-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition hover:border-rose-300/30 hover:bg-rose-500/20 hover:text-white active:scale-[0.98] ${
+              className={`flex h-11 items-center rounded-xl border border-rose-500/20 bg-rose-500/5 text-sm font-medium text-rose-200 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-rose-500/15 hover:text-white active:scale-[0.98] ${
                 collapsed ? 'w-full justify-center px-0' : 'min-w-0 flex-[3] justify-center px-2'
               }`}
             >
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-rose-500/10 text-rose-100 ring-1 ring-rose-300/10">
-                <LogOut className="h-[18px] w-[18px] shrink-0" />
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-rose-500/10 text-rose-200 ring-1 ring-rose-500/10">
+                <LogOut className="h-4 w-4 shrink-0" />
               </span>
               {!collapsed ? <span className="sr-only">Đăng xuất</span> : null}
             </button>
@@ -246,17 +250,17 @@ export default function AdminLayout() {
           collapsed ? 'lg:ml-20' : 'lg:ml-[260px]'
         } ${isVehicleEntryPage ? 'h-full overflow-hidden' : ''}`}
       >
-        <header className="sticky top-0 z-40 border-b border-white/70 bg-white/60 px-5 py-4 shadow-[0_12px_40px_rgba(15,23,42,0.06)] backdrop-blur-2xl lg:px-8">
-          <div className="flex min-h-14 items-center justify-between gap-4">
+        <header className="sticky top-0 z-40 border-b border-slate-100 bg-white px-5 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)] lg:px-8">
+          <div className="flex min-h-12 items-center justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-600/80">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                 Parking Management
               </p>
-              <h2 className="mt-1 truncate text-2xl font-semibold tracking-normal text-slate-950">
+              <h2 className="mt-0.5 truncate text-lg font-semibold tracking-tight text-slate-800">
                 {pageTitle}
               </h2>
               {location.pathname === ROUTES.ADMIN.PARKING_SESSIONS ? (
-                <p className="mt-1 text-sm font-medium text-slate-500">
+                <p className="mt-1 text-xs font-medium text-slate-500">
                   Theo dõi toàn bộ phiên gửi xe trong hệ thống
                 </p>
               ) : null}

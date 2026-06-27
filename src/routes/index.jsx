@@ -4,7 +4,7 @@ import { ROUTES } from '../constants/routes';
 import MainLayout from '../layouts/MainLayout';
 import AdminLayout from '../layouts/AdminLayout';
 import DriverLayout from '../layouts/DriverLayout';
-import LoginPage from '../features/auth/pages/LoginPage';
+import LoginPage from '../features/auth/pages/LoginPage/LoginPage.jsx';
 import HomePage from '../pages/HomePage';
 import ParkingMapPage from '../pages/ParkingMapPage';
 import WelcomePage from '../features/auth/pages/WelcomePage';
@@ -26,7 +26,7 @@ import ForbiddenPage from '../pages/ForbiddenPage';
 import AccountManagementPage from '../pages/AccountManagementPage';
 import SettingsPage from '../pages/SettingsPage';
 import NotificationDetailPage from '../pages/NotificationDetailPage';
-import RolePermissionPage from '../features/admin/role-permissions/pages/RolePermissionPage';
+import NotificationManagement from '../pages/NotificationManagement';
 import SystemConfigurationPage from '../pages/SystemConfigurationPage';
 import AuditLogPage from '../pages/AuditLogPage';
 import StaffDashboard from '../features/staff/pages/StaffDashboard';
@@ -37,6 +37,7 @@ import StaffSessions from '../features/staff/pages/StaffSessions';
 import StaffExceptions from '../features/staff/pages/StaffExceptions';
 import VehicleEntryPage from '../pages/VehicleEntryPage';
 import ParkingSessionsPage from '../pages/ParkingSessionsPage';
+import SubscriptionResultPage from '../pages/SubscriptionResultPage';
 
 function RequireAuth({ children }) {
   const { isAuthenticated } = useAuth();
@@ -58,6 +59,22 @@ function RequireBackOfficeRole({ children }) {
   }
 
   if (!['admin', 'staff'].includes(normalizedRole)) {
+    return <Navigate to={ROUTES.FORBIDDEN} replace />;
+  }
+
+  return children;
+}
+
+function RequireAdmin({ children }) {
+  const { role, isAuthenticated } = useAuth();
+  const location = useLocation();
+  const normalizedRole = role?.toLowerCase();
+
+  if (!isAuthenticated) {
+    return <Navigate to={ROUTES.LOGIN} replace state={{ from: location.pathname }} />;
+  }
+
+  if (normalizedRole !== 'admin') {
     return <Navigate to={ROUTES.FORBIDDEN} replace />;
   }
 
@@ -106,11 +123,12 @@ export function AppRoutes() {
         <Route path={ROUTES.ADMIN.VEHICLE_ENTRY} element={<VehicleEntryPage />} />
         <Route path={ROUTES.ADMIN.PARKING_SESSIONS} element={<ParkingSessionsPage />} />
         <Route path={ROUTES.ADMIN.USERS} element={<AccountManagementPage />} />
-        <Route path={ROUTES.ADMIN.ROLES} element={<RolePermissionPage />} />
+        <Route path={ROUTES.ADMIN.VEHICLE_EXIT} element={<StaffVehicleExit />} />
+        <Route path={ROUTES.ADMIN.ROLES} element={<Navigate to={ROUTES.ADMIN.VEHICLE_EXIT} replace />} />
         <Route path={ROUTES.ADMIN.SYSTEM_CONFIG} element={<SystemConfigurationPage />} />
         <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AuditLogPage />} />
+        <Route path={ROUTES.ADMIN.NOTIFICATIONS.BASE} element={<NotificationManagement />} />
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.DETAIL} element={<NotificationDetailPage />} />
-        <Route path={ROUTES.FORBIDDEN} element={<ForbiddenPage />} />
         <Route path={ROUTES.STAFF.DASHBOARD} element={<StaffDashboard />} />
         <Route path={ROUTES.STAFF.BOOKINGS} element={<StaffBookingReview />} />
         <Route path={ROUTES.STAFF.VEHICLE_ENTRY} element={<StaffVehicleEntry />} />
@@ -118,11 +136,18 @@ export function AppRoutes() {
         <Route path={ROUTES.STAFF.SESSIONS} element={<StaffSessions />} />
         <Route path={ROUTES.STAFF.EXCEPTIONS} element={<StaffExceptions />} />
       </Route>
+
+      <Route path={ROUTES.FORBIDDEN} element={
+        <RequireAuth>
+          <ForbiddenPage />
+        </RequireAuth>
+      } />
       
       <Route element={<MainLayout />}>
         <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />}/>
       </Route>
       
+      <Route path={ROUTES.SUBSCRIPTION.RESULT} element={<SubscriptionResultPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
