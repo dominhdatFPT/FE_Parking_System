@@ -244,7 +244,7 @@ export default function DriverPayment() {
                       <td className="px-5 py-3.5">
                         <StatusBadge status={inv.status === 'SUCCESS' ? 'PAID' : inv.status} />
                       </td>
-                      <td className="px-5 py-3.5 text-slate-400">{dayjs(inv.createdAt).format('DD/MM/YYYY HH:mm')}</td>
+                      <td className="px-5 py-3.5 text-slate-400">{vietnamDayjs(inv.createdAt).format('DD/MM/YYYY HH:mm')}</td>
                     </tr>
                   ))}
                 </tbody>

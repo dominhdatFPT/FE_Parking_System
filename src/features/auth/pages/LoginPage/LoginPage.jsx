@@ -472,7 +472,13 @@ export default function LoginPage() {
         localStorage.removeItem(STORAGE_KEYS.USER);
       }
 
-      navigate(getDashboardPath(authenticatedUser.role));
+      const redirectPath = sessionStorage.getItem('redirect_after_login');
+      if (redirectPath) {
+        sessionStorage.removeItem('redirect_after_login');
+        navigate(redirectPath);
+      } else {
+        navigate(getDashboardPath(authenticatedUser.role));
+      }
     } catch (err) {
       setError(t('errors.loginFailed'));
       console.error('Login error:', err);
@@ -507,7 +513,13 @@ export default function LoginPage() {
         localStorage.removeItem(STORAGE_KEYS.USER);
         localStorage.setItem('userRole', response.role || 'driver');
         setUser(nextUser);
-        navigate(getDashboardPath(response.role));
+        const redirectPath = sessionStorage.getItem('redirect_after_login');
+        if (redirectPath) {
+          sessionStorage.removeItem('redirect_after_login');
+          navigate(redirectPath);
+        } else {
+          navigate(getDashboardPath(response.role));
+        }
       }
     } catch (err) {
       setError(t('errors.googleFailed'));

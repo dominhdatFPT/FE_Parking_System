@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/useAuth';
-import { customerService } from '../../../../services/customerService';
+import { bookingService } from '../../../../services/bookingService';
 import PageHeader from '../../components/PageHeader';
 import Button from '../../components/Button';
 
@@ -18,7 +18,6 @@ export default function DriverVehicleRegistration() {
   // Form Fields State
   const [vehicleType, setVehicleType] = useState(preselectedType);
   const [selectedPlans, setSelectedPlans] = useState(preselectedPlans);
-  const [licensePlate, setLicensePlate] = useState('');
 
   // File Upload State (CCCD requires 2 sides)
   const [cccdFrontFile, setCccdFrontFile] = useState(null);
@@ -100,19 +99,15 @@ export default function DriverVehicleRegistration() {
       setError(t('vehicleRegistration.errorVehicleDocs'));
       return;
     }
-    if (!licensePlate.trim()) {
-      setError(t('vehicleRegistration.errorEnterPlate'));
-      return;
-    }
     if (!licensePlateFile) {
       setError(t('vehicleRegistration.errorLicensePlate'));
       return;
     }
+
     setSubmitting(true);
     try {
     const payload = {
       vehicleTypeId: vehicleType === 'CAR' ? 2 : 1,
-      licensePlate: licensePlate.trim().toUpperCase(),
       cccdFrontImage: await fileToBase64(cccdFrontFile),
       cccdBackImage: await fileToBase64(cccdBackFile),
       licenseImage: await fileToBase64(driverLicenseFile),
@@ -120,7 +115,7 @@ export default function DriverVehicleRegistration() {
       plateImage: await fileToBase64(licensePlateFile),
     };
 
-    const { error: err, message } = await customerService.registerVehicleCard(payload);
+    const { error: err, message } = await bookingService.registerVehicleCard(payload);
     if (err) {
       setError(message || t('vehicleRegistration.errorGeneric'));
       return;
@@ -236,7 +231,6 @@ export default function DriverVehicleRegistration() {
                       setDriverLicenseFile(null);
                       setVehicleDocsFile(null);
                       setLicensePlateFile(null);
-                      setLicensePlate('');
                       setSelectedPlans([]);
                     }}
                   >
@@ -293,26 +287,8 @@ export default function DriverVehicleRegistration() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="mb-1.5 block text-xs font-bold text-slate-500">
-                    {t('vehicleRegistration.licensePlateNumber')}
-                  </label>
-                  <div className="relative">
-                    <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">
-                      confirmation_number
-                    </span>
-                    <input
-                      type="text"
-                      value={licensePlate}
-                      onChange={(e) => setLicensePlate(e.target.value.toUpperCase())}
-                      placeholder={t('vehicleRegistration.platePlaceholder')}
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-bold uppercase text-slate-800 outline-none transition-all placeholder:text-slate-300 focus:border-[#0EA5E9] focus:ring-4 focus:ring-sky-100"
-                    />
-                  </div>
-                </div>
-
                 <div className="rounded-xl border border-sky-100 bg-sky-50/70 p-3 text-xs leading-relaxed text-sky-800">
-                  {t('vehicleRegistration.manualPlateNotice')}
+                  Họ tên được lấy từ tài khoản. Biển số, hãng và màu xe được hệ thống đọc từ ảnh bạn cung cấp để staff đối chiếu khi duyệt.
                 </div>
 
                 {/* Selected Plans List */}
@@ -391,7 +367,7 @@ export default function DriverVehicleRegistration() {
                 <h4 className="text-xs font-bold text-slate-700">{t('vehicleRegistration.summaryTitle')}</h4>
               </div>
 
-              {completedSteps === 0 && !hasLicensePlate ? (
+              {completedSteps === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <span className="material-symbols-outlined text-slate-300 text-[40px] mb-2">description</span>
                   <p className="text-xs text-slate-400 font-medium px-4 leading-relaxed">
@@ -405,13 +381,6 @@ export default function DriverVehicleRegistration() {
                     <span className="text-slate-500 font-medium">{t('vehicleRegistration.vehicleType')}</span>
                     <span className="font-bold text-slate-700">
                       {vehicleType === 'CAR' ? t('vehicleRegistration.car') : t('vehicleRegistration.motorbike')}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-50">
-                    <span className="text-slate-500 font-medium">{t('vehicleRegistration.ocrPlate')}</span>
-                    <span className={`font-bold ${hasLicensePlate ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-                      {hasLicensePlate ? licensePlate.trim().toUpperCase() : t('vehicleRegistration.platePlaceholder')}
                     </span>
                   </div>
 
@@ -479,8 +448,8 @@ export default function DriverVehicleRegistration() {
                       </div>
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-slate-500">{t('vehicleRegistration.ocrPlate')}</span>
-                        <span className={`font-bold ${hasLicensePlate ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-                          {hasLicensePlate ? licensePlate.trim().toUpperCase() : t('vehicleRegistration.platePlaceholder')}
+                        <span className={`font-bold ${licensePlateFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
+                          {licensePlateFile ? 'Sẽ đọc khi gửi hồ sơ' : t('vehicleRegistration.ocrPlateWaiting')}
                         </span>
                       </div>
                     </div>

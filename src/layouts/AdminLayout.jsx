@@ -11,6 +11,8 @@ import {
   LayoutDashboard,
   LogOut,
   Package,
+  Shield,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '../contexts/useAuth';
 import { ROUTES } from '../constants/routes';
@@ -26,14 +28,15 @@ const mainNavigationItems = [
   { icon: Boxes, label: 'Phiên gửi xe', path: ROUTES.ADMIN.PARKING_SESSIONS },
   { icon: Package, label: 'Quản lý đăng ký xe', path: ROUTES.STAFF.VEHICLE_REGISTRATIONS },
   { icon: BellRing, label: 'Thông báo', path: ROUTES.ADMIN.NOTIFICATIONS.BASE },
+  { icon: Users, label: 'Quản lý tài khoản', path: ROUTES.ADMIN.USERS },
+  { icon: Shield, label: 'Phân quyền', path: ROUTES.ADMIN.PERMISSIONS },
 ];
 
 const incidentNavigationItem = {
   icon: AlertTriangle,
-  label: 'Support',
+  label: 'Sự cố & hỗ trợ',
   path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`,
 };
-
 function isNavigationItemActive(pathname, search, itemPath) {
   if (itemPath.includes('?')) {
     return `${pathname}${search}` === itemPath;
@@ -47,9 +50,11 @@ function getNavigationLabel(item) {
   if (item.path === ROUTES.ADMIN.DASHBOARD) return 'Tổng quan bãi';
   if (item.path === ROUTES.ADMIN.VEHICLE_EXIT) return 'Xe ra';
   if (item.path === ROUTES.ADMIN.PARKING_SESSIONS) return 'Phiên gửi xe';
-  if (item.path === ROUTES.STAFF.BOOKINGS) return 'Quản lý gói';
+  if (item.path === ROUTES.STAFF.VEHICLE_REGISTRATIONS) return 'Quản lý đăng ký xe';
   if (item.path === ROUTES.ADMIN.NOTIFICATIONS.BASE) return 'Thông báo';
-  if (item.path === incidentNavigationItem.path) return 'Support';
+  if (item.path === ROUTES.ADMIN.USERS) return 'Quản lý tài khoản';
+  if (item.path === ROUTES.ADMIN.PERMISSIONS) return 'Phân quyền';
+  if (item.path === incidentNavigationItem.path) return 'Sự cố & hỗ trợ';
   return item.label;
 }
 

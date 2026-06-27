@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import {
   ArrowLeft,
   ArrowRight,
   Camera,
+  Car,
   Check,
   CheckCircle2,
   CircleAlert,
@@ -25,180 +27,7 @@ import { requestPasswordResetApi, resetPasswordApi, verifyResetOtpApi } from '..
 const LANGUAGE_KEY = 'language';
 const OTP_LENGTH = 6;
 
-const resources = {
-  vi: {
-    translation: {
-      login: 'Đăng nhập',
-      steps: {
-        email: 'Email',
-        otp: 'Xác thực OTP',
-        password: 'Mật khẩu mới',
-      },
-      email: {
-        title: 'Quên mật khẩu?',
-        desc: 'Nhập email đã đăng ký để nhận mã OTP xác thực.',
-        label: 'Email',
-        placeholder: 'yourname@company.com',
-        button: 'Tiếp tục',
-        loading: 'Đang gửi mã...',
-      },
-      otp: {
-        title: 'Xác thực OTP',
-        desc: 'Mã OTP đã được gửi đến email của bạn.',
-        sentTo: 'Mã OTP đã gửi tới',
-        button: 'Xác nhận OTP',
-        loading: 'Đang xác thực...',
-        resend: 'Gửi lại mã',
-        countdownPrefix: 'Có thể gửi lại sau',
-      },
-      password: {
-        title: 'Tạo mật khẩu mới',
-        desc: 'Tạo mật khẩu đủ mạnh để bảo vệ tài khoản SmartParking.',
-        newLabel: 'Mật khẩu mới',
-        confirmLabel: 'Xác nhận mật khẩu',
-        placeholder: 'Ít nhất 8 ký tự',
-        confirmPlaceholder: 'Nhập lại mật khẩu mới',
-        button: 'Cập nhật mật khẩu',
-        loading: 'Đang cập nhật...',
-        strength: 'Độ mạnh mật khẩu',
-        weak: 'Yếu',
-        medium: 'Trung bình',
-        strong: 'Mạnh',
-        show: 'Hiện mật khẩu',
-        hide: 'Ẩn mật khẩu',
-      },
-      done: {
-        title: 'Đặt lại mật khẩu thành công',
-        desc: 'Bạn có thể đăng nhập bằng mật khẩu mới.',
-        button: 'Đăng nhập ngay',
-      },
-      messages: {
-        otpSent: 'Mã OTP đã được gửi. Vui lòng kiểm tra hộp thư của bạn.',
-        otpResent: 'Mã OTP mới đã được gửi lại.',
-        otpValid: 'OTP hợp lệ. Vui lòng tạo mật khẩu mới.',
-        passwordUpdated: 'Mật khẩu mới đã được cập nhật thành công.',
-      },
-      errors: {
-        emailRequired: 'Vui lòng nhập email đã đăng ký.',
-        emailInvalid: 'Email chưa đúng định dạng. Vui lòng kiểm tra lại.',
-        otpRequired: 'Vui lòng nhập đủ 6 chữ số OTP.',
-        otpInvalid: 'Mã OTP không chính xác. Vui lòng thử lại.',
-        passwordLength: 'Mật khẩu mới phải có ít nhất 8 ký tự.',
-        passwordMismatch: 'Mật khẩu xác nhận không khớp.',
-      },
-      trust: {
-        otp: 'Xác thực OTP bảo mật',
-        encryption: 'Mã hóa dữ liệu',
-        cloud: 'Hạ tầng Cloud an toàn',
-        account: 'Bảo vệ tài khoản SmartParking',
-      },
-      background: {
-        secure: 'Secure recovery',
-        email: 'Email verification',
-        cloud: 'Cloud security',
-        access: 'Smart access control',
-      },
-      back: {
-        login: 'Quay lại đăng nhập',
-        previous: 'Quay lại bước trước',
-      },
-    },
-  },
-  en: {
-    translation: {
-      login: 'Login',
-      steps: {
-        email: 'Email',
-        otp: 'OTP Verification',
-        password: 'New password',
-      },
-      email: {
-        title: 'Forgot password?',
-        desc: 'Enter your registered email to receive a verification OTP.',
-        label: 'Email',
-        placeholder: 'yourname@company.com',
-        button: 'Continue',
-        loading: 'Sending code...',
-      },
-      otp: {
-        title: 'Verify OTP',
-        desc: 'The OTP code has been sent to your email.',
-        sentTo: 'OTP sent to',
-        button: 'Verify OTP',
-        loading: 'Verifying...',
-        resend: 'Resend code',
-        countdownPrefix: 'Resend available in',
-      },
-      password: {
-        title: 'Create a new password',
-        desc: 'Create a strong password to protect your SmartParking account.',
-        newLabel: 'New password',
-        confirmLabel: 'Confirm password',
-        placeholder: 'At least 8 characters',
-        confirmPlaceholder: 'Re-enter new password',
-        button: 'Update password',
-        loading: 'Updating...',
-        strength: 'Password strength',
-        weak: 'Weak',
-        medium: 'Medium',
-        strong: 'Strong',
-        show: 'Show password',
-        hide: 'Hide password',
-      },
-      done: {
-        title: 'Password reset successful',
-        desc: 'You can now log in with your new password.',
-        button: 'Login now',
-      },
-      messages: {
-        otpSent: 'OTP has been sent. Please check your inbox.',
-        otpResent: 'A new OTP has been sent.',
-        otpValid: 'OTP verified. Please create a new password.',
-        passwordUpdated: 'Your new password has been updated successfully.',
-      },
-      errors: {
-        emailRequired: 'Please enter your registered email.',
-        emailInvalid: 'Email format is invalid. Please check again.',
-        otpRequired: 'Please enter all 6 OTP digits.',
-        otpInvalid: 'OTP code is incorrect. Please try again.',
-        passwordLength: 'New password must be at least 8 characters.',
-        passwordMismatch: 'Password confirmation does not match.',
-      },
-      trust: {
-        otp: 'Secure OTP verification',
-        encryption: 'Encrypted data',
-        cloud: 'Safe Cloud infrastructure',
-        account: 'SmartParking account protection',
-      },
-      background: {
-        secure: 'Secure recovery',
-        email: 'Email verification',
-        cloud: 'Cloud security',
-        access: 'Smart access control',
-      },
-      back: {
-        login: 'Back to login',
-        previous: 'Back to previous step',
-      },
-    },
-  },
-};
 
-const getInitialLanguage = () => {
-  if (typeof window === 'undefined') return 'vi';
-  const savedLanguage = window.localStorage.getItem(LANGUAGE_KEY) || 'vi';
-  return savedLanguage.startsWith('en') ? 'en' : 'vi';
-};
-
-const getResetText = (language, key) => {
-  const dictionary = resources[language]?.translation || resources.vi.translation;
-  return key.split('.').reduce((value, part) => value?.[part], dictionary) ?? key;
-};
-
-const translate = (language, key) => {
-  const dictionary = resources[language]?.translation ?? resources.vi.translation;
-  return key.split('.').reduce((value, part) => value?.[part], dictionary) ?? key;
-};
 
 const stepOrder = ['email', 'otp', 'password'];
 
@@ -373,7 +202,7 @@ function PasswordStrength({ password, t }) {
 }
 
 export default function ResetPassword() {
-  const { i18n: resetI18n } = useTranslation();
+  const { t, i18n: resetI18n } = useTranslation();
   const [step, setStep] = useState('email');
   const [email, setEmail] = useState('');
   const [otpDigits, setOtpDigits] = useState(Array(OTP_LENGTH).fill(''));
@@ -387,7 +216,6 @@ export default function ResetPassword() {
   const otpRefs = useRef([]);
   const navigate = useNavigate();
   const currentLanguage = resetI18n.language.startsWith('en') ? 'en' : 'vi';
-  const t = (key) => getResetText(currentLanguage, key);
 
   const otp = otpDigits.join('');
   const maskedEmail = email.trim();
@@ -406,7 +234,7 @@ export default function ResetPassword() {
   }, [step, message]);
 
   const handleLanguageChange = (nextLanguage) => {
-    setCurrentLanguage(nextLanguage);
+    resetI18n.changeLanguage(nextLanguage);
     localStorage.setItem(LANGUAGE_KEY, nextLanguage);
   };
 
@@ -661,7 +489,7 @@ export default function ResetPassword() {
                     />
                   </span>
                 </label>
-                <button className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)] disabled:cursor-not-allowed disabled:opacity-70" type="submit" disabled={loading}>
+                <button className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold !text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)] disabled:cursor-not-allowed disabled:opacity-70" type="submit" disabled={loading}>
                   {loading ? t('email.loading') : t('email.button')}
                   {!loading && <ArrowRight className="h-5 w-5" />}
                 </button>
@@ -704,7 +532,7 @@ export default function ResetPassword() {
                     {countdown > 0 ? `${t('otp.countdownPrefix')} 00:${String(countdown).padStart(2, '0')}` : '00:00'}
                   </span>
                 </div>
-                <button className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)] disabled:cursor-not-allowed disabled:opacity-70" type="submit" disabled={loading}>
+                <button className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold !text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)] disabled:cursor-not-allowed disabled:opacity-70" type="submit" disabled={loading}>
                   {loading ? t('otp.loading') : t('otp.button')}
                 </button>
               </form>
@@ -730,7 +558,7 @@ export default function ResetPassword() {
                   </span>
                 </label>
                 <PasswordStrength password={password} t={t} />
-                <button className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)] disabled:cursor-not-allowed disabled:opacity-70" type="submit" disabled={loading}>
+                <button className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold !text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)] disabled:cursor-not-allowed disabled:opacity-70" type="submit" disabled={loading}>
                   {loading ? t('password.loading') : t('password.button')}
                 </button>
               </form>
@@ -742,7 +570,7 @@ export default function ResetPassword() {
                   <Check className="h-8 w-8" />
                 </div>
                 <p className="text-sm font-medium leading-6 text-slate-500">{message || t('messages.passwordUpdated')}</p>
-                <button className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)]" type="button" onClick={() => navigate(ROUTES.LOGIN)}>
+                <button className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold !text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)]" type="button" onClick={() => navigate(ROUTES.LOGIN)}>
                   {t('done.button')}
                 </button>
               </div>

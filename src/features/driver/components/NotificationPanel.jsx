@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { customerService } from '../../../services/customerService';
+import { bookingService } from '../../../services/bookingService';
 import { ROUTES } from '../../../constants/routes';
 import { apiDateTimeMillis } from '../../../utils/dateTime';
 
@@ -33,7 +33,7 @@ export default function NotificationPanel() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data } = await customerService.getNotifications();
+      const { data } = await bookingService.getNotifications();
       if (!cancelled) {
         setNotifications(Array.isArray(data) ? data.slice(0, 4) : []);
         setLoading(false);

@@ -383,34 +383,67 @@ export default function DriverFeePlans() {
                   ) : (
                     feePackages.map((pkg) => {
                       const isSelected = selectedPlanId === pkg.id;
-                      const tag = pkg.isPopular ? t('feePlans.popularTag') : pkg.isBestValue ? t('feePlans.saveTag') : '';
+                      const tag = '';
                       const rawPrice = pkg.price ?? pkg.currentPrice ?? 0;
                       const price = Number.isFinite(Number(rawPrice)) ? Number(rawPrice) : 0;
+                      const pricePerMonth = pkg.durationMonths > 0 ? Math.round(price / pkg.durationMonths) : price;
+                      const benefitsList = pkg.benefits ? pkg.benefits.split(';').map(b => b.trim()).filter(Boolean) : [];
+
                       return (
                         <div
                           key={pkg.id}
                           onClick={() => setSelectedPlanId(pkg.id)}
-                          className={`relative flex flex-col justify-between rounded-2xl border p-4 cursor-pointer transition-all duration-300 ${isSelected ? 'border-[#0EA5E9] bg-sky-50/20 ring-2 ring-[#0EA5E9]/20 scale-[1.03] shadow-md' : 'border-slate-100 hover:border-slate-200 bg-white hover:-translate-y-0.5 hover:shadow-sm'}`}
+                          className={`relative flex flex-col justify-between rounded-2xl border p-5 cursor-pointer transition-all duration-300 ${
+                            isSelected 
+                              ? 'border-[#0EA5E9] bg-gradient-to-b from-sky-50/25 to-white ring-2 ring-[#0EA5E9]/20 scale-[1.03] shadow-[0_20px_40px_rgba(14,165,233,0.08)]' 
+                              : 'border-slate-100 hover:border-slate-200 bg-white hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(15,23,42,0.04)] shadow-[0_8px_30px_rgb(0,0,0,0.015)]'
+                          }`}
                         >
                           {tag && (
-                            <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wide bg-gradient-to-r from-blue-600 to-blue-500 text-white">
+                            <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full px-2.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wide bg-gradient-to-r from-blue-600 to-[#0EA5E9] text-white shadow-sm ring-2 ring-white whitespace-nowrap">
                               {tag}
                             </span>
                           )}
                           <div>
-                            <div className="flex items-baseline justify-between border-b border-slate-55 pb-2 mb-2">
-                              <span className="text-[10px] font-black uppercase text-slate-400">{pkg.name}</span>
+                            <div className="flex items-baseline justify-between border-b border-slate-100 pb-2 mb-3">
+                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">{pkg.name}</span>
                             </div>
                             <div className="flex items-baseline gap-1 mt-1">
-                              <span className="text-2xl font-black text-slate-800 tracking-tight">{pkg.durationMonths}</span>
-                              <span className="text-xs font-semibold text-slate-400">{t('feePlans.planUnit')}</span>
+                              <span className="text-3xl font-black text-slate-800 tracking-tight">{pkg.durationMonths}</span>
+                              <span className="text-xs font-bold text-slate-400 uppercase">{t('feePlans.planUnit')}</span>
                             </div>
-                            <p className="mt-2 text-sm font-extrabold text-slate-700">{price.toLocaleString('vi-VN')} đ</p>
+                            <div className="mt-2.5">
+                              <span className="text-base font-black text-slate-700">{price.toLocaleString('vi-VN')} đ</span>
+                              {pkg.durationMonths > 1 && (
+                                <span className="text-[9px] font-bold text-slate-400 block mt-0.5">
+                                  (~ {pricePerMonth.toLocaleString('vi-VN')} đ/tháng)
+                                </span>
+                              )}
+                            </div>
+                            
+                            {benefitsList.length > 0 && (
+                              <ul className="mt-4 space-y-1.5">
+                                {benefitsList.map((benefit, idx) => (
+                                  <li key={idx} className="flex items-start gap-1.5 text-[10px] text-slate-500 font-semibold leading-relaxed">
+                                    <span className="material-symbols-outlined text-[13px] text-emerald-500 font-bold shrink-0 mt-0.5">check_circle</span>
+                                    <span>{benefit}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
                           </div>
-                          <div className="mt-4 border-t border-slate-50 pt-3 flex items-center justify-between">
-                            <span className="text-[9px] font-medium text-slate-400 leading-tight block">{pkg.benefits}</span>
-                            <span className={`h-5 w-5 rounded-full border flex items-center justify-center transition-colors text-[10px] font-bold ${isSelected ? 'border-[#0EA5E9] bg-[#0EA5E9] text-white' : 'border-slate-300 bg-white text-slate-400'}`}>
-                              {isSelected ? '✓' : ''}
+                          <div className="mt-5 pt-3 border-t border-slate-50 flex items-center justify-between">
+                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                              {isSelected ? 'Đang chọn' : 'Nhấp để chọn'}
+                            </span>
+                            <span className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 shrink-0 ${
+                              isSelected 
+                                ? 'border-[#0EA5E9] bg-[#0EA5E9] text-white shadow-md shadow-sky-500/20 scale-105' 
+                                : 'border-slate-200 bg-white hover:border-slate-300'
+                            }`}>
+                              {isSelected && (
+                                <span className="material-symbols-outlined text-[12px] font-black">check</span>
+                              )}
                             </span>
                           </div>
                         </div>
