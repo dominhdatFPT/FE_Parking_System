@@ -197,18 +197,37 @@ export default function DriverVehicleRegistration() {
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={t('vehicleRegistration.title')}
-        subtitle={t('vehicleRegistration.subtitle')}
-        icon="assignment_ind"
-      />
+    <div className="relative -m-4 min-h-[calc(100vh-4rem)] overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(232,121,249,0.20),transparent_46%),radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.25),transparent_55%),linear-gradient(135deg,#f8fafc_0%,#dbeafe_45%,#f3e8ff_100%)] p-4 lg:-m-6 lg:p-7">
+      <div className="pointer-events-none absolute right-0 top-0 h-56 w-56 opacity-30" aria-hidden="true">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="vehicle-registration-dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+              <circle cx="3" cy="3" r="2" fill="#818cf8" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#vehicle-registration-dots)" />
+        </svg>
+      </div>
+      <div className="pointer-events-none absolute bottom-0 left-0 h-64 w-64 opacity-35" aria-hidden="true">
+        <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-full w-full">
+          <path d="M-20 180C40 160 80 190 120 140C160 90 130 50 210 20" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" />
+          <path d="M-40 160C20 140 60 170 100 120C140 70 110 30 190 0" stroke="#60a5fa" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M-60 140C0 120 40 150 80 100C120 50 90 10 170-20" stroke="#3b82f6" strokeWidth="1" strokeLinecap="round" strokeDasharray="4 6" />
+        </svg>
+      </div>
 
-      <div className="grid gap-6 lg:grid-cols-5">
-        
+      <div className="relative z-10 mx-auto max-w-7xl space-y-6">
+        <PageHeader
+          title={t('vehicleRegistration.title')}
+          subtitle={t('vehicleRegistration.subtitle')}
+          icon="assignment_ind"
+          variant="banner"
+        />
+        <div className="grid gap-6 lg:grid-cols-5">
+
         {/* Left Side: Upload Documents Form */}
         <div className="lg:col-span-3">
-          <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+          <div className="rounded-[28px] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.10)] backdrop-blur-xl">
             {submitted ? (
               <div className="flex flex-col items-center py-12 text-center animate-in fade-in duration-300">
                 <div className="relative mb-6">
@@ -263,8 +282,8 @@ export default function DriverVehicleRegistration() {
                       }}
                       className={`flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-xs font-bold transition-all duration-200 ${
                         vehicleType === 'MOTORBIKE'
-                          ? 'border-[#0EA5E9] bg-sky-50/50 text-[#0EA5E9]'
-                          : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+                          ? 'border-[#0EA5E9] bg-sky-50/70 text-[#0EA5E9] shadow-[0_12px_28px_rgba(14,165,233,0.12)]'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-sky-200 hover:bg-sky-50/40'
                       }`}
                     >
                       <span className="material-symbols-outlined text-[16px]">two_wheeler</span>
@@ -278,8 +297,8 @@ export default function DriverVehicleRegistration() {
                       }}
                       className={`flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-xs font-bold transition-all duration-200 ${
                         vehicleType === 'CAR'
-                          ? 'border-[#0EA5E9] bg-sky-50/50 text-[#0EA5E9]'
-                          : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+                          ? 'border-[#0EA5E9] bg-sky-50/70 text-[#0EA5E9] shadow-[0_12px_28px_rgba(14,165,233,0.12)]'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-sky-200 hover:bg-sky-50/40'
                       }`}
                     >
                       <span className="material-symbols-outlined text-[16px]">directions_car</span>
@@ -301,7 +320,7 @@ export default function DriverVehicleRegistration() {
                       value={licensePlate}
                       onChange={(e) => setLicensePlate(e.target.value.toUpperCase())}
                       placeholder={t('vehicleRegistration.platePlaceholder')}
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-bold uppercase text-slate-800 outline-none transition-all placeholder:text-slate-300 focus:border-[#0EA5E9] focus:ring-4 focus:ring-sky-100"
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-white/95 pl-10 pr-4 text-sm font-bold uppercase text-slate-800 outline-none transition-all placeholder:text-slate-300 focus:border-[#0EA5E9] focus:ring-4 focus:ring-sky-100"
                     />
                   </div>
                 </div>
@@ -362,7 +381,7 @@ export default function DriverVehicleRegistration() {
                     variant="primary"
                     loading={submitting}
                     disabled={submitting}
-                    className="w-full justify-center py-3 rounded-xl"
+                    className="w-full justify-center rounded-xl py-3 shadow-[0_16px_36px_rgba(14,165,233,0.24)]"
                   >
                     {t('vehicleRegistration.submit')}
                   </Button>
@@ -377,7 +396,7 @@ export default function DriverVehicleRegistration() {
           <div className="sticky top-6 space-y-4">
             
             {/* Tóm tắt hồ sơ đăng ký Card */}
-            <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+            <div className="rounded-[24px] border border-white/80 bg-white/92 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3 mb-4">
                 <span className="material-symbols-outlined text-[#0EA5E9] text-[20px] font-bold">assignment</span>
                 <h4 className="text-xs font-bold text-slate-700">{t('vehicleRegistration.summaryTitle')}</h4>
@@ -483,7 +502,7 @@ export default function DriverVehicleRegistration() {
 
             {/* Selected Packages Details & Invoice summary */}
             {selectedPlans.length > 0 && (
-              <div className="rounded-2xl bg-sky-50/50 border border-sky-100 p-5 space-y-3 animate-in fade-in duration-300">
+              <div className="rounded-[24px] border border-sky-100 bg-white/78 p-5 space-y-3 shadow-[0_18px_44px_rgba(14,165,233,0.10)] backdrop-blur-xl animate-in fade-in duration-300">
                 <div className="border-b border-sky-100 pb-2">
                   <p className="font-black text-sky-800 text-xs uppercase tracking-wider">{t('vehicleRegistration.summaryPackages')}</p>
                 </div>
@@ -506,6 +525,7 @@ export default function DriverVehicleRegistration() {
           </div>
         </div>
 
+        </div>
       </div>
     </div>
   );
