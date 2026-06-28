@@ -17,7 +17,6 @@ export const SETTINGS_ITEMS: SettingItem[] = [
   { id: 'notifications', label: 'Cài đặt thông báo', icon: 'notifications', to: ROUTES.SETTINGS.NOTIFICATIONS, roles: ['admin', 'staff'], description: 'Điều khiển loại thông báo bạn muốn nhận.' },
   { id: 'language', label: 'Ngôn ngữ', icon: 'language', to: ROUTES.SETTINGS.LANGUAGE, roles: ['admin', 'staff'], description: 'Thay đổi ngôn ngữ hiển thị dashboard.' },
   { id: 'system', label: 'Cài đặt hệ thống', icon: 'settings', to: ROUTES.SETTINGS.SYSTEM, roles: ['admin'], description: 'Thiết lập cấu hình chung cho hệ thống.' },
-  { id: 'permissions', label: 'Phân quyền người dùng', icon: 'security', to: ROUTES.SETTINGS.PERMISSIONS, roles: ['admin'], description: 'Quản lý quyền truy cập và vai trò nhân viên.' },
   { id: 'security-logs', label: 'Nhật ký bảo mật', icon: 'history', to: ROUTES.SETTINGS.SECURITY_LOGS, roles: ['admin'], description: 'Xem lại hoạt động bảo mật và lịch sử truy cập.' },
 ];
 
@@ -51,12 +50,6 @@ export const SETTINGS_SECTIONS: Record<string, { title: string; description: str
     description: 'Thiết lập cấu hình chung cho hệ thống Parking AI.',
     content:
       'Quản trị hệ thống có thể chỉnh sửa các cấu hình mặc định, quy tắc bảo mật và tham số vận hành.',
-  },
-  permissions: {
-    title: 'Phân quyền người dùng',
-    description: 'Quản lý quyền truy cập và vai trò nhân viên.',
-    content:
-      'Tạo và cập nhật vai trò cho Admin, Staff và các nhóm khác để kiểm soát quyền truy cập vào tính năng.',
   },
   'security-logs': {
     title: 'Nhật ký bảo mật',

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   AlertCircle, ArrowUpFromLine, CarFront, CheckCircle2, Clock3,
-  CreditCard, Keyboard, LoaderCircle, ReceiptText, ScanLine, Search,
+  CreditCard, Keyboard, LoaderCircle, ReceiptText, ScanLine,
   ShieldCheck, TimerReset, UserRound,
 } from 'lucide-react';
 import { checkParkingExit, confirmParkingExit } from '../../../services/staffService';
@@ -9,13 +9,16 @@ import { VIETNAM_TIME_ZONE } from '../../../utils/dateTime';
 
 const formatCurrency = (value) => `${Number(value || 0).toLocaleString('vi-VN')} đ`;
 
-const formatDateTime = (value) => {
+const formatKpiDateTime = (value) => {
   if (!value) return '—';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '—';
   return new Intl.DateTimeFormat('vi-VN', {
     timeZone: VIETNAM_TIME_ZONE,
-    hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
   }).format(date);
 };
 
@@ -29,6 +32,8 @@ const formatDuration = (minutes) => {
 };
 
 function InfoCard({ icon: Icon, label, value, chip }) {
+  const hasValue = value && value !== '—';
+
   return (
     <div className="flex flex-col justify-center gap-1 rounded-xl border border-slate-100 bg-white px-3 py-2.5 shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
       <div className="flex items-center gap-1.5">
@@ -43,7 +48,7 @@ function InfoCard({ icon: Icon, label, value, chip }) {
             {chip}
           </span>
         )}
-        <p className="truncate text-[12.5px] font-extrabold text-slate-900">{value || '—'}</p>
+        <p title={value || '—'} className={`whitespace-nowrap text-[12px] font-extrabold ${hasValue ? 'text-slate-900' : 'text-slate-400'}`}>{value || '—'}</p>
       </div>
     </div>
   );
@@ -87,6 +92,7 @@ export default function StaffVehicleExit() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  const hasExitData = hasCheckedVehicle && Boolean(result);
   const isVisitor = result?.exitType === 'VISITOR';
   const extractError = (err, fallback) =>
     err?.response?.data?.message || err?.response?.data?.error || fallback;
@@ -154,6 +160,23 @@ export default function StaffVehicleExit() {
     result?.vehicleType === 'MOTORBIKE' ? 'Xe máy (2 bánh)' :
     result?.vehicleType === 'CAR' ? 'Ô tô (4 chỗ)' :
     result?.vehicleType || '—';
+  const visitorCardDisplay = hasExitData
+    ? (result.visitorCardCode || (isVisitor ? '—' : 'Không có'))
+    : '—';
+  const entryTimeDisplay = hasExitData ? formatKpiDateTime(result.entryTime) : '—';
+  const durationDisplay = hasExitData ? formatDuration(result.durationMinutes) : '—';
+  const customerDisplay = hasExitData ? (result.customerName || 'Khách vãng lai') : '—';
+  const totalFeeDisplay = hasExitData ? formatCurrency(result.fee?.amount) : '—';
+  const feeDescription = hasExitData
+    ? (result.fee?.description || 'Tính theo thời gian gửi thực tế, làm tròn lên theo mỗi khung phí')
+    : 'Nhập biển số để xem chi tiết phí.';
+  const firstBlockDisplay = hasExitData && result.fee?.firstBlockMinutes != null
+    ? `${result.fee.firstBlockMinutes} phút · ${formatCurrency(result.fee?.firstBlockFee)}`
+    : '—';
+  const additionalBlockDisplay = hasExitData && result.fee?.additionalBlocks != null
+    ? `${result.fee.additionalBlocks} · ${formatCurrency(result.fee?.additionalFee)}`
+    : '—';
+  const canToggleCash = hasExitData && isVisitor && !isExitCompleted;
 
   const canConfirmExit =
     hasCheckedVehicle && result && !isExitCompleted &&
@@ -163,7 +186,7 @@ export default function StaffVehicleExit() {
     <div className="flex h-full flex-col gap-3 overflow-hidden bg-[#EEF3FB] px-5 pb-0 pt-0 font-sans">
 
       {/* ══════ CAMERAS ══════ */}
-      <div className="grid h-[30vh] max-h-[290px] shrink-0 grid-cols-2 gap-3">
+      <div className="grid h-[31vh] max-h-[298px] shrink-0 grid-cols-2 gap-3">
         <CameraPanel label="CAMERA 1" imageSrc="/camera-entry-front.png" />
         <CameraPanel label="CAMERA 2" imageSrc="/camera-entry-rear.png" />
       </div>
@@ -235,30 +258,20 @@ export default function StaffVehicleExit() {
             </div>
           </form>
 
-          {/* Info grid or empty state */}
-          {hasCheckedVehicle && result ? (
-            <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-2 gap-2 overflow-hidden">
-              <InfoCard icon={ReceiptText} label="Mã lượt gửi" value={result.orderCode} />
-              <InfoCard icon={CarFront} label="Loại xe" value={vehicleTypeDisplay} />
-              <InfoCard
-                icon={CreditCard}
-                label="Thẻ vãng lai"
-                value={result.visitorCardCode || (isVisitor ? '—' : 'Không có')}
-                chip={isVisitor ? 'Thẻ vãng lai' : undefined}
-              />
-              <InfoCard icon={Clock3} label="Thời gian vào" value={formatDateTime(result.entryTime)} />
-              <InfoCard icon={TimerReset} label="Thời gian gửi" value={formatDuration(result.durationMinutes)} />
-              <InfoCard icon={UserRound} label="Khách hàng" value={result.customerName || 'Khách vãng lai'} />
-            </div>
-          ) : (
-            <div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/60">
-              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-100 text-slate-300">
-                <Search className="h-5 w-5" strokeWidth={2} />
-              </div>
-              <p className="mt-2 text-[12px] font-semibold text-slate-500">Chưa có thông tin xe</p>
-              <p className="mt-0.5 text-[10px] text-slate-400">Nhập biển số và bấm "Kiểm tra xe"</p>
-            </div>
-          )}
+          {/* Info grid */}
+          <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-2 gap-2 overflow-hidden">
+            <InfoCard icon={ReceiptText} label="Mã lượt gửi" value={hasExitData ? result.orderCode : '—'} />
+            <InfoCard icon={CarFront} label="Loại xe" value={hasExitData ? vehicleTypeDisplay : '—'} />
+            <InfoCard
+              icon={CreditCard}
+              label="Thẻ vãng lai"
+              value={visitorCardDisplay}
+              chip={hasExitData && isVisitor ? 'Thẻ vãng lai' : undefined}
+            />
+            <InfoCard icon={Clock3} label="Thời gian vào" value={entryTimeDisplay} />
+            <InfoCard icon={TimerReset} label="Thời gian gửi" value={durationDisplay} />
+            <InfoCard icon={UserRound} label="Khách hàng" value={customerDisplay} />
+          </div>
         </div>
 
         {/* ── RIGHT: Chi tiết cần thu ── */}
@@ -286,60 +299,46 @@ export default function StaffVehicleExit() {
           <div className="mb-2 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-[#0D1B35] via-[#142240] to-[#1B2F5A] px-4 py-3.5 text-white">
             <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400">TỔNG TIỀN</p>
             <p className="mt-0.5 text-[26px] font-black leading-none tracking-tight">
-              {hasCheckedVehicle && result ? formatCurrency(result.fee?.amount) : '—'}
+              {totalFeeDisplay}
             </p>
             <p className="mt-1 text-[10px] leading-4 text-slate-400">
-              {hasCheckedVehicle && result
-                ? (result.fee?.description || 'Tính theo thời gian gửi thực tế, làm tròn lên theo mỗi khung phí')
-                : 'Nhập biển số để xem chi tiết phí.'}
+              {feeDescription}
             </p>
           </div>
 
-          {/* Fee breakdown — visitor only */}
-          {hasCheckedVehicle && result && isVisitor && (
-            <div className="mb-2 shrink-0 overflow-hidden rounded-xl border border-slate-100">
-              <div className="flex items-center justify-between px-3 py-2 text-[11px]">
-                <span className="font-medium text-slate-500">Khung đầu</span>
-                <strong className="font-bold text-slate-800">{result.fee?.firstBlockMinutes || 0} phút · {formatCurrency(result.fee?.firstBlockFee)}</strong>
-              </div>
-              <div className="mx-3 h-px bg-slate-100" />
-              <div className="flex items-center justify-between px-3 py-2 text-[11px]">
-                <span className="font-medium text-slate-500">Khung phát sinh</span>
-                <strong className="font-bold text-slate-800">{result.fee?.additionalBlocks || 0} · {formatCurrency(result.fee?.additionalFee)}</strong>
-              </div>
+          {/* Fee breakdown */}
+          <div className="mb-2 shrink-0 overflow-hidden rounded-xl border border-slate-100">
+            <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+              <span className="font-medium text-slate-500">Khung đầu</span>
+              <strong className={`truncate text-right font-bold ${firstBlockDisplay === '—' ? 'text-slate-400' : 'text-slate-800'}`}>{firstBlockDisplay}</strong>
             </div>
-          )}
-
-          {/* Free parking note — non-visitor */}
-          {hasCheckedVehicle && result && !isVisitor && (
-            <div className="mb-2 shrink-0 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2">
-              <p className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-800">
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
-                Không cần thu tiền
-              </p>
-              <p className="mt-0.5 text-[10px] leading-4 text-emerald-700">Xe được miễn phí theo gói đã ghi nhận tại thời điểm vào bãi.</p>
+            <div className="mx-3 h-px bg-slate-100" />
+            <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+              <span className="font-medium text-slate-500">Khung phát sinh</span>
+              <strong className={`truncate text-right font-bold ${additionalBlockDisplay === '—' ? 'text-slate-400' : 'text-slate-800'}`}>{additionalBlockDisplay}</strong>
             </div>
-          )}
+          </div>
 
           {/* Cash confirmation checkbox */}
-          {hasCheckedVehicle && result && isVisitor && !isExitCompleted && (
-            <label className={`mb-2 flex shrink-0 cursor-pointer items-start gap-3 rounded-xl border px-3 py-2 transition-colors ${
-              hasReceivedCash
-                ? 'border-emerald-200 bg-emerald-50'
-                : 'border-slate-200 bg-slate-50 hover:border-slate-300'
-            }`}>
-              <input
-                type="checkbox"
-                checked={hasReceivedCash}
-                onChange={(e) => setHasReceivedCash(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-emerald-600"
-              />
-              <span>
-                <span className="block text-[12px] font-bold text-slate-900">Đã nhận đủ tiền mặt</span>
-                <span className="block text-[10px] text-slate-500">Xác nhận trước khi cho xe ra khỏi bãi.</span>
-              </span>
-            </label>
-          )}
+          <label className={`mb-2 flex shrink-0 items-start gap-3 rounded-xl border px-3 py-2 transition-colors ${
+            !canToggleCash
+              ? 'cursor-not-allowed border-slate-200 bg-slate-50 opacity-70'
+              : hasReceivedCash
+                ? 'cursor-pointer border-emerald-200 bg-emerald-50'
+                : 'cursor-pointer border-slate-200 bg-slate-50 hover:border-slate-300'
+          }`}>
+            <input
+              type="checkbox"
+              checked={hasReceivedCash}
+              disabled={!canToggleCash}
+              onChange={(e) => setHasReceivedCash(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-emerald-600 disabled:cursor-not-allowed"
+            />
+            <span>
+              <span className={`block text-[12px] font-bold ${canToggleCash ? 'text-slate-900' : 'text-slate-500'}`}>Đã nhận đủ tiền mặt</span>
+              <span className="block text-[10px] text-slate-500">Xác nhận trước khi cho xe ra khỏi bãi.</span>
+            </span>
+          </label>
 
           {/* Action button — pushed to bottom */}
           <div className="mt-4 shrink-0">

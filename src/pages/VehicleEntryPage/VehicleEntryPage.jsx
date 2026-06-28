@@ -1,9 +1,36 @@
 import { useState } from 'react';
 import { AlertCircle, CarFront, CheckCircle2, TicketCheck, Bike, Keyboard, ChevronDown, Clock3, User, ScanLine, SlidersHorizontal } from 'lucide-react';
 import { checkParkingEntry, confirmParkingEntry } from '../../services/staffService';
-import { formatVietnamDateTime } from '../../utils/dateTime';
+import { VIETNAM_TIME_ZONE } from '../../utils/dateTime';
 
-const formatDateTime = (value) => formatVietnamDateTime(value) || '—';
+const formatKpiDateTime = (value) => {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return new Intl.DateTimeFormat('vi-VN', {
+    timeZone: VIETNAM_TIME_ZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+  }).format(date);
+};
+
+const formatSessionStatus = (value, canConfirm, invalid) => {
+  if (value === '—') return '—';
+  const normalized = String(value || '').toUpperCase();
+  if (normalized.includes('COMPLETED') || normalized.includes('CREATED') || normalized.includes('ACTIVE')) {
+    return 'Đã tạo phiên';
+  }
+  if (normalized.includes('PENDING') || normalized.includes('WAITING') || normalized.includes('CHƯA') || normalized.includes('CHUA')) {
+    return 'Chưa tạo phiên';
+  }
+  if (normalized.includes('ĐÃ') || normalized.includes('DA')) {
+    return 'Đã tạo phiên';
+  }
+  if (invalid) return 'Chưa tạo phiên';
+  return canConfirm ? 'Chưa tạo phiên' : 'Đã tạo phiên';
+};
 
 function Info({ label, value, tone = 'blue', icon: Icon = CarFront }) {
   const tones = {
@@ -22,7 +49,7 @@ function Info({ label, value, tone = 'blue', icon: Icon = CarFront }) {
       </span>
       <div className="relative min-w-0">
         <p className="truncate text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</p>
-        <p className="mt-0.5 truncate text-[15px] font-extrabold leading-none tracking-tight text-slate-950">{value || '—'}</p>
+        <p title={value || '—'} className="mt-0.5 whitespace-nowrap text-[14px] font-extrabold leading-none tracking-tight text-slate-950">{value || '—'}</p>
       </div>
     </div>
   );
@@ -136,7 +163,13 @@ export default function VehicleEntryPage() {
   const badgeLabel = loading ? 'ĐANG KIỂM TRA' : !hasChecked ? 'CHƯA KIỂM TRA' : isRegistered ? 'XE ĐÃ ĐĂNG KÝ GÓI' : isVisitor ? 'KHÁCH VÃNG LAI' : isInvalid ? 'KHÔNG HỢP LỆ' : 'CHƯA KIỂM TRA';
   const displayPlate = hasChecked ? (result?.licensePlate || licensePlate.trim().toUpperCase() || '—') : '—';
   const customerType = !hasChecked ? '—' : isRegistered ? 'Khách tháng' : isVisitor ? 'Vãng lai' : isInvalid ? 'Không hợp lệ' : '—';
-  const entryTime = hasChecked ? formatDateTime(result?.entryTime || result?.checkInTime || result?.createdAt) : '—';
+  const entryTime = hasChecked ? formatKpiDateTime(result?.entryTime || result?.checkInTime || result?.createdAt) : '—';
+  const checkedVehicleType = result?.vehicleType || vehicleType;
+  const isMotorbike = String(checkedVehicleType || '').toUpperCase().includes('MOTORBIKE')
+    || String(checkedVehicleType || '').toLowerCase().includes('xe máy');
+  const vehicleTypeDisplay = !hasChecked ? '—' : isMotorbike ? 'Xe máy' : 'Ô tô';
+  const VehicleTypeIcon = isMotorbike ? Bike : CarFront;
+  const sessionStatusDisplay = hasChecked ? formatSessionStatus(result?.sessionStatus, result?.canConfirm, isInvalid) : '—';
 
   return (
     /*
@@ -225,7 +258,7 @@ export default function VehicleEntryPage() {
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-[14px] bg-gradient-to-r from-blue-600 to-sky-500 px-4 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:scale-[1.01] hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
               >
                 <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} />
-                <span className="truncate">{confirming ? 'Đang lưu...' : 'Xác nhận vào bãi'}</span>
+                <span className="whitespace-nowrap">{confirming ? 'Đang lưu' : 'Xác nhận vào'}</span>
               </button>
             </div>
           </form>
@@ -313,10 +346,10 @@ export default function VehicleEntryPage() {
 
           {/* 4 KPI tiles — mt-auto pushes to bottom, never overlaps content above */}
           <div className="mt-auto grid shrink-0 grid-cols-4 gap-3 pt-[20px]">
-            <Info label="Loại xe"    value={hasChecked ? (result?.vehicleType || 'Ô tô') : '—'}           tone="blue"   icon={CarFront}    />
+            <Info label="Loại xe"    value={vehicleTypeDisplay}                                           tone="blue"   icon={VehicleTypeIcon} />
             <Info label="Loại khách" value={customerType}                                                   tone="green"  icon={User}        />
             <Info label="Giờ vào"    value={entryTime}                                                      tone="purple" icon={Clock3}      />
-            <Info label="Trạng thái" value={hasChecked ? (result?.sessionStatus || 'Chờ kiểm tra') : '—'}  tone="orange" icon={AlertCircle} />
+            <Info label="Trạng thái" value={sessionStatusDisplay}                                          tone="orange" icon={AlertCircle} />
           </div>
 
 

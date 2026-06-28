@@ -1,4 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import {
+  CarFront,
+  CheckCircle2,
+  Clock3,
+  ListFilter,
+  Search,
+  TimerReset,
+  WalletCards,
+} from 'lucide-react';
 import SessionDetailDrawer from '../../components/parking/SessionDetailDrawer';
 import { getParkingSessions } from '../../services/staffService';
 import { apiDateTimeMillis, formatVietnamDateTime } from '../../utils/dateTime';
@@ -9,10 +18,10 @@ const customerTypes = ['Tất cả', 'Gói tháng', 'Vãng lai'];
 const statuses = ['Tất cả', 'Bình thường', 'Quá 24 giờ', 'Quá 7 ngày', 'Đã hoàn thành'];
 
 const statusClasses = {
-  'Bình thường': 'bg-emerald-50 text-emerald-700',
-  'Quá 24 giờ': 'bg-amber-50 text-amber-700',
-  'Quá 7 ngày': 'bg-red-50 text-red-700',
-  'Đã hoàn thành': 'bg-blue-50 text-blue-700',
+  'Bình thường': 'border-emerald-200 bg-emerald-50 text-emerald-700',
+  'Quá 24 giờ': 'border-orange-200 bg-orange-50 text-orange-700',
+  'Quá 7 ngày': 'border-red-200 bg-red-50 text-red-700',
+  'Đã hoàn thành': 'border-blue-200 bg-blue-50 text-blue-700',
 };
 
 const normalizeVehicleType = (value) => {
@@ -80,7 +89,34 @@ function mapSession(item) {
 }
 
 function StatusBadge({ status }) {
-  return <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusClasses[status] || 'bg-slate-100 text-slate-700'}`}>{status}</span>;
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold ${statusClasses[status] || 'border-slate-200 bg-slate-100 text-slate-700'}`}>
+      <span className="h-1.5 w-1.5 rounded-full bg-current" />
+      {status}
+    </span>
+  );
+}
+
+function KpiCard({ icon: Icon, label, value, hint, tone }) {
+  const toneClasses = {
+    blue: 'bg-blue-50 text-blue-600 ring-blue-100',
+    emerald: 'bg-emerald-50 text-emerald-600 ring-emerald-100',
+    orange: 'bg-orange-50 text-orange-600 ring-orange-100',
+    violet: 'bg-violet-50 text-violet-600 ring-violet-100',
+  };
+
+  return (
+    <article className="flex min-h-[88px] items-center gap-3 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 shadow-[0_10px_28px_rgba(15,23,42,0.06)]">
+      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ring-1 ${toneClasses[tone] || toneClasses.blue}`}>
+        <Icon className="h-5 w-5" strokeWidth={2.25} />
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-xs font-semibold text-slate-500">{label}</p>
+        <p className="mt-1 text-2xl font-black leading-none tracking-tight text-slate-950 tabular-nums">{value}</p>
+        {hint ? <p className="mt-1 truncate text-[11px] font-medium text-slate-400">{hint}</p> : null}
+      </div>
+    </article>
+  );
 }
 
 export default function ParkingSessionsPage() {
@@ -118,13 +154,31 @@ export default function ParkingSessionsPage() {
       || (activeTab === 'Đang hoạt động' && !completed)
       || (activeTab === 'Đã hoàn thành' && completed);
     const matchesDate = !date || session.entryTime?.slice(0, 10) === date;
+    const keyword = search.trim().toLowerCase();
     return matchesTab
-      && session.plate.toLowerCase().includes(search.trim().toLowerCase())
+      && (!keyword || session.plate.toLowerCase().includes(keyword) || session.id.toLowerCase().includes(keyword))
       && (vehicleType === 'Tất cả' || session.type === vehicleType)
       && (customerType === 'Tất cả' || session.customer === customerType)
       && (status === 'Tất cả' || session.status === status)
       && matchesDate;
   }), [activeTab, customerType, date, search, sessions, status, vehicleType]);
+
+  const kpis = useMemo(() => {
+    const activeSessions = sessions.filter((session) => session.status !== 'Đã hoàn thành');
+    const completedSessions = sessions.filter((session) => session.status === 'Đã hoàn thành');
+    const over24Hours = sessions.filter((session) => session.durationMinutes >= 1440 && session.status !== 'Đã hoàn thành');
+    const estimatedRevenue = sessions.reduce((total, session) => {
+      const amount = Number(session.estimatedFee?.replace(/[^\d]/g, '') || 0);
+      return total + amount;
+    }, 0);
+
+    return [
+      { icon: CarFront, label: 'Đang hoạt động', value: activeSessions.length, hint: 'Phiên chưa xe ra', tone: 'blue' },
+      { icon: CheckCircle2, label: 'Đã hoàn thành', value: completedSessions.length, hint: 'Phiên đã kết thúc', tone: 'emerald' },
+      { icon: Clock3, label: 'Quá 24 giờ', value: over24Hours.length, hint: 'Cần theo dõi', tone: 'orange' },
+      { icon: WalletCards, label: 'Phí đang tính', value: `${estimatedRevenue.toLocaleString('vi-VN')} đ`, hint: 'Tạm tính từ dữ liệu', tone: 'violet' },
+    ];
+  }, [sessions]);
 
   const openSessionDetail = (session) => {
     setSelectedSession(session);
@@ -132,35 +186,144 @@ export default function ParkingSessionsPage() {
   };
 
   return (
-    <div className="space-y-4">
-      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div><h1 className="text-2xl font-semibold tracking-tight text-slate-950">Tất cả phiên gửi xe</h1><p className="mt-1 text-sm font-medium text-slate-500">Dữ liệu trực tiếp từ hệ thống.</p></div>
-          <div className="flex rounded-xl bg-slate-100 p-1">{tabs.map((tab) => <button key={tab} type="button" onClick={() => setActiveTab(tab)} className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${activeTab === tab ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>{tab}</button>)}</div>
+    <div className="space-y-5">
+      <section className="flex flex-col gap-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {kpis.map((item) => <KpiCard key={item.label} {...item} />)}
         </div>
       </section>
 
       {error ? <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div> : null}
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_160px_170px_170px_160px]">
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm theo biển số" className="h-10 rounded-xl border border-slate-200 px-3 text-sm font-semibold outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" />
-          <select value={vehicleType} onChange={(event) => setVehicleType(event.target.value)} className="h-10 rounded-xl border border-slate-200 px-3 text-sm font-semibold">{vehicleTypes.map((item) => <option key={item}>{item}</option>)}</select>
-          <select value={customerType} onChange={(event) => setCustomerType(event.target.value)} className="h-10 rounded-xl border border-slate-200 px-3 text-sm font-semibold">{customerTypes.map((item) => <option key={item}>{item}</option>)}</select>
-          <select value={status} onChange={(event) => setStatus(event.target.value)} className="h-10 rounded-xl border border-slate-200 px-3 text-sm font-semibold">{statuses.map((item) => <option key={item}>{item}</option>)}</select>
-          <input type="date" value={date} onChange={(event) => setDate(event.target.value)} className="h-10 rounded-xl border border-slate-200 px-3 text-sm font-semibold" />
+      <section className="flex flex-col gap-4">
+        <div className="inline-flex w-full rounded-2xl border border-slate-200 bg-slate-100/80 p-1 shadow-sm sm:w-auto">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={`inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold transition-all sm:flex-none ${
+                activeTab === tab
+                  ? 'bg-white text-blue-700 shadow-[0_6px_18px_rgba(15,23,42,0.08)]'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <span className={`h-2 w-2 rounded-full border ${activeTab === tab ? 'border-blue-600 bg-blue-600' : 'border-slate-300 bg-white'}`} />
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
+          <div className="grid gap-3 lg:grid-cols-[minmax(240px,1fr)_150px_160px_170px_160px]">
+            <label className="relative block">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" strokeWidth={2.25} />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Tìm theo biển số, mã phiên..."
+                className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-10 pr-3 text-sm font-semibold text-slate-800 outline-none transition-all placeholder:font-medium placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+              />
+            </label>
+            <select value={vehicleType} onChange={(event) => setVehicleType(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100">{vehicleTypes.map((item) => <option key={item}>{item}</option>)}</select>
+            <select value={customerType} onChange={(event) => setCustomerType(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100">{customerTypes.map((item) => <option key={item}>{item}</option>)}</select>
+            <select value={status} onChange={(event) => setStatus(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100">{statuses.map((item) => <option key={item}>{item}</option>)}</select>
+            <input type="date" value={date} onChange={(event) => setDate(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100" />
+          </div>
         </div>
       </section>
 
-      <section className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <table className="w-full min-w-[1100px] table-fixed text-left text-sm">
-          <thead className="bg-slate-50/80 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500"><tr><th className="px-3 py-2.5">Mã phiên</th><th className="px-3 py-2.5">Biển số</th><th className="px-3 py-2.5">Loại xe</th><th className="px-3 py-2.5">Loại khách</th><th className="px-3 py-2.5">Mã thẻ</th><th className="px-3 py-2.5">Giờ vào</th><th className="px-3 py-2.5">Giờ ra</th><th className="px-3 py-2.5">Thời gian gửi</th><th className="px-3 py-2.5">Phí</th><th className="px-3 py-2.5">Trạng thái</th><th className="px-3 py-2.5 text-right">Chi tiết</th></tr></thead>
-          <tbody className="divide-y divide-slate-100">
-            {loading ? <tr><td colSpan="11" className="px-4 py-12 text-center text-slate-500">Đang tải dữ liệu từ database...</td></tr> : null}
-            {!loading && filteredSessions.length === 0 ? <tr><td colSpan="11" className="px-4 py-12 text-center text-slate-500">Không có phiên gửi xe phù hợp.</td></tr> : null}
-            {!loading && filteredSessions.map((session) => <tr key={session.id} className="text-slate-600 hover:bg-slate-50"><td className="truncate px-3 py-3 font-semibold text-slate-950">{session.id}</td><td className="px-3 py-3 font-semibold text-slate-950">{session.plate}</td><td className="px-3 py-3">{session.type}</td><td className="px-3 py-3">{session.customer}</td><td className="px-3 py-3">{session.cardId}</td><td className="px-3 py-3">{session.entry}</td><td className="px-3 py-3">{session.exit}</td><td className="px-3 py-3">{session.duration}</td><td className="px-3 py-3">{session.fee}</td><td className="px-3 py-3"><StatusBadge status={session.status} /></td><td className="px-3 py-3 text-right"><button onClick={() => openSessionDetail(session)} className="rounded-lg px-2 py-1 text-sm font-semibold text-blue-700 hover:bg-blue-50">Chi tiết</button></td></tr>)}
-          </tbody>
-        </table>
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
+        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <span className="grid h-8 w-8 place-items-center rounded-xl bg-blue-50 text-blue-600">
+              <ListFilter className="h-4 w-4" strokeWidth={2.25} />
+            </span>
+            <div>
+              <h2 className="text-sm font-black text-slate-950">Danh sách phiên gửi xe</h2>
+              <p className="text-xs font-medium text-slate-400">Hiển thị {filteredSessions.length.toLocaleString('vi-VN')} phiên</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-h-[560px] overflow-auto">
+          <table className="w-full min-w-[1180px] table-fixed text-left text-sm">
+            <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50/95 text-[11px] font-black uppercase tracking-[0.12em] text-slate-500 backdrop-blur">
+              <tr>
+                <th className="w-[140px] px-4 py-3">Mã phiên</th>
+                <th className="w-[130px] px-4 py-3">Biển số</th>
+                <th className="w-[105px] px-4 py-3">Loại xe</th>
+                <th className="w-[120px] px-4 py-3">Loại khách</th>
+                <th className="w-[100px] px-4 py-3">Mã thẻ</th>
+                <th className="w-[135px] px-4 py-3">Giờ vào</th>
+                <th className="w-[120px] px-4 py-3">Giờ ra</th>
+                <th className="w-[125px] px-4 py-3">Thời gian gửi</th>
+                <th className="w-[120px] px-4 py-3">Phí</th>
+                <th className="w-[145px] px-4 py-3">Trạng thái</th>
+                <th className="w-[100px] px-4 py-3 text-right">Chi tiết</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {loading ? (
+                <tr>
+                  <td colSpan="11" className="px-4 py-16 text-center text-sm font-semibold text-slate-500">
+                    Đang tải dữ liệu từ database...
+                  </td>
+                </tr>
+              ) : null}
+              {!loading && filteredSessions.length === 0 ? (
+                <tr>
+                  <td colSpan="11" className="px-4 py-16 text-center text-sm font-semibold text-slate-500">
+                    Không có phiên gửi xe phù hợp.
+                  </td>
+                </tr>
+              ) : null}
+              {!loading && filteredSessions.map((session) => (
+                <tr key={session.id} className="h-16 text-slate-600 transition-colors hover:bg-blue-50/40">
+                  <td className="px-4 py-3">
+                    <span className="block max-w-[120px] truncate font-bold text-slate-900" title={session.id}>{session.id}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="inline-flex max-w-[116px] items-center gap-1.5 rounded-xl bg-blue-50 px-2.5 py-1 font-black text-slate-950">
+                      <CarFront className="h-3.5 w-3.5 shrink-0 text-blue-600" strokeWidth={2.25} />
+                      <span className="truncate">{session.plate}</span>
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 font-semibold text-slate-700">{session.type}</td>
+                  <td className="px-4 py-3 font-semibold text-slate-700">{session.customer}</td>
+                  <td className="px-4 py-3 font-semibold text-slate-600">{session.cardId}</td>
+                  <td className="px-4 py-3 font-medium text-slate-700">{session.entry}</td>
+                  <td className="px-4 py-3 font-medium text-slate-700">{session.exit}</td>
+                  <td className="px-4 py-3 font-bold text-slate-800">
+                    <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                      <TimerReset className="h-3.5 w-3.5 text-slate-400" strokeWidth={2.25} />
+                      {session.duration}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-bold ${
+                      session.status === 'Đã hoàn thành'
+                        ? 'border-slate-200 bg-slate-50 text-slate-700'
+                        : 'border-blue-200 bg-blue-50 text-blue-700'
+                    }`}>
+                      {session.fee}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3"><StatusBadge status={session.status} /></td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      type="button"
+                      onClick={() => openSessionDetail(session)}
+                      className="inline-flex h-9 items-center justify-center rounded-lg border border-blue-200 bg-white px-3 text-sm font-bold text-blue-600 transition-all hover:border-blue-300 hover:bg-blue-50 active:scale-[0.98]"
+                    >
+                      Chi tiết
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
       <SessionDetailDrawer open={isDetailOpen} session={selectedSession} onClose={() => setIsDetailOpen(false)} />
     </div>
