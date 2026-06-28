@@ -61,6 +61,22 @@ function RequireBackOfficeRole({ children }) {
   return children;
 }
 
+function RequireAdmin({ children }) {
+  const { role, isAuthenticated } = useAuth();
+  const location = useLocation();
+  const normalizedRole = role?.toLowerCase();
+
+  if (!isAuthenticated) {
+    return <Navigate to={ROUTES.LOGIN} replace state={{ from: location.pathname }} />;
+  }
+
+  if (normalizedRole !== 'admin') {
+    return <Navigate to={ROUTES.FORBIDDEN} replace />;
+  }
+
+  return children;
+}
+
 export function AppRoutes() {
   return (
     <Routes>
@@ -92,14 +108,20 @@ export function AppRoutes() {
         <Route path={ROUTES.ADMIN.DASHBOARD} element={<HomePage />} />
         <Route path={ROUTES.ADMIN.VEHICLE_ENTRY} element={<VehicleEntryPage />} />
         <Route path={ROUTES.ADMIN.PARKING_SESSIONS} element={<ParkingSessionsPage />} />
-        <Route path={ROUTES.ADMIN.USERS} element={<AccountManagementPage />} />
+        <Route
+          path={ROUTES.ADMIN.USERS}
+          element={
+            <RequireAdmin>
+              <AccountManagementPage />
+            </RequireAdmin>
+          }
+        />
         <Route path={ROUTES.ADMIN.VEHICLE_EXIT} element={<StaffVehicleExit />} />
         <Route path={ROUTES.ADMIN.ROLES} element={<Navigate to={ROUTES.ADMIN.VEHICLE_EXIT} replace />} />
         <Route path={ROUTES.ADMIN.SYSTEM_CONFIG} element={<SystemConfigurationPage />} />
         <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AuditLogPage />} />
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.BASE} element={<NotificationManagement />} />
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.DETAIL} element={<NotificationDetailPage />} />
-        <Route path={ROUTES.FORBIDDEN} element={<ForbiddenPage />} />
         <Route path={ROUTES.STAFF.DASHBOARD} element={<StaffDashboard />} />
         <Route path={ROUTES.STAFF.VEHICLE_REGISTRATIONS} element={<StaffVehicleRegistrationReview />} />
         <Route path={ROUTES.STAFF.VEHICLE_ENTRY} element={<StaffVehicleEntry />} />
@@ -107,6 +129,15 @@ export function AppRoutes() {
         <Route path={ROUTES.STAFF.SESSIONS} element={<StaffSessions />} />
         <Route path={ROUTES.STAFF.EXCEPTIONS} element={<StaffExceptions />} />
       </Route>
+
+      <Route
+        path={ROUTES.FORBIDDEN}
+        element={
+          <RequireAuth>
+            <ForbiddenPage />
+          </RequireAuth>
+        }
+      />
 
       <Route element={<MainLayout />}>
         <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />} />

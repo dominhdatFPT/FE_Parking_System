@@ -27,6 +27,12 @@ export const API_ENDPOINTS = {
     SEND: (id: string | number) => `/api/v1/admin/notifications/${id}/send`,
     DETAIL: (id: string | number) => `/api/v1/admin/notifications/${id}`,
   },
+  ACCOUNTS: {
+    USERS: '/api/v1/admin/accounts/users',
+    EMPLOYEES: '/api/v1/admin/accounts/employees',
+    USER_STATUS: (userId: string | number) => `/api/v1/admin/accounts/users/${userId}/status`,
+    USER_ROLE: (userId: string | number) => `/api/v1/admin/accounts/users/${userId}/role`,
+  },
   NOTIFICATIONS: {
     LIST: '/api/v1/notifications',
     DETAIL: (id: number | string) => `/api/v1/notifications/${id}`,

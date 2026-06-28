@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   LogOut,
   Package,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '../contexts/useAuth';
 import { ROUTES } from '../constants/routes';
@@ -26,6 +27,7 @@ const mainNavigationItems = [
   { icon: Boxes, label: 'Phiên gửi xe', path: ROUTES.ADMIN.PARKING_SESSIONS },
   { icon: Package, label: 'Quản lý đăng ký xe', path: ROUTES.STAFF.VEHICLE_REGISTRATIONS },
   { icon: BellRing, label: 'Thông báo', path: ROUTES.ADMIN.NOTIFICATIONS.BASE },
+  { icon: Users, label: 'Qu\u1EA3n l\u00FD t\u00E0i kho\u1EA3n', path: ROUTES.ADMIN.USERS, adminOnly: true },
 ];
 
 const incidentNavigationItem = {
@@ -42,6 +44,7 @@ const pageTitles = [
   { path: ROUTES.ADMIN.VEHICLE_EXIT, title: 'Xe ra' },
   { path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`, title: 'Quản lí sự cố và hỗ trợ' },
   { path: ROUTES.ADMIN.NOTIFICATIONS.BASE, title: 'Thông báo' },
+  { path: ROUTES.ADMIN.USERS, title: 'Qu\u1EA3n l\u00FD t\u00E0i kho\u1EA3n' },
 ];
 
 function getCurrentPageTitle(pathname, search) {
@@ -62,6 +65,7 @@ function isNavigationItemActive(pathname, search, itemPath) {
 }
 
 function getNavigationLabel(item) {
+  if (item.path === ROUTES.ADMIN.USERS) return 'Qu\u1EA3n l\u00FD t\u00E0i kho\u1EA3n';
   if (item.path === ROUTES.ADMIN.VEHICLE_ENTRY) return 'Xe vào';
   if (item.path === ROUTES.ADMIN.DASHBOARD) return 'Tổng quan bãi';
   if (item.path === ROUTES.ADMIN.VEHICLE_EXIT) return 'Xe ra';
@@ -104,6 +108,9 @@ export default function AdminLayout() {
       };
 
   const isVehicleEntryPage = location.pathname === ROUTES.ADMIN.VEHICLE_ENTRY;
+  const isAdmin = String(user?.role || '').toUpperCase() === 'ADMIN';
+  const navigationItems = mainNavigationItems.filter((item) => !item.adminOnly || isAdmin);
+
   return (
     <div
       className={`relative bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.14),transparent_34%),linear-gradient(135deg,#f8fafc_0%,#eef6fb_46%,#f8fafc_100%)] text-slate-950 lg:flex ${
@@ -162,7 +169,7 @@ export default function AdminLayout() {
 
           <nav className="relative mt-5 flex-1 overflow-y-auto overflow-x-hidden pr-0.5">
             <div className="space-y-1.5">
-              {mainNavigationItems.map((item) => {
+              {navigationItems.map((item) => {
                 const ItemIcon = item.icon;
                 const isActive = isNavigationItemActive(location.pathname, location.search, item.path);
                 const label = getNavigationLabel(item);
