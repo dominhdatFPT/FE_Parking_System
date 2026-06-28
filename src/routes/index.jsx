@@ -25,7 +25,6 @@ import NotificationDetailPage from '../pages/NotificationDetailPage';
 import NotificationManagement from '../pages/NotificationManagement';
 import SystemConfigurationPage from '../pages/SystemConfigurationPage';
 import AuditLogPage from '../pages/AuditLogPage';
-import StaffDashboard from '../features/staff/pages/StaffDashboard';
 import StaffVehicleRegistrationReview from '../features/staff/pages/StaffVehicleRegistrationReview';
 import StaffVehicleEntry from '../features/staff/pages/StaffVehicleEntry';
 import StaffVehicleExit from '../features/staff/pages/StaffVehicleExit';
@@ -122,7 +121,7 @@ export function AppRoutes() {
         <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AuditLogPage />} />
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.BASE} element={<NotificationManagement />} />
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.DETAIL} element={<NotificationDetailPage />} />
-        <Route path={ROUTES.STAFF.DASHBOARD} element={<StaffDashboard />} />
+        <Route path={ROUTES.STAFF.DASHBOARD} element={<Navigate to={ROUTES.ADMIN.DASHBOARD} replace />} />
         <Route path={ROUTES.STAFF.VEHICLE_REGISTRATIONS} element={<StaffVehicleRegistrationReview />} />
         <Route path={ROUTES.STAFF.VEHICLE_ENTRY} element={<StaffVehicleEntry />} />
         <Route path={ROUTES.STAFF.VEHICLE_EXIT} element={<StaffVehicleExit />} />
