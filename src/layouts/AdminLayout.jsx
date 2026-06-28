@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import {
   AlertTriangle,
@@ -26,7 +26,7 @@ const mainNavigationItems = [
   { icon: ArrowDownToLine, label: 'Xe vào', path: ROUTES.ADMIN.VEHICLE_ENTRY },
   { icon: ArrowUpFromLine, label: 'Xe ra', path: ROUTES.ADMIN.VEHICLE_EXIT },
   { icon: Boxes, label: 'Phiên gửi xe', path: ROUTES.ADMIN.PARKING_SESSIONS },
-  { icon: Package, label: 'Quản lý đăng ký xe', path: ROUTES.STAFF.VEHICLE_REGISTRATIONS },
+  { icon: Package, label: 'Quản lý gói', path: ROUTES.STAFF.BOOKINGS },
   { icon: BellRing, label: 'Thông báo', path: ROUTES.ADMIN.NOTIFICATIONS.BASE },
   { icon: Users, label: 'Quản lý tài khoản', path: ROUTES.ADMIN.USERS },
   { icon: Shield, label: 'Phân quyền', path: ROUTES.ADMIN.PERMISSIONS },
@@ -37,25 +37,34 @@ const incidentNavigationItem = {
   label: 'Sự cố & hỗ trợ',
   path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`,
 };
+
+const pageTitles = [
+  { path: ROUTES.ADMIN.DASHBOARD, title: 'Tổng quan bãi', end: true },
+  { path: ROUTES.STAFF.BOOKINGS, title: 'Quản lý gói' },
+  { path: ROUTES.ADMIN.VEHICLE_ENTRY, title: 'Xe vào' },
+  { path: ROUTES.ADMIN.PARKING_SESSIONS, title: 'Tất cả phiên gửi xe' },
+  { path: ROUTES.ADMIN.VEHICLE_EXIT, title: 'Xe ra' },
+  { path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`, title: 'Quản lí sự cố và hỗ trợ' },
+  { path: ROUTES.ADMIN.NOTIFICATIONS.BASE, title: 'Thông báo' },
+  { path: ROUTES.ADMIN.USERS, title: 'Quản lý tài khoản' },
+  { path: ROUTES.ADMIN.PERMISSIONS, title: 'Phân quyền & Tài khoản' },
+];
+
+function getCurrentPageTitle(pathname, search) {
+  const currentUrl = `${pathname}${search}`;
+  const current = pageTitles.find((item) =>
+    item.end ? currentUrl === item.path : currentUrl.startsWith(item.path),
+  );
+
+  return current?.title ?? 'Parking Management';
+}
+
 function isNavigationItemActive(pathname, search, itemPath) {
   if (itemPath.includes('?')) {
     return `${pathname}${search}` === itemPath;
   }
 
   return pathname === itemPath;
-}
-
-function getNavigationLabel(item) {
-  if (item.path === ROUTES.ADMIN.VEHICLE_ENTRY) return 'Xe vào';
-  if (item.path === ROUTES.ADMIN.DASHBOARD) return 'Tổng quan bãi';
-  if (item.path === ROUTES.ADMIN.VEHICLE_EXIT) return 'Xe ra';
-  if (item.path === ROUTES.ADMIN.PARKING_SESSIONS) return 'Phiên gửi xe';
-  if (item.path === ROUTES.STAFF.VEHICLE_REGISTRATIONS) return 'Quản lý đăng ký xe';
-  if (item.path === ROUTES.ADMIN.NOTIFICATIONS.BASE) return 'Thông báo';
-  if (item.path === ROUTES.ADMIN.USERS) return 'Quản lý tài khoản';
-  if (item.path === ROUTES.ADMIN.PERMISSIONS) return 'Phân quyền';
-  if (item.path === incidentNavigationItem.path) return 'Sự cố & hỗ trợ';
-  return item.label;
 }
 
 export default function AdminLayout() {
@@ -89,24 +98,31 @@ export default function AdminLayout() {
         avatar: '',
       };
 
-  const isVehicleEntryPage = location.pathname === ROUTES.ADMIN.VEHICLE_ENTRY;
+  const isFullScreenPage =
+    location.pathname === ROUTES.ADMIN.VEHICLE_ENTRY ||
+    location.pathname === ROUTES.ADMIN.VEHICLE_EXIT;
+  const isVehicleEntryPage = isFullScreenPage;
+  const pageTitle = useMemo(
+    () => getCurrentPageTitle(location.pathname, location.search),
+    [location.pathname, location.search],
+  );
+
   return (
     <div
-      className={`relative bg-[#F6F8FC] text-slate-900 lg:flex ${
+      className={`relative bg-[linear-gradient(135deg,#F8FAFC_0%,#F4F8FC_48%,#EEF5FC_100%)] text-[#0F172A] lg:flex ${
         isVehicleEntryPage ? 'h-screen overflow-hidden' : 'min-h-screen overflow-x-hidden'
       }`}
     >
-      <div className="pointer-events-none absolute -right-24 -top-20 h-[360px] w-[360px] rounded-full bg-blue-500 opacity-10 blur-[120px]" />
-      <div className="pointer-events-none absolute -bottom-24 -left-20 h-[340px] w-[340px] rounded-full bg-cyan-300 opacity-10 blur-[120px]" />
+      <div className="pointer-events-none absolute -right-24 top-0 h-[360px] w-[360px] rounded-full bg-blue-400/10 blur-[120px]" />
+      <div className="pointer-events-none absolute -bottom-24 -left-20 h-[360px] w-[360px] rounded-full bg-sky-300/10 blur-[120px]" />
 
       <aside
-        className={`hidden min-h-screen flex-shrink-0 border-r border-white/[0.06] bg-gradient-to-b from-[#07142A] via-[#0A1F3D] to-[#10284B] font-[Inter] text-white shadow-[16px_0_46px_rgba(2,12,30,0.35)] transition-[width] duration-300 ease-out lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:h-screen lg:flex-col ${
-          collapsed ? 'w-20' : 'w-[280px]'
+        className={`hidden min-h-screen flex-shrink-0 border-r border-white/10 bg-[linear-gradient(180deg,#06152A_0%,#071A32_55%,#06152A_100%)] text-white shadow-[18px_0_48px_rgba(6,21,42,0.28)] transition-[width] duration-300 ease-out lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:h-screen lg:flex-col ${
+          collapsed ? 'w-20' : 'w-[260px]'
         }`}
       >
         <div className="relative flex h-full flex-col overflow-hidden p-4">
-          <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-blue-500/25 blur-[86px]" />
-          <div className="pointer-events-none absolute -bottom-16 right-0 h-52 w-52 rounded-full bg-cyan-300/15 blur-[90px]" />
+          <div className="pointer-events-none absolute inset-x-4 top-0 h-32 rounded-full bg-[#1EA7FF]/10 blur-3xl" />
 
           <div
             className={`relative flex items-center gap-3 border-b border-white/10 pb-4 ${
@@ -116,25 +132,15 @@ export default function AdminLayout() {
             <button
               type="button"
               onClick={() => navigate(ROUTES.ADMIN.DASHBOARD)}
-              className={`flex min-w-0 items-center gap-3 rounded-2xl text-left transition hover:opacity-90 ${
+              className={`flex min-w-0 items-center gap-3 rounded-[22px] text-left transition-all duration-200 hover:scale-[1.01] hover:opacity-95 ${
                 collapsed ? 'justify-center' : ''
               }`}
               title="Parking System"
             >
               {collapsed ? (
-                <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-[#2563EB] to-[#38BDF8] shadow-[0_10px_24px_rgba(37,99,235,0.35)]">
-                  <Logo variant="icon-only" theme="dark" size="sm" />
-                </div>
+                <Logo variant="icon-only" theme="dark" size="sm" />
               ) : (
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#2563EB] to-[#38BDF8] shadow-[0_10px_24px_rgba(37,99,235,0.35)]">
-                    <Logo variant="icon-only" theme="dark" size="sm" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-white">Parking System</p>
-                    <p className="truncate text-xs font-medium text-[#94A3B8]">Smart Parking</p>
-                  </div>
-                </div>
+                <Logo variant="horizontal" theme="dark" size="sm" />
               )}
             </button>
 
@@ -142,7 +148,7 @@ export default function AdminLayout() {
               <button
                 type="button"
                 onClick={() => setCollapsed(true)}
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl border border-white/15 bg-white/10 text-slate-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_10px_22px_rgba(2,6,23,0.35)] transition hover:bg-white/15 hover:text-white active:scale-95"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/10 text-slate-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_24px_rgba(2,6,23,0.18)] transition-all duration-200 hover:bg-white/15 hover:text-white active:scale-95"
                 aria-label="Thu gọn sidebar"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -154,63 +160,51 @@ export default function AdminLayout() {
             <button
               type="button"
               onClick={() => setCollapsed(false)}
-              className="relative mx-auto mt-4 grid h-10 w-10 place-items-center rounded-2xl border border-white/15 bg-white/10 text-slate-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_10px_22px_rgba(2,6,23,0.35)] transition hover:bg-white/15 hover:text-white active:scale-95"
+              className="relative mx-auto mt-4 grid h-10 w-10 place-items-center rounded-2xl border border-white/10 bg-white/10 text-slate-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_24px_rgba(2,6,23,0.18)] transition-all duration-200 hover:bg-white/15 hover:text-white active:scale-95"
               aria-label="Mở rộng sidebar"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
           ) : null}
 
-          <nav className="relative z-10 mt-5 flex-1 overflow-y-auto overflow-x-hidden pr-0.5 pb-44">
-            <div className="space-y-2">
+          <nav className="relative mt-5 flex-1 overflow-y-auto overflow-x-hidden pr-0.5">
+            <div className="space-y-1.5">
               {mainNavigationItems.map((item) => {
                 const ItemIcon = item.icon;
                 const isActive = isNavigationItemActive(location.pathname, location.search, item.path);
-                const label = getNavigationLabel(item);
 
                 return (
                   <NavLink
                     key={item.label}
                     to={item.path}
                     end={item.path === ROUTES.ADMIN.DASHBOARD}
-                    title={collapsed ? label : undefined}
-                    className={`group relative flex min-h-12 items-center rounded-[18px] text-[14px] font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-                      collapsed ? 'justify-center px-0 py-[14px]' : 'gap-3 px-4 py-[14px]'
+                    title={collapsed ? item.label : undefined}
+                    className={`group relative flex h-11 items-center rounded-[18px] text-sm font-medium transition-all duration-200 ease-out ${
+                      collapsed ? 'justify-center px-0' : 'gap-3 px-2.5'
                     } ${
                       isActive
-                        ? 'bg-gradient-to-r from-[#2563EB] to-[#38BDF8] text-white shadow-[0_12px_30px_rgba(37,99,235,0.35)]'
-                        : 'text-[#CBD5E1] hover:translate-x-1 hover:bg-white/[0.06] hover:text-white'
+                        ? 'bg-gradient-to-r from-[#1565FF] to-[#1EA7FF] text-white shadow-[0_12px_32px_rgba(29,107,255,0.28)]'
+                        : 'text-slate-300 hover:translate-x-0.5 hover:bg-white/10 hover:text-white'
                     }`}
                   >
-                    {isActive ? (
-                      <span className="absolute left-1.5 top-1/2 h-7 w-1 -translate-y-1/2 rounded-full bg-gradient-to-b from-white to-sky-200" />
-                    ) : null}
+                    {isActive ? <span className="absolute left-1 top-1/2 h-6 w-1 -translate-y-1/2 rounded-full bg-white/80" /> : null}
                     <span
-                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ring-1 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl ring-1 transition-all duration-200 ease-out ${
                         isActive
-                          ? 'bg-white/[0.18] text-white ring-white/20'
-                          : 'bg-white/10 text-[#CBD5E1] ring-white/10 group-hover:bg-white/15 group-hover:text-white'
+                          ? 'bg-white/15 text-white ring-white/20'
+                          : 'bg-white/5 text-slate-300 ring-white/5 group-hover:bg-white/10 group-hover:text-sky-100'
                       }`}
                     >
                       <ItemIcon className="h-4 w-4 shrink-0" />
                     </span>
-                    {!collapsed ? <span className="truncate">{label}</span> : null}
+                    {!collapsed ? <span className="truncate">{item.label}</span> : null}
                   </NavLink>
                 );
               })}
             </div>
           </nav>
 
-          {!collapsed ? (
-            <div className="pointer-events-none absolute bottom-[128px] left-5 right-5 z-0 opacity-[0.2]">
-              <div
-                className="absolute inset-0 bg-contain bg-center bg-no-repeat opacity-95"
-                style={{ backgroundImage: "url('/illustrations/parking-sidebar.svg')" }}
-              />
-            </div>
-          ) : null}
-
-          <div className={`absolute bottom-6 left-4 right-4 z-10 border-t border-white/10 pt-4 ${collapsed ? 'space-y-2' : 'flex gap-2'}`}>
+          <div className={`relative mt-auto border-t border-white/10 pt-4 ${collapsed ? 'space-y-2' : 'flex gap-2'}`}>
             {(() => {
               const IncidentIcon = incidentNavigationItem.icon;
               const isIncidentActive = isNavigationItemActive(
@@ -222,25 +216,25 @@ export default function AdminLayout() {
               return (
                 <NavLink
                   to={incidentNavigationItem.path}
-                  title={collapsed ? getNavigationLabel(incidentNavigationItem) : undefined}
-                  className={`group flex h-12 items-center rounded-[18px] border text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] ${
+                  title={collapsed ? incidentNavigationItem.label : undefined}
+                  className={`group flex h-11 items-center rounded-xl border text-sm font-medium shadow-[0_8px_18px_rgba(2,6,23,0.08)] transition-all duration-200 ease-out active:scale-[0.98] ${
                     collapsed ? 'w-full justify-center px-0' : 'min-w-0 flex-[7] gap-2 px-2.5'
                   } ${
                     isIncidentActive
-                      ? 'border-blue-300/30 bg-gradient-to-r from-[#2563EB] to-[#38BDF8] text-white shadow-[0_12px_30px_rgba(37,99,235,0.35)]'
-                      : 'border-white/[0.08] bg-white/[0.06] text-[#CBD5E1] hover:translate-x-1 hover:bg-white/[0.1] hover:text-white'
+                      ? 'border-amber-500/20 bg-amber-500/20 text-amber-50'
+                      : 'border-amber-500/10 bg-amber-500/5 text-amber-200 hover:bg-amber-500/15'
                   }`}
                 >
                   <span
-                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ring-1 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ring-1 transition-all duration-200 ease-out ${
                       isIncidentActive
-                        ? 'bg-blue-500/25 text-blue-50 ring-blue-400/30'
-                        : 'bg-blue-500/15 text-blue-200 ring-blue-400/20 group-hover:bg-blue-500/25'
+                        ? 'bg-amber-500/20 text-amber-50 ring-amber-500/20'
+                        : 'bg-amber-500/10 text-amber-200 ring-amber-500/10 group-hover:bg-amber-500/20'
                     }`}
                   >
                     <IncidentIcon className="h-4 w-4 shrink-0" />
                   </span>
-                  {!collapsed ? <span className="truncate">{getNavigationLabel(incidentNavigationItem)}</span> : null}
+                  {!collapsed ? <span className="truncate">{incidentNavigationItem.label}</span> : null}
                 </NavLink>
               );
             })()}
@@ -249,11 +243,11 @@ export default function AdminLayout() {
               type="button"
               title="Đăng xuất"
               onClick={handleLogout}
-              className={`flex h-12 items-center rounded-[18px] border border-rose-400/30 bg-[rgba(239,68,68,0.12)] text-sm font-medium text-[#F87171] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:translate-x-1 hover:bg-[#EF4444] hover:text-white active:scale-[0.98] ${
+              className={`flex h-11 items-center rounded-xl border border-rose-500/20 bg-rose-500/5 text-sm font-medium text-rose-200 shadow-[0_8px_18px_rgba(2,6,23,0.08)] transition-all duration-200 ease-out hover:bg-rose-500/15 hover:text-white active:scale-[0.98] ${
                 collapsed ? 'w-full justify-center px-0' : 'min-w-0 flex-[3] justify-center px-2'
               }`}
             >
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-rose-500/20 text-current ring-1 ring-rose-400/20">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-rose-500/10 text-rose-200 ring-1 ring-rose-500/10">
                 <LogOut className="h-4 w-4 shrink-0" />
               </span>
               {!collapsed ? <span className="sr-only">Đăng xuất</span> : null}
@@ -262,18 +256,25 @@ export default function AdminLayout() {
         </div>
       </aside>
 
-
       <div
         className={`relative z-10 flex min-w-0 flex-1 flex-col transition-[margin] duration-300 ease-out ${
-          collapsed ? 'lg:ml-20' : 'lg:ml-[280px]'
+          collapsed ? 'lg:ml-20' : 'lg:ml-[260px]'
         } ${isVehicleEntryPage ? 'h-full overflow-hidden' : ''}`}
       >
-        <header className="sticky top-0 z-40 h-[72px] border-b border-black/5 bg-white px-5 lg:px-8">
-          <div className="flex h-full items-center justify-between gap-4">
+        <header className="sticky top-0 z-40 h-[72px] border-b border-slate-200/70 bg-white/80 px-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)] backdrop-blur-xl lg:px-8">
+          <div className="flex h-full min-h-12 items-center justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#64748B]">
                 Parking Management
               </p>
+              <h2 className="mt-0.5 truncate text-xl font-bold tracking-tight text-[#0F172A]">
+                {pageTitle}
+              </h2>
+              {location.pathname === ROUTES.ADMIN.PARKING_SESSIONS ? (
+                <p className="mt-1 text-xs font-medium text-slate-500">
+                  Theo dõi toàn bộ phiên gửi xe trong hệ thống
+                </p>
+              ) : null}
             </div>
 
             <div className="flex shrink-0 items-center gap-3">
@@ -290,8 +291,8 @@ export default function AdminLayout() {
         <main
           className={
             isVehicleEntryPage
-              ? 'min-h-0 min-w-0 flex-1 overflow-hidden p-3 sm:p-4'
-              : 'min-w-0 flex-1 p-6 sm:p-7 lg:p-8'
+              ? 'min-h-0 min-w-0 flex-1 overflow-hidden px-4 pb-4 pt-2 sm:px-5 sm:pb-5 sm:pt-3 lg:px-6 lg:pb-6 lg:pt-3'
+              : 'min-w-0 flex-1 p-4 sm:p-5 lg:p-8'
           }
         >
           <Outlet />

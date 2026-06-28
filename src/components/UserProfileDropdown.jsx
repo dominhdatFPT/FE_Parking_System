@@ -40,7 +40,7 @@ function AvatarImage({ src, initials, className = '' }) {
 
   if (hasError || !src) {
     return (
-      <span className={`grid place-items-center rounded-full bg-sky-500 font-bold text-white ${className}`}>
+      <span className={`grid place-items-center rounded-full bg-[#1D6BFF] font-bold text-white ${className}`}>
         {initials}
       </span>
     );
@@ -108,12 +108,12 @@ export default function UserProfileDropdown({ onViewProfile, onChangePassword, p
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="User menu"
-        className="grid h-11 w-11 place-items-center rounded-full border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:scale-[1.03] hover:shadow-md active:scale-[0.98]"
+        className="grid h-12 w-12 place-items-center rounded-2xl border border-slate-200/80 bg-white/80 shadow-[0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur-xl transition-all duration-200 hover:scale-105 hover:border-blue-200 hover:bg-white hover:shadow-md active:scale-[0.98]"
       >
         <AvatarImage
           src={selectedAvatar}
           initials={initials}
-          className="h-9 w-9 text-xs ring-2 ring-white"
+          className="h-10 w-10 text-xs ring-2 ring-white"
         />
       </button>
 
@@ -151,7 +151,7 @@ export default function UserProfileDropdown({ onViewProfile, onChangePassword, p
                 <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-600">
                   <User className="h-4 w-4" />
                 </span>
-                Hồ sơ cá nhân
+                Profile
               </button>
 
               <button
@@ -163,7 +163,7 @@ export default function UserProfileDropdown({ onViewProfile, onChangePassword, p
                 <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-600">
                   <Lock className="h-4 w-4" />
                 </span>
-                Đổi mật khẩu
+                Change password
               </button>
             </div>
 
@@ -179,7 +179,7 @@ export default function UserProfileDropdown({ onViewProfile, onChangePassword, p
                       type="button"
                       onClick={() => handleAvatarSelect(avatar)}
                       className={`relative grid h-12 w-12 place-items-center rounded-full transition duration-200 ${
-                        isSelected ? 'ring-2 ring-sky-500 ring-offset-2 ring-offset-white' : 'hover:ring-2 hover:ring-slate-200'
+                        isSelected ? 'ring-2 ring-[#1D6BFF] ring-offset-2 ring-offset-white' : 'hover:ring-2 hover:ring-slate-200'
                       }`}
                       aria-label={`Chọn ảnh đại diện ${index + 1}`}
                     >
@@ -189,7 +189,7 @@ export default function UserProfileDropdown({ onViewProfile, onChangePassword, p
                         className="h-12 w-12 text-xs"
                       />
                       {isSelected ? (
-                        <span className="absolute -right-0.5 -top-0.5 grid h-5 w-5 place-items-center rounded-full bg-sky-500 text-white ring-2 ring-white">
+                        <span className="absolute -right-0.5 -top-0.5 grid h-5 w-5 place-items-center rounded-full bg-[#1D6BFF] text-white ring-2 ring-white">
                           <Check className="h-3 w-3" />
                         </span>
                       ) : null}

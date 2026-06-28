@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   AlertTriangle,
+  Bike,
   CarFront,
   Clock3,
   CreditCard,
@@ -45,6 +46,11 @@ function TimelineItem({ tone = 'emerald', label, value, last = false }) {
   );
 }
 
+function isMotorbikeSession(session) {
+  const vehicleType = String(session?.type || session?.vehicleType || '').toLowerCase();
+  return vehicleType.includes('motor') || vehicleType.includes('bike') || vehicleType.includes('xe máy');
+}
+
 export default function SessionDetailDrawer({ open, session, onClose }) {
   if (!open || !session) return null;
 
@@ -52,6 +58,7 @@ export default function SessionDetailDrawer({ open, session, onClose }) {
   const isCompleted = session.status === 'Đã hoàn thành';
   const displayFee = isPackageCustomer && isCompleted ? 'Không phát sinh phí' : session.fee;
   const displayPayment = isPackageCustomer && isCompleted ? 'Gói' : session.payment;
+  const VehicleIcon = isMotorbikeSession(session) ? Bike : CarFront;
 
   return (
     <div className="fixed inset-0 z-[1000]">
@@ -67,7 +74,7 @@ export default function SessionDetailDrawer({ open, session, onClose }) {
             <span className="relative mt-0.5 shrink-0">
               <span className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 opacity-40 blur-lg" />
               <span className="relative grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-[0_12px_28px_rgba(37,99,235,0.35)]">
-                <CarFront className="h-7 w-7" />
+                <VehicleIcon className="h-7 w-7" />
               </span>
             </span>
             <div className="min-w-0">

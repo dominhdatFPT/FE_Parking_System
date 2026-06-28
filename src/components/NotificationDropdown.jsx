@@ -41,9 +41,9 @@ export default function NotificationDropdown() {
 
   return (
     <div className="relative">
-      <button ref={buttonRef} type="button" onClick={() => setVisible((value) => !value)} aria-label="Thông báo" className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition-all duration-300 hover:scale-[1.03] hover:shadow-md">
+      <button ref={buttonRef} type="button" onClick={() => setVisible((value) => !value)} aria-label="Thông báo" className="relative inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200/80 bg-white/80 text-slate-700 shadow-sm backdrop-blur transition-all duration-200 hover:scale-105 hover:border-blue-200 hover:text-[#1D6BFF] hover:shadow-md active:scale-[0.98]">
         <Icon name="notifications" />
-        {unreadCount > 0 ? <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[11px] font-semibold text-white ring-2 ring-white">{unreadCount}</span> : null}
+        {unreadCount > 0 ? <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#F43F5E] px-1.5 text-[11px] font-semibold text-white ring-2 ring-white">{unreadCount}</span> : null}
       </button>
       {visible ? (
         <div ref={panelRef} className="absolute right-0 top-full z-[9999] mt-3 w-[min(380px,calc(100vw-2rem))] overflow-hidden rounded-[24px] border border-white/70 bg-white/95 shadow-2xl backdrop-blur-2xl">
@@ -51,7 +51,7 @@ export default function NotificationDropdown() {
           <div className="max-h-[480px] overflow-y-auto">{items.length === 0 ? <div className="p-6 text-center text-sm text-slate-500">Database chưa có thông báo.</div> : items.map((item) => {
             const style = typeStyles[item.type] || typeStyles.warning;
             const unread = !readIds.has(item.id);
-            return <button key={item.id} type="button" onClick={() => handleClick(item.id)} className={`flex w-full items-start gap-3 border-b border-slate-100 px-4 py-4 text-left ${unread ? 'bg-sky-50/70' : 'bg-white'}`}><span className={`mt-1 inline-flex h-10 w-10 items-center justify-center rounded-2xl ring-1 ${style.ring}`}><span className={`material-symbols-outlined text-[18px] ${style.badge}`}>{style.icon}</span></span><div className="min-w-0 flex-1"><p className="text-sm font-semibold text-slate-900">{item.title}</p><p className="mt-1 text-sm text-slate-500">{item.message}</p></div><time className="shrink-0 text-xs text-slate-400">{item.time}</time></button>;
+            return <button key={item.id} type="button" onClick={() => handleClick(item.id)} className={`flex w-full items-start gap-3 border-b border-slate-100 px-4 py-4 text-left ${unread ? 'bg-blue-50/70' : 'bg-white'}`}><span className={`mt-1 inline-flex h-10 w-10 items-center justify-center rounded-2xl ring-1 ${style.ring}`}><span className={`material-symbols-outlined text-[18px] ${style.badge}`}>{style.icon}</span></span><div className="min-w-0 flex-1"><p className="text-sm font-semibold text-slate-900">{item.title}</p><p className="mt-1 text-sm text-slate-500">{item.message}</p></div><time className="shrink-0 text-xs text-slate-400">{item.time}</time></button>;
           })}</div>
         </div>
       ) : null}
