@@ -132,8 +132,8 @@ export default function DriverDashboard() {
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="flex flex-col gap-8 lg:col-span-2">
           <motion.section variants={itemVariants} className="rounded-[24px] border border-[#E5E7EB] bg-white p-1.5 shadow-[0_18px_46px_rgba(15,23,42,0.06)]">
-            <div className="grid gap-6 rounded-[18px] border border-[#E5E7EB] bg-gradient-to-br from-white via-[#F8FAFC] to-[#E0F2FE] p-5 md:grid-cols-5 md:items-center">
-              <div className="space-y-4 md:col-span-3">
+            <div className="rounded-[18px] border border-[#E5E7EB] bg-gradient-to-br from-white via-[#F8FAFC] to-[#E0F2FE] p-5">
+              <div className="space-y-4">
                 <span className="inline-flex rounded-full bg-[#E0F2FE] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#0369A1]">
                   Tổng quan thẻ xe
                 </span>
@@ -163,17 +163,6 @@ export default function DriverDashboard() {
                 </div>
               </div>
 
-              <div className="md:col-span-2">
-                <div className="relative mx-auto aspect-square max-w-[180px] overflow-hidden rounded-3xl border border-white bg-white/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_18px_38px_rgba(14,165,233,0.12)]">
-                  <div className="absolute inset-x-5 top-1/2 h-[2px] -translate-y-1/2 bg-[#0EA5E9] shadow-[0_0_18px_rgba(14,165,233,0.75)]" />
-                  <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#F8FAFC]">
-                    <span className="material-symbols-outlined text-[68px] text-[#0EA5E9]" style={{ fontVariationSettings: "'wght' 220" }}>
-                      qr_code_2
-                    </span>
-                    <span className="mt-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#64748B]">Smart pass</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </motion.section>
 

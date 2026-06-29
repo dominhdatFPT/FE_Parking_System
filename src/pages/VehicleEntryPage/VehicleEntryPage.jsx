@@ -90,6 +90,117 @@ function CameraPanel({ label, status = 'Online', imageSrc = '/empty_parking.png'
   );
 }
 
+function GateStatusVisual({
+  hasChecked,
+  isVisitor,
+  isRegistered,
+  isInvalid,
+  canConfirm,
+  cardCode,
+  vehicleImageSrc,
+  vehicleImageAlt,
+}) {
+  const state = !hasChecked
+    ? {
+        label: 'Chờ kiểm tra',
+        tone: 'border-slate-200 bg-slate-50 text-slate-500',
+        dot: 'bg-slate-400',
+        beam: 'from-slate-400 via-slate-200 to-white',
+        barrier: 'rotate-[-18deg]',
+        glow: 'bg-slate-300/20',
+      }
+    : isInvalid
+      ? {
+          label: 'Cần xử lý',
+          tone: 'border-rose-200 bg-rose-50 text-rose-700',
+          dot: 'bg-rose-500',
+          beam: 'from-rose-500 via-orange-300 to-white',
+          barrier: 'rotate-[-36deg]',
+          glow: 'bg-rose-300/20',
+        }
+      : canConfirm
+        ? {
+            label: 'Sẵn sàng mở cổng',
+            tone: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+            dot: 'bg-emerald-500',
+            beam: 'from-emerald-500 via-cyan-300 to-white',
+            barrier: 'rotate-[-8deg]',
+            glow: 'bg-emerald-300/20',
+          }
+        : {
+            label: 'Đã ghi nhận',
+            tone: 'border-blue-200 bg-blue-50 text-blue-700',
+            dot: 'bg-blue-500',
+            beam: 'from-blue-600 via-sky-300 to-white',
+            barrier: 'rotate-[-22deg]',
+            glow: 'bg-blue-300/20',
+          };
+
+  const passLabel = isVisitor ? (cardCode || 'VISITOR') : isRegistered ? 'MONTHLY' : 'AUTO';
+
+  return (
+    <div className="relative hidden min-h-[142px] overflow-hidden rounded-[22px] border border-[#DCE7F4] bg-[linear-gradient(135deg,#F8FBFF_0%,#FFFFFF_52%,#EEF6FF_100%)] p-4 shadow-[0_16px_38px_rgba(30,64,175,0.08)] md:block">
+      <div className={`pointer-events-none absolute -right-12 -top-16 h-40 w-40 rounded-full blur-3xl ${state.glow}`} />
+      <div className="pointer-events-none absolute inset-x-5 bottom-4 h-[54px] rounded-[20px] bg-slate-950/[0.035]" />
+      <div className="pointer-events-none absolute inset-x-8 bottom-12 h-px bg-gradient-to-r from-transparent via-blue-200 to-transparent" />
+
+      <div className="relative z-10 flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="grid h-9 w-9 place-items-center rounded-2xl bg-white text-blue-600 shadow-[0_8px_20px_rgba(30,64,175,0.10)] ring-1 ring-blue-100">
+            <SlidersHorizontal className="h-4 w-4" strokeWidth={2.2} />
+          </span>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Cổng vào A</p>
+            <p className="mt-0.5 text-sm font-black text-slate-900">Barrier control</p>
+          </div>
+        </div>
+
+        <span className={`inline-flex h-8 items-center gap-2 rounded-full border px-3 text-[11px] font-black ${state.tone}`}>
+          <span className={`h-2 w-2 rounded-full ${state.dot}`} />
+          {state.label}
+        </span>
+      </div>
+
+      <div className="absolute bottom-5 left-7 right-7 h-[46px] rounded-[18px] border border-white/80 bg-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+        <div className="absolute left-5 right-5 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-slate-200 via-blue-200 to-slate-200" />
+        <div className="absolute left-5 top-3 h-1.5 w-14 rounded-full bg-blue-100" />
+        <div className="absolute right-5 bottom-3 h-1.5 w-16 rounded-full bg-slate-100" />
+      </div>
+
+      <div className="absolute bottom-4 left-[92px] right-[128px] top-[54px] overflow-hidden rounded-[18px] border border-white/80 bg-slate-100 shadow-[0_18px_34px_rgba(30,64,175,0.14)]">
+        <img
+          src={vehicleImageSrc}
+          alt={vehicleImageAlt}
+          className="h-full w-full object-cover"
+          draggable="false"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/28 via-transparent to-white/10" />
+        <span className="absolute bottom-2 left-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-slate-700 shadow-sm">
+          Rear view
+        </span>
+      </div>
+
+      <div className="absolute bottom-8 left-10 h-[74px] w-9 rounded-[18px] border border-blue-200 bg-white shadow-[0_16px_30px_rgba(30,64,175,0.12)]">
+        <span className="absolute left-1/2 top-3 h-3 w-3 -translate-x-1/2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,0.72)]" />
+        <span className="absolute bottom-3 left-1/2 h-8 w-1.5 -translate-x-1/2 rounded-full bg-blue-100" />
+      </div>
+
+      <div className={`absolute bottom-[88px] left-[62px] h-3 w-[170px] origin-left rounded-full border border-white/70 bg-gradient-to-r shadow-[0_10px_22px_rgba(30,64,175,0.16)] transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${state.beam} ${state.barrier}`}>
+        <span className="absolute left-8 top-1/2 h-3 w-7 -translate-y-1/2 rounded-sm bg-white/80" />
+        <span className="absolute left-20 top-1/2 h-3 w-7 -translate-y-1/2 rounded-sm bg-white/80" />
+      </div>
+
+      <div className="absolute bottom-7 right-8 w-[108px] rounded-[18px] border border-blue-100 bg-white px-3 py-2 shadow-[0_14px_28px_rgba(30,64,175,0.12)]">
+        <div className="flex items-center justify-between gap-2">
+          <TicketCheck className="h-4 w-4 text-orange-500" strokeWidth={2.2} />
+          <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[10px] font-black text-orange-600">{passLabel}</span>
+        </div>
+        <p className="mt-1 truncate text-[11px] font-black text-slate-800">{isVisitor ? 'Thẻ vãng lai' : 'Quyền vào bãi'}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function VehicleEntryPage() {
   const [licensePlate, setLicensePlate] = useState('');
   const [vehicleType, setVehicleType] = useState('CAR');
@@ -325,23 +436,16 @@ export default function VehicleEntryPage() {
               </div>
             </div>
 
-            {/* Decorative parking gate illustration (pure CSS, low opacity) */}
-            <div className="pointer-events-none relative hidden h-[100px] min-h-0 flex-1 overflow-hidden md:block">
-              <span className="absolute bottom-0 right-0 h-px w-full bg-gradient-to-r from-transparent via-blue-200 to-transparent" />
-              <span className="absolute bottom-4 right-36 h-10 w-36 rounded-full bg-blue-300/15 blur-xl" />
-              <span className="absolute bottom-2 right-40 h-12 w-28 rounded-t-3xl border border-blue-200/50 bg-blue-100/25" />
-              <span className="absolute bottom-1 right-[180px] h-3 w-3 rounded-full bg-blue-300/50" />
-              <span className="absolute bottom-1 right-[88px] h-3 w-3 rounded-full bg-blue-300/50" />
-              <span className="absolute bottom-2 right-[252px] h-20 w-8 rounded-lg bg-gradient-to-b from-blue-700/35 to-blue-500/20" />
-              <span className="absolute bottom-[80px] right-[148px] h-3 w-44 origin-left rotate-[-20deg] rounded-full border border-blue-300/40 bg-gradient-to-r from-blue-700/55 via-sky-300/45 to-white/90" />
-              <span className="absolute bottom-[83px] right-[176px] h-3 w-6 rotate-[-20deg] rounded-sm bg-white/70" />
-              <span className="absolute bottom-[93px] right-[218px] h-3 w-6 rotate-[-20deg] rounded-sm bg-white/70" />
-              <span className="absolute bottom-2 right-12 h-20 w-10 rounded-full border border-blue-300/40 bg-blue-100/40" />
-              <span className="absolute bottom-11 right-[58px] text-2xl font-black text-blue-500/45">P</span>
-              <span className="absolute bottom-2 right-[314px] h-24 w-5 rounded-t-md bg-slate-200/35" />
-              <span className="absolute bottom-2 right-[350px] h-14 w-4 rounded-t-md bg-slate-200/25" />
-              <span className="absolute bottom-1 right-[404px] h-12 w-3 rounded-t-full bg-emerald-200/45" />
-            </div>
+            <GateStatusVisual
+              hasChecked={hasChecked}
+              isVisitor={isVisitor}
+              isRegistered={isRegistered}
+              isInvalid={isInvalid}
+              canConfirm={Boolean(result?.canConfirm)}
+              cardCode={result?.visitorCardCode}
+              vehicleImageSrc={isMotorbike ? '/vehicle-rear-motorbike.png' : '/vehicle-rear-car.png'}
+              vehicleImageAlt={isMotorbike ? 'Ảnh chụp phía sau xe máy tại cổng vào' : 'Ảnh chụp phía sau ô tô tại cổng vào'}
+            />
           </div>
 
           {/* 4 KPI tiles — mt-auto pushes to bottom, never overlaps content above */}
