@@ -58,8 +58,8 @@ export const getStaffOperationsDashboard = async (date) => {
   return response.data?.data ?? response.data;
 };
 
-export const getParkingSessions = async () => {
-  const response = await apiClient.get('/api/v1/staff/parking-sessions');
+export const getParkingSessions = async (params = {}) => {
+  const response = await apiClient.get('/api/v1/staff/parking-sessions', { params });
   return unwrapList(response);
 };
 

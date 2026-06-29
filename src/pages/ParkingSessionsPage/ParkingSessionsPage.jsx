@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import SessionDetailDrawer from '../../components/parking/SessionDetailDrawer';
 import { getParkingSessions } from '../../services/staffService';
-import { apiDateTimeMillis, formatVietnamDateTime } from '../../utils/dateTime';
+import { apiDateTimeMillis, formatVietnamDate, formatVietnamTime } from '../../utils/dateTime';
 
 const tabs = ['Đang hoạt động', 'Đã hoàn thành', 'Tất cả'];
 const vehicleTypes = ['Tất cả', 'Ô tô', 'Xe máy'];
@@ -16,6 +16,28 @@ const statusClasses = {
   'Đã hoàn thành': 'bg-blue-50 text-blue-700',
 };
 
+const tabApiValues = {
+  'Đang hoạt động': 'ACTIVE',
+  'Đã hoàn thành': 'COMPLETED',
+};
+
+const vehicleTypeApiValues = {
+  'Ô tô': 'CAR',
+  'Xe máy': 'MOTORBIKE',
+};
+
+const customerTypeApiValues = {
+  'Gói tháng': 'MONTHLY',
+  'Vãng lai': 'VISITOR',
+};
+
+const statusApiValues = {
+  'Bình thường': 'NORMAL',
+  'Quá 24 giờ': 'OVER_24_HOURS',
+  'Quá 7 ngày': 'OVER_7_DAYS',
+  'Đã hoàn thành': 'COMPLETED',
+};
+
 const normalizeVehicleType = (value) => {
   const normalized = String(value || '').toUpperCase();
   return normalized.includes('MOTOR') || normalized.includes('MÁY') || normalized.includes('MAY')
@@ -26,8 +48,12 @@ const normalizeVehicleType = (value) => {
 const normalizeCustomerType = (value) =>
   String(value || '').toUpperCase().includes('VISITOR') ? 'Vãng lai' : 'Gói tháng';
 
-const formatDateTime = (value) => {
-  return formatVietnamDateTime(value, { year: undefined }) || '--';
+const formatDate = (value) => {
+  return formatVietnamDate(value) || '--';
+};
+
+const formatTime = (value) => {
+  return formatVietnamTime(value) || '--';
 };
 
 const durationMinutes = (entryTime, exitTime) => {
@@ -65,8 +91,10 @@ function mapSession(item) {
     type: normalizeVehicleType(item.vehicleType),
     customer: normalizeCustomerType(item.customerType),
     cardId: item.visitorCardCode || '--',
-    entry: formatDateTime(item.entryTime),
-    exit: formatDateTime(item.exitTime),
+    entry: formatTime(item.entryTime),
+    exit: formatTime(item.exitTime),
+    entryDate: formatDate(item.entryTime),
+    exitDate: formatDate(item.exitTime),
     duration: formatDuration(minutes),
     durationMinutes: minutes,
     floor: item.floorName || '--',
@@ -97,31 +125,47 @@ export default function ParkingSessionsPage() {
   const [selectedSession, setSelectedSession] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
+  const queryParams = useMemo(() => {
+    const params = {
+      page: 0,
+      size: 100,
+    };
+    const trimmedSearch = search.trim();
+    if (trimmedSearch) params.search = trimmedSearch;
+    if (tabApiValues[activeTab]) params.tab = tabApiValues[activeTab];
+    if (vehicleTypeApiValues[vehicleType]) params.vehicleType = vehicleTypeApiValues[vehicleType];
+    if (customerTypeApiValues[customerType]) params.customerType = customerTypeApiValues[customerType];
+    if (statusApiValues[status]) params.status = statusApiValues[status];
+    if (date) params.date = date;
+    return params;
+  }, [activeTab, customerType, date, search, status, vehicleType]);
+
   const fetchSessions = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
     setError('');
     try {
-      const items = await getParkingSessions();
+      const items = await getParkingSessions(queryParams);
       setSessions(items.map(mapSession));
     } catch (requestError) {
       setError(requestError?.response?.data?.message || 'Không thể tải dữ liệu phiên gửi xe từ database.');
     } finally {
       if (!silent) setLoading(false);
     }
-  }, []);
+  }, [queryParams]);
 
   useEffect(() => {
-    fetchSessions();
+    const debounceId = window.setTimeout(() => fetchSessions(), search.trim() ? 350 : 0);
 
     const intervalId = window.setInterval(() => fetchSessions({ silent: true }), 15000);
     const handleFocus = () => fetchSessions({ silent: true });
     window.addEventListener('focus', handleFocus);
 
     return () => {
+      window.clearTimeout(debounceId);
       window.clearInterval(intervalId);
       window.removeEventListener('focus', handleFocus);
     };
-  }, [fetchSessions]);
+  }, [fetchSessions, search]);
 
   const filteredSessions = useMemo(() => sessions.filter((session) => {
     const completed = session.status === 'Đã hoàn thành';
@@ -174,12 +218,12 @@ export default function ParkingSessionsPage() {
       </section>
 
       <section className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <table className="w-full min-w-[1100px] table-fixed text-left text-sm">
-          <thead className="bg-slate-50/80 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500"><tr><th className="px-3 py-2.5">Mã phiên</th><th className="px-3 py-2.5">Biển số</th><th className="px-3 py-2.5">Loại xe</th><th className="px-3 py-2.5">Loại khách</th><th className="px-3 py-2.5">Mã thẻ</th><th className="px-3 py-2.5">Giờ vào</th><th className="px-3 py-2.5">Giờ ra</th><th className="px-3 py-2.5">Thời gian gửi</th><th className="px-3 py-2.5">Phí</th><th className="px-3 py-2.5">Trạng thái</th><th className="px-3 py-2.5 text-right">Chi tiết</th></tr></thead>
+        <table className="w-full min-w-[1000px] table-fixed text-left text-sm">
+          <thead className="bg-slate-50/80 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500"><tr><th className="px-3 py-2.5">Biển số</th><th className="px-3 py-2.5">Loại xe</th><th className="px-3 py-2.5">Loại khách</th><th className="px-3 py-2.5">Mã thẻ</th><th className="px-3 py-2.5">Giờ vào</th><th className="px-3 py-2.5">Giờ ra</th><th className="px-3 py-2.5">Thời gian gửi</th><th className="px-3 py-2.5">Phí</th><th className="px-3 py-2.5">Trạng thái</th><th className="px-3 py-2.5 text-right">Chi tiết</th></tr></thead>
           <tbody className="divide-y divide-slate-100">
-            {loading ? <tr><td colSpan="11" className="px-4 py-12 text-center text-slate-500">Đang tải dữ liệu từ database...</td></tr> : null}
-            {!loading && filteredSessions.length === 0 ? <tr><td colSpan="11" className="px-4 py-12 text-center text-slate-500">Không có phiên gửi xe phù hợp.</td></tr> : null}
-            {!loading && filteredSessions.map((session) => <tr key={session.id} className="text-slate-600 hover:bg-slate-50"><td className="truncate px-3 py-3 font-semibold text-slate-950">{session.id}</td><td className="px-3 py-3 font-semibold text-slate-950">{session.plate}</td><td className="px-3 py-3">{session.type}</td><td className="px-3 py-3">{session.customer}</td><td className="px-3 py-3">{session.cardId}</td><td className="px-3 py-3">{session.entry}</td><td className="px-3 py-3">{session.exit}</td><td className="px-3 py-3">{session.duration}</td><td className="px-3 py-3">{session.fee}</td><td className="px-3 py-3"><StatusBadge status={session.status} /></td><td className="px-3 py-3 text-right"><button onClick={() => openSessionDetail(session)} className="rounded-lg px-2 py-1 text-sm font-semibold text-blue-700 hover:bg-blue-50">Chi tiết</button></td></tr>)}
+            {loading ? <tr><td colSpan="10" className="px-4 py-12 text-center text-slate-500">Đang tải dữ liệu từ database...</td></tr> : null}
+            {!loading && filteredSessions.length === 0 ? <tr><td colSpan="10" className="px-4 py-12 text-center text-slate-500">Không có phiên gửi xe phù hợp.</td></tr> : null}
+            {!loading && filteredSessions.map((session) => <tr key={session.rawId || session.id} className="text-slate-600 hover:bg-slate-50"><td className="px-3 py-3 font-semibold text-slate-950">{session.plate}</td><td className="px-3 py-3">{session.type}</td><td className="px-3 py-3">{session.customer}</td><td className="px-3 py-3">{session.cardId}</td><td className="px-3 py-3 font-semibold text-slate-700">{session.entry}</td><td className="px-3 py-3 font-semibold text-slate-700">{session.exit}</td><td className="px-3 py-3">{session.duration}</td><td className="px-3 py-3">{session.fee}</td><td className="px-3 py-3"><StatusBadge status={session.status} /></td><td className="px-3 py-3 text-right"><button onClick={() => openSessionDetail(session)} className="rounded-lg px-2 py-1 text-sm font-semibold text-blue-700 hover:bg-blue-50">Chi tiết</button></td></tr>)}
           </tbody>
         </table>
       </section>

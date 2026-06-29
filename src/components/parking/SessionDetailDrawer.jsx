@@ -16,6 +16,24 @@ function DetailRow({ label, value }) {
   );
 }
 
+function TimeDetailRow({ label, date, time }) {
+  return (
+    <div className="grid grid-cols-[130px_minmax(0,1fr)] gap-3 border-b border-slate-100 py-3 last:border-b-0">
+      <span className="text-sm font-medium text-slate-500">{label}</span>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="rounded-xl bg-slate-50 px-3 py-2">
+          <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">Ngày</span>
+          <span className="mt-0.5 block text-sm font-semibold text-slate-950">{date || '--'}</span>
+        </div>
+        <div className="rounded-xl bg-blue-50 px-3 py-2">
+          <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-blue-500">Giờ</span>
+          <span className="mt-0.5 block text-sm font-semibold text-blue-950">{time || '--'}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SessionDetailDrawer({ open, session, onClose }) {
   if (!open || !session) return null;
 
@@ -59,8 +77,8 @@ export default function SessionDetailDrawer({ open, session, onClose }) {
           <DetailRow label="Loại xe" value={session.type} />
           <DetailRow label="Loại khách" value={session.customer} />
           <DetailRow label="Mã thẻ" value={session.cardId} />
-          <DetailRow label="Giờ vào" value={session.entry} />
-          {isCompleted ? <DetailRow label="Giờ ra" value={session.exit} /> : null}
+          <TimeDetailRow label="Giờ vào" date={session.entryDate} time={session.entry} />
+          {isCompleted ? <TimeDetailRow label="Giờ ra" date={session.exitDate} time={session.exit} /> : null}
           <DetailRow label="Thời gian gửi" value={session.duration} />
           {isCompleted ? (
             <>
@@ -93,25 +111,13 @@ export default function SessionDetailDrawer({ open, session, onClose }) {
           </div>
         ) : null}
 
-        <div className="mt-5 grid grid-cols-2 gap-3">
+        <div className="mt-5">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
           >
             Đóng
-          </button>
-          <button
-            type="button"
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
-          >
-            Xem lịch sử xe
-          </button>
-          <button
-            type="button"
-            className="col-span-2 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100"
-          >
-            Báo sự cố
           </button>
         </div>
       </aside>
