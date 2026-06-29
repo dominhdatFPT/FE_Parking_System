@@ -107,9 +107,15 @@ export default function AdminLayout() {
         avatar: '',
       };
 
-  const isVehicleEntryPage = location.pathname === ROUTES.ADMIN.VEHICLE_ENTRY;
+  const isVehicleEntryPage = [
+    ROUTES.ADMIN.VEHICLE_ENTRY,
+    ROUTES.ADMIN.VEHICLE_EXIT,
+    ROUTES.STAFF.VEHICLE_ENTRY,
+    ROUTES.STAFF.VEHICLE_EXIT,
+  ].includes(location.pathname);
   const isAdmin = String(user?.role || '').toUpperCase() === 'ADMIN';
   const navigationItems = mainNavigationItems.filter((item) => !item.adminOnly || isAdmin);
+  const pageTitle = getCurrentPageTitle(location.pathname, location.search);
 
   return (
     <div
@@ -268,6 +274,9 @@ export default function AdminLayout() {
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                 Parking Management
               </p>
+              <h2 className="mt-0.5 truncate text-xl font-bold tracking-tight text-slate-950">
+                {pageTitle}
+              </h2>
             </div>
 
             <div className="flex shrink-0 items-center gap-3">

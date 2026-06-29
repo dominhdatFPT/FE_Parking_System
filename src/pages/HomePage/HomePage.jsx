@@ -1,5 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
+import {
+  Activity,
+  ArrowDownToLine,
+  ArrowRight,
+  ArrowUpFromLine,
+  Building2,
+  CarFront,
+  CalendarDays,
+  CircleDollarSign,
+  ClipboardList,
+  RefreshCw,
+  SquareParking,
+} from 'lucide-react';
 import SessionDetailDrawer from '../../components/parking/SessionDetailDrawer';
 import { getStaffOperationsDashboard } from '../../services/staffService';
 import { apiDateTimeMillis, formatVietnamTime } from '../../utils/dateTime';
@@ -24,27 +37,15 @@ const statusClasses = {
   normal: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100',
   warning: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100',
   danger: 'bg-rose-50 text-rose-700 ring-1 ring-rose-100',
-  done: 'bg-sky-50 text-sky-700 ring-1 ring-sky-100',
+  done: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100',
 };
 
 const paymentClasses = {
-  QR: 'bg-sky-50 text-sky-700 ring-1 ring-sky-100',
+  QR: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100',
   'Tiền mặt': 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100',
   'Miễn phí': 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
   Gói: 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
 };
-
-function Card({ children, className = '' }) {
-  return (
-    <section className={`rounded-[28px] border border-white/60 bg-white/70 shadow-[0_18px_45px_rgba(15,23,42,0.07)] backdrop-blur-xl ${className}`}>
-      {children}
-    </section>
-  );
-}
-
-function SectionTitle({ children }) {
-  return <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{children}</h2>;
-}
 
 function getToday() {
   return new Date().toISOString().slice(0, 10);
@@ -204,6 +205,7 @@ function buildDashboardData(payload) {
   };
 }
 
+// Keep all helper methods intact
 function getCompletedFee(session) {
   return isMonthlyCustomer(session.customer) ? '-' : session.fee;
 }
@@ -241,7 +243,8 @@ function StatusBadge({ status }) {
   const tone = getStatusTone(status);
 
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusClasses[tone]}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${statusClasses[tone]}`}>
+      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
       {normalizeStatus(status)}
     </span>
   );
@@ -249,9 +252,9 @@ function StatusBadge({ status }) {
 
 function DetailItem({ label, value }) {
   return (
-    <div className="flex items-center justify-between rounded-2xl bg-slate-50/90 px-3 py-2 ring-1 ring-slate-100">
-      <span className="text-sm font-medium text-slate-500">{label}</span>
-      <span className="text-sm font-semibold text-slate-950">{value}</span>
+    <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-100">
+      <span className="text-xs font-semibold text-slate-500">{label}</span>
+      <span className="text-xs font-bold text-slate-800">{value}</span>
     </div>
   );
 }
@@ -298,11 +301,11 @@ function KpiDropdown({ type, data }) {
   if (!config) return null;
 
   return (
-    <div className="absolute left-0 top-full z-[100] mt-3 w-[300px] rounded-[22px] border border-white/70 bg-white/95 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.16)] backdrop-blur-xl">
-      <div className="absolute -top-2 left-8 h-4 w-4 rotate-45 border-l border-t border-white/70 bg-white/95" />
+    <div className="absolute left-0 top-full z-50 mt-3 w-[280px] rounded-[22px] border border-[#E6EDF5] bg-white/95 p-4 shadow-[0_18px_42px_rgba(15,23,42,0.12)] backdrop-blur-xl">
+      <div className="absolute -top-1.5 left-8 h-3 w-3 rotate-45 border-l border-t border-[#E6EDF5] bg-white" />
       <div className="relative">
-        <h3 className="text-sm font-semibold text-slate-950">{config.title}</h3>
-        <div className="mt-3 space-y-2">
+        <h3 className="text-xs font-bold text-slate-800">{config.title}</h3>
+        <div className="mt-2.5 space-y-1.5">
           {config.items.map((item) => (
             <DetailItem
               key={item.label}
@@ -317,128 +320,240 @@ function KpiDropdown({ type, data }) {
 }
 
 function OperationsDock({ stats, capacityPercent, openKpi, onKpiClick, currentData }) {
-  return (
-    <Card className="overflow-visible p-3 sm:p-4">
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1.35fr]">
-        {stats.map((stat, index) => {
-          const isCapacity = stat.key === 'capacity';
-          const isOpen = openKpi === stat.key;
+  const cardIconMap = {
+    entries: ArrowDownToLine,
+    exits: ArrowUpFromLine,
+    revenue: CircleDollarSign,
+    capacity: SquareParking,
+  };
 
-          return (
-            <div
-              key={stat.key}
-              className={`relative min-w-0 ${index > 0 ? 'xl:border-l xl:border-slate-200/60' : ''}`}
-            >
+  const decorativeIconMap = {
+    entries: CarFront,
+    exits: CarFront,
+    revenue: CircleDollarSign,
+    capacity: Building2,
+  };
+
+  const badgeTextMap = {
+    entries: 'Hôm nay',
+    exits: 'Hôm nay',
+    revenue: 'Hôm nay',
+    capacity: 'Hiện tại',
+  };
+
+  const badgeToneMap = {
+    entries: 'bg-blue-50 text-blue-600',
+    exits: 'bg-emerald-50 text-emerald-600',
+    revenue: 'bg-orange-50 text-orange-600',
+    capacity: 'bg-indigo-50 text-indigo-600',
+  };
+
+  const numberToneMap = {
+    entries: 'text-blue-600',
+    exits: 'text-emerald-600',
+    revenue: 'text-orange-500',
+    capacity: 'text-indigo-600',
+  };
+
+  const toneMap = {
+    entries: 'from-blue-500 to-cyan-400',
+    exits: 'from-emerald-500 to-teal-400',
+    revenue: 'from-orange-400 to-amber-500',
+    capacity: 'from-indigo-500 to-violet-500',
+  };
+
+  const lineToneMap = {
+    entries: 'from-blue-500 to-cyan-300',
+    exits: 'from-emerald-500 to-teal-300',
+    revenue: 'from-orange-500 to-amber-300',
+    capacity: 'from-indigo-500 to-violet-300',
+  };
+
+  return (
+    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1.25fr]">
+      {stats.map((stat) => {
+        const isOpen = openKpi === stat.key;
+        const isCapacity = stat.key === 'capacity';
+        const StatIcon = cardIconMap[stat.key] || Activity;
+        const DecorativeIcon = decorativeIconMap[stat.key] || Activity;
+        const iconTone = toneMap[stat.key] || 'from-slate-500 to-slate-600';
+        const badgeTone = badgeToneMap[stat.key] || 'bg-slate-100 text-slate-600';
+        const numberTone = numberToneMap[stat.key] || 'text-slate-800';
+        const lineTone = lineToneMap[stat.key] || 'from-slate-500 to-slate-300';
+        const badgeText = badgeTextMap[stat.key] || 'Hôm nay';
+
+        return (
+          <div
+            key={stat.key}
+            className="relative min-w-0"
+          >
               <button
                 type="button"
                 onClick={() => onKpiClick(stat.key)}
-                className={`group h-full min-h-[150px] w-full rounded-[24px] p-4 text-left transition duration-200 hover:-translate-y-0.5 hover:bg-white/70 hover:shadow-md ${
-                  isOpen ? 'bg-white/85 ring-2 ring-sky-100' : 'bg-transparent'
+                className={`group relative h-full min-h-[198px] w-full overflow-hidden rounded-[24px] border border-slate-200/70 bg-white p-6 text-left shadow-[0_12px_35px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+                  isOpen ? 'ring-1 ring-slate-300' : ''
                 }`}
               >
-                <div className="flex h-full flex-col justify-between gap-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-slate-500">{stat.label}</p>
-                      <p className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">{stat.value}</p>
-                      <p className="mt-1 text-xs font-medium text-slate-400">{stat.description}</p>
+                <div className="pointer-events-none absolute bottom-4 right-6 opacity-10">
+                  <DecorativeIcon className="h-16 w-16 text-slate-500" />
+                </div>
+                <div className={`pointer-events-none absolute bottom-0 left-0 h-[3px] w-full bg-gradient-to-r ${lineTone}`} />
+
+                <div className="relative flex h-full flex-col">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 pr-16">
+                      <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${badgeTone}`}>
+                        {badgeText}
+                      </span>
+                      <p className="mt-4 text-[18px] font-semibold text-slate-700">{stat.label}</p>
                     </div>
-                    <span className={`grid h-10 min-w-10 place-items-center rounded-2xl px-2 text-xs font-bold ring-1 ${stat.tone}`}>
-                      {stat.icon}
+                    <span className={`absolute right-6 top-10 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg ${iconTone}`}>
+                      <StatIcon className="h-6 w-6" />
                     </span>
                   </div>
 
                   {isCapacity ? (
-                    <div>
-                      <div className="mb-2 flex items-center justify-between text-xs font-semibold text-slate-500">
-                        <span>{capacityPercent}% sử dụng</span>
-                        <span>{currentData.availableSlots} trống</span>
+                    <div className="mt-5 flex flex-1 flex-col">
+                      <p className={`text-5xl font-bold tracking-tight leading-none ${numberTone}`}>{stat.value}</p>
+
+                      <div className="mt-4">
+                        <div className="mb-1.5 flex items-center justify-between text-[11px] font-semibold text-slate-500">
+                          <span>{capacityPercent}% sử dụng</span>
+                          <span>{currentData.availableSlots} chỗ trống</span>
+                        </div>
+                        <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+                          <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-700 ease-out" style={{ width: `${capacityPercent}%` }} />
+                        </div>
                       </div>
-                      <div className="h-2.5 overflow-hidden rounded-full bg-slate-100 shadow-inner">
-                        <div className="h-full rounded-full bg-sky-500" style={{ width: `${capacityPercent}%` }} />
+
+                      <div className="mt-4 flex items-center gap-3">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-100">
+                          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                          Available
+                        </span>
                       </div>
                     </div>
-                  ) : null}
+                  ) : (
+                    <div className="mt-6 flex flex-1 flex-col justify-end">
+                      <p className={`text-5xl font-bold tracking-tight leading-none ${numberTone}`}>{stat.value}</p>
+                      <p className="mt-2 text-sm text-slate-500">{stat.description}</p>
+                    </div>
+                  )}
                 </div>
               </button>
               {isOpen ? <KpiDropdown type={stat.key} data={stat.data} /> : null}
-            </div>
-          );
-        })}
-      </div>
-    </Card>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
-function SessionTable({ title, sessions, emptyText, onViewAll, onDetail, completed = false }) {
+function SessionTable({ title, subtitle, sessions, emptyText, onViewAll, onDetail, completed = false }) {
   return (
-    <Card className="p-4 sm:p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <SectionTitle>{title}</SectionTitle>
+    <div className="relative overflow-hidden rounded-[32px] border border-[#DCE7F5] bg-white p-8 shadow-[0_12px_40px_rgba(30,64,175,0.06)]">
+      {/* Decoration: top-left gradient blob */}
+      <div className="pointer-events-none absolute -left-14 -top-14 h-52 w-52 rounded-full bg-gradient-to-br from-blue-100/60 to-sky-50/30 blur-3xl" />
+      {/* Decoration: top-right dot matrix */}
+      <div className="pointer-events-none absolute right-8 top-7 grid grid-cols-3 gap-[5px] opacity-[0.22]">
+        {Array.from({ length: 9 }).map((_, i) => (
+          <span key={i} className="h-[5px] w-[5px] rounded-full bg-[#1D6BFF]" />
+        ))}
+      </div>
+      {/* Decoration: bottom-right curved lines */}
+      <div className="pointer-events-none absolute bottom-0 right-0 h-28 w-28 opacity-[0.10]">
+        <svg viewBox="0 0 112 112" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-full w-full">
+          <path d="M112 112 Q56 112 0 56" stroke="#1D6BFF" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M112 80 Q72 80 32 40" stroke="#1D6BFF" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M112 52 Q88 52 64 28" stroke="#1D6BFF" strokeWidth="1" strokeLinecap="round" />
+        </svg>
+      </div>
+
+      {/* Header */}
+      <div className="relative flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="text-[24px] font-bold tracking-tight text-slate-900">{title}</h2>
+            <span className="inline-flex h-9 min-w-[36px] items-center justify-center rounded-full bg-[#EAF3FF] px-3 text-sm font-bold text-[#1D6BFF]">
+              {sessions.length}
+            </span>
+          </div>
+          <p className="mt-3 text-[15px] text-[#64748B]">{subtitle}</p>
+        </div>
         <button
           type="button"
           onClick={onViewAll}
-          className="rounded-xl border border-sky-100 bg-sky-50/80 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+          className="inline-flex shrink-0 items-center gap-2 rounded-full border border-blue-200 bg-white px-6 py-3 text-base font-semibold text-blue-700 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50 active:scale-[0.98]"
         >
-          Xem tất cả
+          Xem tất cả <ArrowRight className="h-4 w-4" />
         </button>
       </div>
 
-      <div className="mt-4 space-y-3">
+      {/* Session list */}
+      <div className="relative mt-6 space-y-3">
         {sessions.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200/60 bg-white/60 px-4 py-8 text-center text-sm font-medium text-slate-400">
-            {emptyText}
+          <div className="rounded-[24px] border border-dashed border-[#DCE7F5] bg-[#F5F9FF] px-6 py-12 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-[18px] bg-[#EAF3FF] text-[#1D6BFF]">
+              <ClipboardList className="h-7 w-7" />
+            </div>
+            <p className="mt-4 text-base font-semibold text-[#0F172A]">Chưa có dữ liệu</p>
+            <p className="mt-1 text-sm text-[#64748B]">{emptyText}</p>
           </div>
         ) : (
           sessions.slice(0, 5).map((session) => (
             <div
               key={session.id}
-              className={`grid min-h-[96px] gap-4 rounded-2xl border border-slate-200/60 bg-white/60 px-4 py-3 transition hover:bg-sky-50/40 sm:items-center ${
-                completed ? 'sm:grid-cols-4' : 'sm:grid-cols-3'
-              }`}
+              className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3 rounded-[22px] border border-[#DCE7F5] bg-white px-5 py-4 transition-all duration-200 hover:border-blue-200 hover:shadow-md"
             >
-              <div className="min-w-0 text-center sm:justify-self-center">
-                <p className="truncate text-base font-bold text-slate-950">{session.plate}</p>
-                <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
-                  {completed ? (
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${paymentClasses[getCompletedPayment(session)] || 'bg-slate-100 text-slate-700'}`}>
-                      {getCompletedPayment(session)}
-                    </span>
-                  ) : (
-                    <StatusBadge status={session.status} />
-                  )}
-                  {completed ? (
-                    <span className="text-xs font-semibold text-slate-400">{getCompletedFee(session)}</span>
-                  ) : null}
+              {/* Left: icon + plate + badge */}
+              <div className="flex min-w-0 flex-1 items-center gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] bg-[#EEF5FF] text-[#1D6BFF]">
+                  <CarFront className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-lg font-bold text-[#0F172A]">{session.plate}</p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    {completed ? (
+                      <>
+                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ${paymentClasses[getCompletedPayment(session)] || 'bg-slate-100 text-slate-700'}`}>
+                          {getCompletedPayment(session)}
+                        </span>
+                        <span className="text-sm font-bold text-emerald-600">{getCompletedFee(session)}</span>
+                      </>
+                    ) : (
+                      <StatusBadge status={session.status} />
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="min-w-0 text-center sm:justify-self-center">
-                <p className="text-xs font-medium text-slate-400">Giờ vào</p>
-                <p className="mt-1 text-sm font-semibold text-slate-700">{session.entry}</p>
+              {/* Entry time */}
+              <div className="min-w-[72px] text-center">
+                <p className="text-sm font-semibold text-[#64748B]">Giờ vào</p>
+                <p className="mt-1 text-base font-bold text-[#0F172A]">{session.entry}</p>
               </div>
 
+              {/* Exit time (completed only) */}
               {completed ? (
-                <div className="min-w-0 text-center sm:justify-self-center">
-                  <p className="text-xs font-medium text-slate-400">Giờ ra</p>
-                  <p className="mt-1 text-sm font-semibold text-slate-700">{session.exit}</p>
+                <div className="min-w-[72px] text-center">
+                  <p className="text-sm font-semibold text-[#64748B]">Giờ ra</p>
+                  <p className="mt-1 text-base font-bold text-[#0F172A]">{session.exit}</p>
                 </div>
               ) : null}
 
-              <div className="flex justify-center sm:justify-self-center">
-                <button
-                  type="button"
-                  onClick={() => onDetail(session)}
-                  className="inline-flex h-9 w-20 items-center justify-center rounded-xl px-3 text-sm font-semibold text-sky-600 transition hover:bg-sky-50 hover:text-sky-700"
-                >
-                  Chi tiết
-                </button>
-              </div>
+              {/* Detail button */}
+              <button
+                type="button"
+                onClick={() => onDetail(session)}
+                className="inline-flex shrink-0 items-center gap-2 rounded-full border border-blue-200 bg-white px-5 py-2.5 text-sm font-semibold text-blue-700 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50 active:scale-[0.98]"
+              >
+                Chi tiết <ArrowRight className="h-4 w-4" />
+              </button>
             </div>
           ))
         )}
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -482,8 +597,6 @@ export default function HomePage() {
         label: 'Xe vào',
         value: loading ? '...' : currentData.entries,
         description: 'Lượt vào trong ngày',
-        icon: 'IN',
-        tone: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
         data: currentData,
       },
       {
@@ -491,8 +604,6 @@ export default function HomePage() {
         label: 'Xe ra',
         value: loading ? '...' : currentData.exits,
         description: 'Lượt ra trong ngày',
-        icon: 'OUT',
-        tone: 'bg-slate-100 text-slate-700 ring-slate-200',
         data: currentData,
       },
       {
@@ -500,8 +611,6 @@ export default function HomePage() {
         label: 'Doanh thu',
         value: loading ? '...' : currentData.revenue,
         description: 'Đã thu trong ngày',
-        icon: 'đ',
-        tone: 'bg-amber-50 text-amber-700 ring-amber-100',
         data: currentData,
       },
       {
@@ -509,8 +618,6 @@ export default function HomePage() {
         label: 'Công suất bãi',
         value: loading ? '...' : currentData.capacity,
         description: `${currentData.availableSlots} chỗ còn trống`,
-        icon: '%',
-        tone: 'bg-sky-50 text-sky-700 ring-sky-100',
         progress: capacity.percent,
         wide: true,
         data: currentData,
@@ -545,42 +652,89 @@ export default function HomePage() {
   }, [openKpi]);
 
   return (
-    <div className="space-y-6">
-      <Card className="relative overflow-hidden p-5 sm:p-6">
-        <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-sky-200/40 blur-3xl" />
-        <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-950">Tình hình hôm nay</h1>
-            <p className="mt-2 max-w-2xl text-sm font-medium text-slate-500">
-              Theo dõi nhanh lượt xe, doanh thu và công suất bãi
-            </p>
-            {error ? <p className="mt-2 text-sm font-semibold text-rose-600">{error}</p> : null}
+    <div className="relative space-y-8 font-[Inter]">
+      <div className="pointer-events-none absolute -bottom-10 -left-24 h-[360px] w-[360px] rounded-full bg-blue-400/10 blur-[120px]" />
+      <div className="pointer-events-none absolute -right-14 top-12 h-[360px] w-[360px] rounded-full bg-sky-400/10 blur-[120px]" />
+
+      <section className="relative min-h-[210px] overflow-hidden rounded-[28px] border border-white/90 bg-[linear-gradient(135deg,#ffffff_0%,#F3F8FF_58%,#EEF7FF_100%)] px-8 py-8 shadow-[0_24px_70px_rgba(15,23,42,0.08)] ring-1 ring-[#E6EDF5]/80">
+        <div className="pointer-events-none absolute -left-12 -top-12 h-56 w-56 rounded-full bg-blue-100/80 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-20 right-24 h-52 w-52 rounded-full bg-sky-100/70 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-2 right-8 hidden h-[168px] w-[420px] lg:block">
+          <div
+            className="absolute inset-0 bg-contain bg-right-bottom bg-no-repeat opacity-[0.3]"
+            style={{ backgroundImage: "url('/illustrations/parking-hero.svg')" }}
+          />
+          <div className="absolute inset-x-3 bottom-2 h-5 rounded-full bg-blue-400/20 blur-2xl" />
+        </div>
+
+        <div className="absolute right-8 top-6 z-20 hidden items-center gap-3 lg:flex">
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(event) => setSelectedDate(event.target.value)}
+            className="h-12 rounded-full border border-[#E6EDF5] bg-white/90 px-4 text-sm font-semibold text-[#0F172A] outline-none transition-all duration-200 hover:border-blue-200 focus:border-[#1D6BFF] focus:ring-4 focus:ring-blue-100"
+          />
+          <button
+            type="button"
+            onClick={() => setSelectedDate(getToday())}
+            className="inline-flex h-12 items-center gap-2 rounded-full border border-[#E6EDF5] bg-white/90 px-5 text-sm font-semibold text-[#0F172A] transition-all duration-200 hover:scale-[1.02] hover:border-blue-200 hover:bg-white hover:shadow-md active:scale-[0.98]"
+          >
+            <CalendarDays className="h-4 w-4 text-[#1D6BFF]" />
+            Hôm nay
+          </button>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            className="inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-[#1565FF] to-[#1EA7FF] px-5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(29,107,255,0.25)] transition-all duration-200 hover:scale-[1.02] hover:brightness-105 hover:shadow-xl active:scale-[0.98]"
+          >
+            <RefreshCw className={`h-4 w-4 ${(refreshing || loading) ? 'animate-spin' : ''}`} />
+            {refreshing || loading ? 'Đang tải...' : 'Làm mới'}
+          </button>
+        </div>
+
+        <div className="relative flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+          <div className="flex items-start gap-4">
+            <div>
+              <h1 className="text-[38px] font-bold leading-none tracking-tight text-[#0F172A] sm:text-[52px]">Tình hình hôm nay</h1>
+              <p className="mt-3 max-w-2xl text-[15px] font-medium text-[#64748B]">
+                Theo dõi nhanh lượt xe, doanh thu và công suất bãi.
+              </p>
+              {error ? <p className="mt-2 text-sm font-semibold text-rose-600">{error}</p> : null}
+            </div>
           </div>
 
-          <div className="flex w-full flex-wrap items-center gap-2 xl:w-auto xl:justify-end">
+          <div className="flex w-full flex-wrap items-center gap-3 lg:mt-12 xl:w-auto xl:justify-end lg:hidden">
             <input
               type="date"
               value={selectedDate}
               onChange={(event) => setSelectedDate(event.target.value)}
-              className="h-10 rounded-2xl border border-white/80 bg-white/80 px-3 text-sm font-semibold text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+              className="h-12 rounded-full border border-[#E6EDF5] bg-white/90 px-4 text-sm font-semibold text-[#0F172A] outline-none transition-all duration-200 hover:border-blue-200 focus:border-[#1D6BFF] focus:ring-4 focus:ring-blue-100"
             />
             <button
               type="button"
               onClick={() => setSelectedDate(getToday())}
-              className="h-10 rounded-2xl border border-white/80 bg-white/80 px-4 text-sm font-semibold text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.05)] transition hover:bg-white active:scale-[0.98]"
+              className="inline-flex h-12 items-center gap-2 rounded-full border border-[#E6EDF5] bg-white/90 px-5 text-sm font-semibold text-[#0F172A] transition-all duration-200 hover:scale-[1.02] hover:border-blue-200 hover:bg-white hover:shadow-md active:scale-[0.98]"
             >
+              <CalendarDays className="h-4 w-4 text-[#1D6BFF]" />
               Hôm nay
             </button>
             <button
               type="button"
               onClick={handleRefresh}
-              className="h-10 rounded-2xl bg-sky-500 px-4 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(14,165,233,0.24)] transition hover:bg-sky-600 active:scale-[0.98]"
+              className="inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-[#1565FF] to-[#1EA7FF] px-5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(29,107,255,0.25)] transition-all duration-200 hover:scale-[1.02] hover:brightness-105 hover:shadow-xl active:scale-[0.98]"
             >
+              <RefreshCw className={`h-4 w-4 ${(refreshing || loading) ? 'animate-spin' : ''}`} />
               {refreshing || loading ? 'Đang tải...' : 'Làm mới'}
             </button>
           </div>
         </div>
-      </Card>
+
+        <div className="pointer-events-none absolute bottom-5 left-8 hidden items-center gap-3 text-[#1D6BFF] opacity-45 lg:flex">
+          <CarFront className="h-5 w-5" />
+          <Building2 className="h-5 w-5" />
+          <SquareParking className="h-5 w-5" />
+        </div>
+      </section>
 
       <section ref={kpiRowRef} className="relative z-30">
         <OperationsDock
@@ -591,9 +745,10 @@ export default function HomePage() {
           currentData={currentData}
         />
       </section>
-      <section className="relative z-0 grid grid-cols-1 gap-4 2xl:grid-cols-2">
+      <section className="relative z-0 grid grid-cols-1 gap-8 xl:grid-cols-2">
         <SessionTable
           title="Phiên đang hoạt động"
+          subtitle="Theo dõi các phương tiện trong bãi."
           sessions={currentData.sessions}
           emptyText={loading ? 'Đang tải dữ liệu...' : 'Chưa có phiên đang hoạt động.'}
           onViewAll={() => navigate('/admin/parking-sessions')}
@@ -601,6 +756,7 @@ export default function HomePage() {
         />
         <SessionTable
           title="Phiên gần đây"
+          subtitle="Danh sách lượt xe đã hoàn thành gần nhất."
           sessions={currentData.completedSessions}
           emptyText={loading ? 'Đang tải dữ liệu...' : 'Chưa có phiên gần đây.'}
           onViewAll={() => navigate('/admin/parking-sessions')}
