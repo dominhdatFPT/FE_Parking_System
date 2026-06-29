@@ -75,6 +75,7 @@ export default function DriverSidebar({ isOpen, onClose }) {
             const active = location.pathname === item.path;
             return (
               <button
+                id={`sidebar-${item.key}`}
                 key={item.path}
                 type="button"
                 onClick={() => handleNav(item)}
