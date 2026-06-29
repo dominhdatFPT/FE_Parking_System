@@ -57,7 +57,7 @@ export default function NotificationDetailModal({ notification, onClose }) {
         </div>
 
         <footer className="flex justify-end border-t border-slate-100 bg-slate-50/70 px-6 py-4">
-          <button type="button" onClick={onClose} className="rounded-xl bg-sky-600 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-sky-700">Đã hiểu</button>
+          <button type="button" onClick={onClose} className="rounded-xl bg-[#0EA5E9] px-6 py-2.5 text-sm font-bold !text-white transition hover:bg-[#0284c7]">Đã hiểu</button>
         </footer>
       </section>
     </div>

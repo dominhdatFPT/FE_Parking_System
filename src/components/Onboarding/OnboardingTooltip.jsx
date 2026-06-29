@@ -307,7 +307,7 @@ export default function OnboardingTooltip() {
                   <button
                     type="button"
                     onClick={nextStep}
-                    className="rounded-lg bg-sky-500 px-3 py-1.5 text-[11px] font-bold text-white shadow-md shadow-sky-100 hover:bg-sky-600 hover:shadow-sky-200 active:bg-sky-700 transition-all cursor-pointer"
+                    className="rounded-lg bg-[#0EA5E9] px-3 py-1.5 text-[11px] font-bold !text-white shadow-md shadow-sky-100 hover:bg-[#0284c7] hover:shadow-sky-200 active:bg-sky-700 transition-all cursor-pointer"
                   >
                     {currentStep === steps.length - 2 ? 'Hoàn thành' : 'Tiếp theo'}
                   </button>

@@ -400,7 +400,7 @@ export default function DriverProfile() {
                     <button
                       type="submit"
                       disabled={isLoading || !currentPassword}
-                      className="flex-1 h-11 bg-sky-600 text-white rounded-xl text-sm font-semibold hover:bg-sky-700 active:scale-95 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+                      className="flex-1 h-11 bg-[#0EA5E9] !text-white rounded-xl text-sm font-semibold hover:bg-[#0284c7] active:scale-95 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
                     >
                       {isLoading ? (
                         <>
@@ -519,7 +519,7 @@ export default function DriverProfile() {
                     <button
                       type="submit"
                       disabled={strengthScore < 2}
-                      className="flex-1 h-11 bg-sky-600 text-white rounded-xl text-sm font-semibold hover:bg-sky-700 active:scale-95 transition disabled:opacity-50 disabled:pointer-events-none"
+                      className="flex-1 h-11 bg-[#0EA5E9] !text-white rounded-xl text-sm font-semibold hover:bg-[#0284c7] active:scale-95 transition disabled:opacity-50 disabled:pointer-events-none"
                     >
                       {localT.btnContinue}
                     </button>
@@ -597,7 +597,7 @@ export default function DriverProfile() {
                     <button
                       type="submit"
                       disabled={isLoading || !confirmPassword || newPassword !== confirmPassword}
-                      className="flex-1 h-11 bg-sky-600 text-white rounded-xl text-sm font-semibold hover:bg-sky-700 active:scale-95 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+                      className="flex-1 h-11 bg-[#0EA5E9] !text-white rounded-xl text-sm font-semibold hover:bg-[#0284c7] active:scale-95 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
                     >
                       {isLoading ? (
                         <>
@@ -630,7 +630,7 @@ export default function DriverProfile() {
 
                   <button
                     onClick={handleCloseModal}
-                    className="w-full h-11 bg-sky-600 text-white rounded-xl text-sm font-semibold hover:bg-sky-700 active:scale-95 transition shadow-md shadow-sky-600/10"
+                    className="w-full h-11 bg-[#0EA5E9] !text-white rounded-xl text-sm font-semibold hover:bg-[#0284c7] active:scale-95 transition shadow-md shadow-sky-600/10"
                   >
                     {localT.btnDone}
                   </button>
