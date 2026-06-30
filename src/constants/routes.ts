@@ -49,7 +49,7 @@ export const ROUTES = {
 
   STAFF: {
     DASHBOARD: '/staff',
-    BOOKINGS: '/staff/bookings',
+    VEHICLE_REGISTRATIONS: '/staff/vehicle-registrations',
     VEHICLE_ENTRY: '/staff/vehicle-entry',
     VEHICLE_EXIT: '/staff/vehicle-exit',
     SESSIONS: '/staff/sessions',
@@ -58,13 +58,10 @@ export const ROUTES = {
 
   DRIVER: {
     DASHBOARD: '/driver-dashboard',
-    BOOKING: '/driver-booking',
-    HISTORY: '/driver-history',
     PAYMENT: '/driver-payment',
     NOTIFICATIONS: '/driver-notifications',
     SUPPORT: '/driver-support',
     PROFILE: '/driver-profile',
-    ACTIVE_SESSION: '/driver/active-session',
     VEHICLE_REGISTRATION: '/driver-vehicle-registration',
     FEE_PLANS: '/driver-fee-plans',
   },

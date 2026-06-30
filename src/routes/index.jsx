@@ -1,9 +1,10 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router';
 import { useAuth } from '../contexts/useAuth';
 import { ROUTES } from '../constants/routes';
+import MainLayout from '../layouts/MainLayout';
 import AdminLayout from '../layouts/AdminLayout';
 import DriverLayout from '../layouts/DriverLayout';
-import LoginPage from '../features/auth/pages/LoginPage/LoginPage.jsx';
+import LoginPage from '../features/auth/pages/LoginPage';
 import HomePage from '../pages/HomePage';
 import WelcomePage from '../features/auth/pages/WelcomePage';
 import AccountRecovery from '../features/auth/pages/AccountRecovery';
@@ -26,7 +27,6 @@ import SystemConfigurationPage from '../pages/SystemConfigurationPage';
 import AuditLogPage from '../pages/AuditLogPage';
 import StaffDashboard from '../features/staff/pages/StaffDashboard';
 import StaffVehicleRegistrationReview from '../features/staff/pages/StaffVehicleRegistrationReview';
-import StaffVehicleEntry from '../features/staff/pages/StaffVehicleEntry';
 import StaffVehicleExit from '../features/staff/pages/StaffVehicleExit';
 import StaffSessions from '../features/staff/pages/StaffSessions';
 import StaffExceptions from '../features/staff/pages/StaffExceptions';
@@ -97,13 +97,24 @@ export function AppRoutes() {
         <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AuditLogPage />} />
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.BASE} element={<NotificationManagement />} />
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.DETAIL} element={<NotificationDetailPage />} />
-        <Route path={ROUTES.FORBIDDEN} element={<ForbiddenPage />} />
         <Route path={ROUTES.STAFF.DASHBOARD} element={<StaffDashboard />} />
         <Route path={ROUTES.STAFF.VEHICLE_REGISTRATIONS} element={<StaffVehicleRegistrationReview />} />
-        <Route path={ROUTES.STAFF.VEHICLE_ENTRY} element={<StaffVehicleEntry />} />
+        <Route path={ROUTES.STAFF.VEHICLE_ENTRY} element={<VehicleEntryPage />} />
         <Route path={ROUTES.STAFF.VEHICLE_EXIT} element={<StaffVehicleExit />} />
         <Route path={ROUTES.STAFF.SESSIONS} element={<StaffSessions />} />
         <Route path={ROUTES.STAFF.EXCEPTIONS} element={<StaffExceptions />} />
+      </Route>
+
+      <Route
+        path={ROUTES.FORBIDDEN}
+        element={
+          <RequireAuth>
+            <ForbiddenPage />
+          </RequireAuth>
+        }
+      />
+
+      <Route element={<MainLayout />}>
         <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />} />
       </Route>
 

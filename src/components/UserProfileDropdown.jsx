@@ -151,7 +151,7 @@ export default function UserProfileDropdown({ onViewProfile, onChangePassword, p
                 <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-600">
                   <User className="h-4 w-4" />
                 </span>
-                Profile
+                Hồ sơ cá nhân
               </button>
 
               <button
@@ -163,7 +163,7 @@ export default function UserProfileDropdown({ onViewProfile, onChangePassword, p
                 <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-600">
                   <Lock className="h-4 w-4" />
                 </span>
-                Change password
+                Đổi mật khẩu
               </button>
             </div>
 

@@ -10,10 +10,8 @@ import {
   CalendarDays,
   CircleDollarSign,
   ClipboardList,
-  Clock3,
   RefreshCw,
   SquareParking,
-  Ticket,
 } from 'lucide-react';
 import SessionDetailDrawer from '../../components/parking/SessionDetailDrawer';
 import { getStaffOperationsDashboard } from '../../services/staffService';
@@ -48,18 +46,6 @@ const paymentClasses = {
   'Miễn phí': 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
   Gói: 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
 };
-
-function Card({ children, className = '', p = 'p-5 sm:p-6' }) {
-  return (
-    <section className={`rounded-[24px] border border-[#E6EDF5] bg-white/90 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur transition-all duration-300 ${className} ${p}`}>
-      {children}
-    </section>
-  );
-}
-
-function SectionTitle({ children }) {
-  return <h2 className="text-[25px] font-bold tracking-tight text-[#0F172A]">{children}</h2>;
-}
 
 function getToday() {
   return new Date().toISOString().slice(0, 10);
