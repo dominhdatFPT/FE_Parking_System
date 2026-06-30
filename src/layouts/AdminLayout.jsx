@@ -27,7 +27,7 @@ const mainNavigationItems = [
   { icon: Boxes, label: 'Phiên gửi xe', path: ROUTES.ADMIN.PARKING_SESSIONS },
   { icon: Package, label: 'Quản lý đăng ký xe', path: ROUTES.STAFF.VEHICLE_REGISTRATIONS },
   { icon: BellRing, label: 'Thông báo', path: ROUTES.ADMIN.NOTIFICATIONS.BASE },
-  { icon: Users, label: 'Qu\u1EA3n l\u00FD t\u00E0i kho\u1EA3n', path: ROUTES.ADMIN.USERS, adminOnly: true },
+  { icon: Users, label: 'Qu\u1EA3n l\u00FD t\u00E0i kho\u1EA3n', path: ROUTES.ADMIN.USERS },
 ];
 
 const incidentNavigationItem = {
@@ -113,8 +113,7 @@ export default function AdminLayout() {
     ROUTES.STAFF.VEHICLE_ENTRY,
     ROUTES.STAFF.VEHICLE_EXIT,
   ].includes(location.pathname);
-  const isAdmin = String(user?.role || '').toUpperCase() === 'ADMIN';
-  const navigationItems = mainNavigationItems.filter((item) => !item.adminOnly || isAdmin);
+  const navigationItems = mainNavigationItems;
   const pageTitle = getCurrentPageTitle(location.pathname, location.search);
 
   return (

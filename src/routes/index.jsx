@@ -60,22 +60,6 @@ function RequireBackOfficeRole({ children }) {
   return children;
 }
 
-function RequireAdmin({ children }) {
-  const { role, isAuthenticated } = useAuth();
-  const location = useLocation();
-  const normalizedRole = role?.toLowerCase();
-
-  if (!isAuthenticated) {
-    return <Navigate to={ROUTES.LOGIN} replace state={{ from: location.pathname }} />;
-  }
-
-  if (normalizedRole !== 'admin') {
-    return <Navigate to={ROUTES.FORBIDDEN} replace />;
-  }
-
-  return children;
-}
-
 export function AppRoutes() {
   return (
     <Routes>
@@ -107,14 +91,7 @@ export function AppRoutes() {
         <Route path={ROUTES.ADMIN.DASHBOARD} element={<HomePage />} />
         <Route path={ROUTES.ADMIN.VEHICLE_ENTRY} element={<VehicleEntryPage />} />
         <Route path={ROUTES.ADMIN.PARKING_SESSIONS} element={<ParkingSessionsPage />} />
-        <Route
-          path={ROUTES.ADMIN.USERS}
-          element={
-            <RequireAdmin>
-              <AccountManagementPage />
-            </RequireAdmin>
-          }
-        />
+        <Route path={ROUTES.ADMIN.USERS} element={<AccountManagementPage />} />
         <Route path={ROUTES.ADMIN.VEHICLE_EXIT} element={<StaffVehicleExit />} />
         <Route path={ROUTES.ADMIN.ROLES} element={<Navigate to={ROUTES.ADMIN.VEHICLE_EXIT} replace />} />
         <Route path={ROUTES.ADMIN.SYSTEM_CONFIG} element={<SystemConfigurationPage />} />
