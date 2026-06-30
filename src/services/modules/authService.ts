@@ -10,7 +10,7 @@ export async function refreshSession() {
   const response = await apiClient.post(
     API_ENDPOINTS.AUTH.REFRESH_TOKEN,
     undefined,
-    { skipAuthRedirect: true } as any,
+    { skipAuthRedirect: true, timeout: 8000 } as any,
   );
   return response.data.data ?? response.data;
 }
