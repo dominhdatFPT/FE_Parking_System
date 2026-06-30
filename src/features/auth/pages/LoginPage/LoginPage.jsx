@@ -483,7 +483,8 @@ export default function LoginPage() {
         navigate(getDashboardPath(authenticatedUser.role));
       }
     } catch (err) {
-      setError(t('errors.loginFailed'));
+      const serverMessage = err.response?.data?.message;
+      setError(serverMessage || t('errors.loginFailed'));
       console.error('Login error:', err);
     } finally {
       setLoading(false);
@@ -529,7 +530,8 @@ export default function LoginPage() {
         }
       }
     } catch (err) {
-      setError(t('errors.googleFailed'));
+      const serverMessage = err.response?.data?.message;
+      setError(serverMessage || t('errors.googleFailed'));
       console.error('Google login error:', err);
     } finally {
       setGoogleLoading(false);
