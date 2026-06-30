@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Check, Lock, User } from 'lucide-react';
+import { Bell, BookOpen, Check, Lock, LogOut, User } from 'lucide-react';
 
 const SELECTED_AVATAR_STORAGE_KEY = 'selectedAvatar';
 
@@ -56,7 +56,14 @@ function AvatarImage({ src, initials, className = '' }) {
   );
 }
 
-export default function UserProfileDropdown({ onViewProfile, onChangePassword, profile }) {
+export default function UserProfileDropdown({
+  onViewProfile,
+  onChangePassword,
+  onViewNotifications,
+  onViewRules,
+  onLogout,
+  profile,
+}) {
   const [open, setOpen] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(getStoredAvatar);
   const dropdownRef = useRef(null);
@@ -142,6 +149,9 @@ export default function UserProfileDropdown({ onViewProfile, onChangePassword, p
             </div>
 
             <div className="bg-white p-2">
+              <p className="px-3 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                Tài khoản
+              </p>
               <button
                 type="button"
                 role="menuitem"
@@ -149,9 +159,9 @@ export default function UserProfileDropdown({ onViewProfile, onChangePassword, p
                 className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100/70 hover:text-slate-950"
               >
                 <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-600">
-                  <User className="h-4 w-4" />
+                  <User className="h-4 w-4" strokeWidth={1.7} />
                 </span>
-                Profile
+                Hồ sơ
               </button>
 
               <button
@@ -161,10 +171,38 @@ export default function UserProfileDropdown({ onViewProfile, onChangePassword, p
                 className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100/70 hover:text-slate-950"
               >
                 <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-600">
-                  <Lock className="h-4 w-4" />
+                  <Lock className="h-4 w-4" strokeWidth={1.7} />
                 </span>
-                Change password
+                Đổi mật khẩu
               </button>
+
+              {onViewNotifications ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => handleAction(onViewNotifications)}
+                  className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-slate-100/70 hover:text-slate-950"
+                >
+                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-600">
+                    <Bell className="h-4 w-4" strokeWidth={1.7} />
+                  </span>
+                  Thông báo
+                </button>
+              ) : null}
+
+              {onViewRules ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => handleAction(onViewRules)}
+                  className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-sky-50 hover:text-sky-700"
+                >
+                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-sky-50 text-sky-600">
+                    <BookOpen className="h-4 w-4" strokeWidth={1.7} />
+                  </span>
+                  Nội quy sử dụng
+                </button>
+              ) : null}
             </div>
 
             <div className="border-t border-slate-100 bg-white p-4">
@@ -198,6 +236,22 @@ export default function UserProfileDropdown({ onViewProfile, onChangePassword, p
                 })}
               </div>
             </div>
+
+            {onLogout ? (
+              <div className="border-t border-slate-100 bg-white p-2">
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => handleAction(onLogout)}
+                  className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-semibold text-rose-600 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-rose-50 hover:text-rose-700"
+                >
+                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-rose-50 text-rose-600">
+                    <LogOut className="h-4 w-4" strokeWidth={1.7} />
+                  </span>
+                  Đăng xuất
+                </button>
+              </div>
+            ) : null}
           </motion.div>
         ) : null}
       </AnimatePresence>

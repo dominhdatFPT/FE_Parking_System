@@ -459,6 +459,7 @@ export default function LoginPage() {
         avatarUrl: response.user?.avatarUrl ?? response.avatarUrl ?? '',
       };
 
+      sessionStorage.setItem(STORAGE_KEYS.SHOW_SYSTEM_RULES_AFTER_LOGIN, 'true');
       setUser(authenticatedUser);
       sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authenticatedUser));
       localStorage.setItem('userRole', authenticatedUser.role || 'driver');
@@ -513,6 +514,7 @@ export default function LoginPage() {
         localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USER);
         localStorage.setItem('userRole', response.role || 'driver');
+        sessionStorage.setItem(STORAGE_KEYS.SHOW_SYSTEM_RULES_AFTER_LOGIN, 'true');
         setUser(nextUser);
         const redirectPath = sessionStorage.getItem('redirect_after_login');
         if (redirectPath) {

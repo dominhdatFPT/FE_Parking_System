@@ -15,6 +15,7 @@ import {
   Users,
 } from 'lucide-react';
 import { useAuth } from '../contexts/useAuth';
+import { useSystemRules } from '../contexts/useSystemRules';
 import { ROUTES } from '../constants/routes';
 import { STORAGE_KEYS } from '../constants/storageKeys';
 import NotificationDropdown from '../components/NotificationDropdown';
@@ -71,6 +72,7 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, setUser } = useAuth();
+  const { openRules } = useSystemRules();
   const [collapsed, setCollapsed] = useState(false);
 
   function handleLogout() {
@@ -275,6 +277,9 @@ export default function AdminLayout() {
                 profile={profile}
                 onViewProfile={() => navigate(ROUTES.SETTINGS.PROFILE)}
                 onChangePassword={() => navigate(ROUTES.SETTINGS.PASSWORD)}
+                onViewNotifications={() => navigate(ROUTES.ADMIN.NOTIFICATIONS.BASE)}
+                onViewRules={openRules}
+                onLogout={handleLogout}
               />
             </div>
           </div>
