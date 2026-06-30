@@ -1596,11 +1596,7 @@ export default function WelcomePage() {
 
   const [activeModal, setActiveModal] = useState(null);
 
-  if (isAuthLoading) {
-    return null;
-  }
-
-  if (isAuthenticated) {
+  if (!isAuthLoading && isAuthenticated) {
     return <Navigate to={getDashboardPath(role)} replace />;
   }
 

@@ -34,11 +34,22 @@ import VehicleEntryPage from '../pages/VehicleEntryPage';
 import ParkingSessionsPage from '../pages/ParkingSessionsPage';
 import SubscriptionResultPage from '../pages/SubscriptionResultPage';
 
+function AuthLoadingScreen() {
+  return (
+    <div className="grid min-h-screen place-items-center bg-slate-50 px-6 text-center text-slate-600">
+      <div>
+        <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-sky-100 border-t-sky-500" />
+        <p className="text-sm font-semibold">Đang kiểm tra phiên đăng nhập...</p>
+      </div>
+    </div>
+  );
+}
+
 function RequireAuth({ children }) {
   const { isAuthenticated, isAuthLoading } = useAuth();
 
   if (isAuthLoading) {
-    return null;
+    return <AuthLoadingScreen />;
   }
 
   if (!isAuthenticated) {
@@ -54,7 +65,7 @@ function RequireBackOfficeRole({ children }) {
   const normalizedRole = role?.toLowerCase();
 
   if (isAuthLoading) {
-    return null;
+    return <AuthLoadingScreen />;
   }
 
   if (!isAuthenticated) {
