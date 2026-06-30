@@ -10,12 +10,14 @@ import {
   CalendarDays,
   CircleDollarSign,
   ClipboardList,
+  Download,
   RefreshCw,
   SquareParking,
 } from 'lucide-react';
 import SessionDetailDrawer from '../../components/parking/SessionDetailDrawer';
 import { getStaffOperationsDashboard } from '../../services/staffService';
 import { apiDateTimeMillis, formatVietnamTime } from '../../utils/dateTime';
+import { exportParkingDashboardReport } from '../../utils/parkingDashboardReport';
 
 const emptyDashboardData = {
   entries: 0,
@@ -567,6 +569,7 @@ export default function HomePage() {
   const [selectedSession, setSelectedSession] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [openKpi, setOpenKpi] = useState(null);
+  const [exporting, setExporting] = useState(false);
   const kpiRowRef = useRef(null);
 
   const loadDashboard = useCallback(async () => {
@@ -631,6 +634,18 @@ export default function HomePage() {
     loadDashboard();
   }
 
+  async function handleExportReport() {
+    setExporting(true);
+    try {
+      await exportParkingDashboardReport({ data: currentData, selectedDate });
+    } catch (err) {
+      console.error('Export dashboard report error:', err);
+      window.alert('Không thể xuất báo cáo. Vui lòng thử lại.');
+    } finally {
+      setExporting(false);
+    }
+  }
+
   function openSessionDetail(session) {
     setSelectedSession(session);
     setIsDetailOpen(true);
@@ -690,6 +705,15 @@ export default function HomePage() {
             <RefreshCw className={`h-4 w-4 ${(refreshing || loading) ? 'animate-spin' : ''}`} />
             {refreshing || loading ? 'Đang tải...' : 'Làm mới'}
           </button>
+          <button
+            type="button"
+            onClick={handleExportReport}
+            disabled={loading || exporting}
+            className="inline-flex h-12 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 text-sm font-semibold text-emerald-700 transition-all duration-200 hover:scale-[1.02] hover:border-emerald-300 hover:bg-emerald-100 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Download className="h-4 w-4" />
+            {exporting ? 'Đang xuất...' : 'Xuất báo cáo'}
+          </button>
         </div>
 
         <div className="relative flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
@@ -725,6 +749,15 @@ export default function HomePage() {
             >
               <RefreshCw className={`h-4 w-4 ${(refreshing || loading) ? 'animate-spin' : ''}`} />
               {refreshing || loading ? 'Đang tải...' : 'Làm mới'}
+            </button>
+            <button
+              type="button"
+              onClick={handleExportReport}
+              disabled={loading || exporting}
+              className="inline-flex h-12 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 text-sm font-semibold text-emerald-700 transition-all duration-200 hover:scale-[1.02] hover:border-emerald-300 hover:bg-emerald-100 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Download className="h-4 w-4" />
+              {exporting ? 'Đang xuất...' : 'Xuất báo cáo'}
             </button>
           </div>
         </div>
