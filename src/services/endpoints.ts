@@ -6,6 +6,8 @@ export const API_ENDPOINTS = {
     FORGOT_PASSWORD: '/api/v1/auth/forgot-password',
     VERIFY_RESET_OTP: '/api/v1/auth/verify-reset-otp',
     RESET_PASSWORD: '/api/v1/auth/reset-password',
+    REFRESH_TOKEN: '/api/v1/auth/refresh-token',
+    LOGOUT: '/api/v1/auth/logout',
   },
   PARKING: {
     SLOTS: '/api/v1/parking-slots',

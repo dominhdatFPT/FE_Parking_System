@@ -1,7 +1,6 @@
 import { useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ROUTES } from '../../../constants/routes';
-import { STORAGE_KEYS } from '../../../constants/storageKeys';
 import { useAuth } from '../../../contexts/useAuth';
 import Logo from '../../../components/Logo';
 
@@ -18,7 +17,7 @@ export default function DriverSidebar({ isOpen, onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-  const { setUser } = useAuth();
+  const { logout } = useAuth();
 
   const handleNav = (target) => {
     const path = typeof target === 'string' ? target : target?.path;
@@ -26,14 +25,8 @@ export default function DriverSidebar({ isOpen, onClose }) {
     onClose?.();
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    sessionStorage.removeItem(STORAGE_KEYS.USER);
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.USER);
-    localStorage.removeItem('smart-parking-user');
-    localStorage.removeItem('rememberMe');
-    setUser(null);
+  const handleLogout = async () => {
+    await logout();
     navigate(ROUTES.LOGIN, { replace: true });
     onClose?.();
   };

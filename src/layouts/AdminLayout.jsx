@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/useAuth';
 import { ROUTES } from '../constants/routes';
-import { STORAGE_KEYS } from '../constants/storageKeys';
 import NotificationDropdown from '../components/NotificationDropdown';
 import UserProfileDropdown from '../components/UserProfileDropdown';
 import Logo from '../components/Logo';
@@ -79,17 +78,11 @@ function getNavigationLabel(item) {
 export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, setUser } = useAuth();
+  const { user, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
 
-  function handleLogout() {
-    sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    sessionStorage.removeItem(STORAGE_KEYS.USER);
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.USER);
-    localStorage.removeItem('smart-parking-user');
-    localStorage.removeItem('rememberMe');
-    setUser(null);
+  async function handleLogout() {
+    await logout();
     navigate(ROUTES.ADMIN_LOGIN, { replace: true });
   }
 
