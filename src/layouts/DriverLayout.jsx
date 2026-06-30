@@ -3,14 +3,8 @@ import { Outlet } from 'react-router';
 import DriverHeader from '../features/driver/components/DriverHeader';
 import DriverSidebar from '../features/driver/components/DriverSidebar';
 import AiChatWidget from '../components/AiChatWidget';
-import { OnboardingProvider, useOnboarding } from '../contexts/OnboardingContext';
-import OnboardingOverlay from '../components/Onboarding/OnboardingOverlay';
-
-function DriverLayoutContent() {
+export default function DriverLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isSidebarForcedOpen } = useOnboarding();
-
-  const isSidebarOpen = sidebarOpen || isSidebarForcedOpen;
 
   return (
     <div className="relative flex h-screen overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(232,121,249,0.18),transparent_50%),radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.24),transparent_55%),linear-gradient(135deg,#f8fafc_0%,#dbeafe_45%,#f3e8ff_100%)] text-[#0F172A]">
@@ -36,7 +30,7 @@ function DriverLayoutContent() {
       </div>
 
       <DriverSidebar 
-        isOpen={isSidebarOpen} 
+        isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
       />
       <div className="relative z-10 flex min-w-0 flex-1 flex-col">
@@ -48,17 +42,6 @@ function DriverLayoutContent() {
         </main>
       </div>
       <AiChatWidget />
-      
-      {/* Onboarding overlay and tooltip rendering */}
-      <OnboardingOverlay />
     </div>
-  );
-}
-
-export default function DriverLayout() {
-  return (
-    <OnboardingProvider>
-      <DriverLayoutContent />
-    </OnboardingProvider>
   );
 }
