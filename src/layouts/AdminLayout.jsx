@@ -6,6 +6,7 @@ import {
   ArrowUpFromLine,
   BellRing,
   Boxes,
+  CarFront,
   ChevronLeft,
   ChevronRight,
   LayoutDashboard,
@@ -27,6 +28,7 @@ const mainNavigationItems = [
   { icon: Package, label: 'Quản lý đăng ký xe', path: ROUTES.STAFF.VEHICLE_REGISTRATIONS },
   { icon: BellRing, label: 'Thông báo', path: ROUTES.ADMIN.NOTIFICATIONS.BASE },
   { icon: Users, label: 'Qu\u1EA3n l\u00FD t\u00E0i kho\u1EA3n', path: ROUTES.ADMIN.USERS },
+  { icon: CarFront, label: 'Đăng ký xe cho user', path: ROUTES.ADMIN.USER_VEHICLE_REGISTRATION },
 ];
 
 const incidentNavigationItem = {
@@ -44,6 +46,7 @@ const pageTitles = [
   { path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`, title: 'Quản lí sự cố và hỗ trợ' },
   { path: ROUTES.ADMIN.NOTIFICATIONS.BASE, title: 'Thông báo' },
   { path: ROUTES.ADMIN.USERS, title: 'Qu\u1EA3n l\u00FD t\u00E0i kho\u1EA3n' },
+  { path: ROUTES.ADMIN.USER_VEHICLE_REGISTRATION, title: 'Đăng ký xe cho user' },
 ];
 
 function getCurrentPageTitle(pathname, search) {
@@ -65,6 +68,7 @@ function isNavigationItemActive(pathname, search, itemPath) {
 
 function getNavigationLabel(item) {
   if (item.path === ROUTES.ADMIN.USERS) return 'Qu\u1EA3n l\u00FD t\u00E0i kho\u1EA3n';
+  if (item.path === ROUTES.ADMIN.USER_VEHICLE_REGISTRATION) return 'Đăng ký xe cho user';
   if (item.path === ROUTES.ADMIN.VEHICLE_ENTRY) return 'Xe vào';
   if (item.path === ROUTES.ADMIN.DASHBOARD) return 'Tổng quan bãi';
   if (item.path === ROUTES.ADMIN.VEHICLE_EXIT) return 'Xe ra';
