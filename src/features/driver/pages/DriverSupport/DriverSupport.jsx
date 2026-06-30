@@ -54,7 +54,6 @@ export default function DriverSupport() {
   const faqs = [
     { q: t('support.faq1q'), a: t('support.faq1a') },
     { q: t('support.faq2q'), a: t('support.faq2a') },
-    { q: t('support.faq3q'), a: t('support.faq3a') },
     { q: t('support.faq4q'), a: t('support.faq4a') },
     { q: t('support.faq5q'), a: t('support.faq5a') },
     { q: t('support.faq6q'), a: t('support.faq6a') },
