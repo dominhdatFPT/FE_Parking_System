@@ -61,7 +61,8 @@ apiClient.interceptors.response.use(
       const authRequest = originalRequest as typeof originalRequest & { skipAuthRedirect?: boolean };
       const requestUrl = originalRequest.url || '';
       const isRefreshRequest = requestUrl.includes(API_ENDPOINTS.AUTH.REFRESH_TOKEN);
-      const isLoginRequest = requestUrl.includes(API_ENDPOINTS.AUTH.LOGIN);
+      const isLoginRequest = requestUrl.includes(API_ENDPOINTS.AUTH.LOGIN)
+        || requestUrl.includes(API_ENDPOINTS.AUTH.GOOGLE_LOGIN);
       const isLogoutRequest = requestUrl.includes(API_ENDPOINTS.AUTH.LOGOUT);
 
       if (isLoginRequest) {
