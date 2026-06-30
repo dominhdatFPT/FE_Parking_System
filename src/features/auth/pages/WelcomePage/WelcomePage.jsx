@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router';
+import { Navigate, useNavigate } from 'react-router';
 import i18n from 'i18next';
 import {
   Car, Zap, MapPin, CreditCard, Globe, ScanLine, CalendarDays,
@@ -18,6 +18,18 @@ import {
 } from '../../../../services/notificationService';
 import { vietnamDayjs } from '../../../../utils/dateTime';
 import Logo from '../../../../components/Logo';
+import { useAuth } from '../../../../contexts/useAuth';
+import { ROUTES } from '../../../../constants/routes';
+
+function getDashboardPath(role) {
+  const normalizedRole = role?.toLowerCase();
+
+  if (normalizedRole === 'admin' || normalizedRole === 'staff') {
+    return ROUTES.ADMIN.DASHBOARD;
+  }
+
+  return ROUTES.DRIVER.DASHBOARD;
+}
 
 // --- DICTIONARY (i18n) ---
 const translations = {
@@ -1469,6 +1481,7 @@ const Footer = ({ t, onOpenModal }) => {
 };
 
 export default function WelcomePage() {
+  const { isAuthenticated, isAuthLoading, role } = useAuth();
   const getInitialLang = () => {
     const current = i18n.language || localStorage.getItem('language') || 'vi';
     return current.startsWith('en') ? 'en' : 'vi';
@@ -1493,6 +1506,14 @@ export default function WelcomePage() {
   }, []);
 
   const [activeModal, setActiveModal] = useState(null);
+
+  if (isAuthLoading) {
+    return null;
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to={getDashboardPath(role)} replace />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800 selection:bg-sky-200">

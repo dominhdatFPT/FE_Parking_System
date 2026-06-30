@@ -1,6 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { ROUTES } from '../constants/routes';
-import { STORAGE_KEYS } from '../constants/storageKeys';
 import { useAuth } from '../contexts/useAuth';
 import Logo from '../components/Logo';
 
@@ -33,15 +32,11 @@ const getNavigationItems = (role) => {
 
 export default function MainLayout() {
   const navigate = useNavigate();
-  const { role, setUser } = useAuth();
+  const { role, logout } = useAuth();
   const navigationItems = getNavigationItems(role);
 
-  const handleLogout = () => {
-    sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    sessionStorage.removeItem(STORAGE_KEYS.USER);
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.USER);
-    setUser(null);
+  const handleLogout = async () => {
+    await logout();
     navigate(ROUTES.LOGIN, { replace: true });
   };
 

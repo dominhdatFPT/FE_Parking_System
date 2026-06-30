@@ -442,7 +442,7 @@ export default function LoginPage() {
     }
 
     try {
-      const response = await login(email, password);
+      const response = await login(email, password, rememberMe);
 
       if (!response?.token) {
         throw new Error(t('errors.missingToken'));
@@ -460,16 +460,19 @@ export default function LoginPage() {
 
       setUser(authenticatedUser);
       sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authenticatedUser));
+      sessionStorage.setItem('smart-parking-user', JSON.stringify(authenticatedUser));
       localStorage.setItem('userRole', authenticatedUser.role || 'driver');
 
       if (rememberMe) {
         localStorage.setItem('rememberMe', 'true');
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
         localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authenticatedUser));
+        localStorage.setItem('smart-parking-user', JSON.stringify(authenticatedUser));
       } else {
         localStorage.removeItem('rememberMe');
         localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USER);
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('smart-parking-user');
       }
 
       const redirectPath = sessionStorage.getItem('redirect_after_login');
@@ -509,8 +512,12 @@ export default function LoginPage() {
 
         sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
         sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(nextUser));
+        sessionStorage.setItem('smart-parking-user', JSON.stringify(nextUser));
         localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USER);
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('smart-parking-user');
+        localStorage.removeItem('rememberMe');
         localStorage.setItem('userRole', response.role || 'driver');
         setUser(nextUser);
         const redirectPath = sessionStorage.getItem('redirect_after_login');

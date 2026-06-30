@@ -35,7 +35,11 @@ import ParkingSessionsPage from '../pages/ParkingSessionsPage';
 import SubscriptionResultPage from '../pages/SubscriptionResultPage';
 
 function RequireAuth({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isAuthLoading } = useAuth();
+
+  if (isAuthLoading) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to={ROUTES.LOGIN} replace />;
@@ -45,9 +49,13 @@ function RequireAuth({ children }) {
 }
 
 function RequireBackOfficeRole({ children }) {
-  const { role, isAuthenticated } = useAuth();
+  const { role, isAuthenticated, isAuthLoading } = useAuth();
   const location = useLocation();
   const normalizedRole = role?.toLowerCase();
+
+  if (isAuthLoading) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to={ROUTES.LOGIN} replace state={{ from: location.pathname }} />;
