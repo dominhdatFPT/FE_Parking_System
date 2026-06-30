@@ -112,21 +112,10 @@ export function OnboardingProvider({ children }) {
     }
   }, [currentStep]);
 
-  // Auto-start on first login for driver role
+  // Auto-start on first login for driver role (disabled as per user request)
   useEffect(() => {
-    if (user && user.role?.toLowerCase() === 'driver') {
-      const isCompleted = localStorage.getItem(getStorageKey());
-      if (!isCompleted) {
-        // Run with a slight delay to ensure UI is settled
-        const timer = setTimeout(() => {
-          startOnboarding();
-        }, 1000);
-        return () => clearTimeout(timer);
-      }
-    } else {
-      setIsActive(false);
-    }
-  }, [user, getStorageKey, startOnboarding]);
+    setIsActive(false);
+  }, [user]);
 
   // Update bounding rect for highlighted targets
   useEffect(() => {
