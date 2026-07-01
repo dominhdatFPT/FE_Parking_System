@@ -121,7 +121,7 @@ export default function AdminLayout() {
       }`}
     >
       <aside
-        className={`hidden min-h-screen flex-shrink-0 border-r border-white/[0.07] bg-gradient-to-b from-[#08203D] via-[#071A32] to-[#020B18] text-white shadow-[8px_0_32px_rgba(2,11,24,0.55)] transition-[width] duration-300 ease-out lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:h-screen lg:flex-col ${
+        className={`hidden min-h-screen flex-shrink-0 border-r border-white/[0.07] bg-gradient-to-b from-[#08203D] via-[#071A32] to-[#020B18] text-white shadow-[8px_0_32px_rgba(2,11,24,0.55)] transition-[width] duration-300 ease-out lg:sticky lg:top-0 lg:z-50 lg:flex lg:h-screen lg:flex-col ${
           collapsed ? 'w-20' : 'w-[276px]'
         }`}
       >
@@ -261,9 +261,7 @@ export default function AdminLayout() {
 
 
       <div
-        className={`relative z-10 flex min-w-0 flex-1 flex-col transition-[margin] duration-300 ease-out ${
-          collapsed ? 'lg:ml-20' : 'lg:ml-[276px]'
-        } ${isVehicleEntryPage ? 'h-full overflow-hidden' : ''}`}
+        className={`relative z-10 flex min-w-0 flex-1 flex-col ${isVehicleEntryPage ? 'h-full overflow-hidden' : ''}`}
       >
         <header className="sticky top-0 z-40 border-b border-slate-100 bg-white px-5 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)] lg:px-8">
           <div className="flex min-h-12 items-center justify-between gap-4">
