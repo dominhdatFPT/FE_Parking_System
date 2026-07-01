@@ -177,14 +177,14 @@ export default function SystemRulesModal({ open, onClose }) {
                   <button
                     type="button"
                     onClick={onClose}
-                    className="rounded-full bg-slate-100 px-5 py-2.5 text-sm font-bold text-slate-700 ring-1 ring-slate-900/[0.06] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:bg-slate-200 active:scale-[0.98] dark:bg-white/10 dark:text-slate-200 dark:ring-white/10 dark:hover:bg-white/15 sm:min-w-28"
+                    className="min-h-11 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold !text-slate-700 shadow-[0_6px_18px_rgba(15,23,42,0.06)] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50 hover:!text-sky-700 hover:shadow-[0_10px_24px_rgba(14,165,233,0.10)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300/30 active:scale-[0.98] dark:border-slate-600 dark:bg-slate-800 dark:!text-slate-100 dark:shadow-[0_8px_22px_rgba(0,0,0,0.22)] dark:hover:border-sky-500/60 dark:hover:bg-slate-700 dark:hover:!text-white sm:min-w-28"
                   >
                     Bỏ qua
                   </button>
                   <button
                     type="button"
                     onClick={onClose}
-                    className="group rounded-full bg-sky-500 px-5 py-2.5 text-sm font-bold !text-white shadow-[0_12px_26px_rgba(14,165,233,0.24)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_34px_rgba(14,165,233,0.30)] active:scale-[0.98] sm:min-w-28"
+                    className="group min-h-11 rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-bold !text-white shadow-[0_12px_26px_rgba(14,165,233,0.24)] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_34px_rgba(14,165,233,0.30)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300/40 active:scale-[0.98] sm:min-w-28"
                   >
                     Đồng ý
                   </button>
