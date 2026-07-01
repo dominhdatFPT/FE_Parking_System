@@ -3,7 +3,6 @@ import {
   CarFront,
   CheckCircle2,
   FileImage,
-  LockKeyhole,
   RefreshCcw,
   Search,
   UserRound,
@@ -248,7 +247,7 @@ export default function UserVehicleRegistrationPage() {
         <div className="grid grid-cols-[1.5fr_1.4fr_1fr_1fr_auto] gap-4 border-b border-slate-100 bg-slate-50 px-5 py-3 text-xs font-black uppercase text-slate-500">
           <span>User</span>
           <span>Liên hệ</span>
-          <span>Mật khẩu</span>
+          <span>Ngày tạo</span>
           <span>Trạng thái</span>
           <span>Thao tác</span>
         </div>
@@ -268,15 +267,14 @@ export default function UserVehicleRegistrationPage() {
               <div key={user.userId} className="grid grid-cols-[1.5fr_1.4fr_1fr_1fr_auto] items-center gap-4 px-5 py-4">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black text-slate-950">{user.fullName}</p>
-                  <p className="mt-1 text-xs font-semibold text-slate-400">ID #{user.userId} · Tạo ngày {formatDate(user.createdAt)}</p>
+                  <p className="mt-1 text-xs font-semibold text-slate-400">ID #{user.userId}</p>
                 </div>
                 <div className="min-w-0 text-sm">
                   <p className="truncate font-bold text-slate-700">{user.email || 'Chưa có email'}</p>
                   <p className="mt-1 text-xs font-semibold text-slate-400">{user.phone || 'Chưa có số điện thoại'}</p>
                 </div>
-                <div className="inline-flex w-fit items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
-                  <LockKeyhole size={14} />
-                  Đã mã hóa
+                <div className="text-sm font-bold text-slate-600">
+                  {formatDate(user.createdAt)}
                 </div>
                 <div>
                   <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700 ring-1 ring-emerald-200">
