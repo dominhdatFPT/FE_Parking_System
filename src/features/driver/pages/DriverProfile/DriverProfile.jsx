@@ -61,7 +61,12 @@ const tProfile = {
     paidBookings: 'Đã thanh toán',
     latestActivity: 'Hoạt động gần nhất',
     noActivity: 'Bạn chưa có hoạt động đặt chỗ nào.',
-    usageLoadError: 'Chưa thể tải hoạt động sử dụng. Vui lòng thử lại sau.'
+    usageLoadError: 'Chưa thể tải hoạt động sử dụng. Vui lòng thử lại sau.',
+    noEmail: 'Chưa có email',
+    role: 'Vai trò',
+    vehicleManagement: 'Quản lý phương tiện',
+    vehicleManagementDesc: 'Tính năng quản lý phương tiện sẽ khả dụng khi API được kết nối.',
+    loadingUsage: 'Đang tải tổng quan sử dụng'
   },
   en: {
     resetPasswordBtn: 'Reset Password',
@@ -105,7 +110,12 @@ const tProfile = {
     paidBookings: 'Paid',
     latestActivity: 'Latest activity',
     noActivity: 'You have no booking activity yet.',
-    usageLoadError: 'Usage activity is unavailable right now. Please try again later.'
+    usageLoadError: 'Usage activity is unavailable right now. Please try again later.',
+    noEmail: 'No email available',
+    role: 'Role',
+    vehicleManagement: 'Vehicle Management',
+    vehicleManagementDesc: 'Vehicle management will be available when the API is connected.',
+    loadingUsage: 'Loading usage overview'
   }
 };
 
@@ -310,10 +320,10 @@ export default function DriverProfile() {
             {displayName.charAt(0).toUpperCase()}
           </div>
           <h2 className="mt-4 text-2xl font-bold text-slate-800">{displayName}</h2>
-          <p className="mt-1 text-sm text-slate-500">{user?.email || 'Chưa có email'}</p>
+          <p className="mt-1 text-sm text-slate-500">{user?.email || localT.noEmail}</p>
           
           <div className="mt-6 rounded-xl bg-slate-50 px-4 py-3 text-left text-sm ring-1 ring-slate-100">
-            <p className="text-slate-400">Role</p>
+            <p className="text-slate-400">{localT.role}</p>
             <p className="font-semibold text-slate-700">{user?.role || 'driver'}</p>
           </div>
 
@@ -331,9 +341,9 @@ export default function DriverProfile() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
               <span className="material-symbols-outlined text-[32px]">directions_car</span>
             </div>
-            <h3 className="text-base font-bold text-slate-700">Vehicle Management</h3>
+            <h3 className="text-base font-bold text-slate-700">{localT.vehicleManagement}</h3>
             <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-400">
-              Vehicle management will be available when the API is connected.
+              {localT.vehicleManagementDesc}
             </p>
           </div>
           <section className="overflow-hidden rounded-[24px] bg-white shadow-[0_18px_50px_rgba(30,64,175,0.08)] ring-1 ring-slate-900/[0.05]">
@@ -356,7 +366,7 @@ export default function DriverProfile() {
 
             <div className="px-5 pb-5 sm:px-6 sm:pb-6">
               {usageLoading ? (
-                <div className="grid grid-cols-3 gap-3" aria-label="Loading usage overview">
+                <div className="grid grid-cols-3 gap-3" aria-label={localT.loadingUsage}>
                   {[1, 2, 3].map((item) => (
                     <div key={item} className="h-24 animate-pulse rounded-2xl bg-slate-100" />
                   ))}
