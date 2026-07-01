@@ -15,12 +15,13 @@ export const getAccountUsers = async ({ status, keyword, page = 0, size = 10 } =
   return unwrapData(response);
 };
 
-export const getAccountEmployees = async ({ role, keyword, page = 0, size = 10 } = {}) => {
+export const getAccountEmployees = async ({ role, status, keyword, page = 0, size = 10 } = {}) => {
   const response = await apiClient.get(API_ENDPOINTS.ACCOUNTS.EMPLOYEES, {
     params: {
       page,
       size,
       ...(role && role !== 'all' ? { role } : {}),
+      ...(status && status !== 'all' ? { status } : {}),
       ...(keyword ? { keyword } : {}),
     },
   });
@@ -34,5 +35,10 @@ export const toggleUserStatus = async (userId) => {
 
 export const changeUserRole = async (userId, role) => {
   const response = await apiClient.patch(API_ENDPOINTS.ACCOUNTS.USER_ROLE(userId), { role });
+  return unwrapData(response);
+};
+
+export const createAccountUser = async (payload) => {
+  const response = await apiClient.post(API_ENDPOINTS.ACCOUNTS.USERS, payload);
   return unwrapData(response);
 };

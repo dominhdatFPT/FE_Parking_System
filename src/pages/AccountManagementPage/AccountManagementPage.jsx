@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Search,
   Lock,
@@ -13,12 +13,20 @@ import {
   UserPlus,
   CheckCircle2,
   XCircle,
+  Mail,
+  Phone,
+  User,
+  Eye,
+  EyeOff,
+  X,
+  AlertCircle,
 } from 'lucide-react';
 import {
   getAccountUsers,
   getAccountEmployees,
   toggleUserStatus,
   changeUserRole,
+  createAccountUser,
 } from '../../services/accountApi';
 import { formatVietnamDate } from '../../utils/dateTime';
 import { useAuth } from '../../contexts/useAuth';
@@ -61,7 +69,7 @@ const mapStatusToView = (status = '') => {
 
 const mapStatusToApi = (status = '') => {
   if (status === 'Hoạt động') return 'ACTIVE';
-  if (status === 'Bị khóa') return 'LOCKED';
+  if (status === 'Bị khóa') return 'INACTIVE';
   return '';
 };
 
@@ -198,6 +206,21 @@ export default function AccountManagementPage() {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [pendingRoleChange, setPendingRoleChange] = useState('');
 
+  // Create account dialog state
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState('');
+  const [createErrors, setCreateErrors] = useState({});
+  const [showCreatePassword, setShowCreatePassword] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    password: '',
+    role: 'USER',
+  });
+  const fullNameInputRef = useRef(null);
+
   // Toast state
   const [toast, setToast] = useState(null);
 
@@ -245,6 +268,7 @@ export default function AccountManagementPage() {
         response = await getAccountUsers(params);
       } else {
         params.role = roleFilter !== 'all' ? mapRoleToApi(roleFilter) : undefined;
+        params.status = statusFilter !== 'all' ? mapStatusToApi(statusFilter) : undefined;
         response = await getAccountEmployees(params);
       }
 
@@ -350,6 +374,113 @@ export default function AccountManagementPage() {
     }
   };
 
+  // ====== Create account handlers ======
+  const resetCreateForm = useCallback(() => {
+    setCreateForm({ fullName: '', email: '', phone: '', password: '', role: 'USER' });
+    setCreateErrors({});
+    setCreateError('');
+    setShowCreatePassword(false);
+  }, []);
+
+  const openCreateDialog = useCallback(() => {
+    resetCreateForm();
+    setShowCreateDialog(true);
+  }, [resetCreateForm]);
+
+  const closeCreateDialog = useCallback(() => {
+    if (createLoading) return;
+    setShowCreateDialog(false);
+    resetCreateForm();
+  }, [createLoading, resetCreateForm]);
+
+  const handleCreateChange = useCallback(
+    (field) => (e) => {
+      const value = e.target.value;
+      setCreateForm((prev) => ({ ...prev, [field]: value }));
+      setCreateErrors((prev) => {
+        if (!prev[field]) return prev;
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+      if (createError) setCreateError('');
+    },
+    [createError]
+  );
+
+  const validateCreateForm = (form) => {
+    const errors = {};
+    if (!form.fullName.trim()) {
+      errors.fullName = 'Họ tên không được để trống';
+    }
+    if (!form.email.trim()) {
+      errors.email = 'Email không được để trống';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      errors.email = 'Email không hợp lệ';
+    }
+    if (!form.phone.trim()) {
+      errors.phone = 'Số điện thoại không được để trống';
+    } else if (!/^\d{10,11}$/.test(form.phone.trim())) {
+      errors.phone = 'Số điện thoại phải có 10-11 chữ số';
+    }
+    if (!form.password) {
+      errors.password = 'Mật khẩu không được để trống';
+    } else if (form.password.length < 6) {
+      errors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
+    }
+    if (!form.role) {
+      errors.role = 'Vui lòng chọn phân quyền';
+    }
+    return errors;
+  };
+
+  const confirmCreateAccount = async (e) => {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    const errors = validateCreateForm(createForm);
+    setCreateErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
+    setCreateLoading(true);
+    setCreateError('');
+    try {
+      await createAccountUser({
+        fullName: createForm.fullName.trim(),
+        email: createForm.email.trim(),
+        phone: createForm.phone.trim(),
+        password: createForm.password,
+        role: createForm.role,
+      });
+      showToast('success', 'Tạo tài khoản thành công');
+      setShowCreateDialog(false);
+      resetCreateForm();
+      await fetchAccounts();
+    } catch (error) {
+      const message = error?.response?.data?.message
+        || error?.message
+        || 'Tạo tài khoản thất bại. Vui lòng thử lại.';
+      setCreateError(message);
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  // Autofocus first field when modal opens
+  useEffect(() => {
+    if (showCreateDialog && fullNameInputRef.current) {
+      fullNameInputRef.current.focus();
+    }
+  }, [showCreateDialog]);
+
+  // Esc closes the create modal (unless submitting)
+  useEffect(() => {
+    if (!showCreateDialog) return undefined;
+    const onKeyDown = (ev) => {
+      if (ev.key === 'Escape' && !createLoading) closeCreateDialog();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showCreateDialog, createLoading, closeCreateDialog]);
+
   // Aggregate counts for tab badges
   const totalUsers = useMemo(() => (activeTab === 'users' ? totalElements : null), [activeTab, totalElements]);
   const totalStaff = useMemo(() => (activeTab === 'staff' ? totalElements : null), [activeTab, totalElements]);
@@ -370,6 +501,16 @@ export default function AccountManagementPage() {
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Quản lý tài khoản</h1>
         </div>
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={openCreateDialog}
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#4ade80] hover:bg-[#34c76d] text-zinc-950 font-bold rounded-xl text-sm transition shadow-[0_4px_18px_rgba(74,222,128,0.25)] hover:shadow-[0_6px_22px_rgba(74,222,128,0.35)]"
+          >
+            <UserPlus size={18} />
+            Tạo tài khoản
+          </button>
+        )}
       </header>
 
       {/* 2. TAB SELECTOR */}
@@ -397,7 +538,11 @@ export default function AccountManagementPage() {
       </div>
 
       {/* 3. FILTERS & ACTIONS CONTAINER */}
-      <div className="grid gap-4 md:grid-cols-[1.5fr_1fr] lg:grid-cols-[2fr_1fr] bg-[#222222] border border-zinc-850 p-5 rounded-2xl mb-6 shadow-md">
+      <div className={`grid gap-4 bg-[#222222] border border-zinc-850 p-5 rounded-2xl mb-6 shadow-md ${
+        activeTab === 'staff'
+          ? 'md:grid-cols-[1.5fr_1fr_1fr] lg:grid-cols-[2fr_1fr_1fr]'
+          : 'md:grid-cols-[1.5fr_1fr] lg:grid-cols-[2fr_1fr]'
+      }`}>
         {/* Search Field */}
         <div className="relative">
           <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
@@ -419,28 +564,9 @@ export default function AccountManagementPage() {
           />
         </div>
 
-        {/* Dropdown Filter */}
-        <div>
-          {activeTab === 'users' ? (
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full px-4 py-3 bg-[#1a1a1a] border border-zinc-700 rounded-xl text-white focus:outline-none focus:border-[#4ade80] focus:ring-1 focus:ring-[#4ade80] transition duration-200 text-sm appearance-none cursor-pointer"
-              style={{
-                backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23a1a1aa' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
-                backgroundPosition: 'right 0.75rem center',
-                backgroundSize: '1.25rem 1.25rem',
-                backgroundRepeat: 'no-repeat'
-              }}
-            >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="Hoạt động">Hoạt động</option>
-              <option value="Bị khóa">Bị khóa</option>
-            </select>
-          ) : (
+        {/* Role Filter (staff tab only) */}
+        {activeTab === 'staff' && (
+          <div>
             <select
               value={roleFilter}
               onChange={(e) => {
@@ -459,7 +585,29 @@ export default function AccountManagementPage() {
               <option value="Admin">Admin</option>
               <option value="Staff">Staff</option>
             </select>
-          )}
+          </div>
+        )}
+
+        {/* Status Filter (both tabs) */}
+        <div>
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full px-4 py-3 bg-[#1a1a1a] border border-zinc-700 rounded-xl text-white focus:outline-none focus:border-[#4ade80] focus:ring-1 focus:ring-[#4ade80] transition duration-200 text-sm appearance-none cursor-pointer"
+            style={{
+              backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23a1a1aa' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
+              backgroundPosition: 'right 0.75rem center',
+              backgroundSize: '1.25rem 1.25rem',
+              backgroundRepeat: 'no-repeat'
+            }}
+          >
+            <option value="all">Tất cả trạng thái</option>
+            <option value="Hoạt động">Hoạt động</option>
+            <option value="Bị khóa">Bị khóa</option>
+          </select>
         </div>
       </div>
 
@@ -857,6 +1005,227 @@ export default function AccountManagementPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ================= CREATE ACCOUNT DIALOG ================= */}
+      {showCreateDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            onClick={closeCreateDialog}
+            className="absolute inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
+          />
+
+          <form
+            onSubmit={confirmCreateAccount}
+            className="relative bg-[#1e1e1e] border border-zinc-800 w-full max-w-xl rounded-2xl shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] flex flex-col"
+            noValidate
+          >
+            {/* Header */}
+            <div className="flex items-start gap-4 p-6 border-b border-zinc-800">
+              <div className="w-12 h-12 bg-[#4ade80]/10 border border-[#4ade80]/20 text-[#4ade80] rounded-xl flex items-center justify-center shrink-0">
+                <UserPlus size={24} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-bold text-white">Tạo tài khoản mới</h3>
+                <p className="text-zinc-400 text-sm mt-1">Điền thông tin để tạo tài khoản mới trong hệ thống.</p>
+              </div>
+              <button
+                type="button"
+                onClick={closeCreateDialog}
+                disabled={createLoading}
+                className="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-zinc-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Đóng"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4 overflow-y-auto">
+              {createError && (
+                <div className="flex items-start gap-2.5 p-3 bg-red-500/10 border border-red-500/30 text-red-300 rounded-xl text-sm">
+                  <AlertCircle size={18} className="shrink-0 mt-0.5" />
+                  <span className="break-words">{createError}</span>
+                </div>
+              )}
+
+              {/* Họ tên */}
+              <div>
+                <label htmlFor="create-fullName" className="block text-sm font-medium text-zinc-300 mb-1.5">
+                  Họ tên <span className="text-red-400">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+                    <User size={18} />
+                  </span>
+                  <input
+                    id="create-fullName"
+                    ref={fullNameInputRef}
+                    type="text"
+                    value={createForm.fullName}
+                    onChange={handleCreateChange('fullName')}
+                    placeholder="Nguyễn Văn A"
+                    className={`w-full pl-10 pr-4 py-2.5 bg-[#1a1a1a] border rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-1 transition text-sm ${
+                      createErrors.fullName
+                        ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500'
+                        : 'border-zinc-700 focus:border-[#4ade80] focus:ring-[#4ade80]'
+                    }`}
+                  />
+                </div>
+                {createErrors.fullName && (
+                  <p className="text-xs text-red-400 mt-1.5">{createErrors.fullName}</p>
+                )}
+              </div>
+
+              {/* Email */}
+              <div>
+                <label htmlFor="create-email" className="block text-sm font-medium text-zinc-300 mb-1.5">
+                  Email <span className="text-red-400">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+                    <Mail size={18} />
+                  </span>
+                  <input
+                    id="create-email"
+                    type="email"
+                    value={createForm.email}
+                    onChange={handleCreateChange('email')}
+                    placeholder="example@gmail.com"
+                    className={`w-full pl-10 pr-4 py-2.5 bg-[#1a1a1a] border rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-1 transition text-sm ${
+                      createErrors.email
+                        ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500'
+                        : 'border-zinc-700 focus:border-[#4ade80] focus:ring-[#4ade80]'
+                    }`}
+                  />
+                </div>
+                {createErrors.email && (
+                  <p className="text-xs text-red-400 mt-1.5">{createErrors.email}</p>
+                )}
+              </div>
+
+              {/* Số điện thoại */}
+              <div>
+                <label htmlFor="create-phone" className="block text-sm font-medium text-zinc-300 mb-1.5">
+                  Số điện thoại <span className="text-red-400">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+                    <Phone size={18} />
+                  </span>
+                  <input
+                    id="create-phone"
+                    type="tel"
+                    inputMode="numeric"
+                    value={createForm.phone}
+                    onChange={handleCreateChange('phone')}
+                    placeholder="0901234567"
+                    maxLength={11}
+                    className={`w-full pl-10 pr-4 py-2.5 bg-[#1a1a1a] border rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-1 transition text-sm ${
+                      createErrors.phone
+                        ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500'
+                        : 'border-zinc-700 focus:border-[#4ade80] focus:ring-[#4ade80]'
+                    }`}
+                  />
+                </div>
+                {createErrors.phone && (
+                  <p className="text-xs text-red-400 mt-1.5">{createErrors.phone}</p>
+                )}
+              </div>
+
+              {/* Mật khẩu */}
+              <div>
+                <label htmlFor="create-password" className="block text-sm font-medium text-zinc-300 mb-1.5">
+                  Mật khẩu <span className="text-red-400">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+                    <Lock size={18} />
+                  </span>
+                  <input
+                    id="create-password"
+                    type={showCreatePassword ? 'text' : 'password'}
+                    value={createForm.password}
+                    onChange={handleCreateChange('password')}
+                    placeholder="Tối thiểu 6 ký tự"
+                    className={`w-full pl-10 pr-11 py-2.5 bg-[#1a1a1a] border rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-1 transition text-sm ${
+                      createErrors.password
+                        ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500'
+                        : 'border-zinc-700 focus:border-[#4ade80] focus:ring-[#4ade80]'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCreatePassword((v) => !v)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-zinc-500 hover:text-zinc-200 transition"
+                    title={showCreatePassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                    tabIndex={-1}
+                  >
+                    {showCreatePassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {createErrors.password && (
+                  <p className="text-xs text-red-400 mt-1.5">{createErrors.password}</p>
+                )}
+              </div>
+
+              {/* Phân quyền */}
+              <div>
+                <label htmlFor="create-role" className="block text-sm font-medium text-zinc-300 mb-1.5">
+                  Phân quyền <span className="text-red-400">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+                    <Shield size={18} />
+                  </span>
+                  <select
+                    id="create-role"
+                    value={createForm.role}
+                    onChange={handleCreateChange('role')}
+                    className={`w-full pl-10 pr-10 py-2.5 bg-[#1a1a1a] border rounded-xl text-white focus:outline-none focus:ring-1 transition text-sm appearance-none cursor-pointer ${
+                      createErrors.role
+                        ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500'
+                        : 'border-zinc-700 focus:border-[#4ade80] focus:ring-[#4ade80]'
+                    }`}
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23a1a1aa' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
+                      backgroundPosition: 'right 0.75rem center',
+                      backgroundSize: '1.25rem 1.25rem',
+                      backgroundRepeat: 'no-repeat'
+                    }}
+                  >
+                    <option value="USER">USER — Người dùng</option>
+                    <option value="STAFF">STAFF — Nhân viên</option>
+                    <option value="ADMIN">ADMIN — Quản trị viên</option>
+                  </select>
+                </div>
+                {createErrors.role && (
+                  <p className="text-xs text-red-400 mt-1.5">{createErrors.role}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-zinc-800 bg-[#1a1a1a]/40 rounded-b-2xl">
+              <button
+                type="button"
+                onClick={closeCreateDialog}
+                disabled={createLoading}
+                className="px-5 py-2.5 border border-zinc-700 hover:bg-zinc-800 text-zinc-300 font-semibold rounded-xl text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={createLoading}
+                className="px-5 py-2.5 bg-[#4ade80] hover:bg-[#34c76d] text-zinc-950 font-bold rounded-xl text-sm transition inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_2px_10px_rgba(74,222,128,0.25)]"
+              >
+                {createLoading && <Loader2 size={16} className="animate-spin" />}
+                Tạo tài khoản
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
