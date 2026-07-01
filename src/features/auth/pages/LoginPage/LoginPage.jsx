@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import {
@@ -148,31 +146,10 @@ const loginTranslations = {
   },
 };
 
-const getInitialLanguage = () => {
-  if (typeof window === 'undefined') return 'vi';
-  const savedLanguage = window.localStorage.getItem(LOGIN_LANGUAGE_KEY) || 'vi';
-  return savedLanguage.startsWith('en') ? 'en' : 'vi';
-};
-
 const getLoginText = (language, key) => {
   const dictionary = loginTranslations[language] || loginTranslations.vi;
   return key.split('.').reduce((value, part) => value?.[part], dictionary) ?? key;
 };
-
-if (!i18n.isInitialized) {
-  i18n.use(initReactI18next).init({
-    resources: {
-      vi: { translation: loginTranslations.vi },
-      en: { translation: loginTranslations.en },
-    },
-    lng: getInitialLanguage(),
-    fallbackLng: 'vi',
-    interpolation: { escapeValue: false },
-  });
-} else {
-  i18n.addResourceBundle('vi', 'translation', loginTranslations.vi, true, true);
-  i18n.addResourceBundle('en', 'translation', loginTranslations.en, true, true);
-}
 
 function getDashboardPath(role) {
   const normalizedRole = role?.toLowerCase();
