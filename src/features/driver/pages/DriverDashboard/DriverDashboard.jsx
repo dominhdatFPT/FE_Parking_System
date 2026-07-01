@@ -12,6 +12,7 @@ export default function DriverDashboard() {
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
   const displayName = user?.fullName || user?.name || t('driverDashboard.driver');
+  const isVietnamese = i18n.language.startsWith('vi');
   
   const [areas, setAreas] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -51,19 +52,19 @@ export default function DriverDashboard() {
   const mockHistory = [
     {
       id: 'mock-hist-1',
-      parkingAreaName: 'Tòa nhà đỗ xe A (Parking Building A)',
+      parkingAreaName: t('driverDashboard.mockAreaAName'),
       createdAt: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
       status: 'CONFIRMED'
     },
     {
       id: 'mock-hist-2',
-      parkingAreaName: 'Khu vực đỗ xe Bến Thành',
+      parkingAreaName: t('driverDashboard.mockAreaBName'),
       createdAt: new Date(Date.now() - 28 * 3600 * 1000).toISOString(),
       status: 'CONFIRMED'
     },
     {
       id: 'mock-hist-3',
-      parkingAreaName: 'Bãi đỗ xe ngoài trời Lê Lợi',
+      parkingAreaName: t('driverDashboard.mockAreaCName'),
       createdAt: new Date(Date.now() - 72 * 3600 * 1000).toISOString(),
       status: 'CANCELLED'
     }
@@ -79,16 +80,16 @@ export default function DriverDashboard() {
   const mockAreas = [
     {
       id: 'mock-area-1',
-      name: 'Tòa nhà đỗ xe A (Parking Building A)',
-      address: 'Khu vực Trung tâm Quận 1',
+      name: t('driverDashboard.mockAreaAName'),
+      address: t('driverDashboard.mockAreaAAddress'),
       availableSlots: 42,
       totalSlots: 100,
       status: 'OPEN'
     },
     {
       id: 'mock-area-2',
-      name: 'Khu vực đỗ xe Bến Thành',
-      address: 'Phường Bến Thành, Quận 1',
+      name: t('driverDashboard.mockAreaBName'),
+      address: t('driverDashboard.mockAreaBAddress'),
       availableSlots: 15,
       totalSlots: 80,
       status: 'OPEN'
@@ -205,10 +206,10 @@ export default function DriverDashboard() {
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between relative z-10">
           <div>
             <h1 className="text-xl font-bold tracking-tight text-white md:text-2xl">
-              Xin chào, {displayName} 👋
+              {t('driverDashboard.greeting', { name: displayName })} 👋
             </h1>
             <p className="mt-1 text-xs font-semibold leading-relaxed text-white/90">
-              Chào mừng bạn quay trở lại với hệ thống quản lý đỗ xe thông minh.
+              {t('driverDashboard.greetingSubtitle')}
             </p>
           </div>
           <div className="flex items-center gap-2 self-start rounded-full border border-[#E5E7EB] bg-[#F8FAFC] px-3.5 py-1.5 shadow-sm md:self-auto">
@@ -316,7 +317,9 @@ export default function DriverDashboard() {
                       <span className="material-symbols-outlined text-[44px] text-[#0EA5E9] transition-transform duration-500 group-hover:scale-105" style={{ fontVariationSettings: "'wght' 200" }}>
                         qr_code_2
                       </span>
-                      <span className="mt-1.5 text-[8px] font-bold uppercase tracking-widest text-[#64748B]">VÉ ĐIỆN TỬ</span>
+                      <span className="mt-1.5 text-[8px] font-bold uppercase tracking-widest text-[#64748B]">
+                        {t('driverDashboard.electronicTicket')}
+                      </span>
                     </div>
 
                   </div>
@@ -353,7 +356,7 @@ export default function DriverDashboard() {
                     <div className="group relative aspect-square w-full max-w-[150px] overflow-hidden rounded-2xl border border-[#E5E7EB] bg-[#F5F7FB] p-1 shadow-inner">
                       <img 
                         src="/empty_parking.png" 
-                        alt="No active booking"
+                        alt={t('driverDashboard.noActiveBookingImageAlt')}
                         className="w-full h-full object-cover rounded-[10px] group-hover:scale-105 transition-transform duration-700 ease-out" 
                       />
                     </div>
@@ -370,12 +373,12 @@ export default function DriverDashboard() {
             className="space-y-3"
           >
             <h3 className="px-1 text-xs font-bold uppercase tracking-widest text-[#64748B]">
-              Thao tác nhanh
+              {t('driverDashboard.quickActions')}
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {quickActions.map((action) => {
-                const label = i18n.language === 'vi' ? action.labelVi : action.labelEn;
-                const desc = i18n.language === 'vi' ? action.descVi : action.descEn;
+                const label = isVietnamese ? action.labelVi : action.labelEn;
+                const desc = isVietnamese ? action.descVi : action.descEn;
                 
                 return (
                   <motion.div
@@ -442,7 +445,7 @@ export default function DriverDashboard() {
                             {area.name}
                           </h4>
                           <p className="mt-0.5 line-clamp-1 text-[10px] font-medium leading-normal text-[#64748B]">
-                            {area.address || 'Khu vực Trung tâm Quận 1'}
+                            {area.address || t('driverDashboard.defaultAreaAddress')}
                           </p>
                         </div>
                         <span className="material-symbols-outlined text-[16px] text-[#0EA5E9] transition-transform duration-300 group-hover:scale-110" style={{ fontVariationSettings: "'wght' 300" }}>
@@ -467,7 +470,9 @@ export default function DriverDashboard() {
                           />
                         </div>
                         <div className="flex justify-between items-center text-[9px] font-bold">
-                          <span className="uppercase tracking-wider text-[#64748B]">Tỉ lệ lấp đầy:</span>
+                          <span className="uppercase tracking-wider text-[#64748B]">
+                            {t('driverDashboard.occupancyRate')}
+                          </span>
                           <span className={fillRate >= 85 ? 'text-rose-500/90' : fillRate >= 60 ? 'text-amber-500/90' : 'text-emerald-500/90'}>
                             {fillRate}%
                           </span>

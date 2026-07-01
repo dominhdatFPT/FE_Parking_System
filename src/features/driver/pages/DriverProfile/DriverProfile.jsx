@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -14,6 +14,8 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { useAuth } from '../../../../contexts/useAuth';
+import { bookingService } from '../../../../services/bookingService';
+import { vietnamDayjs } from '../../../../utils/dateTime';
 import PageHeader from '../../components/PageHeader';
 
 const tProfile = {
@@ -51,7 +53,15 @@ const tProfile = {
     verifying: 'Đang xác thực...',
     updating: 'Đang cập nhật...',
     hide: 'Ẩn',
-    show: 'Hiện'
+    show: 'Hiện',
+    usageTitle: 'Tổng quan sử dụng',
+    usageSubtitle: 'Hoạt động đặt chỗ và thanh toán gần đây của bạn',
+    totalBookings: 'Tổng lượt đặt chỗ',
+    confirmedBookings: 'Đã xác nhận',
+    paidBookings: 'Đã thanh toán',
+    latestActivity: 'Hoạt động gần nhất',
+    noActivity: 'Bạn chưa có hoạt động đặt chỗ nào.',
+    usageLoadError: 'Chưa thể tải hoạt động sử dụng. Vui lòng thử lại sau.'
   },
   en: {
     resetPasswordBtn: 'Reset Password',
@@ -87,7 +97,15 @@ const tProfile = {
     verifying: 'Verifying...',
     updating: 'Updating...',
     hide: 'Hide',
-    show: 'Show'
+    show: 'Show',
+    usageTitle: 'Usage overview',
+    usageSubtitle: 'Your recent booking and payment activity',
+    totalBookings: 'Total bookings',
+    confirmedBookings: 'Confirmed',
+    paidBookings: 'Paid',
+    latestActivity: 'Latest activity',
+    noActivity: 'You have no booking activity yet.',
+    usageLoadError: 'Usage activity is unavailable right now. Please try again later.'
   }
 };
 
@@ -98,6 +116,9 @@ export default function DriverProfile() {
 
   const currentLanguage = i18n.language.startsWith('en') ? 'en' : 'vi';
   const localT = tProfile[currentLanguage];
+  const [bookings, setBookings] = useState([]);
+  const [usageLoading, setUsageLoading] = useState(true);
+  const [usageError, setUsageError] = useState(false);
 
   // Reset password states
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -110,6 +131,40 @@ export default function DriverProfile() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadUsageOverview() {
+      setUsageLoading(true);
+      const { data, error } = await bookingService.getMyBookings();
+
+      if (cancelled) return;
+
+      setBookings(Array.isArray(data) ? data : []);
+      setUsageError(Boolean(error));
+      setUsageLoading(false);
+    }
+
+    loadUsageOverview();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const usageSummary = useMemo(() => {
+    const latestBooking = [...bookings]
+      .filter((booking) => booking.createdAt)
+      .sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt))[0];
+
+    return {
+      total: bookings.length,
+      confirmed: bookings.filter((booking) => booking.status === 'CONFIRMED').length,
+      paid: bookings.filter((booking) => booking.paymentStatus === 'PAID').length,
+      latestBooking,
+    };
+  }, [bookings]);
 
   // Password criteria check
   const criteria = useMemo(() => {
@@ -281,15 +336,85 @@ export default function DriverProfile() {
               Vehicle management will be available when the API is connected.
             </p>
           </div>
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-white/50 px-6 py-12 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
-              <span className="material-symbols-outlined text-[32px]">account_balance_wallet</span>
+          <section className="overflow-hidden rounded-[24px] bg-white shadow-[0_18px_50px_rgba(30,64,175,0.08)] ring-1 ring-slate-900/[0.05]">
+            <header className="flex items-start justify-between gap-4 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.14),transparent_48%),linear-gradient(135deg,#f8fbff_0%,#ffffff_70%)] px-5 pb-5 pt-5 sm:px-6">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-sky-600">
+                  Smart Parking
+                </p>
+                <h3 className="mt-1 text-lg font-bold tracking-[-0.02em] text-slate-900">
+                  {localT.usageTitle}
+                </h3>
+                <p className="mt-1 text-sm leading-5 text-slate-500">
+                  {localT.usageSubtitle}
+                </p>
+              </div>
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-sky-50 text-sky-600 ring-1 ring-sky-100">
+                <span className="material-symbols-outlined text-[22px]">monitoring</span>
+              </span>
+            </header>
+
+            <div className="px-5 pb-5 sm:px-6 sm:pb-6">
+              {usageLoading ? (
+                <div className="grid grid-cols-3 gap-3" aria-label="Loading usage overview">
+                  {[1, 2, 3].map((item) => (
+                    <div key={item} className="h-24 animate-pulse rounded-2xl bg-slate-100" />
+                  ))}
+                </div>
+              ) : usageError ? (
+                <div className="flex items-start gap-3 rounded-2xl bg-rose-50 px-4 py-4 text-sm text-rose-700 ring-1 ring-rose-100">
+                  <span className="material-symbols-outlined mt-0.5 text-[19px]">error</span>
+                  <p className="leading-5">{localT.usageLoadError}</p>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    {[
+                      { label: localT.totalBookings, value: usageSummary.total, icon: 'confirmation_number' },
+                      { label: localT.confirmedBookings, value: usageSummary.confirmed, icon: 'task_alt' },
+                      { label: localT.paidBookings, value: usageSummary.paid, icon: 'receipt_long' },
+                    ].map((stat) => (
+                      <article
+                        key={stat.label}
+                        className="group rounded-2xl bg-slate-50/90 px-4 py-4 ring-1 ring-slate-900/[0.045] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:bg-sky-50/70 hover:ring-sky-200"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <strong className="text-2xl font-bold tabular-nums tracking-[-0.04em] text-slate-900">
+                            {stat.value}
+                          </strong>
+                          <span className="grid h-8 w-8 place-items-center rounded-xl bg-white text-sky-600 shadow-[0_8px_20px_rgba(14,165,233,0.08)] ring-1 ring-sky-100 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-105">
+                            <span className="material-symbols-outlined text-[17px]">{stat.icon}</span>
+                          </span>
+                        </div>
+                        <p className="mt-2 text-xs font-medium leading-4 text-slate-500">{stat.label}</p>
+                      </article>
+                    ))}
+                  </div>
+
+                  <div className="mt-3 flex items-center gap-3 rounded-2xl bg-slate-950 px-4 py-3.5 text-white shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-sky-300 ring-1 ring-white/10">
+                      <span className="material-symbols-outlined text-[18px]">schedule</span>
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                        {localT.latestActivity}
+                      </p>
+                      {usageSummary.latestBooking ? (
+                        <p className="mt-0.5 truncate text-sm font-semibold text-slate-100">
+                          {usageSummary.latestBooking.parkingAreaName}
+                          <span className="ml-2 font-normal text-slate-400">
+                            {vietnamDayjs(usageSummary.latestBooking.createdAt).format('HH:mm · DD/MM/YYYY')}
+                          </span>
+                        </p>
+                      ) : (
+                        <p className="mt-0.5 text-sm text-slate-300">{localT.noActivity}</p>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-            <h3 className="text-base font-bold text-slate-700">Wallet & Stats</h3>
-            <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-400">
-              Wallet balance and monthly stats will be available when the API is connected.
-            </p>
-          </div>
+          </section>
         </div>
       </section>
 
