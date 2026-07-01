@@ -172,8 +172,8 @@ function StatusBadge({ status }) {
   const info = getStatusInfo(status);
 
   return (
-    <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-black ring-1 ${info.badge}`}>
-      <span className={`h-2 w-2 rounded-full ${info.dot}`} />
+    <span className={`inline-flex shrink-0 items-center gap-2 rounded-full px-2.5 py-1 text-[11px] font-black ring-1 ${info.badge}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${info.dot}`} />
       {info.label}
     </span>
   );
@@ -181,13 +181,13 @@ function StatusBadge({ status }) {
 
 function SectionCard({ title, icon: Icon, children, action }) {
   return (
-    <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-      <div className="mb-4 flex items-center justify-between gap-3">
+    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-sky-50 text-sky-600 ring-1 ring-sky-100">
-            <Icon size={20} />
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-sky-50 text-sky-600 ring-1 ring-sky-100">
+            <Icon size={18} />
           </span>
-          <h2 className="text-base font-black text-slate-950">{title}</h2>
+          <h2 className="text-sm font-black text-slate-950">{title}</h2>
         </div>
         {action}
       </div>
