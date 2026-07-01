@@ -176,15 +176,23 @@ if (!i18n.isInitialized) {
 function getDashboardPath(role) {
   const normalizedRole = role?.toLowerCase();
 
-  if (normalizedRole === 'admin') {
+  if (normalizedRole === 'admin' || normalizedRole === 'staff') {
     return ROUTES.ADMIN.DASHBOARD;
   }
 
-  if (normalizedRole === 'staff') {
-    return ROUTES.STAFF.DASHBOARD;
+  return '/driver-dashboard';
+}
+
+function getPostLoginPath(role) {
+  const redirectPath = sessionStorage.getItem('redirect_after_login');
+  sessionStorage.removeItem('redirect_after_login');
+
+  const normalizedRole = role?.toLowerCase();
+  if ((normalizedRole === 'admin' || normalizedRole === 'staff') && redirectPath === ROUTES.STAFF.DASHBOARD) {
+    return ROUTES.ADMIN.DASHBOARD;
   }
 
-  return '/driver-dashboard';
+  return redirectPath || getDashboardPath(role);
 }
 
 function BrandLogo({ compact = false }) {
@@ -475,13 +483,7 @@ export default function LoginPage() {
         localStorage.removeItem('smart-parking-user');
       }
 
-      const redirectPath = sessionStorage.getItem('redirect_after_login');
-      if (redirectPath) {
-        sessionStorage.removeItem('redirect_after_login');
-        navigate(redirectPath);
-      } else {
-        navigate(getDashboardPath(authenticatedUser.role));
-      }
+      navigate(getPostLoginPath(authenticatedUser.role), { replace: true });
     } catch (err) {
       const serverMessage = err.response?.data?.message;
       setError(serverMessage || t('errors.loginFailed'));
@@ -521,13 +523,7 @@ export default function LoginPage() {
         localStorage.removeItem('rememberMe');
         localStorage.setItem('userRole', response.role || 'driver');
         setUser(nextUser);
-        const redirectPath = sessionStorage.getItem('redirect_after_login');
-        if (redirectPath) {
-          sessionStorage.removeItem('redirect_after_login');
-          navigate(redirectPath);
-        } else {
-          navigate(getDashboardPath(response.role));
-        }
+        navigate(getPostLoginPath(response.role), { replace: true });
       }
     } catch (err) {
       const serverMessage = err.response?.data?.message;
