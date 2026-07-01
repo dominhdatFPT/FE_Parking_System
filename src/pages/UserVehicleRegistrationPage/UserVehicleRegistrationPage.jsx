@@ -238,10 +238,6 @@ export default function UserVehicleRegistrationPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
-        Mật khẩu thật không thể hiển thị vì hệ thống chỉ lưu mật khẩu đã mã hóa. Staff/Admin chỉ có thể xem thông tin tài khoản và thao tác nghiệp vụ.
-      </div>
-
       {message && (
         <div className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-bold text-sky-800">
           {message}
