@@ -194,7 +194,7 @@ export default function DriverPayment() {
             </table>
           </div>
         )}
-      </div>
+      </section>
 
       {/* Lịch sử thanh toán thẻ tháng */}
       <div>
