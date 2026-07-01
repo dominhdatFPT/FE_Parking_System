@@ -124,6 +124,7 @@ export function AppRoutes() {
         <Route path={ROUTES.STAFF.VEHICLE_EXIT} element={<StaffVehicleExit />} />
         <Route path={ROUTES.STAFF.SESSIONS} element={<StaffSessions />} />
         <Route path={ROUTES.STAFF.EXCEPTIONS} element={<StaffExceptions />} />
+        <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />} />
       </Route>
 
       <Route
@@ -134,10 +135,6 @@ export function AppRoutes() {
           </RequireAuth>
         }
       />
-
-      <Route element={<MainLayout />}>
-        <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />} />
-      </Route>
 
       <Route path={ROUTES.SUBSCRIPTION.RESULT} element={<SubscriptionResultPage />} />
       <Route path="*" element={<NotFoundPage />} />

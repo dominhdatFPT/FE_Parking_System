@@ -1,13 +1,6 @@
 import React from 'react';
-import {
-  AlertTriangle,
-  Bike,
-  CarFront,
-  Clock3,
-  CreditCard,
-  UserCircle2,
-  X,
-} from 'lucide-react';
+import { Bike, CarFront, X } from 'lucide-react';
+import { formatVietnamDateTime } from '../../utils/dateTime';
 
 const statusClasses = {
   'Bình thường': 'bg-emerald-50 text-emerald-700',
@@ -56,8 +49,6 @@ export default function SessionDetailDrawer({ open, session, onClose }) {
 
   const isPackageCustomer = session.customer === 'Gói tháng';
   const isCompleted = session.status === 'Đã hoàn thành';
-  const displayFee = isPackageCustomer && isCompleted ? 'Không phát sinh phí' : session.fee;
-  const displayPayment = isPackageCustomer && isCompleted ? 'Gói' : session.payment;
   const VehicleIcon = isMotorbikeSession(session) ? Bike : CarFront;
 
   return (
@@ -124,63 +115,22 @@ export default function SessionDetailDrawer({ open, session, onClose }) {
           <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Thời gian</h3>
             <div className="mt-4 space-y-3 rounded-xl bg-slate-50 px-4 py-4">
-              <TimelineItem tone="emerald" label="Xe vào" value={session.entry} />
-              <TimelineItem tone="blue" label="Xe ra" value={isCompleted ? session.exit : '--'} />
+              <TimelineItem tone="emerald" label="Xe vào" value={formatVietnamDateTime(session.entryTime) || '--'} />
+              <TimelineItem tone="blue" label="Xe ra" value={isCompleted ? (formatVietnamDateTime(session.exitTime) || '--') : '--'} />
               <TimelineItem tone="slate" label="Thời gian gửi" value={session.duration} last />
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Thanh toán</h3>
-            <div className="mt-4 rounded-xl bg-slate-50 px-4 py-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200">
-                  <CreditCard className="h-4 w-4 text-blue-600" />
-                  <span>{displayPayment || '--'}</span>
-                </div>
-                <p className="text-[30px] font-bold leading-none tracking-tight text-slate-950">{displayFee || '--'}</p>
-              </div>
-              {!isCompleted && !isPackageCustomer ? (
-                <div className="mt-3 rounded-lg bg-white/90 px-3 py-2 ring-1 ring-slate-200">
-                  <DetailRow label="Dự kiến" value={session.estimatedFee || session.fee} />
-                </div>
-              ) : null}
-            </div>
-          </section>
 
-          <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Nhân viên</h3>
-            <div className="mt-4 flex items-center justify-between rounded-xl bg-slate-50 px-4 py-4">
-              <div className="inline-flex items-center gap-2 text-sm font-medium text-slate-500">
-                <UserCircle2 className="h-4 w-4 text-blue-500" />
-                Người xử lý
-              </div>
-              <p className="text-sm font-semibold text-slate-950">{isCompleted ? session.handledBy : '--'}</p>
-            </div>
-          </section>
         </div>
 
-        <div className="mt-5 grid grid-cols-3 gap-3">
-          <button
-            type="button"
-            className="col-span-2 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700"
-          >
-            <Clock3 className="h-4 w-4" />
-            Xem lịch sử
-          </button>
+        <div className="mt-5">
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="w-full inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
           >
             Đóng
-          </button>
-          <button
-            type="button"
-            className="col-span-3 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-red-50 px-4 text-sm font-semibold text-red-700 transition hover:bg-red-100"
-          >
-            <AlertTriangle className="h-4 w-4" />
-            Báo sự cố
           </button>
         </div>
       </aside>

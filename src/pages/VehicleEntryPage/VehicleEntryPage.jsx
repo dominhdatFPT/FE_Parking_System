@@ -58,7 +58,7 @@ function Info({ label, value, tone = 'blue', icon: Icon = CarFront }) {
 /* Camera: image fills the entire card; all labels are absolute overlays over the image */
 function CameraPanel({ label, status = 'Online', imageSrc = '/empty_parking.png' }) {
   return (
-    <article className="group relative h-full overflow-hidden rounded-[24px] border border-[#E5EDF7] bg-slate-900 shadow-[0_16px_42px_rgba(15,23,42,0.07)] transition-all duration-300">
+    <article className="group relative h-full overflow-hidden rounded-[24px] border border-[#E5EDF7] bg-slate-700 shadow-[0_16px_42px_rgba(15,23,42,0.07)] transition-all duration-300">
       <img src={imageSrc} alt={label} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.01]" />
       {/* Top gradient — darkens for readability of top-overlays */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-slate-950/70 via-slate-950/25 to-transparent" />

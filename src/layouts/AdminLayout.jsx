@@ -109,6 +109,7 @@ export default function AdminLayout() {
     ROUTES.ADMIN.VEHICLE_EXIT,
     ROUTES.STAFF.VEHICLE_ENTRY,
     ROUTES.STAFF.VEHICLE_EXIT,
+    ROUTES.STAFF.VEHICLE_REGISTRATIONS,
   ].includes(location.pathname);
   const navigationItems = mainNavigationItems;
   const pageTitle = getCurrentPageTitle(location.pathname, location.search);
@@ -120,7 +121,7 @@ export default function AdminLayout() {
       }`}
     >
       <aside
-        className={`hidden min-h-screen flex-shrink-0 border-r border-white/10 bg-slate-950 text-white shadow-[18px_0_48px_rgba(15,23,42,0.22)] transition-[width] duration-300 ease-out lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:h-screen lg:flex-col ${
+        className={`hidden min-h-screen flex-shrink-0 border-r border-white/[0.07] bg-gradient-to-b from-[#08203D] via-[#071A32] to-[#020B18] text-white shadow-[8px_0_32px_rgba(2,11,24,0.55)] transition-[width] duration-300 ease-out lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:h-screen lg:flex-col ${
           collapsed ? 'w-20' : 'w-[276px]'
         }`}
       >
@@ -182,19 +183,19 @@ export default function AdminLayout() {
                     to={item.path}
                     end={item.path === ROUTES.ADMIN.DASHBOARD}
                     title={collapsed ? label : undefined}
-                    className={`group relative flex h-11 items-center rounded-xl text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                    className={`group relative flex h-11 items-center rounded-xl text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
                       collapsed ? 'justify-center px-0' : 'gap-3 px-2.5'
                     } ${
                       isActive
-                        ? 'bg-sky-600 text-white shadow-sm shadow-sky-600/10'
-                        : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                        ? 'bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-lg shadow-blue-600/30'
+                        : 'text-slate-300/90 hover:bg-sky-400/[0.08] hover:text-white'
                     }`}
                   >
                     <span
-                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ring-1 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ring-1 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
                         isActive
-                          ? 'bg-white/10 text-white ring-white/10'
-                          : 'bg-white/5 text-slate-300 ring-white/5 group-hover:bg-white/10 group-hover:text-white'
+                          ? 'bg-white/20 text-white ring-white/20'
+                          : 'bg-white/[0.06] text-slate-400 ring-white/[0.06] group-hover:bg-sky-400/20 group-hover:text-sky-300 group-hover:ring-sky-400/20'
                       }`}
                     >
                       <ItemIcon className="h-4 w-4 shrink-0" />
@@ -223,15 +224,15 @@ export default function AdminLayout() {
                     collapsed ? 'w-full justify-center px-0' : 'min-w-0 flex-[7] gap-2 px-2.5'
                   } ${
                     isIncidentActive
-                      ? 'border-amber-500/20 bg-amber-500/20 text-amber-50'
-                      : 'border-amber-500/10 bg-amber-500/5 text-amber-200 hover:bg-amber-500/15'
+                      ? 'border-amber-400/25 bg-amber-500/20 text-amber-50'
+                      : 'border-amber-400/[0.12] bg-amber-400/[0.06] text-amber-200/80 hover:bg-amber-400/15 hover:text-amber-100'
                   }`}
                 >
                   <span
                     className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ring-1 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
                       isIncidentActive
-                        ? 'bg-amber-500/20 text-amber-50 ring-amber-500/20'
-                        : 'bg-amber-500/10 text-amber-200 ring-amber-500/10 group-hover:bg-amber-500/20'
+                        ? 'bg-amber-400/25 text-amber-50 ring-amber-400/25'
+                        : 'bg-amber-400/[0.08] text-amber-300/80 ring-amber-400/[0.08] group-hover:bg-amber-400/20 group-hover:text-amber-100'
                     }`}
                   >
                     <IncidentIcon className="h-4 w-4 shrink-0" />
@@ -245,11 +246,11 @@ export default function AdminLayout() {
               type="button"
               title="Đăng xuất"
               onClick={handleLogout}
-              className={`flex h-11 items-center rounded-xl border border-rose-500/20 bg-rose-500/5 text-sm font-medium text-rose-200 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-rose-500/15 hover:text-white active:scale-[0.98] ${
+              className={`flex h-11 items-center rounded-xl border border-rose-400/[0.15] bg-rose-400/[0.06] text-sm font-medium text-rose-300/80 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-rose-400/15 hover:text-rose-100 active:scale-[0.98] ${
                 collapsed ? 'w-full justify-center px-0' : 'min-w-0 flex-[3] justify-center px-2'
               }`}
             >
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-rose-500/10 text-rose-200 ring-1 ring-rose-500/10">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-rose-400/[0.08] text-rose-300/80 ring-1 ring-rose-400/[0.08]">
                 <LogOut className="h-4 w-4 shrink-0" />
               </span>
               {!collapsed ? <span className="sr-only">Đăng xuất</span> : null}

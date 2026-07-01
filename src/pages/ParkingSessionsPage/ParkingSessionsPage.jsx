@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Bike,
   CarFront,
   CheckCircle2,
   Clock3,
@@ -35,7 +36,7 @@ const normalizeCustomerType = (value) =>
   String(value || '').toUpperCase().includes('VISITOR') ? 'Vãng lai' : 'Gói tháng';
 
 const formatDateTime = (value) => {
-  return formatVietnamDateTime(value, { year: undefined }) || '--';
+  return formatVietnamDateTime(value, { year: undefined, day: undefined, month: undefined }) || '--';
 };
 
 const durationMinutes = (entryTime, exitTime) => {
@@ -247,12 +248,10 @@ export default function ParkingSessionsPage() {
         </div>
 
         <div className="max-h-[560px] overflow-auto">
-          <table className="w-full min-w-[1180px] table-fixed text-left text-sm">
+          <table className="w-full min-w-[1060px] table-fixed text-left text-sm">
             <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50/95 text-[11px] font-black uppercase tracking-[0.12em] text-slate-500 backdrop-blur">
               <tr>
-                <th className="w-[140px] px-4 py-3">Mã phiên</th>
-                <th className="w-[130px] px-4 py-3">Biển số</th>
-                <th className="w-[105px] px-4 py-3">Loại xe</th>
+                <th className="w-[145px] px-4 py-3">Biển số</th>
                 <th className="w-[120px] px-4 py-3">Loại khách</th>
                 <th className="w-[100px] px-4 py-3">Mã thẻ</th>
                 <th className="w-[135px] px-4 py-3">Giờ vào</th>
@@ -266,14 +265,14 @@ export default function ParkingSessionsPage() {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan="11" className="px-4 py-16 text-center text-sm font-semibold text-slate-500">
+                  <td colSpan="9" className="px-4 py-16 text-center text-sm font-semibold text-slate-500">
                     Đang tải dữ liệu từ database...
                   </td>
                 </tr>
               ) : null}
               {!loading && filteredSessions.length === 0 ? (
                 <tr>
-                  <td colSpan="11" className="px-4 py-16 text-center text-sm font-semibold text-slate-500">
+                  <td colSpan="9" className="px-4 py-16 text-center text-sm font-semibold text-slate-500">
                     Không có phiên gửi xe phù hợp.
                   </td>
                 </tr>
@@ -281,15 +280,14 @@ export default function ParkingSessionsPage() {
               {!loading && filteredSessions.map((session) => (
                 <tr key={session.id} className="h-16 text-slate-600 transition-colors hover:bg-blue-50/40">
                   <td className="px-4 py-3">
-                    <span className="block max-w-[120px] truncate font-bold text-slate-900" title={session.id}>{session.id}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex max-w-[116px] items-center gap-1.5 rounded-xl bg-blue-50 px-2.5 py-1 font-black text-slate-950">
-                      <CarFront className="h-3.5 w-3.5 shrink-0 text-blue-600" strokeWidth={2.25} />
+                    <span className="inline-flex max-w-[130px] items-center gap-1.5 rounded-xl bg-blue-50 px-2.5 py-1 font-black text-slate-950">
+                      {session.type === 'Xe máy'
+                        ? <Bike className="h-3.5 w-3.5 shrink-0 text-blue-600" strokeWidth={2.25} />
+                        : <CarFront className="h-3.5 w-3.5 shrink-0 text-blue-600" strokeWidth={2.25} />
+                      }
                       <span className="truncate">{session.plate}</span>
                     </span>
                   </td>
-                  <td className="px-4 py-3 font-semibold text-slate-700">{session.type}</td>
                   <td className="px-4 py-3 font-semibold text-slate-700">{session.customer}</td>
                   <td className="px-4 py-3 font-semibold text-slate-600">{session.cardId}</td>
                   <td className="px-4 py-3 font-medium text-slate-700">{session.entry}</td>
