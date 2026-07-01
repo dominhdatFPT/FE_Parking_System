@@ -54,6 +54,13 @@ const translations = {
 
     notice: {
       title: "Thông báo từ Ban Quản Lý", viewAll: "Xem tất cả", readMore: "Đọc tiếp",
+      emptyTitle: "Chưa có thông báo nào", emptyDescription: "Vui lòng quay lại sau.",
+      loadError: "Không tải được nội dung", noDetail: "Chưa có nội dung chi tiết.", close: "Đóng",
+      categoryLabels: {
+        "Hệ thống": "Hệ thống", "Bảo trì": "Bảo trì", "Gói gửi xe": "Gói gửi xe",
+        "Thanh toán": "Thanh toán", "Sự cố": "Sự cố", THONG_TIN: "Thông tin",
+        CHINH_SACH: "Chính sách", CANH_BAO: "Cảnh báo", BAO_TRI: "Bảo trì"
+      },
       data: [
         { id: 1, date: '15/06 08:30', title: 'Bảo trì hệ thống camera tại Zone B', type: 'Thông tin', tone: 'orange', desc: 'Hệ thống LPR tại Zone B sẽ bảo trì từ 00:00 đến 04:00 ngày 16/06.', fullContent: 'Kính gửi quý khách,\n\nNhằm nâng cao chất lượng dịch vụ và độ chính xác của hệ thống nhận diện biển số (LPR), Ban Quản Lý sẽ tiến hành bảo trì định kỳ camera tại khu vực Zone B.\n\nThời gian bảo trì: Từ 00:00 đến 04:00 sáng ngày 16/06.\n\nTrong thời gian này, barie tự động có thể hoạt động chậm hơn bình thường. Quý khách vui lòng chuẩn bị thẻ từ để quẹt thủ công nếu hệ thống không tự động mở. Mong quý khách thông cảm vì sự bất tiện này.' },
         { id: 2, date: '12/06 14:00', title: 'Mở thêm khu vực đỗ xe máy tại Zone C', type: 'Thông tin', tone: 'sky', desc: 'Nhằm phục vụ nhu cầu tăng cao, khu vực Zone C đã được mở rộng.', fullContent: 'Kính gửi quý khách,\n\nDo nhu cầu gửi xe máy tăng đột biến trong thời gian gần đây, Ban Quản Lý đã sắp xếp và mở rộng thêm 200 vị trí đỗ xe máy mới tại khu vực Zone C (Tầng hầm B2).\n\nKhu vực mới đã được trang bị đầy đủ hệ thống chiếu sáng và camera an ninh 24/7. Quý khách đi xe máy có thể di chuyển theo biển chỉ dẫn màu xanh mới được lắp đặt để đến khu vực này.' },
@@ -83,6 +90,8 @@ const translations = {
     },
     process: {
       title: "Quy trình đỗ xe",
+      subtitle: "Đơn giản hóa trải nghiệm đỗ xe của bạn",
+      duration: "Toàn bộ quy trình dưới 30 giây",
       s1Title: "1. Nhận diện", s1Desc: "Hệ thống LPR nhận diện biển số.",
       s2Title: "2. Đỗ xe", s2Desc: "Theo dõi bảng điện tử để tìm chỗ trống.",
       s3Title: "3. Thanh toán", s3Desc: "Thanh toán không tiền mặt khi ra.",
@@ -167,6 +176,13 @@ const translations = {
     
     notice: {
       title: "Management Notices", viewAll: "View All", readMore: "Read More",
+      emptyTitle: "No notices yet", emptyDescription: "Please check back later.",
+      loadError: "Unable to load content", noDetail: "No detailed content available.", close: "Close",
+      categoryLabels: {
+        "Hệ thống": "System", "Bảo trì": "Maintenance", "Gói gửi xe": "Parking Plan",
+        "Thanh toán": "Payment", "Sự cố": "Incident", THONG_TIN: "Information",
+        CHINH_SACH: "Policy", CANH_BAO: "Warning", BAO_TRI: "Maintenance"
+      },
       data: [
         { id: 1, date: '15/06 08:30', title: 'Camera system maintenance at Zone B', type: 'Info', tone: 'orange', desc: 'LPR system at Zone B will be maintained.', fullContent: 'Dear customers,\n\nTo improve service quality and LPR system accuracy, the Management Board will conduct routine maintenance on cameras at Zone B.\n\nMaintenance time: From 00:00 to 04:00 AM on Jun 16.\n\nDuring this time, automatic barriers may operate slower than usual. Please have your parking card ready to swipe manually if needed. We apologize for the inconvenience.' },
         { id: 2, date: '12/06 14:00', title: 'New parking area at Zone C', type: 'Info', tone: 'sky', desc: 'Zone C area has been expanded.', fullContent: 'Dear customers,\n\nDue to the sudden increase in motorbike parking demand recently, the Management Board has arranged and expanded 200 new motorbike parking spots at Zone C (Basement B2).\n\nThe new area is fully equipped with lighting and 24/7 security cameras. Motorbike drivers can follow the newly installed blue directional signs to reach this area.' },
@@ -196,6 +212,8 @@ const translations = {
     },
     process: {
       title: "Parking Process",
+      subtitle: "Simplify your parking experience",
+      duration: "Complete the entire process in under 30 seconds",
       s1Title: "1. Detect", s1Desc: "LPR system recognizes plate.",
       s2Title: "2. Park", s2Desc: "Follow boards to available spot.",
       s3Title: "3. Pay", s3Desc: "Cashless payment upon exit.",
@@ -974,8 +992,8 @@ const NotificationCenter = ({ t }) => {
       return (
         <div className="md:col-span-3 bg-white p-10 rounded-2xl border border-slate-200 text-center text-slate-500">
           <Bell className="w-10 h-10 mx-auto mb-3 text-slate-300" />
-          <p className="font-bold text-slate-700 mb-1">Chưa có thông báo nào</p>
-          <p className="text-sm">Vui lòng quay lại sau.</p>
+          <p className="font-bold text-slate-700 mb-1">{t.notice.emptyTitle}</p>
+          <p className="text-sm">{t.notice.emptyDescription}</p>
         </div>
       );
     }
@@ -988,7 +1006,7 @@ const NotificationCenter = ({ t }) => {
       >
         <div className="flex items-center justify-between mb-4">
           <span className={`text-[12px] font-semibold px-2.5 py-1 rounded-lg border ${getCategoryToneClass(ann.category)} uppercase tracking-[0.08em]`}>
-            {getCategoryLabel(ann.category)}
+            {t.notice.categoryLabels[ann.category] || getCategoryLabel(ann.category)}
           </span>
           <span className="text-[13px] font-medium text-slate-400 flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" /> {formatDate(ann.publishedAt)}
@@ -1030,9 +1048,11 @@ const NotificationCenter = ({ t }) => {
                   <Bell className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800">{getCategoryLabel(selectedNotice.category)}</h3>
+                  <h3 className="font-bold text-slate-800">
+                    {t.notice.categoryLabels[selectedNotice.category] || getCategoryLabel(selectedNotice.category)}
+                  </h3>
                   <p className="text-xs font-semibold text-slate-400">
-                    {selectedNotice._error ? 'Không tải được nội dung' : formatDate(selectedNotice.publishedAt)}
+                    {selectedNotice._error ? t.notice.loadError : formatDate(selectedNotice.publishedAt)}
                   </p>
                 </div>
               </div>
@@ -1053,7 +1073,7 @@ const NotificationCenter = ({ t }) => {
                 </div>
               ) : (
                 <div className="text-slate-600 text-[16px] font-normal leading-[1.6] whitespace-pre-wrap max-w-[65ch]">
-                  {selectedNotice.content || selectedNotice.summary || 'Chưa có nội dung chi tiết.'}
+                  {selectedNotice.content || selectedNotice.summary || t.notice.noDetail}
                 </div>
               )}
             </div>
@@ -1063,7 +1083,7 @@ const NotificationCenter = ({ t }) => {
                 className="px-6 py-2 bg-sky-500 hover:bg-sky-600 !text-white font-bold rounded-lg transition-colors"
                 style={{ color: '#FFFFFF' }}
               >
-                Đóng
+                {t.notice.close}
               </button>
             </div>
           </div>
@@ -1307,10 +1327,10 @@ const ProcessTimeline = ({ t }) => {
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
             <div>
               <h2 className="text-[28px] md:text-[34px] font-bold text-white leading-[1.2] mb-2">{t.process.title}</h2>
-              <p className="text-slate-400 text-[16px] font-normal leading-[1.6] max-w-[65ch]">Đơn giản hóa trải nghiệm đỗ xe của bạn</p>
+              <p className="text-slate-400 text-[16px] font-normal leading-[1.6] max-w-[65ch]">{t.process.subtitle}</p>
             </div>
             <div className="bg-sky-500/20 border border-sky-500/30 text-sky-400 px-4 py-2 rounded-lg text-[13px] font-semibold flex items-center gap-2 w-fit">
-              <Clock className="w-4 h-4" /> Toàn bộ quy trình dưới 30 giây
+              <Clock className="w-4 h-4" /> {t.process.duration}
             </div>
           </div>
           
