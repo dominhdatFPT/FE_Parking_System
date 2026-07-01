@@ -6,13 +6,13 @@ import Button from '../../components/Button';
 import { formatVietnamDateTime } from '../../../../utils/dateTime';
 
 const SUPPORT_SUBJECTS = [
-  'Dịch vụ gửi xe',
-  'Thanh toán & hóa đơn',
-  'Gói gửi xe',
-  'Tài khoản người dùng',
-  'Hỗ trợ khách hàng',
-  'An ninh',
-  'Khác',
+  { value: 'Dịch vụ gửi xe', labelKey: 'parkingService' },
+  { value: 'Thanh toán & hóa đơn', labelKey: 'paymentAndInvoice' },
+  { value: 'Gói gửi xe', labelKey: 'parkingPlan' },
+  { value: 'Tài khoản người dùng', labelKey: 'userAccount' },
+  { value: 'Hỗ trợ khách hàng', labelKey: 'customerSupport' },
+  { value: 'An ninh', labelKey: 'security' },
+  { value: 'Khác', labelKey: 'other' },
 ];
 
 export default function DriverSupport() {
@@ -58,6 +58,11 @@ export default function DriverSupport() {
     { q: t('support.faq5q'), a: t('support.faq5a') },
     { q: t('support.faq6q'), a: t('support.faq6a') },
   ];
+
+  const getSubjectLabel = (value) => {
+    const subject = SUPPORT_SUBJECTS.find((item) => item.value === value);
+    return subject ? t(`support.subjects.${subject.labelKey}`) : value;
+  };
 
   return (
     <div className="space-y-6">
@@ -146,9 +151,9 @@ export default function DriverSupport() {
                   onChange={(e) => setForm((p) => ({ ...p, subject: e.target.value }))}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 outline-none transition-all focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100"
                 >
-                  <option value="" disabled>Chọn chủ đề cần hỗ trợ</option>
+                  <option value="" disabled>{t('support.selectSubject')}</option>
                   {SUPPORT_SUBJECTS.map((subject) => (
-                    <option key={subject} value={subject}>{subject}</option>
+                    <option key={subject.value} value={subject.value}>{t(`support.subjects.${subject.labelKey}`)}</option>
                   ))}
                 </select>
               </div>
@@ -187,23 +192,23 @@ export default function DriverSupport() {
       <section className="rounded-2xl border border-slate-100/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
         <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-800">
           <span className="material-symbols-outlined text-sky-500">forum</span>
-          Yêu cầu hỗ trợ của tôi
+          {t('support.myRequests')}
         </h3>
         {historyLoading ? (
-          <p className="py-6 text-center text-sm text-slate-400">Đang tải dữ liệu...</p>
+          <p className="py-6 text-center text-sm text-slate-400">{t('support.loadingRequests')}</p>
         ) : requests.length === 0 ? (
-          <p className="py-6 text-center text-sm text-slate-400">Bạn chưa gửi yêu cầu hỗ trợ nào.</p>
+          <p className="py-6 text-center text-sm text-slate-400">{t('support.noRequests')}</p>
         ) : (
           <div className="space-y-3">
             {requests.map((request) => (
               <article key={request.id} className="rounded-xl border border-slate-100 bg-slate-50 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="font-bold text-slate-800">{request.service}</p>
+                    <p className="font-bold text-slate-800">{getSubjectLabel(request.service)}</p>
                     <p className="mt-1 text-sm leading-6 text-slate-600">{request.content}</p>
                   </div>
                   <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-100">
-                    {{ OPEN: 'Chờ xử lý', IN_PROGRESS: 'Đang xử lý', REPLIED: 'Đã phản hồi', RESOLVED: 'Đã giải quyết', CLOSED: 'Đã đóng' }[request.status] || request.status}
+                    {t(`support.requestStatus.${request.status}`, { defaultValue: request.status })}
                   </span>
                 </div>
                 <p className="mt-2 text-xs text-slate-400">{formatVietnamDateTime(request.createdAt)}</p>
@@ -211,7 +216,9 @@ export default function DriverSupport() {
                   <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 p-4">
                     <p className="text-sm font-bold text-emerald-800">{request.replyTitle}</p>
                     <p className="mt-1 text-sm leading-6 text-emerald-700">{request.replyMessage}</p>
-                    <p className="mt-2 text-xs text-emerald-600">Phản hồi bởi {request.repliedBy || 'Nhân viên hỗ trợ'} · {request.repliedAt ? formatVietnamDateTime(request.repliedAt) : ''}</p>
+                    <p className="mt-2 text-xs text-emerald-600">
+                      {t('support.repliedBy', { name: request.repliedBy || t('support.supportStaff') })} · {request.repliedAt ? formatVietnamDateTime(request.repliedAt) : ''}
+                    </p>
                   </div>
                 )}
               </article>

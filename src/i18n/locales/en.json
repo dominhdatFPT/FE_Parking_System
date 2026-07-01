@@ -61,6 +61,20 @@
     "noNotifications": "No notifications",
     "viewAllNotifications": "View all notifications"
   },
+  "profileMenu": {
+    "account": "Account",
+    "profile": "Profile",
+    "changePassword": "Change Password",
+    "notifications": "Notifications",
+    "rules": "Usage Rules",
+    "chooseAvatar": "Choose an avatar",
+    "chooseAvatarOption": "Choose avatar {{number}}",
+    "avatarOptionAlt": "Avatar option {{number}}",
+    "avatarAlt": "{{name}}'s avatar",
+    "userMenu": "User menu",
+    "defaultUser": "User",
+    "logout": "Logout"
+  },
   "dashboard": {
     "title": "Dashboard",
     "heroTitle": "Find parking fast",
@@ -156,7 +170,20 @@
     "qrTotal": "Total Payment",
     "selectGateway": "Select Payment Gateway",
     "qrInstruction": "Open your {{method}} app and scan this QR code to pay for your recurring parking ticket.",
-    "qrConfirmBtn": "Confirm Payment Completed"
+    "qrConfirmBtn": "Confirm Payment Completed",
+    "monthlyPaymentHistory": "Monthly ticket payment history",
+    "noMonthlyPayments": "No monthly ticket transactions",
+    "noMonthlyPaymentsDesc": "Monthly ticket subscription transactions will appear here.",
+    "plateAndPlan": "License Plate / Plan",
+    "momoPayment": "MoMo Payment",
+    "waitingForPayment": "Waiting for payment...",
+    "orderExpired": "The order has expired",
+    "recipient": "Recipient",
+    "transferContent": "Transfer content",
+    "expiresIn": "Expires in",
+    "tenMinutes": "10 minutes",
+    "close": "Close",
+    "momoInstruction": "Scan the QR code with the MoMo app to pay. This page will update automatically once payment is received."
   },
   "notifications": {
     "title": "Notifications",
@@ -202,6 +229,28 @@
     "subjectRequired": "Please enter a subject.",
     "messageRequired": "Please enter a message.",
     "submitError": "Submission failed. Please try again.",
+    "selectSubject": "Select a support topic",
+    "subjects": {
+      "parkingService": "Parking Service",
+      "paymentAndInvoice": "Payments & Invoices",
+      "parkingPlan": "Parking Plan",
+      "userAccount": "User Account",
+      "customerSupport": "Customer Support",
+      "security": "Security",
+      "other": "Other"
+    },
+    "myRequests": "My Support Requests",
+    "loadingRequests": "Loading requests...",
+    "noRequests": "You haven't submitted any support requests yet.",
+    "requestStatus": {
+      "OPEN": "Pending",
+      "IN_PROGRESS": "In Progress",
+      "REPLIED": "Replied",
+      "RESOLVED": "Resolved",
+      "CLOSED": "Closed"
+    },
+    "repliedBy": "Replied by {{name}}",
+    "supportStaff": "Support Staff",
     "faq1q": "How do I book a parking spot?",
     "faq1a": "Go to \"Book Parking\", select vehicle type, parking lot, and floor with available slots. After confirmation, the booking will be in PENDING status awaiting staff approval.",
     "faq2q": "Why is my booking still PENDING?",

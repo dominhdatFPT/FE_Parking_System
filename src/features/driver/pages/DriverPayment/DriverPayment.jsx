@@ -279,7 +279,7 @@ export default function DriverPayment() {
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-sm">
             <span className="material-symbols-outlined text-[16px]">sell</span>
           </span>
-          Lịch sử thanh toán thẻ tháng
+          {t('payment.monthlyPaymentHistory')}
         </h3>
 
         {loading ? (
@@ -289,15 +289,15 @@ export default function DriverPayment() {
             ))}
           </div>
         ) : subscriptionInvoices.length === 0 ? (
-          <EmptyState icon="sell" title="Chưa có giao dịch thẻ tháng" description="Các giao dịch đăng ký gói thẻ tháng sẽ hiển thị tại đây." />
+          <EmptyState icon="sell" title={t('payment.noMonthlyPayments')} description={t('payment.noMonthlyPaymentsDesc')} />
         ) : (
           <div className="rounded-2xl border border-slate-100/80 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-slate-100 bg-slate-50/80">
-                    <th className="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Hoá đơn</th>
-                    <th className="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Biển số / Gói</th>
+                    <th className="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">{t('payment.invoiceId')}</th>
+                    <th className="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">{t('payment.plateAndPlan')}</th>
                     <th className="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">{t('payment.amount')}</th>
                     <th className="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">{t('payment.method')}</th>
                     <th className="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">{t('payment.status')}</th>
@@ -391,7 +391,7 @@ export default function DriverPayment() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowQrModal(false)}>
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-slate-800">Thanh toán MoMo</h3>
+              <h3 className="text-base font-bold text-slate-800">{t('payment.momoPayment')}</h3>
               <Button variant="ghost" size="icon-sm" icon="close" onClick={() => setShowQrModal(false)} />
             </div>
 
@@ -409,33 +409,33 @@ export default function DriverPayment() {
                 </div>
               )}
               {qrStatus === 'PENDING' && (
-                <p className="text-[10px] text-slate-400 animate-pulse">Đang chờ thanh toán...</p>
+                <p className="text-[10px] text-slate-400 animate-pulse">{t('payment.waitingForPayment')}</p>
               )}
               {qrStatus === 'CANCELLED' && (
-                <p className="text-xs font-bold text-red-500">Đơn hàng đã hết hạn</p>
+                <p className="text-xs font-bold text-red-500">{t('payment.orderExpired')}</p>
               )}
             </div>
 
             <div className="rounded-xl bg-slate-50 p-4 space-y-2.5 text-xs border border-slate-100">
               {pendingFeePlan.momoName && (
                 <div className="flex justify-between items-start gap-2">
-                  <span className="text-slate-400 shrink-0">Chuyển đến</span>
+                  <span className="text-slate-400 shrink-0">{t('payment.recipient')}</span>
                   <span className="font-bold text-slate-700 text-right">{pendingFeePlan.momoName} – {pendingFeePlan.momoAccount}</span>
                 </div>
               )}
               {pendingFeePlan.momoOrderId && (
                 <div className="flex justify-between items-center gap-2">
-                  <span className="text-slate-400 shrink-0">Nội dung</span>
+                  <span className="text-slate-400 shrink-0">{t('payment.transferContent')}</span>
                   <span className="font-bold text-slate-700 font-mono tracking-wide">{pendingFeePlan.momoOrderId}</span>
                 </div>
               )}
               <div className="flex justify-between items-center">
-                <span className="text-slate-400">Số tiền</span>
+                <span className="text-slate-400">{t('payment.amount')}</span>
                 <span className="font-black text-sky-600">{Number(pendingFeePlan.amount).toLocaleString('vi-VN')} đ</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-400">Hết hạn sau</span>
-                <span className="font-bold text-amber-600">10 phút</span>
+                <span className="text-slate-400">{t('payment.expiresIn')}</span>
+                <span className="font-bold text-amber-600">{t('payment.tenMinutes')}</span>
               </div>
             </div>
 
@@ -444,11 +444,11 @@ export default function DriverPayment() {
                 onClick={() => setShowQrModal(false)}
                 className="w-full py-2.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold transition hover:bg-slate-200"
               >
-                Đóng
+                {t('payment.close')}
               </button>
             ) : (
               <p className="text-center text-[10px] text-slate-400 leading-relaxed">
-                Quét mã QR bằng ứng dụng MoMo để thanh toán. Trang sẽ tự động cập nhật khi nhận được tiền.
+                {t('payment.momoInstruction')}
               </p>
             )}
           </div>

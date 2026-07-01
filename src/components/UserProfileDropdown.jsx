@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Bell, BookOpen, Check, Lock, LogOut, User } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const SELECTED_AVATAR_STORAGE_KEY = 'selectedAvatar';
 
@@ -31,7 +32,7 @@ function getStoredAvatar() {
   return avatarOptions.includes(saved) ? saved : avatarOptions[0];
 }
 
-function AvatarImage({ src, initials, className = '' }) {
+function AvatarImage({ src, initials, className = '', alt = '' }) {
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
@@ -49,7 +50,7 @@ function AvatarImage({ src, initials, className = '' }) {
   return (
     <img
       src={src}
-      alt="Avatar"
+      alt={alt}
       onError={() => setHasError(true)}
       className={`rounded-full object-cover ${className}`}
     />
@@ -64,12 +65,13 @@ export default function UserProfileDropdown({
   onLogout,
   profile,
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(getStoredAvatar);
   const dropdownRef = useRef(null);
 
   const profileData = {
-    name: profile?.name ?? profile?.email ?? 'Người dùng',
+    name: profile?.name ?? profile?.email ?? t('profileMenu.defaultUser'),
     role: profile?.role ?? '',
     email: profile?.email ?? '',
   };
@@ -114,12 +116,13 @@ export default function UserProfileDropdown({
         onClick={() => setOpen((prev) => !prev)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="User menu"
+        aria-label={t('profileMenu.userMenu')}
         className="grid h-12 w-12 place-items-center rounded-2xl border border-white/70 bg-white/70 shadow-[0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur-xl transition duration-200 hover:bg-white/85 hover:shadow-md active:scale-[0.98]"
       >
         <AvatarImage
           src={selectedAvatar}
           initials={initials}
+          alt={t('profileMenu.avatarAlt', { name: profileData.name })}
           className="h-10 w-10 text-xs ring-2 ring-white"
         />
       </button>
@@ -139,6 +142,7 @@ export default function UserProfileDropdown({
                 <AvatarImage
                   src={selectedAvatar}
                   initials={initials}
+                  alt={t('profileMenu.avatarAlt', { name: profileData.name })}
                   className="h-12 w-12 text-sm ring-2 ring-white"
                 />
                 <div className="min-w-0">
@@ -150,7 +154,7 @@ export default function UserProfileDropdown({
 
             <div className="bg-white p-2">
               <p className="px-3 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
-                Tài khoản
+                {t('profileMenu.account')}
               </p>
               <button
                 type="button"
@@ -161,7 +165,7 @@ export default function UserProfileDropdown({
                 <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-600">
                   <User className="h-4 w-4" strokeWidth={1.7} />
                 </span>
-                Hồ sơ
+                {t('profileMenu.profile')}
               </button>
 
               <button
@@ -173,7 +177,7 @@ export default function UserProfileDropdown({
                 <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-600">
                   <Lock className="h-4 w-4" strokeWidth={1.7} />
                 </span>
-                Đổi mật khẩu
+                {t('profileMenu.changePassword')}
               </button>
 
               {onViewNotifications ? (
@@ -186,7 +190,7 @@ export default function UserProfileDropdown({
                   <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-600">
                     <Bell className="h-4 w-4" strokeWidth={1.7} />
                   </span>
-                  Thông báo
+                  {t('profileMenu.notifications')}
                 </button>
               ) : null}
 
@@ -200,13 +204,13 @@ export default function UserProfileDropdown({
                   <span className="grid h-9 w-9 place-items-center rounded-xl bg-sky-50 text-sky-600">
                     <BookOpen className="h-4 w-4" strokeWidth={1.7} />
                   </span>
-                  Nội quy sử dụng
+                  {t('profileMenu.rules')}
                 </button>
               ) : null}
             </div>
 
             <div className="border-t border-slate-100 bg-white p-4">
-              <p className="mb-3 text-xs font-semibold text-slate-500">Chọn ảnh đại diện</p>
+              <p className="mb-3 text-xs font-semibold text-slate-500">{t('profileMenu.chooseAvatar')}</p>
               <div className="flex items-center gap-2">
                 {avatarOptions.map((avatar, index) => {
                   const isSelected = selectedAvatar === avatar;
@@ -219,11 +223,12 @@ export default function UserProfileDropdown({
                       className={`relative grid h-12 w-12 place-items-center rounded-full transition duration-200 ${
                         isSelected ? 'ring-2 ring-sky-500 ring-offset-2 ring-offset-white' : 'hover:ring-2 hover:ring-slate-200'
                       }`}
-                      aria-label={`Chọn ảnh đại diện ${index + 1}`}
+                      aria-label={t('profileMenu.chooseAvatarOption', { number: index + 1 })}
                     >
                       <AvatarImage
                         src={avatar}
                         initials={initials}
+                        alt={t('profileMenu.avatarOptionAlt', { number: index + 1 })}
                         className="h-12 w-12 text-xs"
                       />
                       {isSelected ? (
@@ -248,7 +253,7 @@ export default function UserProfileDropdown({
                   <span className="grid h-9 w-9 place-items-center rounded-xl bg-rose-50 text-rose-600">
                     <LogOut className="h-4 w-4" strokeWidth={1.7} />
                   </span>
-                  Đăng xuất
+                  {t('profileMenu.logout')}
                 </button>
               </div>
             ) : null}

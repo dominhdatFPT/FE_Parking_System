@@ -61,6 +61,20 @@
     "noNotifications": "Không có thông báo",
     "viewAllNotifications": "Xem tất cả thông báo"
   },
+  "profileMenu": {
+    "account": "Tài khoản",
+    "profile": "Hồ sơ",
+    "changePassword": "Đổi mật khẩu",
+    "notifications": "Thông báo",
+    "rules": "Nội quy sử dụng",
+    "chooseAvatar": "Chọn ảnh đại diện",
+    "chooseAvatarOption": "Chọn ảnh đại diện {{number}}",
+    "avatarOptionAlt": "Ảnh đại diện {{number}}",
+    "avatarAlt": "Ảnh đại diện của {{name}}",
+    "userMenu": "Menu người dùng",
+    "defaultUser": "Người dùng",
+    "logout": "Đăng xuất"
+  },
   "dashboard": {
     "title": "Tổng quan",
     "heroTitle": "Tìm chỗ đỗ xe nhanh chóng",
@@ -156,7 +170,20 @@
     "qrTotal": "Tổng thanh toán",
     "selectGateway": "Chọn cổng thanh toán",
     "qrInstruction": "Mở ứng dụng {{method}} quét mã QR này để tiến hành thanh toán vé đỗ xe định kỳ.",
-    "qrConfirmBtn": "Xác nhận đã quét & thanh toán"
+    "qrConfirmBtn": "Xác nhận đã quét & thanh toán",
+    "monthlyPaymentHistory": "Lịch sử thanh toán thẻ tháng",
+    "noMonthlyPayments": "Chưa có giao dịch thẻ tháng",
+    "noMonthlyPaymentsDesc": "Các giao dịch đăng ký gói thẻ tháng sẽ hiển thị tại đây.",
+    "plateAndPlan": "Biển số / Gói",
+    "momoPayment": "Thanh toán MoMo",
+    "waitingForPayment": "Đang chờ thanh toán...",
+    "orderExpired": "Đơn hàng đã hết hạn",
+    "recipient": "Chuyển đến",
+    "transferContent": "Nội dung",
+    "expiresIn": "Hết hạn sau",
+    "tenMinutes": "10 phút",
+    "close": "Đóng",
+    "momoInstruction": "Quét mã QR bằng ứng dụng MoMo để thanh toán. Trang sẽ tự động cập nhật khi nhận được tiền."
   },
   "notifications": {
     "title": "Thông báo",
@@ -202,6 +229,28 @@
     "subjectRequired": "Vui lòng nhập chủ đề.",
     "messageRequired": "Vui lòng nhập nội dung.",
     "submitError": "Gửi thất bại. Vui lòng thử lại.",
+    "selectSubject": "Chọn chủ đề cần hỗ trợ",
+    "subjects": {
+      "parkingService": "Dịch vụ gửi xe",
+      "paymentAndInvoice": "Thanh toán & hóa đơn",
+      "parkingPlan": "Gói gửi xe",
+      "userAccount": "Tài khoản người dùng",
+      "customerSupport": "Hỗ trợ khách hàng",
+      "security": "An ninh",
+      "other": "Khác"
+    },
+    "myRequests": "Yêu cầu hỗ trợ của tôi",
+    "loadingRequests": "Đang tải dữ liệu...",
+    "noRequests": "Bạn chưa gửi yêu cầu hỗ trợ nào.",
+    "requestStatus": {
+      "OPEN": "Chờ xử lý",
+      "IN_PROGRESS": "Đang xử lý",
+      "REPLIED": "Đã phản hồi",
+      "RESOLVED": "Đã giải quyết",
+      "CLOSED": "Đã đóng"
+    },
+    "repliedBy": "Phản hồi bởi {{name}}",
+    "supportStaff": "Nhân viên hỗ trợ",
     "faq1q": "Làm thế nào để đặt chỗ đỗ xe?",
     "faq1a": "Vào mục \"Đặt chỗ\", chọn loại xe, bãi xe và tầng có slot trống. Sau khi xác nhận, booking sẽ ở trạng thái PENDING và chờ nhân viên xác nhận.",
     "faq2q": "Tại sao booking của tôi vẫn ở trạng thái PENDING?",
