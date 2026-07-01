@@ -214,11 +214,7 @@ export default function UserVehicleRegistrationPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.22em] text-sky-600">Back-office Vehicle Registration</p>
-          <h1 className="mt-2 text-3xl font-black text-slate-950">Đăng ký xe cho user</h1>
-          <p className="mt-2 max-w-3xl text-sm font-medium text-slate-500">
-            Admin hoặc staff chọn user, upload hồ sơ eKYC và tạo đăng ký xe cho đúng tài khoản user đó.
-          </p>
+          <h1 className="text-3xl font-black text-slate-950">Đăng kí xe</h1>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -306,7 +302,7 @@ export default function UserVehicleRegistrationPage() {
       </section>
 
       {selectedUser && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/70 p-4" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-[70] grid place-items-center bg-slate-950/70 p-4" role="dialog" aria-modal="true">
           <div className="max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl">
             <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
               <div>
@@ -323,8 +319,8 @@ export default function UserVehicleRegistrationPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="max-h-[calc(92vh-93px)] overflow-y-auto p-6">
-              <div className="grid gap-6 lg:grid-cols-[1fr_0.8fr]">
+            <form onSubmit={handleSubmit} className="max-h-[calc(92vh-93px)] overflow-y-auto p-4 sm:p-6">
+              <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)]">
                 <div className="space-y-5">
                   <section className="rounded-2xl border border-slate-200 p-5">
                     <h3 className="text-sm font-black text-slate-950">Thông tin xe</h3>
@@ -492,4 +488,3 @@ export default function UserVehicleRegistrationPage() {
     </div>
   );
 }
-
