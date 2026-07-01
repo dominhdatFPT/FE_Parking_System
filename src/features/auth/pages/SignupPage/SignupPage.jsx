@@ -3,7 +3,7 @@ import i18n from 'i18next';
 import { initReactI18next, useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import {
-  ArrowRight,
+  AtSign,
   BadgeCheck,
   Camera,
   Check,
@@ -22,9 +22,6 @@ import {
 } from 'lucide-react';
 import Logo from '../../../../components/Logo';
 import { ROUTES } from '../../../../constants/routes';
-import { useAuth } from '../../../../contexts/useAuth';
-import { registerApi } from '../../services/authApi';
-import { STORAGE_KEYS } from '../../../../constants/storageKeys';
 
 const LANGUAGE_KEY = 'language';
 
@@ -68,7 +65,7 @@ const resources = {
           'Dữ liệu chỉ được chia sẻ với các bên liên quan khi cần thiết cho vận hành hệ thống, tuân thủ yêu cầu pháp lý hoặc theo cấu hình của đơn vị quản lý bãi xe.',
         ],
       },
-      submit: 'Đăng ký',
+      submit: 'Đăng nhập',
       submitting: 'Đang tạo tài khoản...',
       or: 'Hoặc',
       google: 'Đăng ký bằng Google',
@@ -141,7 +138,7 @@ const resources = {
           'Data is shared only when needed for system operation, legal compliance, or parking operator configuration.',
         ],
       },
-      submit: 'Sign up',
+      submit: 'Login',
       submitting: 'Creating account...',
       or: 'Or',
       google: 'Sign up with Google',
@@ -181,6 +178,11 @@ const getInitialLanguage = () => {
   if (typeof window === 'undefined') return 'vi';
   const savedLanguage = window.localStorage.getItem(LANGUAGE_KEY) || 'vi';
   return savedLanguage.startsWith('en') ? 'en' : 'vi';
+};
+
+const getSignupText = (language, key) => {
+  const dictionary = resources[language]?.translation || resources.vi.translation;
+  return key.split('.').reduce((value, part) => value?.[part], dictionary) ?? key;
 };
 
 if (!i18n.isInitialized) {
@@ -392,10 +394,10 @@ function PolicyModal({ content, onClose, title, t }) {
 }
 
 export default function SignupPage() {
-  const { t, i18n: signupI18n } = useTranslation();
-  const { setUser } = useAuth();
+  const { i18n: signupI18n } = useTranslation();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptedAgreement, setAcceptedAgreement] = useState(false);
@@ -407,6 +409,7 @@ export default function SignupPage() {
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
   const currentLanguage = signupI18n.language.startsWith('en') ? 'en' : 'vi';
+  const t = (key) => getSignupText(currentLanguage, key);
 
   useEffect(() => {
     localStorage.setItem(LANGUAGE_KEY, currentLanguage);
@@ -425,6 +428,7 @@ export default function SignupPage() {
       setError(currentLanguage === 'vi' ? 'Định dạng email không hợp lệ.' : 'Invalid email format.');
       return false;
     }
+    if (!username.trim()) return setError(t('errors.username')) || false;
     if (password.length < 6) return setError(t('errors.passwordLength')) || false;
     if (password !== confirmPassword) return setError(t('errors.passwordMismatch')) || false;
     if (!acceptedAgreement) return setError(t('errors.terms')) || false;
@@ -439,31 +443,21 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      const response = await registerApi({ fullName, email, password });
+      const response = await fetch('/api/v1/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, email, username, password }),
+      });
 
-      if (!response?.token) {
-        throw new Error(currentLanguage === 'vi' ? 'Không nhận được token từ máy chủ' : 'No token received from server');
+      if (response.ok) {
+        setSuccess(t('success'));
+        setTimeout(() => navigate(ROUTES.LOGIN), 1500);
+      } else {
+        const data = await response.json();
+        setError(data.message || t('errors.generic'));
       }
-
-      sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
-
-      const registeredUser = {
-        id: response.userId,
-        fullName: response.fullName,
-        email: response.email,
-        role: (response.role || 'USER').toLowerCase(),
-        avatarUrl: '',
-      };
-
-      setUser(registeredUser);
-      sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(registeredUser));
-      localStorage.setItem('userRole', registeredUser.role);
-
-      setSuccess(t('success'));
-      setTimeout(() => navigate(ROUTES.DRIVER.DASHBOARD), 1500);
     } catch (err) {
-      const message = err?.response?.data?.message || t('errors.generic');
-      setError(message);
+      setError(t('errors.network'));
       console.error('Signup error:', err);
     } finally {
       setLoading(false);
@@ -502,6 +496,7 @@ export default function SignupPage() {
                 <Field icon={User} id="signup-fullname" label={t('fullName')} placeholder={t('placeholders.fullName')} type="text" value={fullName} onChange={(event) => setFullName(event.target.value)} required />
                 <Field icon={Mail} id="signup-email" label={t('email')} placeholder={t('placeholders.email')} type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
               </div>
+              <Field icon={AtSign} id="signup-username" label={t('username')} placeholder={t('placeholders.username')} type="text" value={username} onChange={(event) => setUsername(event.target.value)} required />
               <div className="grid gap-3 sm:grid-cols-2">
                 <PasswordField icon={LockKeyhole} id="signup-password" label={t('password')} placeholder="••••••••" value={password} onChange={(event) => setPassword(event.target.value)} showPassword={showPassword} onTogglePassword={() => setShowPassword((current) => !current)} t={t} required />
                 <PasswordField icon={LockKeyhole} id="signup-confirm-password" label={t('confirmPassword')} placeholder="••••••••" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword((current) => !current)} t={t} required />
@@ -522,7 +517,6 @@ export default function SignupPage() {
 
               <button className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold !text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)] focus:outline-none focus:ring-4 focus:ring-sky-100 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70" type="submit" disabled={loading}>
                 {loading ? t('submitting') : t('submit')}
-                {!loading && <ArrowRight className="h-5 w-5 !text-white" />}
               </button>
 
             </form>

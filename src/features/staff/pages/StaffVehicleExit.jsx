@@ -56,7 +56,7 @@ function InfoCard({ icon: Icon, label, value, chip }) {
 
 function CameraPanel({ label, status = 'Online', imageSrc = '/empty_parking.png' }) {
   return (
-    <article className="group relative h-full overflow-hidden rounded-2xl bg-slate-900 shadow-sm ring-1 ring-black/[0.06] transition-all duration-300">
+    <article className="group relative h-full overflow-hidden rounded-2xl bg-slate-700 shadow-sm ring-1 ring-black/[0.06] transition-all duration-300">
       <img src={imageSrc} alt={label} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/70 to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/75 to-transparent" />

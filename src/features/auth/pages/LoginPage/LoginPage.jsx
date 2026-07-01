@@ -7,7 +7,6 @@ import { Link, useNavigate } from 'react-router';
 import {
   BadgeCheck,
   Camera,
-  Car,
   CarFront,
   Check,
   CircleAlert,
@@ -154,6 +153,11 @@ const getInitialLanguage = () => {
   return savedLanguage.startsWith('en') ? 'en' : 'vi';
 };
 
+const getLoginText = (language, key) => {
+  const dictionary = loginTranslations[language] || loginTranslations.vi;
+  return key.split('.').reduce((value, part) => value?.[part], dictionary) ?? key;
+};
+
 if (!i18n.isInitialized) {
   i18n.use(initReactI18next).init({
     resources: {
@@ -177,7 +181,7 @@ function getDashboardPath(role) {
   }
 
   if (normalizedRole === 'staff') {
-    return ROUTES.ADMIN.DASHBOARD;
+    return ROUTES.STAFF.DASHBOARD;
   }
 
   return '/driver-dashboard';
@@ -387,7 +391,7 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
-  const { t, i18n: loginI18n } = useTranslation();
+  const { i18n: loginI18n } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -398,6 +402,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
   const currentLanguage = loginI18n.language.startsWith('en') ? 'en' : 'vi';
+  const t = (key) => getLoginText(currentLanguage, key);
 
   useEffect(() => {
     localStorage.setItem(LOGIN_LANGUAGE_KEY, currentLanguage);
@@ -470,7 +475,13 @@ export default function LoginPage() {
         localStorage.removeItem('smart-parking-user');
       }
 
-      navigate(getDashboardPath(authenticatedUser.role));
+      const redirectPath = sessionStorage.getItem('redirect_after_login');
+      if (redirectPath) {
+        sessionStorage.removeItem('redirect_after_login');
+        navigate(redirectPath);
+      } else {
+        navigate(getDashboardPath(authenticatedUser.role));
+      }
     } catch (err) {
       const serverMessage = err.response?.data?.message;
       setError(serverMessage || t('errors.loginFailed'));
@@ -510,7 +521,13 @@ export default function LoginPage() {
         localStorage.removeItem('rememberMe');
         localStorage.setItem('userRole', response.role || 'driver');
         setUser(nextUser);
-        navigate(getDashboardPath(response.role));
+        const redirectPath = sessionStorage.getItem('redirect_after_login');
+        if (redirectPath) {
+          sessionStorage.removeItem('redirect_after_login');
+          navigate(redirectPath);
+        } else {
+          navigate(getDashboardPath(response.role));
+        }
       }
     } catch (err) {
       const serverMessage = err.response?.data?.message;
@@ -587,7 +604,7 @@ export default function LoginPage() {
                 type="submit"
                 disabled={loading}
               >
-                {loading ? t('submitting') : (currentLanguage === 'vi' ? 'Đăng nhập' : 'Login')}
+                {loading ? t('submitting') : t('submit')}
               </button>
 
               <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">

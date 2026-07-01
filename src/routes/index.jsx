@@ -114,7 +114,6 @@ export function AppRoutes() {
         <Route path={ROUTES.ADMIN.USERS} element={<AccountManagementPage />} />
         <Route path={ROUTES.ADMIN.USER_VEHICLE_REGISTRATION} element={<UserVehicleRegistrationPage />} />
         <Route path={ROUTES.ADMIN.VEHICLE_EXIT} element={<StaffVehicleExit />} />
-        <Route path={ROUTES.ADMIN.ROLES} element={<Navigate to={ROUTES.ADMIN.VEHICLE_EXIT} replace />} />
         <Route path={ROUTES.ADMIN.SYSTEM_CONFIG} element={<SystemConfigurationPage />} />
         <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AuditLogPage />} />
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.BASE} element={<NotificationManagement />} />
@@ -125,6 +124,7 @@ export function AppRoutes() {
         <Route path={ROUTES.STAFF.VEHICLE_EXIT} element={<StaffVehicleExit />} />
         <Route path={ROUTES.STAFF.SESSIONS} element={<StaffSessions />} />
         <Route path={ROUTES.STAFF.EXCEPTIONS} element={<StaffExceptions />} />
+        <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />} />
       </Route>
 
       <Route
@@ -135,10 +135,6 @@ export function AppRoutes() {
           </RequireAuth>
         }
       />
-
-      <Route element={<MainLayout />}>
-        <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />} />
-      </Route>
 
       <Route path={ROUTES.SUBSCRIPTION.RESULT} element={<SubscriptionResultPage />} />
       <Route path="*" element={<NotFoundPage />} />

@@ -11,22 +11,26 @@ export const NOTIFICATION_CATEGORIES = {
 };
 
 export const CATEGORY_META = {
-  'Hệ thống':    { label: 'Hệ thống',   tone: 'sky'     },
-  'Bảo trì':     { label: 'Bảo trì',    tone: 'cyan'    },
-  'Gói gửi xe':  { label: 'Gói gửi xe', tone: 'violet'  },
-  'Thanh toán':  { label: 'Thanh toán', tone: 'emerald' },
-  'Sự cố':       { label: 'Sự cố',      tone: 'orange'  },
+  'Hệ thống': { label: 'Hệ thống', tone: 'sky' },
+  'Bảo trì': { label: 'Bảo trì', tone: 'cyan' },
+  'Gói gửi xe': { label: 'Gói gửi xe', tone: 'violet' },
+  'Thanh toán': { label: 'Thanh toán', tone: 'emerald' },
+  'Sự cố': { label: 'Sự cố', tone: 'orange' },
+  THONG_TIN: { label: 'Thông tin', tone: 'sky' },
+  CHINH_SACH: { label: 'Chính sách', tone: 'purple' },
+  CANH_BAO: { label: 'Cảnh báo', tone: 'orange' },
+  BAO_TRI: { label: 'Bảo trì', tone: 'red' },
 };
 
 const TONE_CLASSES = {
-  sky:     'bg-sky-50 text-sky-600 border-sky-200',
-  cyan:    'bg-cyan-50 text-cyan-600 border-cyan-200',
-  violet:  'bg-violet-50 text-violet-600 border-violet-200',
+  sky: 'bg-sky-50 text-sky-600 border-sky-200',
+  cyan: 'bg-cyan-50 text-cyan-600 border-cyan-200',
+  violet: 'bg-violet-50 text-violet-600 border-violet-200',
   emerald: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-  purple:  'bg-purple-50 text-purple-600 border-purple-200',
-  orange:  'bg-orange-50 text-orange-600 border-orange-200',
-  red:     'bg-red-50 text-red-600 border-red-200',
-  slate:   'bg-slate-50 text-slate-600 border-slate-200',
+  purple: 'bg-purple-50 text-purple-600 border-purple-200',
+  orange: 'bg-orange-50 text-orange-600 border-orange-200',
+  red: 'bg-red-50 text-red-600 border-red-200',
+  slate: 'bg-slate-50 text-slate-600 border-slate-200',
 };
 
 export function getCategoryToneClass(category) {
@@ -88,7 +92,6 @@ export const notificationService = {
     }
   },
 };
-
 const relativeTime = (value) => {
   if (!value) return '—';
   const minutes = Math.max(0, Math.floor((Date.now() - apiDateTimeMillis(value)) / 60000));

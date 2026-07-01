@@ -11,7 +11,6 @@ const getNavigationItems = (role) => {
   if (role === 'admin') {
     baseItems.push(
       { label: 'Quản lý tài khoản', path: ROUTES.ADMIN.USERS, icon: 'people' },
-      { label: 'Quyền truy cập', path: ROUTES.ADMIN.ROLES, icon: 'security' },
       { label: 'Cấu hình hệ thống', path: ROUTES.ADMIN.SYSTEM_CONFIG, icon: 'settings' },
       { label: 'Nhật ký hệ thống', path: ROUTES.ADMIN.AUDIT_LOG, icon: 'history' }
     );

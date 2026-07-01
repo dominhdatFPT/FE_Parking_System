@@ -35,7 +35,6 @@ export const ROUTES = {
     NOTIFICATIONS: '/settings/notifications',
     LANGUAGE: '/settings/language',
     SYSTEM: '/settings/system',
-    PERMISSIONS: '/settings/permissions',
     SECURITY_LOGS: '/settings/security-logs',
   },
 

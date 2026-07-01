@@ -18,13 +18,13 @@ export default function DriverVehicleRegistration() {
   // Form Fields State
   const [vehicleType, setVehicleType] = useState(preselectedType);
   const [selectedPlans, setSelectedPlans] = useState(preselectedPlans);
-  const [licensePlate, setLicensePlate] = useState('');
 
   // File Upload State (CCCD requires 2 sides)
   const [cccdFrontFile, setCccdFrontFile] = useState(null);
   const [cccdBackFile, setCccdBackFile] = useState(null);
   const [driverLicenseFile, setDriverLicenseFile] = useState(null);
   const [vehicleDocsFile, setVehicleDocsFile] = useState(null);
+  const [licensePlateFile, setLicensePlateFile] = useState(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -73,7 +73,7 @@ export default function DriverVehicleRegistration() {
 
   const fileToBase64 = (file) =>
     new Promise((resolve, reject) => {
-      const reader = new FileReader();
+      const reader = new window.FileReader();
       reader.onload = () => resolve(reader.result);
       reader.onerror = reject;
       reader.readAsDataURL(file);
@@ -99,19 +99,20 @@ export default function DriverVehicleRegistration() {
       setError(t('vehicleRegistration.errorVehicleDocs'));
       return;
     }
-    if (!licensePlate.trim()) {
-      setError(t('vehicleRegistration.errorEnterPlate'));
+    if (!licensePlateFile) {
+      setError(t('vehicleRegistration.errorLicensePlate'));
       return;
     }
+
     setSubmitting(true);
     try {
     const payload = {
       vehicleTypeId: vehicleType === 'CAR' ? 2 : 1,
-      licensePlate: licensePlate.trim().toUpperCase(),
       cccdFrontImage: await fileToBase64(cccdFrontFile),
       cccdBackImage: await fileToBase64(cccdBackFile),
       licenseImage: await fileToBase64(driverLicenseFile),
       vehicleDocumentImage: await fileToBase64(vehicleDocsFile),
+      plateImage: await fileToBase64(licensePlateFile),
     };
 
     const { error: err, message } = await customerService.registerVehicleCard(payload);
@@ -186,48 +187,27 @@ export default function DriverVehicleRegistration() {
   const totalPrice = selectedPlans.reduce((sum, m) => sum + getPlanPrice(m), 0);
 
   // Calculate completeness percentage
-  const totalSteps = 4;
-  const completedSteps = [cccdFrontFile, cccdBackFile, driverLicenseFile, vehicleDocsFile].filter(Boolean).length;
-  const hasLicensePlate = licensePlate.trim().length > 0;
-
+  const totalSteps = 5;
+  const completedSteps = [cccdFrontFile, cccdBackFile, driverLicenseFile, vehicleDocsFile, licensePlateFile].filter(Boolean).length;
   const getFormStatus = () => {
     if (submitted) return t('vehicleRegistration.statusPending');
-    if (completedSteps === totalSteps && hasLicensePlate) return t('vehicleRegistration.statusReady');
+    if (completedSteps === totalSteps) return t('vehicleRegistration.statusReady');
     return t('vehicleRegistration.statusIncomplete');
   };
 
   return (
-    <div className="relative -m-4 min-h-[calc(100vh-4rem)] overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(232,121,249,0.20),transparent_46%),radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.25),transparent_55%),linear-gradient(135deg,#f8fafc_0%,#dbeafe_45%,#f3e8ff_100%)] p-4 lg:-m-6 lg:p-7">
-      <div className="pointer-events-none absolute right-0 top-0 h-56 w-56 opacity-30" aria-hidden="true">
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="vehicle-registration-dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-              <circle cx="3" cy="3" r="2" fill="#818cf8" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#vehicle-registration-dots)" />
-        </svg>
-      </div>
-      <div className="pointer-events-none absolute bottom-0 left-0 h-64 w-64 opacity-35" aria-hidden="true">
-        <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-full w-full">
-          <path d="M-20 180C40 160 80 190 120 140C160 90 130 50 210 20" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" />
-          <path d="M-40 160C20 140 60 170 100 120C140 70 110 30 190 0" stroke="#60a5fa" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M-60 140C0 120 40 150 80 100C120 50 90 10 170-20" stroke="#3b82f6" strokeWidth="1" strokeLinecap="round" strokeDasharray="4 6" />
-        </svg>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title={t('vehicleRegistration.title')}
+        subtitle={t('vehicleRegistration.subtitle')}
+        icon="assignment_ind"
+      />
 
-      <div className="relative z-10 mx-auto max-w-7xl space-y-6">
-        <PageHeader
-          title={t('vehicleRegistration.title')}
-          subtitle={t('vehicleRegistration.subtitle')}
-          icon="assignment_ind"
-          variant="banner"
-        />
-        <div className="grid gap-6 lg:grid-cols-5">
-
+      <div className="grid gap-6 lg:grid-cols-5">
+        
         {/* Left Side: Upload Documents Form */}
         <div className="lg:col-span-3">
-          <div className="rounded-[28px] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.10)] backdrop-blur-xl">
+          <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
             {submitted ? (
               <div className="flex flex-col items-center py-12 text-center animate-in fade-in duration-300">
                 <div className="relative mb-6">
@@ -250,7 +230,7 @@ export default function DriverVehicleRegistration() {
                       setCccdBackFile(null);
                       setDriverLicenseFile(null);
                       setVehicleDocsFile(null);
-                      setLicensePlate('');
+                      setLicensePlateFile(null);
                       setSelectedPlans([]);
                     }}
                   >
@@ -282,8 +262,8 @@ export default function DriverVehicleRegistration() {
                       }}
                       className={`flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-xs font-bold transition-all duration-200 ${
                         vehicleType === 'MOTORBIKE'
-                          ? 'border-[#0EA5E9] bg-sky-50/70 text-[#0EA5E9] shadow-[0_12px_28px_rgba(14,165,233,0.12)]'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-sky-200 hover:bg-sky-50/40'
+                          ? 'border-[#0EA5E9] bg-sky-50/50 text-[#0EA5E9]'
+                          : 'border-slate-200 text-slate-500 hover:bg-slate-50'
                       }`}
                     >
                       <span className="material-symbols-outlined text-[16px]">two_wheeler</span>
@@ -297,8 +277,8 @@ export default function DriverVehicleRegistration() {
                       }}
                       className={`flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-xs font-bold transition-all duration-200 ${
                         vehicleType === 'CAR'
-                          ? 'border-[#0EA5E9] bg-sky-50/70 text-[#0EA5E9] shadow-[0_12px_28px_rgba(14,165,233,0.12)]'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-sky-200 hover:bg-sky-50/40'
+                          ? 'border-[#0EA5E9] bg-sky-50/50 text-[#0EA5E9]'
+                          : 'border-slate-200 text-slate-500 hover:bg-slate-50'
                       }`}
                     >
                       <span className="material-symbols-outlined text-[16px]">directions_car</span>
@@ -307,26 +287,8 @@ export default function DriverVehicleRegistration() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="mb-1.5 block text-xs font-bold text-slate-500">
-                    {t('vehicleRegistration.licensePlateNumber')}
-                  </label>
-                  <div className="relative">
-                    <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">
-                      confirmation_number
-                    </span>
-                    <input
-                      type="text"
-                      value={licensePlate}
-                      onChange={(e) => setLicensePlate(e.target.value.toUpperCase())}
-                      placeholder={t('vehicleRegistration.platePlaceholder')}
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-white/95 pl-10 pr-4 text-sm font-bold uppercase text-slate-800 outline-none transition-all placeholder:text-slate-300 focus:border-[#0EA5E9] focus:ring-4 focus:ring-sky-100"
-                    />
-                  </div>
-                </div>
-
                 <div className="rounded-xl border border-sky-100 bg-sky-50/70 p-3 text-xs leading-relaxed text-sky-800">
-                  {t('vehicleRegistration.manualPlateNotice')}
+                  Họ tên được lấy từ tài khoản. Biển số, hãng và màu xe được hệ thống đọc từ ảnh bạn cung cấp để staff đối chiếu khi duyệt.
                 </div>
 
                 {/* Selected Plans List */}
@@ -366,6 +328,9 @@ export default function DriverVehicleRegistration() {
                   {renderFileDropzone(t('vehicleRegistration.cccdBack'), cccdBackFile, setCccdBackFile)}
                   {renderFileDropzone(t('vehicleRegistration.driverLicense'), driverLicenseFile, setDriverLicenseFile)}
                   {renderFileDropzone(t('vehicleRegistration.vehicleDocs'), vehicleDocsFile, setVehicleDocsFile)}
+                  <div className="sm:col-span-2">
+                    {renderFileDropzone(t('vehicleRegistration.licensePlate'), licensePlateFile, setLicensePlateFile)}
+                  </div>
                 </div>
 
                 {error && (
@@ -381,7 +346,7 @@ export default function DriverVehicleRegistration() {
                     variant="primary"
                     loading={submitting}
                     disabled={submitting}
-                    className="w-full justify-center rounded-xl py-3 shadow-[0_16px_36px_rgba(14,165,233,0.24)]"
+                    className="w-full justify-center py-3 rounded-xl"
                   >
                     {t('vehicleRegistration.submit')}
                   </Button>
@@ -396,13 +361,13 @@ export default function DriverVehicleRegistration() {
           <div className="sticky top-6 space-y-4">
             
             {/* Tóm tắt hồ sơ đăng ký Card */}
-            <div className="rounded-[24px] border border-white/80 bg-white/92 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+            <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3 mb-4">
                 <span className="material-symbols-outlined text-[#0EA5E9] text-[20px] font-bold">assignment</span>
                 <h4 className="text-xs font-bold text-slate-700">{t('vehicleRegistration.summaryTitle')}</h4>
               </div>
 
-              {completedSteps === 0 && !hasLicensePlate ? (
+              {completedSteps === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <span className="material-symbols-outlined text-slate-300 text-[40px] mb-2">description</span>
                   <p className="text-xs text-slate-400 font-medium px-4 leading-relaxed">
@@ -416,13 +381,6 @@ export default function DriverVehicleRegistration() {
                     <span className="text-slate-500 font-medium">{t('vehicleRegistration.vehicleType')}</span>
                     <span className="font-bold text-slate-700">
                       {vehicleType === 'CAR' ? t('vehicleRegistration.car') : t('vehicleRegistration.motorbike')}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-50">
-                    <span className="text-slate-500 font-medium">{t('vehicleRegistration.ocrPlate')}</span>
-                    <span className={`font-bold ${hasLicensePlate ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-                      {hasLicensePlate ? licensePlate.trim().toUpperCase() : t('vehicleRegistration.platePlaceholder')}
                     </span>
                   </div>
 
@@ -490,8 +448,8 @@ export default function DriverVehicleRegistration() {
                       </div>
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-slate-500">{t('vehicleRegistration.ocrPlate')}</span>
-                        <span className={`font-bold ${hasLicensePlate ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-                          {hasLicensePlate ? licensePlate.trim().toUpperCase() : t('vehicleRegistration.platePlaceholder')}
+                        <span className={`font-bold ${licensePlateFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
+                          {licensePlateFile ? 'Sẽ đọc khi gửi hồ sơ' : t('vehicleRegistration.ocrPlateWaiting')}
                         </span>
                       </div>
                     </div>
@@ -502,7 +460,7 @@ export default function DriverVehicleRegistration() {
 
             {/* Selected Packages Details & Invoice summary */}
             {selectedPlans.length > 0 && (
-              <div className="rounded-[24px] border border-sky-100 bg-white/78 p-5 space-y-3 shadow-[0_18px_44px_rgba(14,165,233,0.10)] backdrop-blur-xl animate-in fade-in duration-300">
+              <div className="rounded-2xl bg-sky-50/50 border border-sky-100 p-5 space-y-3 animate-in fade-in duration-300">
                 <div className="border-b border-sky-100 pb-2">
                   <p className="font-black text-sky-800 text-xs uppercase tracking-wider">{t('vehicleRegistration.summaryPackages')}</p>
                 </div>
@@ -525,7 +483,6 @@ export default function DriverVehicleRegistration() {
           </div>
         </div>
 
-        </div>
       </div>
     </div>
   );
