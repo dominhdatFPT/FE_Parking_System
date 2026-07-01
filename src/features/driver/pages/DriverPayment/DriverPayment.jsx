@@ -12,7 +12,7 @@ export default function DriverPayment() {
   const { t } = useTranslation();
   const [subscriptionInvoices, setSubscriptionInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [pendingFeePlan, setPendingFeePlan] = useState(null);
+  const [pendingFeePlans, setPendingFeePlans] = useState([]);
   const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
@@ -31,12 +31,16 @@ export default function DriverPayment() {
           const subscriptions = response.data?.data ?? [];
           const subscription = subscriptions.find((item) => item.id === parsed.subscriptionId);
           if (subscription?.status === 'PENDING_PAYMENT') {
-            setPendingFeePlan(parsed);
+            setPendingFeePlans((current) => {
+              const key = parsed.vnpTxnRef || parsed.subscriptionId;
+              const withoutDuplicate = current.filter((item) => (item.vnpTxnRef || item.subscriptionId) !== key);
+              return [parsed, ...withoutDuplicate];
+            });
           } else {
             localStorage.removeItem('pending_fee_plan_request');
           }
         })
-        .catch(() => setPendingFeePlan(parsed));
+        .catch(() => setPendingFeePlans((current) => [parsed, ...current]));
     } catch {
       localStorage.removeItem('pending_fee_plan_request');
     }
@@ -45,8 +49,44 @@ export default function DriverPayment() {
   useEffect(() => {
     let cancelled = false;
     apiClient.get(API_ENDPOINTS.FEE.MY_INVOICES)
-      .then((response) => {
-        if (!cancelled) setSubscriptionInvoices(response.data?.data ?? []);
+      .then(async (response) => {
+        const invoices = response.data?.data ?? [];
+        if (!cancelled) setSubscriptionInvoices(invoices);
+
+        const pendingInvoices = invoices.filter((invoice) => invoice.status === 'PENDING' && invoice.vnpTxnRef);
+        const pendingPlans = await Promise.all(pendingInvoices.map(async (invoice) => {
+          try {
+            const orderResponse = await apiClient.get(API_ENDPOINTS.PAYMENTS.VNPAY_ORDER_STATUS(invoice.vnpTxnRef));
+            const order = orderResponse.data?.data ?? orderResponse.data;
+            if (order?.status !== 'PENDING' || !order?.paymentUrl) return null;
+            return {
+              invoiceId: invoice.id,
+              vnpTxnRef: invoice.vnpTxnRef,
+              paymentUrl: order.paymentUrl,
+              expiredAt: order.expiredAt,
+              licensePlate: invoice.licensePlate,
+              planName: invoice.planName,
+              amount: invoice.amount,
+            };
+          } catch {
+            return null;
+          }
+        }));
+
+        if (!cancelled) {
+          setPendingFeePlans((current) => {
+            const merged = [...current];
+            pendingPlans.filter(Boolean).forEach((plan) => {
+              const existingIndex = merged.findIndex((item) => item.vnpTxnRef === plan.vnpTxnRef);
+              if (existingIndex >= 0) {
+                merged[existingIndex] = { ...merged[existingIndex], ...plan };
+              } else {
+                merged.push(plan);
+              }
+            });
+            return merged.filter((plan) => plan.paymentUrl);
+          });
+        }
       })
       .catch(() => {
         if (!cancelled) setSubscriptionInvoices([]);
@@ -119,33 +159,40 @@ export default function DriverPayment() {
         <SummaryCard label="Thanh toán lỗi" value={`${totalFailed.toLocaleString('vi-VN')} VNĐ`} tone="text-red-500" />
       </div>
 
-      {pendingFeePlan && (
+      {pendingFeePlans.length > 0 && (
         <section className="rounded-2xl border border-sky-100 bg-sky-50/30 p-5">
           <h3 className="text-sm font-bold text-slate-800">Gói đang chờ thanh toán VNPay</h3>
-          <div className="mt-3 flex flex-col justify-between gap-4 rounded-xl border border-slate-100 bg-white p-4 sm:flex-row sm:items-center">
-            <div>
-              <p className="font-bold text-slate-800">
-                {pendingFeePlan.planName || 'Gói thẻ xe'} · {pendingFeePlan.licensePlate}
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                {pendingFeePlan.durationMonths} tháng · Thanh toán qua VNPay
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <p className="font-black text-sky-600">
-                {Number(pendingFeePlan.amount).toLocaleString('vi-VN')} đ
-              </p>
-              <Button
-                variant="primary"
-                size="sm"
-                icon="open_in_new"
-                loading={redirecting}
-                disabled={redirecting}
-                onClick={() => handlePayFeePlan(pendingFeePlan)}
+          <div className="mt-3 space-y-3">
+            {pendingFeePlans.map((plan) => (
+              <div
+                key={plan.vnpTxnRef || plan.subscriptionId || plan.invoiceId}
+                className="flex flex-col justify-between gap-4 rounded-xl border border-slate-100 bg-white p-4 sm:flex-row sm:items-center"
               >
-                {redirecting ? 'Đang chuyển...' : 'Thanh toán ngay'}
-              </Button>
-            </div>
+                <div>
+                  <p className="font-bold text-slate-800">
+                    {plan.planName || 'Gói thẻ xe'} · {plan.licensePlate}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Thanh toán qua VNPay{plan.expiredAt ? ` · Hết hạn: ${vietnamDayjs(plan.expiredAt).format('DD/MM/YYYY HH:mm')}` : ''}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <p className="font-black text-sky-600">
+                    {Number(plan.amount).toLocaleString('vi-VN')} đ
+                  </p>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    icon="open_in_new"
+                    loading={redirecting}
+                    disabled={redirecting}
+                    onClick={() => handlePayFeePlan(plan)}
+                  >
+                    {redirecting ? 'Đang chuyển...' : 'Thanh toán ngay'}
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
           <p className="mt-3 text-xs text-slate-400">
             Bạn sẽ được chuyển sang VNPay và quay lại hệ thống sau khi hoàn tất.

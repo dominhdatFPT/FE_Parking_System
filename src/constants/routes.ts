@@ -13,6 +13,8 @@ export const ROUTES = {
     VEHICLE_EXIT: '/admin/vehicle-exit',
     PARKING_SESSIONS: '/admin/parking-sessions',
     USERS: '/admin/users',
+    USER_VEHICLE_REGISTRATION: '/admin/user-vehicle-registration',
+    ROLES: '/admin/roles',
     SYSTEM_CONFIG: '/admin/system-configuration',
     AUDIT_LOG: '/admin/audit-log',
     NOTIFICATIONS: {

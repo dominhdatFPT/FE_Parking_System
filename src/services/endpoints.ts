@@ -35,6 +35,9 @@ export const API_ENDPOINTS = {
     USER_STATUS: (userId: string | number) => `/api/v1/admin/accounts/users/${userId}/status`,
     USER_ROLE: (userId: string | number) => `/api/v1/admin/accounts/users/${userId}/role`,
   },
+  VEHICLE_REGISTRATIONS: {
+    CREATE_FOR_USER: (userId: string | number) => `/api/v1/vehicle-registrations/users/${userId}`,
+  },
   NOTIFICATIONS: {
     LIST: '/api/v1/notifications',
     DETAIL: (id: number | string) => `/api/v1/notifications/${id}`,

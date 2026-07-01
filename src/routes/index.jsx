@@ -20,6 +20,7 @@ import DriverFeePlans from '../features/driver/pages/DriverFeePlans';
 import NotFoundPage from '../pages/NotFoundPage';
 import ForbiddenPage from '../pages/ForbiddenPage';
 import AccountManagementPage from '../pages/AccountManagementPage';
+import UserVehicleRegistrationPage from '../pages/UserVehicleRegistrationPage';
 import SettingsPage from '../pages/SettingsPage';
 import NotificationDetailPage from '../pages/NotificationDetailPage';
 import NotificationManagement from '../pages/NotificationManagement';
@@ -111,6 +112,7 @@ export function AppRoutes() {
         <Route path={ROUTES.ADMIN.VEHICLE_ENTRY} element={<VehicleEntryPage />} />
         <Route path={ROUTES.ADMIN.PARKING_SESSIONS} element={<ParkingSessionsPage />} />
         <Route path={ROUTES.ADMIN.USERS} element={<AccountManagementPage />} />
+        <Route path={ROUTES.ADMIN.USER_VEHICLE_REGISTRATION} element={<UserVehicleRegistrationPage />} />
         <Route path={ROUTES.ADMIN.VEHICLE_EXIT} element={<StaffVehicleExit />} />
         <Route path={ROUTES.ADMIN.SYSTEM_CONFIG} element={<SystemConfigurationPage />} />
         <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AuditLogPage />} />
