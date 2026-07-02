@@ -3,7 +3,6 @@ import {
   CarFront,
   CheckCircle2,
   FileImage,
-  PackageCheck,
   RefreshCcw,
   Search,
   UserRound,
@@ -70,65 +69,22 @@ function formatMoney(value) {
   return `${number.toLocaleString('vi-VN')} đ`;
 }
 
-function normalizeVehicle(item) {
-  const typeHint = String(
-    item.vehicleTypeCode || item.vehicleType || item.vehicleTypeName || item.typeName || item.category || '',
-  ).toUpperCase();
-  const rawTypeId = item.vehicleTypeId ?? item.typeId;
-  const vehicleTypeId = Number.isFinite(Number(rawTypeId))
-    ? Number(rawTypeId)
-    : (typeHint.includes('CAR') || typeHint.includes('OTO') || typeHint.includes('Ô') || typeHint.includes('Ô TÔ') ? 2 : 1);
-
-  return {
-    vehicleId: item.vehicleId ?? item.id ?? item.registrationId ?? item.vehicleRegistrationId,
-    licensePlate: item.licensePlate || item.plateNumber || item.plate || 'Chưa có biển số',
-    vehicleTypeId,
-    vehicleTypeName: item.vehicleTypeName || item.vehicleType || item.typeName || '',
-    brand: item.brand || item.vehicleBrand || '',
-    color: item.color || item.vehicleColor || '',
-    status: item.status || item.registrationStatus || '',
-  };
-}
-
-async function fetchVehiclesForUser(userId, vehicleTypeId) {
-  const response = await apiClient.get(`/api/v1/fee-subscriptions/users/${userId}/vehicles`, {
-    params: { vehicleTypeId },
-  });
-  return extractList(response.data?.data ?? response.data)
-    .map(normalizeVehicle)
-    .filter((vehicle) => vehicle.vehicleId && Number(vehicle.vehicleTypeId) === Number(vehicleTypeId));
-}
-
-async function registerFeePackageForUser(userId, payload) {
-  const response = await apiClient.post(`/api/v1/fee-subscriptions/users/${userId}/register`, payload);
-  return response.data?.data ?? response.data;
-}
-
 export default function UserVehicleRegistrationPage() {
   const [users, setUsers] = useState([]);
   const [keyword, setKeyword] = useState('');
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
-  const [packageUser, setPackageUser] = useState(null);
 
   const [vehicleType, setVehicleType] = useState('MOTORBIKE');
   const [licensePlate, setLicensePlate] = useState('');
   const [files, setFiles] = useState(emptyFiles);
   const [feePackages, setFeePackages] = useState([]);
   const [selectedFeePackageId, setSelectedFeePackageId] = useState('');
+  const [feePackagePaidCash, setFeePackagePaidCash] = useState(false);
   const [loadingPackages, setLoadingPackages] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
-  const [packageVehicleType, setPackageVehicleType] = useState('MOTORBIKE');
-  const [packageVehicles, setPackageVehicles] = useState([]);
-  const [packageFeePackages, setPackageFeePackages] = useState([]);
-  const [selectedPackageVehicleId, setSelectedPackageVehicleId] = useState('');
-  const [selectedPackagePlanId, setSelectedPackagePlanId] = useState('');
-  const [loadingPackageVehicles, setLoadingPackageVehicles] = useState(false);
-  const [loadingPackagePlans, setLoadingPackagePlans] = useState(false);
-  const [packageSubmitting, setPackageSubmitting] = useState(false);
-  const [packageError, setPackageError] = useState('');
 
   const vehicleTypeId = useMemo(
     () => VEHICLE_TYPES.find((type) => type.code === vehicleType)?.id ?? 1,
@@ -136,14 +92,6 @@ export default function UserVehicleRegistrationPage() {
   );
 
   const selectedPackage = feePackages.find((item) => String(item.id) === String(selectedFeePackageId));
-  const packageVehicleTypeId = useMemo(
-    () => VEHICLE_TYPES.find((type) => type.code === packageVehicleType)?.id ?? 1,
-    [packageVehicleType],
-  );
-  const selectedPackageVehicle = packageVehicles.find(
-    (item) => String(item.vehicleId) === String(selectedPackageVehicleId),
-  );
-  const selectedPackagePlan = packageFeePackages.find((item) => String(item.id) === String(selectedPackagePlanId));
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -162,6 +110,7 @@ export default function UserVehicleRegistrationPage() {
   const fetchFeePackages = useCallback(async () => {
     setLoadingPackages(true);
     setSelectedFeePackageId('');
+    setFeePackagePaidCash(false);
     try {
       const response = await apiClient.get(API_ENDPOINTS.FEE.PACKAGES, {
         params: { vehicleTypeId },
@@ -174,39 +123,6 @@ export default function UserVehicleRegistrationPage() {
     }
   }, [vehicleTypeId]);
 
-  const fetchPackageVehicles = useCallback(async () => {
-    if (!packageUser) return;
-    setLoadingPackageVehicles(true);
-    setPackageError('');
-    setSelectedPackageVehicleId('');
-    try {
-      const vehicles = await fetchVehiclesForUser(packageUser.userId, packageVehicleTypeId);
-      setPackageVehicles(vehicles);
-      setSelectedPackageVehicleId(vehicles[0]?.vehicleId ? String(vehicles[0].vehicleId) : '');
-    } catch (error) {
-      setPackageVehicles([]);
-      setPackageError(error?.response?.data?.message || 'Không thể tải danh sách xe của user.');
-    } finally {
-      setLoadingPackageVehicles(false);
-    }
-  }, [packageUser, packageVehicleTypeId]);
-
-  const fetchPackageFeePackages = useCallback(async () => {
-    setLoadingPackagePlans(true);
-    setSelectedPackagePlanId('');
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.FEE.PACKAGES, {
-        params: { vehicleTypeId: packageVehicleTypeId },
-      });
-      setPackageFeePackages(response.data?.data ?? []);
-    } catch {
-      setPackageFeePackages([]);
-      setPackageError('Không thể tải danh sách gói cước.');
-    } finally {
-      setLoadingPackagePlans(false);
-    }
-  }, [packageVehicleTypeId]);
-
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
@@ -215,18 +131,13 @@ export default function UserVehicleRegistrationPage() {
     if (selectedUser) fetchFeePackages();
   }, [fetchFeePackages, selectedUser]);
 
-  useEffect(() => {
-    if (!packageUser) return;
-    fetchPackageVehicles();
-    fetchPackageFeePackages();
-  }, [fetchPackageFeePackages, fetchPackageVehicles, packageUser]);
-
   function openRegistrationModal(user) {
     setSelectedUser(user);
     setVehicleType('MOTORBIKE');
     setLicensePlate('');
     setFiles(emptyFiles);
     setSelectedFeePackageId('');
+    setFeePackagePaidCash(false);
     setFormError('');
   }
 
@@ -234,22 +145,6 @@ export default function UserVehicleRegistrationPage() {
     if (submitting) return;
     setSelectedUser(null);
     setFormError('');
-  }
-
-  function openPackageModal(user) {
-    setPackageUser(user);
-    setPackageVehicleType('MOTORBIKE');
-    setPackageVehicles([]);
-    setPackageFeePackages([]);
-    setSelectedPackageVehicleId('');
-    setSelectedPackagePlanId('');
-    setPackageError('');
-  }
-
-  function closePackageModal() {
-    if (packageSubmitting) return;
-    setPackageUser(null);
-    setPackageError('');
   }
 
   function handleFileChange(key, event) {
@@ -283,6 +178,7 @@ export default function UserVehicleRegistrationPage() {
       const payload = {
         vehicleTypeId,
         requestedFeePackageId: selectedFeePackageId ? Number(selectedFeePackageId) : null,
+        feePackagePaidCash: Boolean(selectedFeePackageId && feePackagePaidCash),
         licensePlate: licensePlate.trim().toUpperCase(),
         cccdFrontImage: files.cccdFrontImage ? await fileToBase64(files.cccdFrontImage) : null,
         cccdBackImage: files.cccdBackImage ? await fileToBase64(files.cccdBackImage) : null,
@@ -293,7 +189,9 @@ export default function UserVehicleRegistrationPage() {
       await createVehicleRegistrationForUser(selectedUser.userId, payload);
       setMessage(
         selectedFeePackageId
-          ? `Đã đăng ký xe và tạo khoản chờ thanh toán cho ${selectedUser.fullName}.`
+          ? feePackagePaidCash
+            ? `Đã đăng ký xe và kích hoạt gói đã thu tiền mặt cho ${selectedUser.fullName}.`
+            : `Đã đăng ký xe và tạo khoản chờ thanh toán cho ${selectedUser.fullName}.`
           : `Đã đăng ký xe cho ${selectedUser.fullName}. User sẽ thấy xe trong trang biểu phí.`,
       );
       closeRegistrationModal();
@@ -301,37 +199,6 @@ export default function UserVehicleRegistrationPage() {
       setFormError(error?.response?.data?.message || 'Không thể đăng ký xe cho user.');
     } finally {
       setSubmitting(false);
-    }
-  }
-
-  async function handlePackageSubmit(event) {
-    event.preventDefault();
-    if (!packageUser) return;
-    if (!selectedPackageVehicleId) {
-      setPackageError('Vui lòng chọn xe của user.');
-      return;
-    }
-    if (!selectedPackagePlanId) {
-      setPackageError('Vui lòng chọn gói đăng kí.');
-      return;
-    }
-
-    setPackageSubmitting(true);
-    setPackageError('');
-    try {
-      await registerFeePackageForUser(packageUser.userId, {
-        vehicleId: Number(selectedPackageVehicleId),
-        planId: Number(selectedPackagePlanId),
-        autoRenew: false,
-      });
-      setMessage(
-        `Đã đăng kí gói ${selectedPackagePlan?.name || ''} cho xe ${selectedPackageVehicle?.licensePlate || ''}. User đăng nhập tài khoản của họ để thanh toán.`,
-      );
-      closePackageModal();
-    } catch (error) {
-      setPackageError(error?.response?.data?.message || 'Không thể tạo đăng kí gói cho user.');
-    } finally {
-      setPackageSubmitting(false);
     }
   }
 
@@ -416,14 +283,6 @@ export default function UserVehicleRegistrationPage() {
                       <div className="flex flex-wrap justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() => openPackageModal(user)}
-                          className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-black text-sky-700 shadow-sm ring-1 ring-sky-200 transition hover:bg-sky-50"
-                        >
-                          <PackageCheck size={17} />
-                          Đăng kí gói
-                        </button>
-                        <button
-                          type="button"
                           onClick={() => openRegistrationModal(user)}
                           className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 text-sm font-black text-white shadow-sm shadow-sky-600/20 transition hover:bg-sky-700"
                         >
@@ -439,196 +298,6 @@ export default function UserVehicleRegistrationPage() {
           </div>
         )}
       </section>
-
-      {packageUser && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden bg-slate-950/70 p-3 sm:p-5" role="dialog" aria-modal="true">
-          <div className="flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
-            <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-600">Đăng kí gói cho user</p>
-                <h2 className="mt-1 text-xl font-black text-slate-950">{packageUser.fullName}</h2>
-                <p className="mt-1 text-sm font-semibold text-slate-500">{packageUser.email || packageUser.phone}</p>
-              </div>
-              <button
-                type="button"
-                onClick={closePackageModal}
-                className="grid h-10 w-10 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-              >
-                <X size={22} />
-              </button>
-            </div>
-
-            <form onSubmit={handlePackageSubmit} className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-              <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-                <div className="space-y-5">
-                  <section className="rounded-2xl border border-slate-200 p-5">
-                    <h3 className="text-sm font-black text-slate-950">Chọn loại xe</h3>
-                    <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                      {VEHICLE_TYPES.map((type) => (
-                        <button
-                          key={type.code}
-                          type="button"
-                          onClick={() => setPackageVehicleType(type.code)}
-                          className={`rounded-2xl border px-4 py-3 text-left text-sm font-black transition ${
-                            packageVehicleType === type.code
-                              ? 'border-sky-400 bg-sky-50 text-sky-700 ring-2 ring-sky-100'
-                              : 'border-slate-200 bg-white text-slate-600 hover:border-sky-200'
-                          }`}
-                        >
-                          {type.label}
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-
-                  <section className="rounded-2xl border border-slate-200 p-5">
-                    <div className="flex items-center justify-between gap-3">
-                      <h3 className="text-sm font-black text-slate-950">Xe của user</h3>
-                      <button
-                        type="button"
-                        onClick={fetchPackageVehicles}
-                        className="text-xs font-black text-sky-700 transition hover:text-sky-900"
-                      >
-                        Tải lại
-                      </button>
-                    </div>
-                    <div className="mt-4 space-y-3">
-                      {loadingPackageVehicles ? (
-                        <div className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm font-bold text-slate-500">
-                          Đang tải xe...
-                        </div>
-                      ) : packageVehicles.length === 0 ? (
-                        <div className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm font-bold text-slate-500">
-                          Chưa có xe phù hợp để đăng kí gói.
-                        </div>
-                      ) : (
-                        packageVehicles.map((vehicle) => (
-                          <label
-                            key={vehicle.vehicleId}
-                            className={`flex cursor-pointer items-center justify-between gap-4 rounded-2xl border px-4 py-3 transition ${
-                              String(selectedPackageVehicleId) === String(vehicle.vehicleId)
-                                ? 'border-sky-400 bg-sky-50 ring-2 ring-sky-100'
-                                : 'border-slate-200 bg-white hover:border-sky-200'
-                            }`}
-                          >
-                            <input
-                              type="radio"
-                              name="packageVehicle"
-                              value={vehicle.vehicleId}
-                              checked={String(selectedPackageVehicleId) === String(vehicle.vehicleId)}
-                              onChange={(event) => setSelectedPackageVehicleId(event.target.value)}
-                              className="sr-only"
-                            />
-                            <span>
-                              <span className="block text-sm font-black uppercase text-slate-900">{vehicle.licensePlate}</span>
-                              <span className="mt-1 block text-xs font-semibold text-slate-400">
-                                {[vehicle.vehicleTypeName, vehicle.brand, vehicle.color].filter(Boolean).join(' · ') || 'Xe đã đăng kí'}
-                              </span>
-                            </span>
-                            <span className="h-4 w-4 rounded-full border border-sky-300 bg-white">
-                              {String(selectedPackageVehicleId) === String(vehicle.vehicleId) ? (
-                                <span className="block h-full w-full rounded-full border-4 border-white bg-sky-600" />
-                              ) : null}
-                            </span>
-                          </label>
-                        ))
-                      )}
-                    </div>
-                  </section>
-
-                  <section className="rounded-2xl border border-slate-200 p-5">
-                    <h3 className="text-sm font-black text-slate-950">Chọn gói</h3>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      {loadingPackagePlans ? (
-                        <div className="col-span-full rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm font-bold text-slate-500">
-                          Đang tải gói...
-                        </div>
-                      ) : packageFeePackages.length === 0 ? (
-                        <div className="col-span-full rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm font-bold text-slate-500">
-                          Chưa có gói phù hợp.
-                        </div>
-                      ) : (
-                        packageFeePackages.map((pkg) => (
-                          <button
-                            key={pkg.id}
-                            type="button"
-                            onClick={() => setSelectedPackagePlanId(String(pkg.id))}
-                            className={`rounded-2xl border p-4 text-left transition ${
-                              String(selectedPackagePlanId) === String(pkg.id)
-                                ? 'border-sky-400 bg-sky-50 ring-2 ring-sky-100'
-                                : 'border-slate-200 bg-white hover:border-sky-200'
-                            }`}
-                          >
-                            <span className="block text-sm font-black text-slate-900">{pkg.name}</span>
-                            <span className="mt-2 block text-xs font-semibold text-slate-500">
-                              {pkg.durationMonths} tháng · {formatMoney(pkg.currentPrice ?? pkg.price)}
-                            </span>
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  </section>
-                </div>
-
-                <aside className="space-y-5">
-                  <section className="rounded-2xl border border-sky-100 bg-sky-50/40 p-5">
-                    <h3 className="text-sm font-black text-slate-950">Tóm tắt</h3>
-                    <dl className="mt-4 space-y-3 text-sm">
-                      <div className="flex justify-between gap-4">
-                        <dt className="font-bold text-slate-500">User</dt>
-                        <dd className="text-right font-black text-slate-900">{packageUser.fullName}</dd>
-                      </div>
-                      <div className="flex justify-between gap-4">
-                        <dt className="font-bold text-slate-500">Xe</dt>
-                        <dd className="text-right font-black uppercase text-slate-900">
-                          {selectedPackageVehicle?.licensePlate || 'Chưa chọn'}
-                        </dd>
-                      </div>
-                      <div className="flex justify-between gap-4">
-                        <dt className="font-bold text-slate-500">Gói</dt>
-                        <dd className="text-right font-black text-slate-900">{selectedPackagePlan?.name || 'Chưa chọn'}</dd>
-                      </div>
-                      <div className="flex justify-between gap-4">
-                        <dt className="font-bold text-slate-500">Số tiền</dt>
-                        <dd className="text-right font-black text-sky-700">
-                          {selectedPackagePlan ? formatMoney(selectedPackagePlan.currentPrice ?? selectedPackagePlan.price) : 'Chưa có'}
-                        </dd>
-                      </div>
-                    </dl>
-                    <p className="mt-4 rounded-2xl bg-white p-3 text-xs font-semibold leading-relaxed text-slate-500 ring-1 ring-sky-100">
-                      Sau khi tạo, khoản thanh toán sẽ nằm trong tài khoản user. User đăng nhập tài khoản của họ để thanh toán.
-                    </p>
-                  </section>
-                </aside>
-              </div>
-
-              {packageError && (
-                <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">
-                  {packageError}
-                </div>
-              )}
-
-              <div className="mt-6 flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={closePackageModal}
-                  disabled={packageSubmitting}
-                  className="h-12 rounded-2xl bg-slate-100 px-5 text-sm font-black text-slate-700 transition hover:bg-slate-200 disabled:opacity-60"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  disabled={packageSubmitting || !selectedPackageVehicleId || !selectedPackagePlanId}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-sky-600 px-6 text-sm font-black text-white shadow-sm shadow-sky-600/20 transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {packageSubmitting ? 'Đang tạo...' : 'Tạo đăng kí gói'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {selectedUser && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden bg-slate-900/60 p-3 backdrop-blur-sm sm:p-5" role="dialog" aria-modal="true">
@@ -721,7 +390,7 @@ export default function UserVehicleRegistrationPage() {
                   <section className="rounded-2xl border border-sky-100 bg-sky-50/40 p-5">
                     <h3 className="text-sm font-black text-slate-950">Biểu phí xe</h3>
                     <p className="mt-1 text-xs font-semibold text-slate-500">
-                      Không bắt buộc. Nếu chọn, hệ thống tạo luôn khoản chờ thanh toán cho user này.
+                      Chọn tạm chưa đăng ký gói nếu xe vào bãi theo khách vãng lai. Nếu chọn gói, có thể đánh dấu đã thu tiền mặt.
                     </p>
 
                     <div className="mt-4 space-y-3">
@@ -729,11 +398,14 @@ export default function UserVehicleRegistrationPage() {
                         <span className="text-xs font-black uppercase text-slate-500">Chọn gói</span>
                         <select
                           value={selectedFeePackageId}
-                          onChange={(event) => setSelectedFeePackageId(event.target.value)}
+                          onChange={(event) => {
+                            setSelectedFeePackageId(event.target.value);
+                            if (!event.target.value) setFeePackagePaidCash(false);
+                          }}
                           disabled={loadingPackages}
                           className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 outline-none transition focus:border-sky-300 focus:ring-4 focus:ring-sky-100"
                         >
-                          <option value="">Không chọn biểu phí</option>
+                          <option value="">Tạm chưa đăng ký gói</option>
                           {feePackages.map((pkg) => (
                             <option key={pkg.id} value={pkg.id}>
                               {pkg.name} · {pkg.durationMonths} tháng · {formatMoney(pkg.currentPrice ?? pkg.price)}
@@ -754,6 +426,25 @@ export default function UserVehicleRegistrationPage() {
                               {formatMoney(selectedPackage.currentPrice ?? selectedPackage.price)}
                             </span>
                           </div>
+                          <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-3">
+                            <input
+                              type="checkbox"
+                              checked={feePackagePaidCash}
+                              onChange={(event) => setFeePackagePaidCash(event.target.checked)}
+                              className="mt-1 h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-200"
+                            />
+                            <span>
+                              <span className="block text-sm font-black text-emerald-800">Đã thu tiền mặt</span>
+                              <span className="mt-1 block text-xs font-semibold leading-relaxed text-emerald-700">
+                                Tích nếu user đã trả tiền mặt cho staff/admin. Hệ thống sẽ kích hoạt gói ngay.
+                              </span>
+                            </span>
+                          </label>
+                          {!feePackagePaidCash && (
+                            <p className="mt-3 rounded-2xl bg-amber-50 p-3 text-xs font-semibold leading-relaxed text-amber-700 ring-1 ring-amber-100">
+                              Chưa tích nghĩa là khoản thanh toán sẽ nằm trong tài khoản user để họ tự thanh toán khi đăng nhập.
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
@@ -775,6 +466,18 @@ export default function UserVehicleRegistrationPage() {
                       <div className="flex justify-between gap-4">
                         <dt className="font-bold text-slate-500">Biển số</dt>
                         <dd className="font-black uppercase text-slate-900">{licensePlate || 'Chưa nhập'}</dd>
+                      </div>
+                      <div className="flex justify-between gap-4">
+                        <dt className="font-bold text-slate-500">Gói</dt>
+                        <dd className="text-right font-black text-slate-900">
+                          {selectedPackage?.name || 'Tạm chưa đăng ký'}
+                        </dd>
+                      </div>
+                      <div className="flex justify-between gap-4">
+                        <dt className="font-bold text-slate-500">Thanh toán</dt>
+                        <dd className="text-right font-black text-slate-900">
+                          {selectedPackage ? (feePackagePaidCash ? 'Đã thu tiền mặt' : 'User tự thanh toán') : 'Khách vãng lai'}
+                        </dd>
                       </div>
                       <div className="flex justify-between gap-4">
                         <dt className="font-bold text-slate-500">Ảnh đã tải</dt>
