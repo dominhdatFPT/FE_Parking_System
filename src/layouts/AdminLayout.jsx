@@ -119,7 +119,7 @@ export default function AdminLayout() {
       className="relative flex h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.14),transparent_34%),linear-gradient(135deg,#f8fafc_0%,#eef6fb_46%,#f8fafc_100%)] text-slate-950"
     >
       <aside
-        className={`hidden h-full min-h-0 flex-shrink-0 border-r border-white/[0.07] bg-gradient-to-b from-[#08203D] via-[#071A32] to-[#020B18] text-white shadow-[8px_0_32px_rgba(2,11,24,0.55)] transition-[width] duration-300 ease-out lg:z-50 lg:flex lg:flex-col ${
+        className={`hidden h-full min-h-0 flex-shrink-0 border-r border-white/[0.07] bg-gradient-to-b from-[#08203D] via-[#071A32] to-[#020B18] text-white shadow-[8px_0_32px_rgba(2,11,24,0.55)] transition-[width] duration-300 ease-out lg:z-30 lg:flex lg:flex-col ${
           collapsed ? 'w-20' : 'w-[276px]'
         }`}
       >
@@ -258,7 +258,7 @@ export default function AdminLayout() {
       </aside>
 
 
-      <div className="relative z-10 flex h-full min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="relative z-40 flex h-full min-w-0 flex-1 flex-col overflow-hidden">
         <header className="z-40 shrink-0 border-b border-slate-100 bg-white px-5 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)] lg:px-8">
           <div className="flex min-h-12 items-center justify-between gap-4">
             <div className="min-w-0">

@@ -444,8 +444,8 @@ export default function UserVehicleRegistrationPage() {
       </section>
 
       {packageUser && (
-        <div className="fixed inset-0 z-[90] grid place-items-center overflow-y-auto bg-slate-950/70 p-3 sm:p-5" role="dialog" aria-modal="true">
-          <div className="max-h-[calc(100dvh-2rem)] w-full max-w-4xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden bg-slate-950/70 p-3 sm:p-5" role="dialog" aria-modal="true">
+          <div className="flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
             <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-600">Đăng kí gói cho user</p>
@@ -461,7 +461,7 @@ export default function UserVehicleRegistrationPage() {
               </button>
             </div>
 
-            <form onSubmit={handlePackageSubmit} className="max-h-[calc(100dvh-8rem)] overflow-y-auto p-4 sm:p-6">
+            <form onSubmit={handlePackageSubmit} className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
               <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
                 <div className="space-y-5">
                   <section className="rounded-2xl border border-slate-200 p-5">
@@ -634,8 +634,8 @@ export default function UserVehicleRegistrationPage() {
       )}
 
       {selectedUser && (
-        <div className="fixed inset-0 z-[90] grid place-items-center overflow-y-auto bg-slate-900/60 p-3 backdrop-blur-sm sm:p-5" role="dialog" aria-modal="true">
-          <div className="max-h-[calc(100dvh-2rem)] w-full max-w-6xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden bg-slate-900/60 p-3 backdrop-blur-sm sm:p-5" role="dialog" aria-modal="true">
+          <div className="flex max-h-[calc(100dvh-2rem)] w-full max-w-6xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
             <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-600">Đăng ký xe cho user</p>
@@ -651,7 +651,7 @@ export default function UserVehicleRegistrationPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="max-h-[calc(100dvh-8rem)] overflow-y-auto p-4 sm:p-6">
+            <form onSubmit={handleSubmit} className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
               <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
                 <div className="space-y-5">
                   <section className="rounded-2xl border border-slate-200 p-5">
