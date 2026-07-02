@@ -21,7 +21,7 @@ import {
 import { useNavigate } from 'react-router';
 import { ROUTES } from '../constants/routes';
 import { apiClient } from '../services/apiClient';
-import { bookingService } from '../services/bookingService';
+import { customerService } from '../services/customerService';
 
 const MAX_FILE_SIZE = 4 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -30,7 +30,6 @@ const EMPTY_FILES = {
   cccdBackImage: null,
   licenseImage: null,
   vehicleDocumentImage: null,
-  plateImage: null,
 };
 
 const DOCUMENTS = [
@@ -38,7 +37,6 @@ const DOCUMENTS = [
   { key: 'cccdBackImage', label: 'CCCD mặt sau' },
   { key: 'licenseImage', label: 'Bằng lái xe' },
   { key: 'vehicleDocumentImage', label: 'Giấy đăng ký xe / cà vẹt' },
-  { key: 'plateImage', label: 'Ảnh biển số xe thực tế' },
 ];
 
 const VEHICLE_TYPES = [
@@ -63,6 +61,7 @@ export default function AiChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [vehicleType, setVehicleType] = useState(null);
+  const [licensePlate, setLicensePlate] = useState('');
   const [feePackages, setFeePackages] = useState([]);
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [files, setFiles] = useState(EMPTY_FILES);
@@ -83,6 +82,7 @@ export default function AiChatWidget() {
   const resetFlow = () => {
     setStep(0);
     setVehicleType(null);
+    setLicensePlate('');
     setFeePackages([]);
     setSelectedPackage(null);
     setFiles(EMPTY_FILES);
@@ -142,7 +142,7 @@ export default function AiChatWidget() {
   };
 
   const handleSubmit = async () => {
-    if (!vehicleType || !DOCUMENTS.every(({ key }) => files[key]) || submitting) return;
+    if (!vehicleType || !licensePlate.trim() || !DOCUMENTS.every(({ key }) => files[key]) || submitting) return;
     setSubmitting(true);
     setError('');
 
@@ -152,9 +152,10 @@ export default function AiChatWidget() {
       );
       const payload = {
         vehicleTypeId: vehicleType.id,
+        licensePlate: licensePlate.trim().toUpperCase(),
         ...Object.fromEntries(encodedFiles),
       };
-      const result = await bookingService.registerVehicleCard(payload);
+      const result = await customerService.registerVehicleCard(payload);
       if (result.error) {
         setError(
           result.message
@@ -417,11 +418,23 @@ export default function AiChatWidget() {
                     <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Quay lại chọn gói
                   </button>
                   <h3 className="text-lg font-bold text-slate-800">Tải ảnh hồ sơ</h3>
-                  <p className="mt-1 text-sm text-slate-500">Cần đủ 5 ảnh rõ nét. Mỗi ảnh tối đa 4 MB.</p>
+                  <p className="mt-1 text-sm text-slate-500">Nhập biển số xe và tải đủ ảnh hồ sơ rõ nét. Mỗi ảnh tối đa 4 MB.</p>
                   <div className="mt-3 flex items-start gap-2 rounded-xl border border-blue-100 bg-blue-50 p-3 text-xs leading-relaxed text-blue-800">
                     <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                    Họ tên và biển số sẽ được hệ thống đọc từ ảnh sau khi gửi hồ sơ.
+                    Biển số bạn nhập sẽ được nhân viên đối chiếu với giấy đăng ký xe khi duyệt hồ sơ.
                   </div>
+
+                  <label className="mt-4 block">
+                    <span className="mb-1.5 block text-xs font-bold text-slate-600">Biển số xe <span className="text-red-500">*</span></span>
+                    <input
+                      type="text"
+                      value={licensePlate}
+                      onChange={(event) => setLicensePlate(event.target.value.toUpperCase())}
+                      placeholder="VD: 29C199999"
+                      disabled={submitting}
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold uppercase text-slate-800 outline-none transition placeholder:text-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:bg-slate-100"
+                    />
+                  </label>
 
                   <div className="mt-4 space-y-3">
                     {DOCUMENTS.map(({ key, label }) => {
@@ -479,12 +492,12 @@ export default function AiChatWidget() {
 
                   <div className="mt-5">
                     <div className="mb-2 flex justify-between text-xs font-semibold text-slate-500">
-                      <span>Ảnh đã chọn</span><span>{completedFileCount}/5</span>
+                      <span>Ảnh đã chọn</span><span>{completedFileCount}/{DOCUMENTS.length}</span>
                     </div>
                     <button
                       type="button"
                       onClick={handleSubmit}
-                      disabled={!allFilesSelected || submitting}
+                      disabled={!licensePlate.trim() || !allFilesSelected || submitting}
                       className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-300"
                     >
                       {submitting ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <FileImage className="h-4 w-4" aria-hidden="true" />}

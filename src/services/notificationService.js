@@ -111,14 +111,6 @@ export async function getDatabaseNotifications() {
     time: relativeTime(item.createdAt),
     createdAt: item.createdAt,
   }));
-  const bookings = (dashboard?.pendingBookings || []).map((item) => ({
-    id: `booking-${item.id}`,
-    title: 'Booking đang chờ xử lý',
-    message: `${item.userFullName || `Khách hàng #${item.userId}`} · ${item.parkingName || 'Bãi xe'} · ${item.status}`,
-    type: 'warning',
-    time: relativeTime(item.createdAt),
-    createdAt: item.createdAt,
-  }));
   const activities = (dashboard?.recentVehicleActivities || []).map((item) => ({
     id: `activity-${item.id}`,
     title: item.exitTime ? 'Xe đã ra bãi' : 'Xe đã vào bãi',
@@ -127,7 +119,7 @@ export async function getDatabaseNotifications() {
     time: relativeTime(item.updatedAt || item.entryTime),
     createdAt: item.updatedAt || item.entryTime,
   }));
-  return [...incidents, ...bookings, ...activities]
+  return [...incidents, ...activities]
     .sort((a, b) => apiDateTimeMillis(b.createdAt || 0) - apiDateTimeMillis(a.createdAt || 0))
     .slice(0, 20);
 }

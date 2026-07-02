@@ -6,7 +6,7 @@ const exceptionTypes = [
   { value: 'LOST_CARD', label: 'Mất thẻ', severity: 'HIGH' },
   { value: 'PLATE_MISMATCH', label: 'Sai biển số', severity: 'HIGH' },
   { value: 'PAYMENT_FAILED', label: 'Thanh toán lỗi', severity: 'MEDIUM' },
-  { value: 'NO_BOOKING', label: 'Không tìm thấy booking', severity: 'MEDIUM' },
+  { value: 'CARD_NOT_FOUND', label: 'Không tìm thấy thẻ xe', severity: 'MEDIUM' },
   { value: 'CAMERA_ERROR', label: 'Camera không nhận diện', severity: 'LOW' },
   { value: 'OTHER', label: 'Khác', severity: 'LOW' },
 ];

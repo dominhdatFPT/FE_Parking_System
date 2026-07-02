@@ -1,83 +1,361 @@
 import { useState } from 'react';
-import { AlertCircle, CarFront, CheckCircle2, Search, TicketCheck, Bike } from 'lucide-react';
+import { AlertCircle, CarFront, CheckCircle2, TicketCheck, Bike, Keyboard, ChevronDown, Clock3, User, ScanLine, SlidersHorizontal } from 'lucide-react';
 import { checkParkingEntry, confirmParkingEntry } from '../../services/staffService';
-import { formatVietnamDateTime } from '../../utils/dateTime';
+import { VIETNAM_TIME_ZONE } from '../../utils/dateTime';
 
-const formatDateTime = (value) => formatVietnamDateTime(value) || '—';
+const formatKpiDateTime = (value) => {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return new Intl.DateTimeFormat('vi-VN', {
+    timeZone: VIETNAM_TIME_ZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+  }).format(date);
+};
 
-function Info({ label, value }) {
-  return <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4"><p className="text-xs font-semibold text-slate-400">{label}</p><p className="mt-1 font-bold text-slate-800">{value || '—'}</p></div>;
+const formatSessionStatus = (value, canConfirm, invalid) => {
+  if (value === '—') return '—';
+  const normalized = String(value || '').toUpperCase();
+  if (normalized.includes('COMPLETED') || normalized.includes('CREATED') || normalized.includes('ACTIVE')) {
+    return 'Đã tạo phiên';
+  }
+  if (normalized.includes('PENDING') || normalized.includes('WAITING') || normalized.includes('CHƯA') || normalized.includes('CHUA')) {
+    return 'Chưa tạo phiên';
+  }
+  if (normalized.includes('ĐÃ') || normalized.includes('DA')) {
+    return 'Đã tạo phiên';
+  }
+  if (invalid) return 'Chưa tạo phiên';
+  return canConfirm ? 'Chưa tạo phiên' : 'Đã tạo phiên';
+};
+
+function Info({ label, value, tone = 'blue', icon: Icon = CarFront }) {
+  const tones = {
+    blue:   { card: 'border-blue-100 shadow-blue-950/[0.04]',    icon: 'bg-blue-50 text-blue-600 ring-blue-100',       accent: 'bg-blue-500',    glow: 'bg-blue-300/15' },
+    green:  { card: 'border-emerald-100 shadow-emerald-950/[0.04]', icon: 'bg-emerald-50 text-emerald-600 ring-emerald-100', accent: 'bg-emerald-500', glow: 'bg-emerald-300/15' },
+    purple: { card: 'border-violet-100 shadow-violet-950/[0.04]', icon: 'bg-violet-50 text-violet-600 ring-violet-100',   accent: 'bg-violet-500',  glow: 'bg-violet-300/15' },
+    orange: { card: 'border-orange-100 shadow-orange-950/[0.04]', icon: 'bg-orange-50 text-orange-600 ring-orange-100',   accent: 'bg-orange-500',  glow: 'bg-orange-300/15' },
+  };
+  const s = tones[tone] || tones.blue;
+  return (
+    <div className={`group relative flex h-[74px] min-w-0 items-center gap-2 overflow-hidden rounded-[16px] border bg-gradient-to-br from-white via-white to-slate-50/80 px-2.5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${s.card}`}>
+      <span className={`absolute inset-x-0 top-0 h-1 ${s.accent}`} />
+      <span className={`pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full blur-2xl transition-opacity duration-200 group-hover:opacity-100 ${s.glow}`} />
+      <span className={`relative grid h-8 w-8 shrink-0 place-items-center rounded-2xl shadow-inner ring-1 ${s.icon}`}>
+        <Icon className="h-4 w-4" strokeWidth={2.25} />
+      </span>
+      <div className="relative min-w-0">
+        <p className="truncate text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</p>
+        <p title={value || '—'} className="mt-0.5 whitespace-nowrap text-[14px] font-extrabold leading-none tracking-tight text-slate-950">{value || '—'}</p>
+      </div>
+    </div>
+  );
+}
+
+/* Camera: image fills the entire card; all labels are absolute overlays over the image */
+function CameraPanel({ label, status = 'Online', imageSrc = '/empty_parking.png' }) {
+  return (
+    <article className="group relative h-full overflow-hidden rounded-[24px] border border-[#E5EDF7] bg-slate-700 shadow-[0_16px_42px_rgba(15,23,42,0.07)] transition-all duration-300">
+      <img src={imageSrc} alt={label} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.01]" />
+      {/* Top gradient — darkens for readability of top-overlays */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-slate-950/70 via-slate-950/25 to-transparent" />
+      {/* Bottom gradient */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950/80 via-slate-950/40 to-transparent" />
+      {/* Edge ring */}
+      <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10" />
+
+      {/* TOP: camera label pill (left) + online status pill (right) */}
+      <div className="absolute left-0 right-0 top-0 flex items-center justify-between px-4 pt-4">
+        <span className="inline-flex items-center gap-1.5 rounded-[10px] bg-slate-950/55 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-white backdrop-blur-sm ring-1 ring-white/10">
+          {label}
+        </span>
+        <span className="inline-flex items-center gap-2 rounded-[10px] bg-slate-950/55 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm ring-1 ring-white/10">
+          <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-emerald-400" />
+          {status}
+        </span>
+      </div>
+
+      {/* BOTTOM: LIVE indicator (left) + timestamp (right) */}
+      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-5 py-4 text-white">
+        <span className="inline-flex shrink-0 items-center gap-2 text-sm font-black">
+          <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+          LIVE
+        </span>
+        <p className="truncate text-sm font-semibold">27/06/2026 • 21:07:27</p>
+      </div>
+    </article>
+  );
 }
 
 export default function VehicleEntryPage() {
   const [licensePlate, setLicensePlate] = useState('');
-  const [vehicleType, setVehicleType] = useState('');
+  const [vehicleType, setVehicleType] = useState('CAR');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const [error, setError] = useState('');
+  // notice: { type: 'error'|'warning'|'success', message: string, code?: string } | null
+  const [notice, setNotice] = useState(null);
+  // hasChecked: true only after the user explicitly pressed "Kiểm tra xe" and got a response
+  const [hasChecked, setHasChecked] = useState(false);
 
   const check = async (event) => {
     event?.preventDefault();
     const plate = licensePlate.trim().toUpperCase();
-    if (!plate) { setError('Vui lòng nhập biển số xe.'); return; }
-    setLoading(true); setError(''); setResult(null);
-    try { setResult(await checkParkingEntry(plate, vehicleType || null)); }
-    catch (err) { setError(err.response?.data?.message || err.response?.data?.error || 'Không thể kiểm tra biển số trong database.'); }
+    if (!plate) {
+      setNotice({ type: 'error', message: 'Vui lòng nhập biển số xe trước khi kiểm tra.' });
+      return;
+    }
+    setLoading(true); setNotice(null); setResult(null); setHasChecked(false);
+    try {
+      const res = await checkParkingEntry(plate, vehicleType || null);
+      setResult(res);
+      setHasChecked(true);
+      if (res.entryType === 'MONTHLY') {
+        setNotice({ type: 'success', message: 'Xe đã đăng ký gói tháng. Không cần cấp thẻ vãng lai.' });
+      } else if (res.entryType === 'VISITOR') {
+        setNotice({
+          type: 'warning',
+          message: `Xe chưa có gói — cấp thẻ ${res.visitorCardCode}`,
+          code: res.visitorCardCode,
+        });
+      } else if (res.entryType === 'INVALID') {
+        setNotice({ type: 'error', message: res.message || 'Biển số không hợp lệ hoặc xe đang trong bãi.' });
+      } else {
+        // Catch-all: unknown entryType hoặc trường hợp backend chưa định nghĩa
+        setNotice({ type: 'error', message: res.message || 'Không thể xử lý yêu cầu cho xe này.' });
+      }
+    }
+    catch (err) { setNotice({ type: 'error', message: err.response?.data?.message || err.response?.data?.error || 'Không thể kiểm tra biển số trong database.' }); }
     finally { setLoading(false); }
   };
 
   const confirm = async () => {
     if (!result?.canConfirm) return;
-    setConfirming(true); setError('');
+    setConfirming(true); setNotice(null);
     try {
       const payload = {
         ...result,
         vehicleType: vehicleType || result.vehicleType,
       };
       setResult(await confirmParkingEntry(payload));
+      setNotice({ type: 'success', message: 'Đã tạo phiên gửi xe trong database' });
     }
-    catch (err) { setError(err.response?.data?.message || err.response?.data?.error || 'Không thể xác nhận xe vào.'); }
+    catch (err) { setNotice({ type: 'error', message: err.response?.data?.message || err.response?.data?.error || 'Không thể xác nhận xe vào.' }); }
     finally { setConfirming(false); }
   };
 
   const isRegistered = result?.entryType === 'MONTHLY';
   const isVisitor = result?.entryType === 'VISITOR';
   const isInvalid = result?.entryType === 'INVALID';
+  // All display values are blank/neutral until hasChecked is true
+  const badgeClassName = loading
+    ? 'bg-blue-50 text-blue-600 border-blue-200'
+    : !hasChecked
+      ? 'bg-slate-100 text-slate-500 border-slate-200'
+      : isInvalid
+        ? 'bg-rose-50 text-rose-700 border-rose-200'
+        : isRegistered
+          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+          : 'bg-blue-50 text-blue-700 border-blue-200';
+  const badgeLabel = loading ? 'ĐANG KIỂM TRA' : !hasChecked ? 'CHƯA KIỂM TRA' : isRegistered ? 'XE ĐÃ ĐĂNG KÝ GÓI' : isVisitor ? 'KHÁCH VÃNG LAI' : isInvalid ? 'KHÔNG HỢP LỆ' : 'CHƯA KIỂM TRA';
+  const displayPlate = hasChecked ? (result?.licensePlate || licensePlate.trim().toUpperCase() || '—') : '—';
+  const customerType = !hasChecked ? '—' : isRegistered ? 'Khách tháng' : isVisitor ? 'Vãng lai' : isInvalid ? 'Không hợp lệ' : '—';
+  const entryTime = hasChecked ? formatKpiDateTime(result?.entryTime || result?.checkInTime || result?.createdAt) : '—';
+  const checkedVehicleType = result?.vehicleType || vehicleType;
+  const isMotorbike = String(checkedVehicleType || '').toUpperCase().includes('MOTORBIKE')
+    || String(checkedVehicleType || '').toLowerCase().includes('xe máy');
+  const vehicleTypeDisplay = !hasChecked ? '—' : isMotorbike ? 'Xe máy' : 'Ô tô';
+  const VehicleTypeIcon = isMotorbike ? Bike : CarFront;
+  const sessionStatusDisplay = hasChecked ? formatSessionStatus(result?.sessionStatus, result?.canConfirm, isInvalid) : '—';
 
-  return <div className="mx-auto max-w-6xl space-y-6 pb-8">
-    <section className="overflow-hidden rounded-[32px] border border-white/70 bg-white/80 p-6 shadow-xl shadow-slate-200/50 backdrop-blur-xl sm:p-8">
-      <div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-sky-100 text-sky-700"><CarFront /></span><div><p className="text-xs font-bold uppercase tracking-[.2em] text-sky-600">Kiểm soát cổng vào</p><h1 className="text-3xl font-black text-slate-950">Kiểm tra xe vào</h1></div></div>
-      <p className="mt-3 text-slate-500">Nhập biển số một lần. Hệ thống tự tra xe đăng ký; chỉ cấp thẻ khi xe là khách vãng lai.</p>
+  return (
+    /*
+     * Single-root CSS grid — cameras get 0.95fr (~48%), bottom gets 1.05fr (~52%).
+     * Decorative divs are absolute so the browser ignores them for grid placement.
+     * h-full fills AdminLayout <main>'s content area; overflow-hidden is the hard stop.
+     */
+    <div className="relative grid h-full grid-rows-[0.95fr_1.05fr] gap-4 overflow-hidden bg-[#F5FAFF] px-5 pb-5 pt-0 font-sans">
 
-      <form onSubmit={check} className="mt-7 flex flex-col gap-3 rounded-3xl bg-slate-50 p-3 lg:flex-row">
-        <div className="relative flex-1"><CarFront className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-sky-600"/><input autoFocus value={licensePlate} onChange={(e)=>{setLicensePlate(e.target.value.toUpperCase());setResult(null);setError('');}} placeholder="Nhập biển số xe, ví dụ 51A-248.19" className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-4 text-lg font-bold uppercase tracking-wide outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100" /></div>
-        <div className="relative min-w-[180px]">
-          <select
-            value={vehicleType}
-            onChange={(e) => { setVehicleType(e.target.value); setResult(null); setError(''); }}
-            className="h-14 w-full appearance-none rounded-2xl border border-slate-200 bg-white pl-4 pr-10 text-sm font-bold text-slate-700 outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-          >
-            <option value="">Tự đoán loại xe</option>
-            <option value="CAR">Ô tô</option>
-            <option value="MOTORBIKE">Xe máy</option>
-          </select>
-          <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">{vehicleType === 'MOTORBIKE' ? <Bike className="h-5 w-5"/> : <CarFront className="h-5 w-5"/>}</div>
+      {/* decorative glows — absolute, do not participate in grid */}
+      <div className="pointer-events-none absolute -left-24 top-8 h-72 w-72 rounded-full bg-blue-200/20 blur-3xl" />
+      <div className="pointer-events-none absolute -right-20 bottom-2 h-80 w-80 rounded-full bg-cyan-200/20 blur-3xl" />
+
+      {/* ═══ ROW 1 — Cameras (0.95fr ≈ 48%) ═══ */}
+      <div className="grid min-h-0 grid-cols-2 gap-4">
+        <CameraPanel label="CAMERA 1" imageSrc="/camera-entry-front.png" />
+        <CameraPanel label="CAMERA 2" imageSrc="/camera-entry-rear.png"  />
+      </div>
+
+      {/* ═══ ROW 2 — Control (0.9fr ≈ 32%) + Result (1.9fr ≈ 68%) (1.05fr ≈ 52%) ═══ */}
+      <div className="grid min-h-0 grid-cols-[0.9fr_1.9fr] gap-4">
+
+        {/* ── CONTROL CARD ── */}
+        <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[24px] border border-[#E5EDF7] bg-white p-5 shadow-[0_16px_42px_rgba(15,23,42,0.07)]">
+          <div className="mb-4 flex shrink-0 items-center gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+              <SlidersHorizontal className="h-5 w-5" strokeWidth={2.25} />
+            </span>
+            <h2 className="font-sans text-[15px] font-black uppercase tracking-tight text-slate-900">ĐIỀU KHIỂN</h2>
+          </div>
+
+          <form onSubmit={check} className="flex min-h-0 flex-1 flex-col">
+            <div className="space-y-3">
+              {/* License Plate */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">BIỂN SỐ XE</label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-xl bg-blue-50 text-blue-600">
+                    <CarFront className="h-4 w-4" strokeWidth={2.25} />
+                  </span>
+                  <input
+                    autoFocus
+                    value={licensePlate}
+                    onChange={(e) => { setLicensePlate(e.target.value.toUpperCase()); setResult(null); setNotice(null); setHasChecked(false); }}
+                    placeholder="VD: 30A-123.45"
+                    className="h-12 w-full rounded-[14px] border border-[#D8E3F1] bg-white pl-[52px] pr-11 font-sans text-sm font-bold uppercase tracking-wide text-slate-950 shadow-sm outline-none transition-all duration-200 placeholder:normal-case placeholder:font-medium placeholder:tracking-normal placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                  />
+                  <Keyboard className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                </div>
+              </div>
+
+              {/* Vehicle Type */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">LOẠI XE</label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-xl bg-blue-50 text-blue-600">
+                    {vehicleType === 'MOTORBIKE' ? <Bike className="h-4 w-4" strokeWidth={2.25} /> : <CarFront className="h-4 w-4" strokeWidth={2.25} />}
+                  </span>
+                  <select
+                    value={vehicleType}
+                    onChange={(e) => { setVehicleType(e.target.value); setResult(null); setNotice(null); setHasChecked(false); }}
+                    className="h-12 w-full appearance-none rounded-[14px] border border-[#D8E3F1] bg-white pl-[52px] pr-11 font-sans text-sm font-bold text-slate-800 shadow-sm outline-none transition-all duration-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                  >
+                    <option value="CAR">Ô tô</option>
+                    <option value="MOTORBIKE">Xe máy</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
+                </div>
+              </div>
+            </div>
+
+            {/* Action buttons — mt-auto pins them to the card bottom, never clipped */}
+            <div className="mt-auto grid grid-cols-2 gap-3 pt-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-[14px] border border-blue-500 bg-white px-4 text-sm font-semibold text-blue-700 shadow-sm transition-all duration-200 hover:scale-[1.01] hover:bg-blue-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+              >
+                <ScanLine className="h-4 w-4" strokeWidth={2.25} />
+                <span className="truncate">{loading ? 'Đang kiểm tra...' : 'Kiểm tra xe'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={confirm}
+                disabled={!result?.canConfirm || confirming}
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-[14px] bg-gradient-to-r from-blue-600 to-sky-500 px-4 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:scale-[1.01] hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+              >
+                <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} />
+                <span className="whitespace-nowrap">{confirming ? 'Đang lưu' : 'Xác nhận vào'}</span>
+              </button>
+            </div>
+          </form>
         </div>
-        <button disabled={loading} className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-sky-600 px-7 font-bold text-white shadow-lg shadow-sky-200 hover:bg-sky-700 disabled:opacity-60"><Search className="h-5 w-5"/>{loading ? 'Đang kiểm tra...' : 'Kiểm tra biển số'}</button>
-      </form>
-    </section>
 
-    {error && <div className="flex items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 font-semibold text-rose-700"><AlertCircle />{error}</div>}
+        {/* ── RESULT CARD ── */}
+        <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-[24px] border border-[#E5EDF7] bg-white p-5 shadow-[0_16px_42px_rgba(15,23,42,0.07)]">
+          <span className="pointer-events-none absolute -bottom-16 right-20 h-40 w-40 rounded-full bg-blue-300/10 blur-3xl" />
 
-    {!result && !error && <section className="rounded-[28px] border border-dashed border-slate-300 bg-white/70 p-16 text-center"><Search className="mx-auto h-12 w-12 text-slate-300"/><h2 className="mt-4 text-xl font-bold">Sẵn sàng kiểm tra</h2><p className="mt-2 text-slate-500">Thông tin thật từ database sẽ xuất hiện tại đây.</p></section>}
+          {/* Header: badge pill (left) + notice (right) — fixed h-11 so layout never shifts */}
+          <div className="flex h-11 shrink-0 items-center gap-4">
+            <span className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-full border px-4 text-xs font-bold uppercase tracking-wide ${badgeClassName}`}>
+              <span className="h-2 w-2 shrink-0 rounded-full bg-current opacity-80" />
+              {badgeLabel}
+            </span>
 
-    {result && <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-lg sm:p-8">
-      <div className="flex flex-wrap items-start justify-between gap-4"><div><div className="flex items-center gap-2">{isInvalid ? <AlertCircle className="text-rose-600"/> : <CheckCircle2 className="text-emerald-600"/>}<span className={`rounded-full px-3 py-1 text-xs font-bold ${isRegistered ? 'bg-emerald-100 text-emerald-700' : isVisitor ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}`}>{isRegistered ? 'XE ĐÃ ĐĂNG KÝ GÓI' : isVisitor ? 'KHÁCH VÃNG LAI' : 'KHÔNG HỢP LỆ'}</span></div><p className="mt-4 text-4xl font-black tracking-wide text-slate-950">{result.licensePlate}</p><p className="mt-2 text-slate-500">{result.message}</p></div>{isVisitor && <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-center"><TicketCheck className="mx-auto text-amber-600"/><p className="mt-1 text-xs font-bold text-amber-600">THẺ SẼ CẤP</p><p className="text-2xl font-black text-amber-800">{result.visitorCardCode}</p></div>}</div>
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{isRegistered && <Info label="Khách hàng" value={result.customerName}/>}<Info label="Loại xe" value={result.vehicleType}/>{isRegistered && <Info label="Hãng / màu xe" value={[result.vehicleBrand,result.vehicleColor].filter(Boolean).join(' · ')}/>}<Info label="Trạng thái" value={result.sessionStatus}/><Info label="Gói sử dụng" value={isRegistered ? result.monthlyPackageName : 'Không có'}/><Info label="Hạn sử dụng" value={isRegistered ? formatDateTime(result.subscriptionEndDate) : 'Không áp dụng'}/></div>
-      {isVisitor && <p className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 font-semibold text-amber-800">Đây là xe chưa có gói đăng ký. Hãy đưa thẻ {result.visitorCardCode} cho khách sau khi xác nhận.</p>}
-      {result.canConfirm && <button onClick={confirm} disabled={confirming} className="mt-6 h-14 w-full rounded-2xl bg-slate-950 font-black text-white hover:bg-slate-800 disabled:opacity-60">{confirming ? 'Đang lưu vào database...' : 'XÁC NHẬN CHO XE VÀO'}</button>}
-      {!result.canConfirm && !isInvalid && <div className="mt-6 flex items-center justify-center gap-2 rounded-2xl bg-emerald-50 p-4 font-bold text-emerald-700"><CheckCircle2/>Đã tạo phiên gửi xe trong database</div>}
-    </section>}
-  </div>;
+            {/* Notice slot — always rendered at h-11; invisible when empty to prevent layout shift */}
+            <div className={`ml-auto inline-flex h-11 max-w-[70%] shrink-0 items-center gap-3 rounded-[18px] border px-3 shadow-sm transition-colors duration-150 ${
+              !notice
+                ? 'invisible border-transparent bg-transparent shadow-none'
+                : notice.type === 'error'
+                  ? 'border-red-200 bg-red-50'
+                  : notice.type === 'warning'
+                    ? 'border-amber-200 bg-gradient-to-r from-amber-50 via-orange-50/70 to-white shadow-amber-900/[0.04]'
+                    : 'border-emerald-200 bg-gradient-to-r from-emerald-50 to-white'
+            }`}>
+              {notice?.type === 'error' && (
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-red-100 text-red-600 ring-1 ring-red-200">
+                  <AlertCircle className="h-3.5 w-3.5" strokeWidth={2.25} />
+                </span>
+              )}
+              {notice?.type === 'warning' && (
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-amber-100 text-orange-600 ring-1 ring-amber-200">
+                  <TicketCheck className="h-3.5 w-3.5" strokeWidth={2.25} />
+                </span>
+              )}
+              {notice?.type === 'success' && (
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-600 ring-1 ring-emerald-200">
+                  <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                </span>
+              )}
+              <span className={`truncate text-sm font-semibold ${
+                !notice ? '' :
+                notice.type === 'error' ? 'text-red-700' :
+                notice.type === 'warning' ? 'text-slate-800' :
+                'text-emerald-800'
+              }`}>{notice?.message ?? ''}</span>
+              {notice?.type === 'warning' && notice?.code && (
+                <span className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full border border-amber-300 bg-white px-3 text-xs font-black text-orange-600">
+                  <TicketCheck className="h-3.5 w-3.5" strokeWidth={2.25} />
+                  {notice.code}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Middle: license plate card (left col) + illustration (right col) */}
+          <div className="mt-3 grid min-h-0 flex-1 grid-cols-[0.95fr_1.35fr] items-center gap-5">
+            <div className="flex h-[126px] items-center justify-center overflow-hidden rounded-[20px] border border-[#DCE7F4] bg-white px-6 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+              <div className="w-full text-center">
+                <p className="truncate font-sans text-[40px] font-black leading-none tracking-tight text-slate-950">{displayPlate}</p>
+                <div className="mt-3 h-px bg-slate-200" />
+                <p className="mt-2 text-[11px] font-black uppercase tracking-wider text-slate-500">BIỂN SỐ XE</p>
+              </div>
+            </div>
+
+            {/* Decorative parking gate illustration (pure CSS, low opacity) */}
+            <div className="pointer-events-none relative hidden h-[100px] min-h-0 flex-1 overflow-hidden md:block">
+              <span className="absolute bottom-0 right-0 h-px w-full bg-gradient-to-r from-transparent via-blue-200 to-transparent" />
+              <span className="absolute bottom-4 right-36 h-10 w-36 rounded-full bg-blue-300/15 blur-xl" />
+              <span className="absolute bottom-2 right-40 h-12 w-28 rounded-t-3xl border border-blue-200/50 bg-blue-100/25" />
+              <span className="absolute bottom-1 right-[180px] h-3 w-3 rounded-full bg-blue-300/50" />
+              <span className="absolute bottom-1 right-[88px] h-3 w-3 rounded-full bg-blue-300/50" />
+              <span className="absolute bottom-2 right-[252px] h-20 w-8 rounded-lg bg-gradient-to-b from-blue-700/35 to-blue-500/20" />
+              <span className="absolute bottom-[80px] right-[148px] h-3 w-44 origin-left rotate-[-20deg] rounded-full border border-blue-300/40 bg-gradient-to-r from-blue-700/55 via-sky-300/45 to-white/90" />
+              <span className="absolute bottom-[83px] right-[176px] h-3 w-6 rotate-[-20deg] rounded-sm bg-white/70" />
+              <span className="absolute bottom-[93px] right-[218px] h-3 w-6 rotate-[-20deg] rounded-sm bg-white/70" />
+              <span className="absolute bottom-2 right-12 h-20 w-10 rounded-full border border-blue-300/40 bg-blue-100/40" />
+              <span className="absolute bottom-11 right-[58px] text-2xl font-black text-blue-500/45">P</span>
+              <span className="absolute bottom-2 right-[314px] h-24 w-5 rounded-t-md bg-slate-200/35" />
+              <span className="absolute bottom-2 right-[350px] h-14 w-4 rounded-t-md bg-slate-200/25" />
+              <span className="absolute bottom-1 right-[404px] h-12 w-3 rounded-t-full bg-emerald-200/45" />
+            </div>
+          </div>
+
+          {/* 4 KPI tiles — mt-auto pushes to bottom, never overlaps content above */}
+          <div className="mt-auto grid shrink-0 grid-cols-4 gap-3 pt-[20px]">
+            <Info label="Loại xe"    value={vehicleTypeDisplay}                                           tone="blue"   icon={VehicleTypeIcon} />
+            <Info label="Loại khách" value={customerType}                                                   tone="green"  icon={User}        />
+            <Info label="Giờ vào"    value={entryTime}                                                      tone="purple" icon={Clock3}      />
+            <Info label="Trạng thái" value={sessionStatusDisplay}                                          tone="orange" icon={AlertCircle} />
+          </div>
+
+
+        </div>
+
+      </div>
+    </div>
+  );
 }

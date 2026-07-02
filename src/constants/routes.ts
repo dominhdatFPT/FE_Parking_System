@@ -13,10 +13,10 @@ export const ROUTES = {
     VEHICLE_EXIT: '/admin/vehicle-exit',
     PARKING_SESSIONS: '/admin/parking-sessions',
     USERS: '/admin/users',
+    USER_VEHICLE_REGISTRATION: '/admin/user-vehicle-registration',
     ROLES: '/admin/roles',
     SYSTEM_CONFIG: '/admin/system-configuration',
     AUDIT_LOG: '/admin/audit-log',
-    PERMISSIONS: '/admin/permissions',
     NOTIFICATIONS: {
       BASE: '/admin/notifications',
       DETAIL: '/admin/notifications/:id',
@@ -35,7 +35,6 @@ export const ROUTES = {
     NOTIFICATIONS: '/settings/notifications',
     LANGUAGE: '/settings/language',
     SYSTEM: '/settings/system',
-    PERMISSIONS: '/settings/permissions',
     SECURITY_LOGS: '/settings/security-logs',
   },
 
@@ -52,7 +51,7 @@ export const ROUTES = {
 
   STAFF: {
     DASHBOARD: '/staff',
-    BOOKINGS: '/staff/bookings',
+    VEHICLE_REGISTRATIONS: '/staff/vehicle-registrations',
     VEHICLE_ENTRY: '/staff/vehicle-entry',
     VEHICLE_EXIT: '/staff/vehicle-exit',
     SESSIONS: '/staff/sessions',
@@ -61,13 +60,10 @@ export const ROUTES = {
 
   DRIVER: {
     DASHBOARD: '/driver-dashboard',
-    BOOKING: '/driver-booking',
-    HISTORY: '/driver-history',
     PAYMENT: '/driver-payment',
     NOTIFICATIONS: '/driver-notifications',
     SUPPORT: '/driver-support',
     PROFILE: '/driver-profile',
-    ACTIVE_SESSION: '/driver/active-session',
     VEHICLE_REGISTRATION: '/driver-vehicle-registration',
     FEE_PLANS: '/driver-fee-plans',
   },

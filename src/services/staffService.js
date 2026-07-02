@@ -8,32 +8,17 @@ const unwrapList = (response) => {
 
 const unwrapData = (response) => response.data?.data ?? response.data;
 
-export const getStaffBookings = async () => {
-  const response = await apiClient.get('/api/v1/bookings');
-  return unwrapList(response);
-};
-
-export const getPendingStaffBookings = async () => {
-  const response = await apiClient.get('/api/v1/staff/bookings/pending');
-  return unwrapList(response);
-};
-
-export const approveStaffBooking = async (id, note = '') => {
-  const response = await apiClient.patch(`/api/v1/staff/bookings/${id}/approve`, { note });
-  return response.data?.data ?? response.data;
-};
-
-export const rejectStaffBooking = async (id, note = '') => {
-  const response = await apiClient.patch(`/api/v1/staff/bookings/${id}/reject`, { note });
-  return response.data?.data ?? response.data;
-};
-
 export const getVehicleRegistrations = async (status = 'ALL') => {
-  const params = { page: 0, size: 100 };
+  const params = { page: 0, size: 10 };
   if (status && status !== 'ALL') params.status = status;
 
   const response = await apiClient.get('/api/v1/vehicle-registrations', { params });
   return unwrapList(response);
+};
+
+export const getVehicleRegistration = async (id) => {
+  const response = await apiClient.get(`/api/v1/vehicle-registrations/${id}`);
+  return unwrapData(response);
 };
 
 export const getPendingVehicleRegistrations = async () => {
@@ -48,6 +33,11 @@ export const reviewVehicleRegistration = async (id, status, rejectReason = '') =
     status,
     rejectReason,
   });
+  return unwrapData(response);
+};
+
+export const deleteVehicleRegistration = async (id) => {
+  const response = await apiClient.delete(`/api/v1/vehicle-registrations/${id}`);
   return unwrapData(response);
 };
 
@@ -68,8 +58,8 @@ export const getStaffOperationsDashboard = async (date) => {
   return response.data?.data ?? response.data;
 };
 
-export const getParkingSessions = async () => {
-  const response = await apiClient.get('/api/v1/staff/parking-sessions');
+export const getParkingSessions = async (params = {}) => {
+  const response = await apiClient.get('/api/v1/staff/parking-sessions', { params });
   return unwrapList(response);
 };
 
@@ -106,23 +96,4 @@ export const updateStaffParkingSlot = async (slot) => {
     status: slot.status,
   });
   return response.data?.data ?? response.data;
-};
-
-export const getStaffDashboardData = async () => {
-  const [bookingsResult, pendingResult, slotsResult] = await Promise.allSettled([
-    getStaffBookings(),
-    getPendingStaffBookings(),
-    getStaffParkingSlots(),
-  ]);
-
-  return {
-    bookings: bookingsResult.status === 'fulfilled' ? bookingsResult.value : [],
-    pendingBookings: pendingResult.status === 'fulfilled' ? pendingResult.value : [],
-    slots: slotsResult.status === 'fulfilled' ? slotsResult.value : [],
-    errors: {
-      bookings: bookingsResult.status === 'rejected' ? bookingsResult.reason : null,
-      pendingBookings: pendingResult.status === 'rejected' ? pendingResult.reason : null,
-      slots: slotsResult.status === 'rejected' ? slotsResult.reason : null,
-    },
-  };
 };

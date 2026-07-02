@@ -1,0 +1,6 @@
+<svg width="600" height="240" viewBox="0 0 600 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g opacity="0.12" stroke="#2563EB" stroke-width="2">
+    <path d="M20 200H580"/><path d="M70 200V150h50v50M160 200v-80h58v80M260 200v-55h44v55M410 200v-95h62v95M510 200v-65h40v65"/>
+    <path d="M100 220h400" stroke-dasharray="20 16"/><rect x="285" y="70" width="52" height="52" rx="12"/><path d="M303 108V84h11c7 0 12 4 12 11s-5 11-12 11h-11Z"/>
+  </g>
+</svg>
