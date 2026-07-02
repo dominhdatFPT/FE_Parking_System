@@ -3,7 +3,6 @@ import i18n from 'i18next';
 import { initReactI18next, useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import {
-  AtSign,
   BadgeCheck,
   Camera,
   Check,
@@ -22,6 +21,7 @@ import {
 } from 'lucide-react';
 import Logo from '../../../../components/Logo';
 import { ROUTES } from '../../../../constants/routes';
+import { registerApi } from '../../services/authApi';
 
 const LANGUAGE_KEY = 'language';
 
@@ -33,13 +33,11 @@ const resources = {
       message: 'Tạo tài khoản để quản lý bãi đỗ xe thông minh, nhận diện biển số AI và theo dõi phương tiện theo thời gian thực.',
       fullName: 'Họ và tên',
       email: 'Email',
-      username: 'Tên đăng nhập',
       password: 'Mật khẩu',
       confirmPassword: 'Xác nhận mật khẩu',
       placeholders: {
         fullName: 'Nguyễn Văn A',
         email: 'yourname@company.com',
-        username: 'nhanvien01',
       },
       terms: {
         prefix: 'Tôi đồng ý với',
@@ -65,7 +63,7 @@ const resources = {
           'Dữ liệu chỉ được chia sẻ với các bên liên quan khi cần thiết cho vận hành hệ thống, tuân thủ yêu cầu pháp lý hoặc theo cấu hình của đơn vị quản lý bãi xe.',
         ],
       },
-      submit: 'Đăng nhập',
+      submit: 'Đăng ký',
       submitting: 'Đang tạo tài khoản...',
       or: 'Hoặc',
       google: 'Đăng nhập bằng Google',
@@ -87,7 +85,6 @@ const resources = {
       errors: {
         fullName: 'Vui lòng nhập họ và tên',
         email: 'Vui lòng nhập email',
-        username: 'Vui lòng nhập tên đăng nhập',
         passwordLength: 'Mật khẩu phải có ít nhất 6 ký tự',
         passwordMismatch: 'Mật khẩu xác nhận không khớp',
         terms: 'Vui lòng đồng ý với Điều khoản sử dụng và Chính sách bảo mật',
@@ -106,13 +103,11 @@ const resources = {
       message: 'Create an account to manage smart parking, AI license plate recognition, and real-time vehicle monitoring.',
       fullName: 'Full name',
       email: 'Email',
-      username: 'Username',
       password: 'Password',
       confirmPassword: 'Confirm password',
       placeholders: {
         fullName: 'Alex Nguyen',
         email: 'yourname@company.com',
-        username: 'operator01',
       },
       terms: {
         prefix: 'I agree to the',
@@ -132,13 +127,13 @@ const resources = {
           'Features such as license plate recognition, Barrier control, and real-time monitoring must be used according to the parking operator’s policies.',
         ],
         privacyContent: [
-          'SmartParking collects the information needed to operate the platform, including name, email, username, role, vehicle data, and parking session data.',
+          'SmartParking collects the information needed to operate the platform, including name, email, role, vehicle data, and parking session data.',
           'Data is used for account authentication, access control, license plate recognition, parking monitoring, payment processing, and service improvement.',
           'We apply appropriate security measures to protect Cloud-hosted data, including access controls, activity logs, and encryption where applicable.',
           'Data is shared only when needed for system operation, legal compliance, or parking operator configuration.',
         ],
       },
-      submit: 'Login',
+      submit: 'Sign up',
       submitting: 'Creating account...',
       or: 'Or',
       google: 'Login with Google',
@@ -160,7 +155,6 @@ const resources = {
       errors: {
         fullName: 'Please enter your full name',
         email: 'Please enter your email',
-        username: 'Please enter your username',
         passwordLength: 'Password must be at least 6 characters',
         passwordMismatch: 'Password confirmation does not match',
         terms: 'Please agree to the Terms of Use and Privacy Policy',
@@ -397,7 +391,6 @@ export default function SignupPage() {
   const { i18n: signupI18n } = useTranslation();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptedAgreement, setAcceptedAgreement] = useState(false);
@@ -428,7 +421,6 @@ export default function SignupPage() {
       setError(currentLanguage === 'vi' ? 'Định dạng email không hợp lệ.' : 'Invalid email format.');
       return false;
     }
-    if (!username.trim()) return setError(t('errors.username')) || false;
     if (password.length < 6) return setError(t('errors.passwordLength')) || false;
     if (password !== confirmPassword) return setError(t('errors.passwordMismatch')) || false;
     if (!acceptedAgreement) return setError(t('errors.terms')) || false;
@@ -443,21 +435,15 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/v1/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, email, username, password }),
+      await registerApi({
+        fullName: fullName.trim(),
+        email: email.trim(),
+        password,
       });
-
-      if (response.ok) {
-        setSuccess(t('success'));
-        setTimeout(() => navigate(ROUTES.LOGIN), 1500);
-      } else {
-        const data = await response.json();
-        setError(data.message || t('errors.generic'));
-      }
+      setSuccess(t('success'));
+      setTimeout(() => navigate(ROUTES.LOGIN), 1500);
     } catch (err) {
-      setError(t('errors.network'));
+      setError(err?.response?.data?.message || t('errors.network'));
       console.error('Signup error:', err);
     } finally {
       setLoading(false);
@@ -496,7 +482,6 @@ export default function SignupPage() {
                 <Field icon={User} id="signup-fullname" label={t('fullName')} placeholder={t('placeholders.fullName')} type="text" value={fullName} onChange={(event) => setFullName(event.target.value)} required />
                 <Field icon={Mail} id="signup-email" label={t('email')} placeholder={t('placeholders.email')} type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
               </div>
-              <Field icon={AtSign} id="signup-username" label={t('username')} placeholder={t('placeholders.username')} type="text" value={username} onChange={(event) => setUsername(event.target.value)} required />
               <div className="grid gap-3 sm:grid-cols-2">
                 <PasswordField icon={LockKeyhole} id="signup-password" label={t('password')} placeholder="••••••••" value={password} onChange={(event) => setPassword(event.target.value)} showPassword={showPassword} onTogglePassword={() => setShowPassword((current) => !current)} t={t} required />
                 <PasswordField icon={LockKeyhole} id="signup-confirm-password" label={t('confirmPassword')} placeholder="••••••••" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword((current) => !current)} t={t} required />
