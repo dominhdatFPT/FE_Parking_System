@@ -8,6 +8,10 @@ import dayjs from 'dayjs';
 import PageHeader from '../../components/PageHeader';
 
 const VEHICLE_TYPE_ID = { MOTORBIKE: 1, CAR: 2 };
+const VEHICLE_TYPE_IMAGE = {
+  MOTORBIKE: '/vehicle-rear-motorbike.png',
+  CAR: '/vehicle-rear-car.png',
+};
 
 const normalizeLicensePlate = (value) => String(value || '')
   .trim()
@@ -223,11 +227,10 @@ export default function DriverFeePlans() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('feePlans.title')} subtitle={t('feePlans.subtitle')} icon="sell" />
+      <PageHeader title={t('feePlans.title')} subtitle={t('feePlans.subtitle')} />
 
       {errorMessage && !submittedSuccess && (
         <div className="rounded-2xl bg-red-50 border border-red-200 p-4 flex items-start gap-3">
-          <span className="material-symbols-outlined text-[18px] text-red-500 mt-0.5">error</span>
           <p className="text-xs font-semibold text-red-700">{errorMessage}</p>
         </div>
       )}
@@ -235,9 +238,6 @@ export default function DriverFeePlans() {
       <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
         {submittedSuccess && subscriptionResult ? (
           <div className="flex flex-col items-center justify-center py-12 text-center space-y-6 animate-in fade-in duration-300">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 text-[#0EA5E9] shadow-inner">
-              <span className="material-symbols-outlined text-[48px] font-bold">check_circle</span>
-            </div>
             <div className="space-y-2">
               <h3 className="text-2xl font-black text-slate-800">{t('feePlans.submittedTitle')}</h3>
               <p className="text-sm text-slate-500 max-w-md">{t('feePlans.submittedDesc')}</p>
@@ -292,24 +292,28 @@ export default function DriverFeePlans() {
                     onClick={() => { setVehicleType('MOTORBIKE'); }}
                     className={`relative flex items-center gap-3 rounded-2xl border-2 p-4 text-left transition-all duration-300 ${vehicleType === 'MOTORBIKE' ? 'border-blue-600 bg-blue-50/20 text-blue-700 shadow-sm' : 'border-slate-100 hover:border-slate-200 text-slate-600 bg-white'}`}
                   >
-                    <span className="text-xl">🏍</span>
+                    <span className="flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+                      <img src={VEHICLE_TYPE_IMAGE.MOTORBIKE} alt="" className="h-full w-full object-cover" />
+                    </span>
                     <div className="flex-1">
                       <p className="text-xs font-black">{t('vehicleRegistration.motorbike')}</p>
                       <p className="text-[10px] text-slate-400 mt-0.5">{t('feePlans.step1DescMotorbike')}</p>
                     </div>
-                    {vehicleType === 'MOTORBIKE' && <span className="material-symbols-outlined text-[16px] text-blue-600 font-bold">check_circle</span>}
+                    {vehicleType === 'MOTORBIKE' && <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />}
                   </button>
                   <button
                     type="button"
                     onClick={() => { setVehicleType('CAR'); }}
                     className={`relative flex items-center gap-3 rounded-2xl border-2 p-4 text-left transition-all duration-300 ${vehicleType === 'CAR' ? 'border-blue-600 bg-blue-50/20 text-blue-700 shadow-sm' : 'border-slate-100 hover:border-slate-200 text-slate-600 bg-white'}`}
                   >
-                    <span className="text-xl">🚗</span>
+                    <span className="flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+                      <img src={VEHICLE_TYPE_IMAGE.CAR} alt="" className="h-full w-full object-cover" />
+                    </span>
                     <div className="flex-1">
                       <p className="text-xs font-black">{t('vehicleRegistration.car')}</p>
                       <p className="text-[10px] text-slate-400 mt-0.5">{t('feePlans.step1DescCar')}</p>
                     </div>
-                    {vehicleType === 'CAR' && <span className="material-symbols-outlined text-[16px] text-blue-600 font-bold">check_circle</span>}
+                    {vehicleType === 'CAR' && <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />}
                   </button>
                 </div>
               </div>
@@ -320,20 +324,19 @@ export default function DriverFeePlans() {
                   <div className="space-y-1 relative max-w-xs">
                     <span className="text-[10px] font-bold text-slate-400 uppercase">{t('feePlans.plate')}</span>
                     <div className="relative flex items-center">
-                      <span className="absolute left-3.5 text-xs">{vehicleType === 'CAR' ? '🚗' : '🏍'}</span>
                       <input
                         type="text"
                         value={licensePlate}
                         onChange={(e) => setLicensePlate(e.target.value)}
                         placeholder={t('feePlans.platePlaceholder')}
-                        className="w-full pl-9 pr-10 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl focus:outline-none"
+                        className="w-full px-3 pr-14 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl focus:outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => setShowSuggestions(!showSuggestions)}
-                        className="absolute right-3 text-slate-400 hover:text-slate-600 focus:outline-none flex items-center justify-center"
+                        className="absolute right-3 text-[10px] font-black uppercase tracking-wide text-slate-400 hover:text-slate-600 focus:outline-none"
                       >
-                        <span className="material-symbols-outlined text-[18px]">{showSuggestions ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}</span>
+                        {showSuggestions ? 'Đóng' : 'Mở'}
                       </button>
                     </div>
 
@@ -425,7 +428,7 @@ export default function DriverFeePlans() {
                               <ul className="mt-4 space-y-1.5">
                                 {benefitsList.map((benefit, idx) => (
                                   <li key={idx} className="flex items-start gap-1.5 text-[10px] text-slate-500 font-semibold leading-relaxed">
-                                    <span className="material-symbols-outlined text-[13px] text-emerald-500 font-bold shrink-0 mt-0.5">check_circle</span>
+                                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
                                     <span>{benefit}</span>
                                   </li>
                                 ))}
@@ -441,9 +444,7 @@ export default function DriverFeePlans() {
                                 ? 'border-[#0EA5E9] bg-[#0EA5E9] text-white shadow-md shadow-sky-500/20 scale-105' 
                                 : 'border-slate-200 bg-white hover:border-slate-300'
                             }`}>
-                              {isSelected && (
-                                <span className="material-symbols-outlined text-[12px] font-black">check</span>
-                              )}
+                              {isSelected && <span className="h-2 w-2 rounded-full bg-white" />}
                             </span>
                           </div>
                         </div>
@@ -478,7 +479,13 @@ export default function DriverFeePlans() {
             <div className="w-full md:w-[30%] bg-slate-50 border-l border-slate-100 p-6 flex flex-col justify-between rounded-3xl">
               {!selectedVehicle ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-center py-12 space-y-3">
-                  <span className="material-symbols-outlined text-[44px] text-slate-300">directions_car</span>
+                  <div className="h-20 w-32 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200">
+                    <img
+                      src={VEHICLE_TYPE_IMAGE[vehicleType] || VEHICLE_TYPE_IMAGE.MOTORBIKE}
+                      alt=""
+                      className="h-full w-full object-cover opacity-80"
+                    />
+                  </div>
                   <p className="text-xs font-bold text-slate-700">{t('feePlans.noVehicleSelected')}</p>
                   <p className="text-[11px] text-slate-400 px-4 leading-relaxed">{t('feePlans.noVehicleSelectedDesc')}</p>
                 </div>
@@ -538,7 +545,6 @@ export default function DriverFeePlans() {
               )}
 
               <div className="mt-8 pt-4 flex items-center justify-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                <span className="material-symbols-outlined text-[16px] text-blue-600">security</span>
                 <span>{t('feePlans.securePayment')}</span>
               </div>
             </div>

@@ -221,6 +221,46 @@ function EmptyState() {
   );
 }
 
+function EkycSection({ record }) {
+  return (
+    <SectionCard
+      title="Kết quả OCR / eKYC"
+      icon={ShieldCheck}
+      action={
+        record.eKyc.confidence ? (
+          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200">
+            {Math.round(record.eKyc.confidence)}%
+          </span>
+        ) : null
+      }
+    >
+      <div className="grid grid-cols-2 gap-2">
+        {[
+          ['Họ tên khớp', record.eKyc.fullNameMatch],
+          ['CCCD hợp lệ', record.eKyc.cccdValid],
+          ['GPLX hợp lệ', record.eKyc.licenseValid],
+          ['Biển số hợp lệ', record.eKyc.plateValid],
+        ].map(([label, ok]) => (
+          <div
+            key={label}
+            className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold ring-1 ${
+              ok ? 'bg-emerald-50 text-emerald-700 ring-emerald-100' : 'bg-rose-50 text-rose-700 ring-rose-100'
+            }`}
+          >
+            {ok ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
+            {label}
+          </div>
+        ))}
+      </div>
+      {record.eKyc.isFake === true && (
+        <div className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 ring-1 ring-rose-100">
+          Hệ thống phát hiện tài liệu giả mạo.
+        </div>
+      )}
+    </SectionCard>
+  );
+}
+
 export default function StaffVehicleRegistrationReview() {
   const [registrations, setRegistrations] = useState([]);
   const [registrationDetails, setRegistrationDetails] = useState({});
@@ -471,7 +511,7 @@ export default function StaffVehicleRegistrationReview() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-1 min-h-0 gap-4 overflow-hidden">
+        <div className="flex flex-1 min-h-0 flex-row-reverse gap-4 overflow-hidden">
 
           {/* ── LEFT: LIST ── */}
           <aside className="flex w-[300px] shrink-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -548,6 +588,8 @@ export default function StaffVehicleRegistrationReview() {
                     <StatusBadge status={selectedRecord.status} />
                   </div>
                 </div>
+
+                <EkycSection record={selectedRecord} />
 
                 {/* USER INFO + VEHICLE INFO */}
                 <div className="grid gap-3 xl:grid-cols-2">
@@ -647,44 +689,8 @@ export default function StaffVehicleRegistrationReview() {
                   </SectionCard>
                 </div>
 
-                {/* OCR + HISTORY */}
-                <div className="grid gap-3 xl:grid-cols-2">
-                  <SectionCard
-                    title="Kết quả OCR / eKYC"
-                    icon={ShieldCheck}
-                    action={
-                      selectedRecord.eKyc.confidence ? (
-                        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200">
-                          {Math.round(selectedRecord.eKyc.confidence)}%
-                        </span>
-                      ) : null
-                    }
-                  >
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        ['Họ tên khớp', selectedRecord.eKyc.fullNameMatch],
-                        ['CCCD hợp lệ', selectedRecord.eKyc.cccdValid],
-                        ['GPLX hợp lệ', selectedRecord.eKyc.licenseValid],
-                        ['Biển số hợp lệ', selectedRecord.eKyc.plateValid],
-                      ].map(([label, ok]) => (
-                        <div
-                          key={label}
-                          className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold ring-1 ${
-                            ok ? 'bg-emerald-50 text-emerald-700 ring-emerald-100' : 'bg-rose-50 text-rose-700 ring-rose-100'
-                          }`}
-                        >
-                          {ok ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
-                          {label}
-                        </div>
-                      ))}
-                    </div>
-                    {selectedRecord.eKyc.isFake === true && (
-                      <div className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 ring-1 ring-rose-100">
-                        Hệ thống phát hiện tài liệu giả mạo.
-                      </div>
-                    )}
-                  </SectionCard>
-
+                {/* HISTORY */}
+                <div>
                   <SectionCard title="Lịch sử xử lý" icon={BadgeCheck}>
                     <div className="space-y-3">
                       {[

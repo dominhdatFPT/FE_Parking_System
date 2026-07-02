@@ -55,16 +55,11 @@ function Info({ label, value, tone = 'blue', icon: Icon = CarFront }) {
   );
 }
 
-/* Camera: image fills the entire card; all labels are absolute overlays over the image */
-function CameraPanel({ label, status = 'Online', imageSrc = '/empty_parking.png' }) {
+function CameraPanel({ label, status = 'Online' }) {
   return (
-    <article className="group relative h-full overflow-hidden rounded-[24px] border border-[#E5EDF7] bg-slate-700 shadow-[0_16px_42px_rgba(15,23,42,0.07)] transition-all duration-300">
-      <img src={imageSrc} alt={label} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.01]" />
-      {/* Top gradient — darkens for readability of top-overlays */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-slate-950/70 via-slate-950/25 to-transparent" />
-      {/* Bottom gradient */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950/80 via-slate-950/40 to-transparent" />
-      {/* Edge ring */}
+    <article className="group relative h-full overflow-hidden rounded-[24px] border border-[#E5EDF7] bg-slate-900 shadow-[0_16px_42px_rgba(15,23,42,0.07)] transition-all duration-300">
+      <div className="absolute inset-0 bg-[linear-gradient(135deg,#0f172a_0%,#1e293b_50%,#0f172a_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(148,163,184,0.12)_1px,transparent_1px),linear-gradient(0deg,rgba(148,163,184,0.1)_1px,transparent_1px)] bg-[size:34px_34px]" />
       <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10" />
 
       {/* TOP: camera label pill (left) + online status pill (right) */}
@@ -185,8 +180,8 @@ export default function VehicleEntryPage() {
 
       {/* ═══ ROW 1 — Cameras (0.95fr ≈ 48%) ═══ */}
       <div className="grid min-h-0 grid-cols-2 gap-4">
-        <CameraPanel label="CAMERA 1" imageSrc="/camera-entry-front.png" />
-        <CameraPanel label="CAMERA 2" imageSrc="/camera-entry-rear.png"  />
+        <CameraPanel label="CAMERA 1" />
+        <CameraPanel label="CAMERA 2" />
       </div>
 
       {/* ═══ ROW 2 — Control (0.9fr ≈ 32%) + Result (1.9fr ≈ 68%) (1.05fr ≈ 52%) ═══ */}

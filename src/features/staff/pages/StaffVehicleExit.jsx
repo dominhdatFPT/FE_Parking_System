@@ -54,12 +54,11 @@ function InfoCard({ icon: Icon, label, value, chip }) {
   );
 }
 
-function CameraPanel({ label, status = 'Online', imageSrc = '/empty_parking.png' }) {
+function CameraPanel({ label, status = 'Online' }) {
   return (
-    <article className="group relative h-full overflow-hidden rounded-2xl bg-slate-700 shadow-sm ring-1 ring-black/[0.06] transition-all duration-300">
-      <img src={imageSrc} alt={label} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/70 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/75 to-transparent" />
+    <article className="group relative h-full overflow-hidden rounded-2xl bg-slate-900 shadow-sm ring-1 ring-black/[0.06] transition-all duration-300">
+      <div className="absolute inset-0 bg-[linear-gradient(135deg,#0f172a_0%,#1e293b_50%,#0f172a_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(148,163,184,0.12)_1px,transparent_1px),linear-gradient(0deg,rgba(148,163,184,0.1)_1px,transparent_1px)] bg-[size:32px_32px]" />
       <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10" />
       <div className="absolute left-0 right-0 top-0 flex items-center justify-between px-3 pt-3">
         <span className="inline-flex items-center gap-1.5 rounded-lg bg-black/55 px-2.5 py-1 text-[10.5px] font-black uppercase tracking-widest text-white backdrop-blur-sm">
@@ -187,8 +186,8 @@ export default function StaffVehicleExit() {
 
       {/* ══════ CAMERAS ══════ */}
       <div className="grid h-[31vh] max-h-[298px] shrink-0 grid-cols-2 gap-3">
-        <CameraPanel label="CAMERA 1" imageSrc="/camera-entry-front.png" />
-        <CameraPanel label="CAMERA 2" imageSrc="/camera-entry-rear.png" />
+        <CameraPanel label="CAMERA 1" />
+        <CameraPanel label="CAMERA 2" />
       </div>
 
       {/* ══════ MAIN CONTENT ══════ */}

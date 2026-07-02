@@ -108,7 +108,7 @@ function StatCard({ icon: Icon, label, value, tone }) {
 
 function Badge({ children, className }) {
   return (
-    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ${className}`}>
+    <span className={`inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ring-1 ${className}`}>
       {children}
     </span>
   );
@@ -159,10 +159,10 @@ function NotificationPreview({ form }) {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getTypeClasses(form.type)}`}>
+          <span className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${getTypeClasses(form.type)}`}>
             {form.type}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+          <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
             <Clock3 className="h-3.5 w-3.5" />
             {form.sendTime}
           </span>
@@ -645,7 +645,7 @@ export default function NotificationManagement() {
                       <p className="line-clamp-2">{notification.content}</p>
                     </td>
                     <td className="px-5 py-4">
-                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getTypeClasses(notification.type)}`}>
+                      <span className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${getTypeClasses(notification.type)}`}>
                         {notification.type}
                       </span>
                     </td>

@@ -207,7 +207,7 @@ export default function UserVehicleRegistrationPage() {
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="text-sm font-black uppercase tracking-[0.22em] text-sky-600">Back-office Vehicle Registration</p>
-          <h1 className="mt-2 text-3xl font-black text-slate-950">Đăng ký xe cho user</h1>
+          <h1 className="mt-2 text-3xl font-black text-slate-950">Đăng kí xe cho người dùng</h1>
           <p className="mt-2 max-w-3xl text-sm font-medium text-slate-500">
             Admin hoặc staff chọn user, nhập biển số và tạo xe trực tiếp cho đúng tài khoản user đó.
           </p>
@@ -304,7 +304,7 @@ export default function UserVehicleRegistrationPage() {
           <div className="flex max-h-[calc(100dvh-2rem)] w-full max-w-6xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
             <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-600">Đăng ký xe cho user</p>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-600">Đăng kí xe cho người dùng</p>
                 <h2 className="mt-1 text-xl font-black text-slate-950">{selectedUser.fullName}</h2>
                 <p className="mt-1 text-sm font-semibold text-slate-500">{selectedUser.email || selectedUser.phone}</p>
               </div>

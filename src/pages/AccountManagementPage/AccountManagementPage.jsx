@@ -886,7 +886,7 @@ export default function AccountManagementPage() {
                 }}
                 className="w-full py-3.5 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-600 hover:text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-3"
               >
-                <Shield size={18} />
+                <UserCheck size={18} />
                 <span>STAFF — Nhân viên</span>
               </button>
               <button
@@ -898,7 +898,7 @@ export default function AccountManagementPage() {
                 }}
                 className="w-full py-3.5 bg-purple-50 border border-purple-200 text-purple-700 hover:bg-purple-600 hover:text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-3"
               >
-                <Shield size={18} />
+                <UserCheck size={18} />
                 <span>ADMIN — Quản trị viên</span>
               </button>
             </div>
@@ -951,14 +951,6 @@ export default function AccountManagementPage() {
               </button>
               <button
                 type="button"
-                onClick={confirmRoleChange}
-                disabled={actionLoading}
-                className="w-1/2 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
                 onClick={confirmToggleStatus}
                 disabled={actionLoading}
                 className={`w-1/2 py-3 font-semibold rounded-xl text-sm transition text-white inline-flex items-center justify-center gap-2 ${
@@ -982,7 +974,7 @@ export default function AccountManagementPage() {
 
           <div className="relative bg-white border border-slate-200 w-full max-w-md rounded-2xl p-6 text-center shadow-xl z-10 animate-in fade-in zoom-in-95 duration-150">
             <div className="mx-auto w-14 h-14 bg-amber-50 border border-amber-200 text-amber-600 rounded-full flex items-center justify-center mb-4">
-              <Shield size={28} />
+              <UserCheck size={28} />
             </div>
 
             <h3 className="text-lg font-bold text-slate-900 mb-2">
@@ -1010,6 +1002,14 @@ export default function AccountManagementPage() {
                 }}
                 disabled={actionLoading}
                 className="w-1/2 py-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={confirmRoleChange}
+                disabled={actionLoading}
+                className="w-1/2 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {actionLoading && <Loader2 size={16} className="animate-spin" />}
                 Xác nhận đổi
