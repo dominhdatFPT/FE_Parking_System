@@ -28,10 +28,10 @@ const emptyFiles = {
 };
 
 const documentFields = [
-  { key: 'cccdFrontImage', label: 'Mặt trước CCCD', required: true },
-  { key: 'cccdBackImage', label: 'Mặt sau CCCD', required: true },
-  { key: 'licenseImage', label: 'Bằng lái xe', required: true },
-  { key: 'vehicleDocumentImage', label: 'Giấy đăng ký xe', required: true },
+  { key: 'cccdFrontImage', label: 'Mặt trước CCCD', required: false },
+  { key: 'cccdBackImage', label: 'Mặt sau CCCD', required: false },
+  { key: 'licenseImage', label: 'Bằng lái xe', required: false },
+  { key: 'vehicleDocumentImage', label: 'Giấy đăng ký xe', required: false },
   { key: 'plateImage', label: 'Ảnh biển số xe', required: false },
 ];
 
@@ -93,62 +93,17 @@ function normalizeVehicle(item) {
 }
 
 async function fetchVehiclesForUser(userId, vehicleTypeId) {
-  const endpoints = [
-    `/api/v1/fee-subscriptions/users/${userId}/vehicles`,
-    `/api/v1/admin/users/${userId}/vehicles`,
-    `/api/v1/vehicle-registrations/users/${userId}/vehicles`,
-    `/api/v1/admin/accounts/users/${userId}/vehicles`,
-  ];
-
-  let lastError = null;
-  for (const endpoint of endpoints) {
-    try {
-      const response = await apiClient.get(endpoint, { params: { category: vehicleTypeId, vehicleTypeId } });
-      const items = extractList(response.data?.data ?? response.data)
-        .map(normalizeVehicle)
-        .filter((vehicle) => vehicle.vehicleId && Number(vehicle.vehicleTypeId) === Number(vehicleTypeId));
-      return items;
-    } catch (error) {
-      lastError = error;
-      if (![404, 405].includes(error?.response?.status)) break;
-    }
-  }
-
-  throw lastError;
+  const response = await apiClient.get(`/api/v1/fee-subscriptions/users/${userId}/vehicles`, {
+    params: { vehicleTypeId },
+  });
+  return extractList(response.data?.data ?? response.data)
+    .map(normalizeVehicle)
+    .filter((vehicle) => vehicle.vehicleId && Number(vehicle.vehicleTypeId) === Number(vehicleTypeId));
 }
 
 async function registerFeePackageForUser(userId, payload) {
-  const attempts = [
-    {
-      endpoint: `/api/subscriptions/users/${userId}/register`,
-      body: payload,
-    },
-    {
-      endpoint: `/api/v1/fee-subscriptions/users/${userId}/register`,
-      body: payload,
-    },
-    {
-      endpoint: `/api/v1/admin/users/${userId}/fee-subscriptions`,
-      body: payload,
-    },
-    {
-      endpoint: API_ENDPOINTS.FEE.REGISTER,
-      body: { ...payload, userId },
-    },
-  ];
-
-  let lastError = null;
-  for (const attempt of attempts) {
-    try {
-      const response = await apiClient.post(attempt.endpoint, attempt.body);
-      return response.data?.data ?? response.data;
-    } catch (error) {
-      lastError = error;
-      if (![404, 405].includes(error?.response?.status)) break;
-    }
-  }
-
-  throw lastError;
+  const response = await apiClient.post(`/api/v1/fee-subscriptions/users/${userId}/register`, payload);
+  return response.data?.data ?? response.data;
 }
 
 export default function UserVehicleRegistrationPage() {
@@ -304,7 +259,7 @@ export default function UserVehicleRegistrationPage() {
     event.target.value = '';
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      setFormError('Chỉ chấp nhận file ảnh cho eKYC.');
+      setFormError('Chỉ chấp nhận file ảnh minh chứng.');
       return;
     }
     if (file.size > 4 * 1024 * 1024) {
@@ -319,11 +274,6 @@ export default function UserVehicleRegistrationPage() {
     event.preventDefault();
     if (!selectedUser) return;
 
-    const missingDocument = documentFields.find((field) => field.required && !files[field.key]);
-    if (missingDocument) {
-      setFormError(`Vui lòng tải lên ${missingDocument.label}.`);
-      return;
-    }
     if (!licensePlate.trim()) {
       setFormError('Vui lòng nhập biển số xe.');
       return;
@@ -336,22 +286,22 @@ export default function UserVehicleRegistrationPage() {
         vehicleTypeId,
         requestedFeePackageId: selectedFeePackageId ? Number(selectedFeePackageId) : null,
         licensePlate: licensePlate.trim().toUpperCase(),
-        cccdFrontImage: await fileToBase64(files.cccdFrontImage),
-        cccdBackImage: await fileToBase64(files.cccdBackImage),
-        licenseImage: await fileToBase64(files.licenseImage),
-        vehicleDocumentImage: await fileToBase64(files.vehicleDocumentImage),
+        cccdFrontImage: files.cccdFrontImage ? await fileToBase64(files.cccdFrontImage) : null,
+        cccdBackImage: files.cccdBackImage ? await fileToBase64(files.cccdBackImage) : null,
+        licenseImage: files.licenseImage ? await fileToBase64(files.licenseImage) : null,
+        vehicleDocumentImage: files.vehicleDocumentImage ? await fileToBase64(files.vehicleDocumentImage) : null,
         plateImage: files.plateImage ? await fileToBase64(files.plateImage) : null,
       };
 
       await createVehicleRegistrationForUser(selectedUser.userId, payload);
       setMessage(
         selectedFeePackageId
-          ? `Đã tạo hồ sơ cho ${selectedUser.fullName}. Khi hồ sơ được duyệt, khoản thanh toán sẽ nằm ở tài khoản user này.`
-          : `Đã tạo hồ sơ đăng ký xe cho ${selectedUser.fullName}.`,
+          ? `Đã đăng ký xe và tạo khoản chờ thanh toán cho ${selectedUser.fullName}.`
+          : `Đã đăng ký xe cho ${selectedUser.fullName}. User sẽ thấy xe trong trang biểu phí.`,
       );
       closeRegistrationModal();
     } catch (error) {
-      setFormError(error?.response?.data?.message || 'Không thể tạo hồ sơ đăng ký xe.');
+      setFormError(error?.response?.data?.message || 'Không thể đăng ký xe cho user.');
     } finally {
       setSubmitting(false);
     }
@@ -395,7 +345,7 @@ export default function UserVehicleRegistrationPage() {
           <p className="text-sm font-black uppercase tracking-[0.22em] text-sky-600">Back-office Vehicle Registration</p>
           <h1 className="mt-2 text-3xl font-black text-slate-950">Đăng ký xe cho user</h1>
           <p className="mt-2 max-w-3xl text-sm font-medium text-slate-500">
-            Admin hoặc staff chọn user, upload hồ sơ eKYC và tạo đăng ký xe cho đúng tài khoản user đó.
+            Admin hoặc staff chọn user, nhập biển số và tạo xe trực tiếp cho đúng tài khoản user đó.
           </p>
         </div>
 
@@ -688,7 +638,7 @@ export default function UserVehicleRegistrationPage() {
           <div className="max-h-[calc(100dvh-2rem)] w-full max-w-6xl overflow-hidden rounded-3xl bg-white shadow-2xl">
             <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-600">Tạo hồ sơ cho user</p>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-600">Đăng ký xe cho user</p>
                 <h2 className="mt-1 text-xl font-black text-slate-950">{selectedUser.fullName}</h2>
                 <p className="mt-1 text-sm font-semibold text-slate-500">{selectedUser.email || selectedUser.phone}</p>
               </div>
@@ -735,9 +685,9 @@ export default function UserVehicleRegistrationPage() {
                   </section>
 
                   <section className="rounded-2xl border border-slate-200 p-5">
-                    <h3 className="text-sm font-black text-slate-950">Hồ sơ eKYC</h3>
+                    <h3 className="text-sm font-black text-slate-950">Ảnh minh chứng tùy chọn</h3>
                     <p className="mt-1 text-xs font-semibold text-slate-500">
-                      Các ảnh này sẽ được gửi qua cùng luồng OCR/eKYC như user tự đăng ký.
+                      Có thể bỏ trống nếu chỉ cần đăng ký xe bằng biển số.
                     </p>
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
                       {documentFields.map((field) => (
@@ -774,7 +724,7 @@ export default function UserVehicleRegistrationPage() {
                   <section className="rounded-2xl border border-sky-100 bg-sky-50/40 p-5">
                     <h3 className="text-sm font-black text-slate-950">Biểu phí xe</h3>
                     <p className="mt-1 text-xs font-semibold text-slate-500">
-                      Không bắt buộc. Nếu chọn, sau khi duyệt hồ sơ hệ thống sẽ tạo khoản chờ thanh toán cho user này.
+                      Không bắt buộc. Nếu chọn, hệ thống tạo luôn khoản chờ thanh toán cho user này.
                     </p>
 
                     <div className="mt-4 space-y-3">
@@ -830,9 +780,9 @@ export default function UserVehicleRegistrationPage() {
                         <dd className="font-black uppercase text-slate-900">{licensePlate || 'Chưa nhập'}</dd>
                       </div>
                       <div className="flex justify-between gap-4">
-                        <dt className="font-bold text-slate-500">Ảnh bắt buộc</dt>
+                        <dt className="font-bold text-slate-500">Ảnh đã tải</dt>
                         <dd className="font-black text-slate-900">
-                          {documentFields.filter((field) => field.required && files[field.key]).length}/4
+                          {documentFields.filter((field) => files[field.key]).length}/{documentFields.length}
                         </dd>
                       </div>
                     </dl>
@@ -860,7 +810,7 @@ export default function UserVehicleRegistrationPage() {
                   disabled={submitting}
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-sky-600 px-6 text-sm font-black text-white shadow-sm shadow-sky-600/20 transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {submitting ? 'Đang tạo hồ sơ...' : 'Tạo đăng ký xe'}
+                  {submitting ? 'Đang đăng ký...' : 'Tạo đăng ký xe'}
                 </button>
               </div>
             </form>

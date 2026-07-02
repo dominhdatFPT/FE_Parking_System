@@ -84,22 +84,6 @@ export default function DriverVehicleRegistration() {
     if (e) e.preventDefault();
     setError('');
 
-    if (!cccdFrontFile) {
-      setError(t('vehicleRegistration.errorCccdFront'));
-      return;
-    }
-    if (!cccdBackFile) {
-      setError(t('vehicleRegistration.errorCccdBack'));
-      return;
-    }
-    if (!driverLicenseFile) {
-      setError(t('vehicleRegistration.errorDriverLicense'));
-      return;
-    }
-    if (!vehicleDocsFile) {
-      setError(t('vehicleRegistration.errorVehicleDocs'));
-      return;
-    }
     const submittedLicensePlate = licensePlate.trim().toUpperCase().replace(/\s+/g, '');
     if (!submittedLicensePlate) {
       setError(t('vehicleRegistration.errorEnterPlate'));
@@ -111,10 +95,10 @@ export default function DriverVehicleRegistration() {
       const payload = {
         vehicleTypeId: vehicleType === 'CAR' ? 2 : 1,
         licensePlate: submittedLicensePlate,
-        cccdFrontImage: await fileToBase64(cccdFrontFile),
-        cccdBackImage: await fileToBase64(cccdBackFile),
-        licenseImage: await fileToBase64(driverLicenseFile),
-        vehicleDocumentImage: await fileToBase64(vehicleDocsFile),
+        cccdFrontImage: cccdFrontFile ? await fileToBase64(cccdFrontFile) : null,
+        cccdBackImage: cccdBackFile ? await fileToBase64(cccdBackFile) : null,
+        licenseImage: driverLicenseFile ? await fileToBase64(driverLicenseFile) : null,
+        vehicleDocumentImage: vehicleDocsFile ? await fileToBase64(vehicleDocsFile) : null,
         plateImage: licensePlateFile ? await fileToBase64(licensePlateFile) : null,
       };
 
@@ -189,9 +173,9 @@ export default function DriverVehicleRegistration() {
 
   const totalPrice = selectedPlans.reduce((sum, m) => sum + getPlanPrice(m), 0);
 
-  // Calculate completeness percentage for required fields. Plate photo is optional.
-  const totalSteps = 5;
-  const completedSteps = [licensePlate.trim(), cccdFrontFile, cccdBackFile, driverLicenseFile, vehicleDocsFile].filter(Boolean).length;
+  // Only the plate is required. Photos are optional evidence for staff review.
+  const totalSteps = 1;
+  const completedSteps = licensePlate.trim() ? 1 : 0;
   const uploadedPhotoCount = [cccdFrontFile, cccdBackFile, driverLicenseFile, vehicleDocsFile, licensePlateFile].filter(Boolean).length;
   const totalPhotoSlots = 5;
   const getFormStatus = () => {
@@ -346,7 +330,7 @@ export default function DriverVehicleRegistration() {
                 <div className="h-px bg-slate-100 my-2" />
 
                 {/* Document Uploads */}
-                <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-400">{t('vehicleRegistration.requiredDocs')}</h4>
+                <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-400">{t('vehicleRegistration.optionalDocs')}</h4>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {renderFileDropzone(t('vehicleRegistration.cccdFront'), cccdFrontFile, setCccdFrontFile)}
                   {renderFileDropzone(t('vehicleRegistration.cccdBack'), cccdBackFile, setCccdBackFile)}
@@ -452,39 +436,6 @@ export default function DriverVehicleRegistration() {
                     </span>
                   </div>
 
-                  {/* OCR/eKYC Section */}
-                  <div className="pt-2">
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                      <span className="material-symbols-outlined text-[14px]">psychology</span>
-                      {t('vehicleRegistration.ocrTitle')}
-                    </div>
-                    <div className="rounded-xl bg-slate-50/70 p-3 space-y-2 border border-slate-100">
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-500">{t('vehicleRegistration.ocrName')}</span>
-                        <span className={`font-bold ${cccdFrontFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-                          {cccdFrontFile ? 'Sẽ đọc khi gửi hồ sơ' : t('vehicleRegistration.ocrNameWaiting')}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-500">{t('vehicleRegistration.ocrCccd')}</span>
-                        <span className={`font-bold ${cccdFrontFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-                          {cccdFrontFile ? 'Sẽ đọc khi gửi hồ sơ' : t('vehicleRegistration.ocrNameWaiting')}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-500">{t('vehicleRegistration.ocrLicenseClass')}</span>
-                        <span className={`font-bold ${driverLicenseFile ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-                          {driverLicenseFile ? 'Sẽ đọc khi gửi hồ sơ' : t('vehicleRegistration.ocrLicenseWaiting')}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-500">{t('vehicleRegistration.ocrPlate')}</span>
-                        <span className="max-w-[150px] truncate text-right font-bold uppercase text-slate-700">
-                          {licensePlate.trim() || t('vehicleRegistration.ocrPlateWaiting')}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
