@@ -24,7 +24,6 @@ const emptyFiles = {
   cccdBackImage: null,
   licenseImage: null,
   vehicleDocumentImage: null,
-  plateImage: null,
 };
 
 const documentFields = [
@@ -32,7 +31,6 @@ const documentFields = [
   { key: 'cccdBackImage', label: 'Mặt sau CCCD', required: false },
   { key: 'licenseImage', label: 'Bằng lái xe', required: false },
   { key: 'vehicleDocumentImage', label: 'Giấy đăng ký xe', required: false },
-  { key: 'plateImage', label: 'Ảnh biển số xe', required: false },
 ];
 
 function extractList(response) {
@@ -290,7 +288,6 @@ export default function UserVehicleRegistrationPage() {
         cccdBackImage: files.cccdBackImage ? await fileToBase64(files.cccdBackImage) : null,
         licenseImage: files.licenseImage ? await fileToBase64(files.licenseImage) : null,
         vehicleDocumentImage: files.vehicleDocumentImage ? await fileToBase64(files.vehicleDocumentImage) : null,
-        plateImage: files.plateImage ? await fileToBase64(files.plateImage) : null,
       };
 
       await createVehicleRegistrationForUser(selectedUser.userId, payload);
