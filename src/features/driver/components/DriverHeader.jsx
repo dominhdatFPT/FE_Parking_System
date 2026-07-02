@@ -2,17 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/useAuth';
-import { useSystemRules } from '../../../contexts/useSystemRules';
-import { bookingService } from '../../../services/bookingService';
+import { customerService } from '../../../services/customerService';
 import { ROUTES } from '../../../constants/routes';
-import { STORAGE_KEYS } from '../../../constants/storageKeys';
-import UserProfileDropdown from '../../../components/UserProfileDropdown';
 import NotificationDetailModal from './NotificationDetailModal';
 import { apiDateTimeMillis } from '../../../utils/dateTime';
 
 export default function DriverHeader({ onToggleSidebar }) {
-  const { user, setUser } = useAuth();
-  const { openRules } = useSystemRules();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const displayName = user?.fullName || user?.name || 'Driver';
@@ -29,7 +25,7 @@ export default function DriverHeader({ onToggleSidebar }) {
   useEffect(() => {
     let cancelled = false;
     const loadNotifications = async () => {
-      const { data } = await bookingService.getNotifications();
+      const { data } = await customerService.getNotifications();
       if (!cancelled) {
         setNotifications(Array.isArray(data) ? data : []);
         setUnreadCount(Array.isArray(data) ? data.filter((n) => !n.read).length : 0);
@@ -50,13 +46,13 @@ export default function DriverHeader({ onToggleSidebar }) {
   }, []);
 
   const handleMarkRead = async (id) => {
-    await bookingService.markNotificationRead(id);
+    await customerService.markNotificationRead(id);
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
     setUnreadCount((prev) => Math.max(0, prev - 1));
   };
 
   const handleMarkAllRead = async () => {
-    await bookingService.markAllNotificationsRead();
+    await customerService.markAllNotificationsRead();
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     setUnreadCount(0);
   };
@@ -89,24 +85,6 @@ export default function DriverHeader({ onToggleSidebar }) {
   const switchLang = (lng) => {
     i18n.changeLanguage(lng);
     setLangOpen(false);
-  };
-
-  const handleLogout = () => {
-    sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    sessionStorage.removeItem(STORAGE_KEYS.USER);
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.USER);
-    localStorage.removeItem('smart-parking-user');
-    localStorage.removeItem('rememberMe');
-    setUser(null);
-    navigate(ROUTES.LOGIN, { replace: true });
-  };
-
-  const profile = {
-    name: displayName,
-    role: user?.role || 'driver',
-    email: user?.email || '',
-    avatar: user?.avatarUrl || user?.avatar || '',
   };
 
   return (
@@ -218,14 +196,14 @@ export default function DriverHeader({ onToggleSidebar }) {
           )}
         </div>
 
-        <UserProfileDropdown
-          profile={profile}
-          onViewProfile={() => navigate(ROUTES.DRIVER.PROFILE)}
-          onChangePassword={() => navigate(ROUTES.DRIVER.PROFILE)}
-          onViewNotifications={() => navigate(ROUTES.DRIVER.NOTIFICATIONS)}
-          onViewRules={openRules}
-          onLogout={handleLogout}
-        />
+        {/* Avatar */}
+        <button
+          type="button"
+          onClick={() => navigate(ROUTES.DRIVER.PROFILE)}
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0EA5E9] text-xs font-semibold text-white shadow-[0_10px_22px_rgba(14,165,233,0.22)] transition-all duration-300 hover:bg-[#0284C7] active:scale-95"
+        >
+          {displayName.charAt(0).toUpperCase()}
+        </button>
       </div>
     </header>
     <NotificationDetailModal notification={selectedNotification} onClose={() => setSelectedNotification(null)} />

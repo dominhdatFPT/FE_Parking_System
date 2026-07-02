@@ -1,7 +1,6 @@
 import { useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ROUTES } from '../../../constants/routes';
-import { STORAGE_KEYS } from '../../../constants/storageKeys';
 import { useAuth } from '../../../contexts/useAuth';
 import Logo from '../../../components/Logo';
 
@@ -18,24 +17,16 @@ export default function DriverSidebar({ isOpen, onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-  const { setUser } = useAuth();
+  const { logout } = useAuth();
 
   const handleNav = (target) => {
     const path = typeof target === 'string' ? target : target?.path;
-    if (path) {
-      navigate(path);
-    }
+    if (path) navigate(path);
     onClose?.();
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    sessionStorage.removeItem(STORAGE_KEYS.USER);
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.USER);
-    localStorage.removeItem('smart-parking-user');
-    localStorage.removeItem('rememberMe');
-    setUser(null);
+  const handleLogout = async () => {
+    await logout();
     navigate(ROUTES.LOGIN, { replace: true });
     onClose?.();
   };
@@ -59,9 +50,9 @@ export default function DriverSidebar({ isOpen, onClose }) {
           background: '#DBEAFE',
         }}
       >
-        <div 
-          onClick={() => { window.location.href = ROUTES.DRIVER.DASHBOARD; }}
-          className="flex flex-col px-5 py-3 gap-1 border-b border-slate-200/60 cursor-pointer select-none"
+        <div
+          onClick={() => handleNav(ROUTES.DRIVER.DASHBOARD)}
+          className="flex cursor-pointer select-none flex-col gap-1 border-b border-slate-200/60 px-5 py-3"
           title="Về trang tổng quan"
         >
           <Logo variant="horizontal" theme="brand" size="sm" />
@@ -102,7 +93,7 @@ export default function DriverSidebar({ isOpen, onClose }) {
         <div className="mx-5 border-t border-[#E5E7EB]" />
 
         {/* Bottom */}
-        <div className="p-3 space-y-1">
+        <div className="space-y-1 p-3">
           <button
             type="button"
             onClick={() => handleNav(ROUTES.DRIVER.PROFILE)}
@@ -122,7 +113,6 @@ export default function DriverSidebar({ isOpen, onClose }) {
             </span>
             <span className="relative z-10">{t('sidebar.profile')}</span>
           </button>
-          
           <button
             type="button"
             onClick={handleLogout}
