@@ -104,7 +104,7 @@ export default function AdminLayout() {
         avatar: '',
       };
 
-  const isVehicleEntryPage = [
+  const isFixedCanvasPage = [
     ROUTES.ADMIN.VEHICLE_ENTRY,
     ROUTES.ADMIN.VEHICLE_EXIT,
     ROUTES.STAFF.VEHICLE_ENTRY,
@@ -116,12 +116,10 @@ export default function AdminLayout() {
 
   return (
     <div
-      className={`relative bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.14),transparent_34%),linear-gradient(135deg,#f8fafc_0%,#eef6fb_46%,#f8fafc_100%)] text-slate-950 lg:flex ${
-        isVehicleEntryPage ? 'h-screen overflow-hidden' : 'min-h-screen overflow-x-hidden'
-      }`}
+      className="relative flex h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.14),transparent_34%),linear-gradient(135deg,#f8fafc_0%,#eef6fb_46%,#f8fafc_100%)] text-slate-950"
     >
       <aside
-        className={`hidden min-h-screen flex-shrink-0 border-r border-white/[0.07] bg-gradient-to-b from-[#08203D] via-[#071A32] to-[#020B18] text-white shadow-[8px_0_32px_rgba(2,11,24,0.55)] transition-[width] duration-300 ease-out lg:sticky lg:top-0 lg:z-50 lg:flex lg:h-screen lg:flex-col ${
+        className={`hidden h-full min-h-0 flex-shrink-0 border-r border-white/[0.07] bg-gradient-to-b from-[#08203D] via-[#071A32] to-[#020B18] text-white shadow-[8px_0_32px_rgba(2,11,24,0.55)] transition-[width] duration-300 ease-out lg:z-50 lg:flex lg:flex-col ${
           collapsed ? 'w-20' : 'w-[276px]'
         }`}
       >
@@ -260,10 +258,8 @@ export default function AdminLayout() {
       </aside>
 
 
-      <div
-        className={`relative z-10 flex min-w-0 flex-1 flex-col ${isVehicleEntryPage ? 'h-full overflow-hidden' : ''}`}
-      >
-        <header className="sticky top-0 z-40 border-b border-slate-100 bg-white px-5 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)] lg:px-8">
+      <div className="relative z-10 flex h-full min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="z-40 shrink-0 border-b border-slate-100 bg-white px-5 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)] lg:px-8">
           <div className="flex min-h-12 items-center justify-between gap-4">
             <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
@@ -287,9 +283,9 @@ export default function AdminLayout() {
 
         <main
           className={
-            isVehicleEntryPage
+            isFixedCanvasPage
               ? 'min-h-0 min-w-0 flex-1 overflow-hidden p-3 sm:p-4'
-              : 'min-w-0 flex-1 p-4 sm:p-5 lg:p-8'
+              : 'min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-5 lg:p-8'
           }
         >
           <Outlet />
