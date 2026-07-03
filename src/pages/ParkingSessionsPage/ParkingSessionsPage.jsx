@@ -17,6 +17,7 @@ const tabs = ['Đang hoạt động', 'Đã hoàn thành', 'Tất cả'];
 const vehicleTypes = ['Tất cả', 'Ô tô', 'Xe máy'];
 const customerTypes = ['Tất cả', 'Gói tháng', 'Vãng lai'];
 const statuses = ['Tất cả', 'Bình thường', 'Quá 24 giờ', 'Quá 7 ngày', 'Đã hoàn thành'];
+const PAGE_SIZE = 10;
 
 const statusClasses = {
   'Bình thường': 'border-emerald-200 bg-emerald-50 text-emerald-700',
@@ -130,13 +131,14 @@ export default function ParkingSessionsPage() {
   const [customerType, setCustomerType] = useState('Tất cả');
   const [status, setStatus] = useState('Tất cả');
   const [date, setDate] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedSession, setSelectedSession] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    getParkingSessions()
+    getParkingSessions({ page: 0, size: 200 })
       .then((items) => {
         if (active) setSessions(items.map(mapSession));
       })
@@ -162,7 +164,26 @@ export default function ParkingSessionsPage() {
       && (customerType === 'Tất cả' || session.customer === customerType)
       && (status === 'Tất cả' || session.status === status)
       && matchesDate;
-  }), [activeTab, customerType, date, search, sessions, status, vehicleType]);
+  }).sort((a, b) => (apiDateTimeMillis(b.entryTime) || 0) - (apiDateTimeMillis(a.entryTime) || 0)), [activeTab, customerType, date, search, sessions, status, vehicleType]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, customerType, date, search, status, vehicleType]);
+
+  const pageCount = Math.max(1, Math.ceil(filteredSessions.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, pageCount);
+
+  useEffect(() => {
+    if (currentPage > pageCount) setCurrentPage(pageCount);
+  }, [currentPage, pageCount]);
+
+  const visibleSessions = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return filteredSessions.slice(start, start + PAGE_SIZE);
+  }, [filteredSessions, safePage]);
+
+  const rangeStart = filteredSessions.length ? (safePage - 1) * PAGE_SIZE + 1 : 0;
+  const rangeEnd = Math.min(safePage * PAGE_SIZE, filteredSessions.length);
 
   const kpis = useMemo(() => {
     const activeSessions = sessions.filter((session) => session.status !== 'Đã hoàn thành');
@@ -242,9 +263,16 @@ export default function ParkingSessionsPage() {
             </span>
             <div>
               <h2 className="text-sm font-black text-slate-950">Danh sách phiên gửi xe</h2>
-              <p className="text-xs font-medium text-slate-400">Hiển thị {filteredSessions.length.toLocaleString('vi-VN')} phiên</p>
+              <p className="text-xs font-medium text-slate-400">
+                {filteredSessions.length
+                  ? `Hiển thị ${rangeStart}-${rangeEnd} / ${filteredSessions.length.toLocaleString('vi-VN')} phiên`
+                  : 'Không có phiên phù hợp'}
+              </p>
             </div>
           </div>
+          <span className="hidden rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-500 sm:inline-flex">
+            {PAGE_SIZE} phiên / trang
+          </span>
         </div>
 
         <div className="max-h-[560px] overflow-auto">
@@ -277,7 +305,7 @@ export default function ParkingSessionsPage() {
                   </td>
                 </tr>
               ) : null}
-              {!loading && filteredSessions.map((session) => (
+              {!loading && visibleSessions.map((session) => (
                 <tr key={session.id} className="h-16 text-slate-600 transition-colors hover:bg-blue-50/40">
                   <td className="px-4 py-3">
                     <span className="inline-flex max-w-[130px] items-center gap-1.5 rounded-xl bg-blue-50 px-2.5 py-1 font-black text-slate-950">
@@ -321,6 +349,35 @@ export default function ParkingSessionsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs font-semibold text-slate-500">
+            {filteredSessions.length
+              ? `Trang ${safePage} / ${pageCount}`
+              : 'Chưa có dữ liệu để phân trang'}
+          </p>
+          <div className="inline-flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              disabled={safePage <= 1}
+              className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Trước
+            </button>
+            <span className="min-w-16 rounded-xl bg-slate-100 px-3 py-2 text-center text-xs font-black text-slate-700">
+              {safePage}/{pageCount}
+            </span>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.min(pageCount, page + 1))}
+              disabled={safePage >= pageCount}
+              className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Sau
+            </button>
+          </div>
         </div>
       </section>
       <SessionDetailDrawer open={isDetailOpen} session={selectedSession} onClose={() => setIsDetailOpen(false)} />

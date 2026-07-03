@@ -16,6 +16,17 @@ const formatKpiDateTime = (value) => {
   }).format(date);
 };
 
+const getSessionCode = (value) => (
+  value?.orderCode
+  || value?.sessionCode
+  || value?.parkingSessionCode
+  || value?.parkingOrderCode
+  || value?.orderId
+  || value?.parkingOrderId
+  || value?.sessionId
+  || value?.id
+);
+
 const formatSessionStatus = (value, canConfirm, invalid) => {
   if (value === '—') return '—';
   const normalized = String(value || '').toUpperCase();
@@ -159,12 +170,21 @@ export default function VehicleEntryPage() {
   const displayPlate = hasChecked ? (result?.licensePlate || licensePlate.trim().toUpperCase() || '—') : '—';
   const customerType = !hasChecked ? '—' : isRegistered ? 'Khách tháng' : isVisitor ? 'Vãng lai' : isInvalid ? 'Không hợp lệ' : '—';
   const entryTime = hasChecked ? formatKpiDateTime(result?.entryTime || result?.checkInTime || result?.createdAt) : '—';
+  const exitTime = hasChecked ? formatKpiDateTime(result?.exitTime || result?.checkOutTime) : '—';
+  const sessionCode = getSessionCode(result);
   const checkedVehicleType = result?.vehicleType || vehicleType;
   const isMotorbike = String(checkedVehicleType || '').toUpperCase().includes('MOTORBIKE')
     || String(checkedVehicleType || '').toLowerCase().includes('xe máy');
   const vehicleTypeDisplay = !hasChecked ? '—' : isMotorbike ? 'Xe máy' : 'Ô tô';
   const VehicleTypeIcon = isMotorbike ? Bike : CarFront;
   const sessionStatusDisplay = hasChecked ? formatSessionStatus(result?.sessionStatus, result?.canConfirm, isInvalid) : '—';
+  const sessionTitle = !hasChecked
+    ? 'Chưa kiểm tra xe'
+    : result?.canConfirm
+      ? 'Chưa tạo phiên'
+      : sessionCode
+        ? `Phiên ${sessionCode}`
+        : 'Phiên gửi xe đã tạo';
 
   return (
     /*
@@ -339,8 +359,25 @@ export default function VehicleEntryPage() {
             </div>
           </div>
 
-          {/* 4 KPI tiles — mt-auto pushes to bottom, never overlaps content above */}
-          <div className="mt-auto grid shrink-0 grid-cols-4 gap-3 pt-[20px]">
+          <div className="mt-auto shrink-0 pt-[20px]">
+            <div className="mb-3 grid grid-cols-[minmax(0,1.1fr)_0.85fr_0.85fr] gap-3 rounded-[18px] border border-slate-200 bg-slate-50/80 p-3">
+              <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Phiên gửi xe</p>
+                <p className="mt-1 truncate text-sm font-black text-slate-950" title={sessionTitle}>{sessionTitle}</p>
+              </div>
+              <div className="rounded-2xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-100">
+                <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">Giờ vào</p>
+                <p className="mt-1 text-sm font-extrabold text-slate-950 tabular-nums">{entryTime}</p>
+              </div>
+              <div className="rounded-2xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-100">
+                <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">Giờ ra</p>
+                <p className="mt-1 text-sm font-extrabold text-slate-950 tabular-nums">{exitTime}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 4 KPI tiles — compact state summary for quick scanning */}
+          <div className="grid shrink-0 grid-cols-4 gap-3">
             <Info label="Loại xe"    value={vehicleTypeDisplay}                                           tone="blue"   icon={VehicleTypeIcon} />
             <Info label="Loại khách" value={customerType}                                                   tone="green"  icon={User}        />
             <Info label="Giờ vào"    value={entryTime}                                                      tone="purple" icon={Clock3}      />
