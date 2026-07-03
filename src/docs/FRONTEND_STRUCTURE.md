@@ -26,11 +26,10 @@ Chức năng:
 - Đăng nhập tài khoản User/Driver.
 - Đăng ký tài khoản user.
 - Đăng ký đối tác/admin account nếu backend hỗ trợ.
-- Quên mật khẩu, nhập OTP, đặt lại mật khẩu.
 - Lưu token, thông tin user, role và điều hướng theo quyền.
 
 Nên chứa:
-- `pages`: Login, Register, ForgotPassword, VerifyOtp, ResetPassword.
+- `pages`: Login, Register.
 - `services`: gọi API đăng nhập, đăng ký, refresh token, logout.
 - `hooks`: hook xử lý form auth, kiểm tra quyền.
 - `types.ts`: type user, role, login response.
@@ -324,7 +323,7 @@ Nên tạo type dùng chung trong `src/types` hoặc type riêng trong từng fe
 
 ## 8. Gợi ý giao việc theo team
 
-- Duy: `features/auth`, `features/driver/welcome`, login/register/forgot password.
+- Duy: `features/auth`, `features/driver/welcome`, login/register.
 - Admin screens: `features/admin/*`.
 - Manager screens: `features/manager/*`.
 - Staff screens: `features/staff/*`.

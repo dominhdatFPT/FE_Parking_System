@@ -7,8 +7,6 @@ import DriverLayout from '../layouts/DriverLayout';
 import LoginPage from '../features/auth/pages/LoginPage';
 import HomePage from '../pages/HomePage';
 import WelcomePage from '../features/auth/pages/WelcomePage';
-import AccountRecovery from '../features/auth/pages/AccountRecovery';
-import ResetPassword from '../features/auth/pages/ResetPassword';
 import SignupPage from '../features/auth/pages/SignupPage';
 import DriverDashboard from '../features/driver/pages/DriverDashboard';
 import DriverPayment from '../features/driver/pages/DriverPayment';
@@ -86,8 +84,6 @@ export function AppRoutes() {
       <Route path={ROUTES.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.ADMIN_LOGIN} element={<Navigate to={ROUTES.LOGIN} replace />} />
       <Route path={ROUTES.SIGNUP} element={<SignupPage />} />
-      <Route path="/recovery" element={<AccountRecovery />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
       
       <Route path="/home" element={
           <RequireAuth>
