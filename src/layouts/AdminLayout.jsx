@@ -172,6 +172,7 @@ export default function AdminLayout() {
                 const ItemIcon = item.icon;
                 const isActive = isNavigationItemActive(location.pathname, location.search, item.path);
                 const label = getNavigationLabel(item);
+                const canWrapLabel = item.path === ROUTES.ADMIN.USER_VEHICLE_REGISTRATION;
 
                 return (
                   <NavLink
@@ -179,7 +180,9 @@ export default function AdminLayout() {
                     to={item.path}
                     end={item.path === ROUTES.ADMIN.DASHBOARD}
                     title={collapsed ? label : undefined}
-                    className={`group relative flex h-11 items-center rounded-xl text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                    className={`group relative flex items-center rounded-xl text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                      canWrapLabel && !collapsed ? 'min-h-11 py-2' : 'h-11'
+                    } ${
                       collapsed ? 'justify-center px-0' : 'gap-3 px-2.5'
                     } ${
                       isActive
@@ -196,7 +199,11 @@ export default function AdminLayout() {
                     >
                       <ItemIcon className="h-4 w-4 shrink-0" />
                     </span>
-                    {!collapsed ? <span className="truncate">{label}</span> : null}
+                    {!collapsed ? (
+                      <span className={canWrapLabel ? 'min-w-0 flex-1 whitespace-normal break-words leading-tight' : 'truncate'}>
+                        {label}
+                      </span>
+                    ) : null}
                   </NavLink>
                 );
               })}
