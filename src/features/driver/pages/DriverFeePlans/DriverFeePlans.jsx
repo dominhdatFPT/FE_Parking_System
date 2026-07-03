@@ -9,6 +9,19 @@ import PageHeader from '../../components/PageHeader';
 
 const VEHICLE_TYPE_ID = { MOTORBIKE: 1, CAR: 2 };
 
+const PLAN_NAME_KEYS = {
+  1: 'feePlans.planName',
+  3: 'feePlans.planNameQuarter',
+  6: 'feePlans.planNameHalfYear',
+  12: 'feePlans.planNameYear',
+};
+
+const BENEFIT_KEYS = {
+  'Ra vào không giới hạn': 'feePlans.benefitUnlimitedAccess',
+  'Ưu tiên ra vào': 'feePlans.benefitPriorityAccess',
+  'Hỗ trợ khẩn cấp': 'feePlans.benefitEmergencySupport',
+};
+
 const normalizeLicensePlate = (value) => String(value || '')
   .trim()
   .toUpperCase()
@@ -292,7 +305,6 @@ export default function DriverFeePlans() {
                     onClick={() => { setVehicleType('MOTORBIKE'); }}
                     className={`relative flex items-center gap-3 rounded-2xl border-2 p-4 text-left transition-all duration-300 ${vehicleType === 'MOTORBIKE' ? 'border-blue-600 bg-blue-50/20 text-blue-700 shadow-sm' : 'border-slate-100 hover:border-slate-200 text-slate-600 bg-white'}`}
                   >
-                    <span className="text-xl">🏍</span>
                     <div className="flex-1">
                       <p className="text-xs font-black">{t('vehicleRegistration.motorbike')}</p>
                       <p className="text-[10px] text-slate-400 mt-0.5">{t('feePlans.step1DescMotorbike')}</p>
@@ -304,7 +316,6 @@ export default function DriverFeePlans() {
                     onClick={() => { setVehicleType('CAR'); }}
                     className={`relative flex items-center gap-3 rounded-2xl border-2 p-4 text-left transition-all duration-300 ${vehicleType === 'CAR' ? 'border-blue-600 bg-blue-50/20 text-blue-700 shadow-sm' : 'border-slate-100 hover:border-slate-200 text-slate-600 bg-white'}`}
                   >
-                    <span className="text-xl">🚗</span>
                     <div className="flex-1">
                       <p className="text-xs font-black">{t('vehicleRegistration.car')}</p>
                       <p className="text-[10px] text-slate-400 mt-0.5">{t('feePlans.step1DescCar')}</p>
@@ -320,13 +331,12 @@ export default function DriverFeePlans() {
                   <div className="space-y-1 relative max-w-xs">
                     <span className="text-[10px] font-bold text-slate-400 uppercase">{t('feePlans.plate')}</span>
                     <div className="relative flex items-center">
-                      <span className="absolute left-3.5 text-xs">{vehicleType === 'CAR' ? '🚗' : '🏍'}</span>
                       <input
                         type="text"
                         value={licensePlate}
                         onChange={(e) => setLicensePlate(e.target.value)}
                         placeholder={t('feePlans.platePlaceholder')}
-                        className="w-full pl-9 pr-10 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl focus:outline-none"
+                        className="w-full px-3 pr-10 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl focus:outline-none"
                       />
                       <button
                         type="button"
@@ -388,6 +398,7 @@ export default function DriverFeePlans() {
                       const price = Number.isFinite(Number(rawPrice)) ? Number(rawPrice) : 0;
                       const pricePerMonth = pkg.durationMonths > 0 ? Math.round(price / pkg.durationMonths) : price;
                       const benefitsList = pkg.benefits ? pkg.benefits.split(';').map(b => b.trim()).filter(Boolean) : [];
+                      const planNameKey = PLAN_NAME_KEYS[pkg.durationMonths];
 
                       return (
                         <div
@@ -406,17 +417,21 @@ export default function DriverFeePlans() {
                           )}
                           <div>
                             <div className="flex items-baseline justify-between border-b border-slate-100 pb-2 mb-3">
-                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">{pkg.name}</span>
+                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                {planNameKey ? t(planNameKey) : pkg.name}
+                              </span>
                             </div>
                             <div className="flex items-baseline gap-1 mt-1">
                               <span className="text-3xl font-black text-slate-800 tracking-tight">{pkg.durationMonths}</span>
                               <span className="text-xs font-bold text-slate-400 uppercase">{t('feePlans.planUnit')}</span>
                             </div>
                             <div className="mt-2.5">
-                              <span className="text-base font-black text-slate-700">{price.toLocaleString('vi-VN')} đ</span>
+                              <span className="text-base font-black text-slate-700">
+                                {t('feePlans.currencyAmount', { price: price.toLocaleString('vi-VN') })}
+                              </span>
                               {pkg.durationMonths > 1 && (
                                 <span className="text-[9px] font-bold text-slate-400 block mt-0.5">
-                                  (~ {pricePerMonth.toLocaleString('vi-VN')} đ/tháng)
+                                  {t('feePlans.pricePerMonth', { price: pricePerMonth.toLocaleString('vi-VN') })}
                                 </span>
                               )}
                             </div>
@@ -426,7 +441,7 @@ export default function DriverFeePlans() {
                                 {benefitsList.map((benefit, idx) => (
                                   <li key={idx} className="flex items-start gap-1.5 text-[10px] text-slate-500 font-semibold leading-relaxed">
                                     <span className="material-symbols-outlined text-[13px] text-emerald-500 font-bold shrink-0 mt-0.5">check_circle</span>
-                                    <span>{benefit}</span>
+                                    <span>{BENEFIT_KEYS[benefit] ? t(BENEFIT_KEYS[benefit]) : benefit}</span>
                                   </li>
                                 ))}
                               </ul>
@@ -434,7 +449,7 @@ export default function DriverFeePlans() {
                           </div>
                           <div className="mt-5 pt-3 border-t border-slate-50 flex items-center justify-between">
                             <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
-                              {isSelected ? 'Đang chọn' : 'Nhấp để chọn'}
+                              {isSelected ? t('feePlans.selecting') : t('feePlans.clickToSelect')}
                             </span>
                             <span className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 shrink-0 ${
                               isSelected 
@@ -538,7 +553,6 @@ export default function DriverFeePlans() {
               )}
 
               <div className="mt-8 pt-4 flex items-center justify-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                <span className="material-symbols-outlined text-[16px] text-blue-600">security</span>
                 <span>{t('feePlans.securePayment')}</span>
               </div>
             </div>

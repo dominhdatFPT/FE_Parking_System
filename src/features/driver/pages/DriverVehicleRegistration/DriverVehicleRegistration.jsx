@@ -25,7 +25,6 @@ export default function DriverVehicleRegistration() {
   const [cccdBackFile, setCccdBackFile] = useState(null);
   const [driverLicenseFile, setDriverLicenseFile] = useState(null);
   const [vehicleDocsFile, setVehicleDocsFile] = useState(null);
-  const [licensePlateFile, setLicensePlateFile] = useState(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -99,7 +98,6 @@ export default function DriverVehicleRegistration() {
         cccdBackImage: cccdBackFile ? await fileToBase64(cccdBackFile) : null,
         licenseImage: driverLicenseFile ? await fileToBase64(driverLicenseFile) : null,
         vehicleDocumentImage: vehicleDocsFile ? await fileToBase64(vehicleDocsFile) : null,
-        plateImage: licensePlateFile ? await fileToBase64(licensePlateFile) : null,
       };
 
       const { error: err, message } = await customerService.registerVehicleCard(payload);
@@ -176,8 +174,8 @@ export default function DriverVehicleRegistration() {
   // Only the plate is required. Photos are optional evidence for staff review.
   const totalSteps = 1;
   const completedSteps = licensePlate.trim() ? 1 : 0;
-  const uploadedPhotoCount = [cccdFrontFile, cccdBackFile, driverLicenseFile, vehicleDocsFile, licensePlateFile].filter(Boolean).length;
-  const totalPhotoSlots = 5;
+  const uploadedPhotoCount = [cccdFrontFile, cccdBackFile, driverLicenseFile, vehicleDocsFile].filter(Boolean).length;
+  const totalPhotoSlots = 4;
   const getFormStatus = () => {
     if (submitted) return t('vehicleRegistration.statusPending');
     if (completedSteps === totalSteps) return t('vehicleRegistration.statusReady');
@@ -336,9 +334,6 @@ export default function DriverVehicleRegistration() {
                   {renderFileDropzone(t('vehicleRegistration.cccdBack'), cccdBackFile, setCccdBackFile)}
                   {renderFileDropzone(t('vehicleRegistration.driverLicense'), driverLicenseFile, setDriverLicenseFile)}
                   {renderFileDropzone(t('vehicleRegistration.vehicleDocs'), vehicleDocsFile, setVehicleDocsFile)}
-                  <div className="sm:col-span-2">
-                    {renderFileDropzone(t('vehicleRegistration.licensePlateOptional'), licensePlateFile, setLicensePlateFile)}
-                  </div>
                 </div>
 
                 {error && (
