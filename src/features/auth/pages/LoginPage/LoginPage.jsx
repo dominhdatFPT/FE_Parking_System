@@ -3,7 +3,7 @@ import { signInWithPopup } from 'firebase/auth';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import {
   BadgeCheck,
   Camera,
