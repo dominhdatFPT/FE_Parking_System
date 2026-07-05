@@ -74,6 +74,7 @@ export default function DriverNotifications() {
         title={t('notifications.title')}
         subtitle={unreadCount > 0 ? t('notifications.unreadCount', { count: unreadCount }) : t('notifications.noNotificationsDesc')}
         icon="notifications"
+        variant="banner"
         actions={
           unreadCount > 0 ? (
             <Button variant="secondary" size="md" icon="done_all" onClick={handleMarkAllRead}>

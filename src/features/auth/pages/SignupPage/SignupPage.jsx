@@ -30,7 +30,7 @@ const resources = {
     translation: {
       login: 'Đăng nhập',
       title: 'Tạo tài khoản mới',
-      message: 'Tạo tài khoản để quản lý bãi đỗ xe thông minh, nhận diện biển số AI và theo dõi phương tiện theo thời gian thực.',
+      message: 'Tạo tài khoản để quản lý bãi đỗ xe thông minh, nhận diện biển số và theo dõi phương tiện theo thời gian thực.',
       fullName: 'Họ và tên',
       email: 'Email',
       password: 'Mật khẩu',
@@ -100,7 +100,7 @@ const resources = {
     translation: {
       login: 'Login',
       title: 'Create your account',
-      message: 'Create an account to manage smart parking, AI license plate recognition, and real-time vehicle monitoring.',
+      message: 'Create an account to manage smart parking, license plate recognition, and real-time vehicle monitoring.',
       fullName: 'Full name',
       email: 'Email',
       password: 'Password',

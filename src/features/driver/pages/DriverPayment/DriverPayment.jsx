@@ -118,17 +118,22 @@ export default function DriverPayment() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('payment.title')} subtitle="Thanh toán và theo dõi hóa đơn gói thẻ xe" icon="payments" />
+      <PageHeader
+        title={t('payment.title')}
+        subtitle={t('payment.vehicleCardSubtitle')}
+        icon="payments"
+        variant="banner"
+      />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <SummaryCard label="Tổng giao dịch" value={subscriptionInvoices.length} />
-        <SummaryCard label="Đã thanh toán" value={`${totalPaid.toLocaleString('vi-VN')} VNĐ`} tone="text-emerald-600" />
-        <SummaryCard label="Thanh toán lỗi" value={`${totalFailed.toLocaleString('vi-VN')} VNĐ`} tone="text-red-500" />
+        <SummaryCard label={t('payment.totalTransactions')} value={subscriptionInvoices.length} />
+        <SummaryCard label={t('payment.totalPaid')} value={t('payment.currencyAmount', { amount: totalPaid.toLocaleString('vi-VN') })} tone="text-emerald-600" />
+        <SummaryCard label={t('payment.totalFailed')} value={t('payment.currencyAmount', { amount: totalFailed.toLocaleString('vi-VN') })} tone="text-red-500" />
       </div>
 
       {pendingFeePlans.length > 0 && (
         <section className="rounded-2xl border border-sky-100 bg-sky-50/30 p-5">
-          <h3 className="text-sm font-bold text-slate-800">Gói đang chờ thanh toán VNPay</h3>
+          <h3 className="text-sm font-bold text-slate-800">{t('payment.pendingVnpayPlans')}</h3>
           <div className="mt-3 space-y-3">
             {pendingFeePlans.map((plan) => (
               <div
@@ -137,15 +142,16 @@ export default function DriverPayment() {
               >
                 <div>
                   <p className="font-bold text-slate-800">
-                    {plan.planName || 'Gói thẻ xe'} - {plan.licensePlate || 'Chưa có biển số'}
+                    {plan.planName || t('payment.vehicleCardPlan')} - {plan.licensePlate || t('payment.noLicensePlate')}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    Thanh toán qua VNPay{plan.expiredAt ? ` - Hết hạn: ${vietnamDayjs(plan.expiredAt).format('DD/MM/YYYY HH:mm')}` : ''}
+                    {t('payment.payViaVnpay')}
+                    {plan.expiredAt ? ` - ${t('payment.expiresAt', { date: vietnamDayjs(plan.expiredAt).format('DD/MM/YYYY HH:mm') })}` : ''}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
                   <p className="font-black text-sky-600">
-                    {Number(plan.amount || 0).toLocaleString('vi-VN')} đ
+                    {t('payment.currencyAmount', { amount: Number(plan.amount || 0).toLocaleString('vi-VN') })}
                   </p>
                   <Button
                     variant="primary"
@@ -155,24 +161,24 @@ export default function DriverPayment() {
                     disabled={redirecting}
                     onClick={() => handlePayFeePlan(plan)}
                   >
-                    {redirecting ? 'Đang chuyển...' : 'Thanh toán ngay'}
+                    {redirecting ? t('payment.redirecting') : t('payment.payNow')}
                   </Button>
                 </div>
               </div>
             ))}
           </div>
           <p className="mt-3 text-xs text-slate-400">
-            Bạn sẽ được chuyển sang VNPay và quay lại hệ thống sau khi hoàn tất.
+            {t('payment.vnpayRedirectNote')}
           </p>
         </section>
       )}
 
       <section>
-        <h3 className="mb-3 text-sm font-bold text-slate-800">Lịch sử thanh toán thẻ xe</h3>
+        <h3 className="mb-3 text-sm font-bold text-slate-800">{t('payment.vehicleCardPaymentHistory')}</h3>
         {loading ? (
           <div className="h-20 animate-pulse rounded-2xl bg-white" />
         ) : subscriptionInvoices.length === 0 ? (
-          <EmptyState icon="sell" title="Chưa có giao dịch" description="Các giao dịch mua biểu phí sẽ hiển thị tại đây." />
+          <EmptyState icon="sell" title={t('payment.noPayments')} description={t('payment.noPaymentsDesc')} />
         ) : (
           <PaymentTable invoices={subscriptionInvoices} t={t} />
         )}
@@ -187,8 +193,8 @@ function PaymentTable({ invoices, t }) {
       <table className="w-full text-left text-sm">
         <thead className="bg-slate-50 text-xs uppercase text-slate-500">
           <tr>
-            <th className="px-5 py-3">Hóa đơn</th>
-            <th className="px-5 py-3">Biển số / Gói</th>
+            <th className="px-5 py-3">{t('payment.invoice')}</th>
+            <th className="px-5 py-3">{t('payment.plateAndPlan')}</th>
             <th className="px-5 py-3">{t('payment.amount')}</th>
             <th className="px-5 py-3">{t('payment.method')}</th>
             <th className="px-5 py-3">{t('payment.status')}</th>
@@ -203,7 +209,7 @@ function PaymentTable({ invoices, t }) {
                 <p className="font-semibold">{invoice.licensePlate || '--'}</p>
                 <p className="text-xs text-slate-400">{invoice.planName || '--'}</p>
               </td>
-              <td className="px-5 py-3 font-bold">{Number(invoice.amount || 0).toLocaleString('vi-VN')} VNĐ</td>
+              <td className="px-5 py-3 font-bold">{t('payment.currencyAmount', { amount: Number(invoice.amount || 0).toLocaleString('vi-VN') })}</td>
               <td className="px-5 py-3 text-blue-600">VNPay</td>
               <td className="px-5 py-3">
                 <StatusBadge status={invoice.status === 'SUCCESS' ? 'PAID' : invoice.status} />

@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import {
+  ArrowRight,
   BadgeCheck,
   Camera,
   CarFront,
@@ -72,7 +71,7 @@ const loginTranslations = {
     hidePassword: 'Ẩn mật khẩu',
     showPassword: 'Hiện mật khẩu',
     trust: {
-      lpr: 'AI nhận diện biển số',
+      lpr: 'Nhận diện biển số',
       monitoring: 'Giám sát bãi xe thời gian thực',
       barrier: 'Điều khiển Barrier thông minh',
       cloud: 'Hạ tầng Cloud bảo mật',
@@ -123,7 +122,7 @@ const loginTranslations = {
     hidePassword: 'Hide password',
     showPassword: 'Show password',
     trust: {
-      lpr: 'AI license plate recognition',
+      lpr: 'License plate recognition',
       monitoring: 'Real-time parking monitoring',
       barrier: 'Smart Barrier control',
       cloud: 'Secure Cloud infrastructure',
@@ -461,6 +460,7 @@ export default function LoginPage() {
         avatarUrl: response.user?.avatarUrl ?? response.avatarUrl ?? '',
       };
 
+      sessionStorage.setItem(STORAGE_KEYS.SHOW_SYSTEM_RULES_AFTER_LOGIN, 'true');
       setUser(authenticatedUser);
       sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authenticatedUser));
       sessionStorage.setItem('smart-parking-user', JSON.stringify(authenticatedUser));
@@ -517,6 +517,7 @@ export default function LoginPage() {
         localStorage.removeItem('smart-parking-user');
         localStorage.removeItem('rememberMe');
         localStorage.setItem('userRole', response.role || 'driver');
+        sessionStorage.setItem(STORAGE_KEYS.SHOW_SYSTEM_RULES_AFTER_LOGIN, 'true');
         setUser(nextUser);
         navigate(getPostLoginPath(response.role), { replace: true });
       }
@@ -596,6 +597,7 @@ export default function LoginPage() {
                 disabled={loading}
               >
                 {loading ? t('submitting') : t('submit')}
+                {!loading && <ArrowRight className="h-5 w-5 !text-white" />}
               </button>
 
               <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">

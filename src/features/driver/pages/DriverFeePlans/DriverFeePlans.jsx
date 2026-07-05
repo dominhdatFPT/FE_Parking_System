@@ -13,6 +13,19 @@ const VEHICLE_TYPE_IMAGE = {
   CAR: '/vehicle-rear-car.png',
 };
 
+const PLAN_NAME_KEYS = {
+  1: 'feePlans.planName',
+  3: 'feePlans.planNameQuarter',
+  6: 'feePlans.planNameHalfYear',
+  12: 'feePlans.planNameYear',
+};
+
+const BENEFIT_KEYS = {
+  'Ra vào không giới hạn': 'feePlans.benefitUnlimitedAccess',
+  'Ưu tiên ra vào': 'feePlans.benefitPriorityAccess',
+  'Hỗ trợ khẩn cấp': 'feePlans.benefitEmergencySupport',
+};
+
 const normalizeLicensePlate = (value) => String(value || '')
   .trim()
   .toUpperCase()
@@ -391,6 +404,7 @@ export default function DriverFeePlans() {
                       const price = Number.isFinite(Number(rawPrice)) ? Number(rawPrice) : 0;
                       const pricePerMonth = pkg.durationMonths > 0 ? Math.round(price / pkg.durationMonths) : price;
                       const benefitsList = pkg.benefits ? pkg.benefits.split(';').map(b => b.trim()).filter(Boolean) : [];
+                      const planNameKey = PLAN_NAME_KEYS[pkg.durationMonths];
 
                       return (
                         <div
@@ -409,17 +423,21 @@ export default function DriverFeePlans() {
                           )}
                           <div>
                             <div className="flex items-baseline justify-between border-b border-slate-100 pb-2 mb-3">
-                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">{pkg.name}</span>
+                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                {planNameKey ? t(planNameKey) : pkg.name}
+                              </span>
                             </div>
                             <div className="flex items-baseline gap-1 mt-1">
                               <span className="text-3xl font-black text-slate-800 tracking-tight">{pkg.durationMonths}</span>
                               <span className="text-xs font-bold text-slate-400 uppercase">{t('feePlans.planUnit')}</span>
                             </div>
                             <div className="mt-2.5">
-                              <span className="text-base font-black text-slate-700">{price.toLocaleString('vi-VN')} đ</span>
+                              <span className="text-base font-black text-slate-700">
+                                {t('feePlans.currencyAmount', { price: price.toLocaleString('vi-VN') })}
+                              </span>
                               {pkg.durationMonths > 1 && (
                                 <span className="text-[9px] font-bold text-slate-400 block mt-0.5">
-                                  (~ {pricePerMonth.toLocaleString('vi-VN')} đ/tháng)
+                                  {t('feePlans.pricePerMonth', { price: pricePerMonth.toLocaleString('vi-VN') })}
                                 </span>
                               )}
                             </div>
@@ -429,7 +447,7 @@ export default function DriverFeePlans() {
                                 {benefitsList.map((benefit, idx) => (
                                   <li key={idx} className="flex items-start gap-1.5 text-[10px] text-slate-500 font-semibold leading-relaxed">
                                     <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
-                                    <span>{benefit}</span>
+                                    <span>{BENEFIT_KEYS[benefit] ? t(BENEFIT_KEYS[benefit]) : benefit}</span>
                                   </li>
                                 ))}
                               </ul>
@@ -437,7 +455,7 @@ export default function DriverFeePlans() {
                           </div>
                           <div className="mt-5 pt-3 border-t border-slate-50 flex items-center justify-between">
                             <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
-                              {isSelected ? 'Đang chọn' : 'Nhấp để chọn'}
+                              {isSelected ? t('feePlans.selecting') : t('feePlans.clickToSelect')}
                             </span>
                             <span className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 shrink-0 ${
                               isSelected 
