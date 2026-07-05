@@ -468,6 +468,8 @@ export default function LoginPage() {
 
       if (rememberMe) {
         localStorage.setItem('rememberMe', 'true');
+        // Lưu token vào localStorage để trang mới load không bị 401 ngay lập tức
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
         localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authenticatedUser));
         localStorage.setItem('smart-parking-user', JSON.stringify(authenticatedUser));
       } else {

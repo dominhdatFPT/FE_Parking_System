@@ -20,6 +20,11 @@ export const API_ENDPOINTS = {
   PAYMENTS: {
     VNPAY_ORDER_STATUS: (txnRef: string) => `/api/payments/vnpay/orders/${txnRef}/status`,
     VNPAY_CANCEL: (txnRef: string) => `/api/payments/vnpay/orders/${txnRef}/cancel`,
+    STRIPE_ORDER_STATUS: (piId: string) => `/api/payments/stripe/orders/${piId}/status`,
+    STRIPE_ORDER_CONFIRM: (piId: string) => `/api/payments/stripe/orders/${piId}/confirm`,
+  },
+  SUBSCRIPTIONS: {
+    REGISTER_STRIPE: '/api/subscriptions/register-stripe',
   },
   ADMIN_NOTIFICATIONS: {
     BASE: '/api/v1/admin/notifications',

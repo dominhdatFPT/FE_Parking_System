@@ -12,6 +12,8 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^6.7.0",
+    "@stripe/stripe-js": "^9.9.0",
     "axios": "^1.7.9",
     "dayjs": "^1.11.21",
     "exceljs": "^4.4.0",

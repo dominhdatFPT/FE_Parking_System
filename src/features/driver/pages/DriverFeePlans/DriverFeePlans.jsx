@@ -146,38 +146,18 @@ export default function DriverFeePlans() {
     setSelectedVehicle(matchingVehicle || null);
   }, [licensePlate, vehicles]);
 
-  const handleSubmitRequest = async () => {
+  // Lưu lựa chọn gói vào localStorage rồi sang trang Thanh toán chọn phương thức
+  const handleSubmitRequest = () => {
     if (!selectedVehicle || !selectedPlanId) return;
-
-    setSubmitting(true);
-    setErrorMessage('');
-
-    try {
-      const res = await apiClient.post(API_ENDPOINTS.FEE.REGISTER, {
-        vehicleId: selectedVehicle.vehicleId,
-        planId: selectedPlanId,
-        autoRenew: false,
-      });
-      const result = res.data?.data ?? res.data;
-      // Lưu thông tin đơn VNPay để hiển thị nút "Thanh toán ngay" trên trang Payment
-      localStorage.setItem('pending_fee_plan_request', JSON.stringify({
-        subscriptionId: result.subscriptionId,
-        invoiceId: result.invoiceId,
-        vnpTxnRef: result.vnpTxnRef,
-        paymentUrl: result.paymentUrl,        // Link redirect sang VNPay
-        expiredAt: result.expiredAt,
-        licensePlate: selectedVehicle.licensePlate,
-        planName: selectedPackage?.name,
-        durationMonths: selectedPackage?.durationMonths,
-        amount: selectedPackage?.price ?? selectedPackage?.currentPrice ?? 0,
-      }));
-      navigate(ROUTES.DRIVER.PAYMENT);
-    } catch (err) {
-      const msg = err.response?.data?.message || 'Đã xảy ra lỗi khi tạo đăng ký';
-      setErrorMessage(msg);
-    } finally {
-      setSubmitting(false);
-    }
+    localStorage.setItem('pending_plan_selection', JSON.stringify({
+      vehicleId: selectedVehicle.vehicleId,
+      planId: selectedPlanId,
+      licensePlate: selectedVehicle.licensePlate,
+      planName: selectedPackage?.name,
+      durationMonths: selectedPackage?.durationMonths,
+      amount: selectedPackage?.price ?? selectedPackage?.currentPrice ?? 0,
+    }));
+    navigate(ROUTES.DRIVER.PAYMENT);
   };
 
   const getStatusBadge = (currentStatus) => {
