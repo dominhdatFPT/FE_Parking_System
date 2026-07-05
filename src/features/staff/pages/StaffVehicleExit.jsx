@@ -8,6 +8,7 @@ import { checkParkingExit, confirmParkingExit } from '../../../services/staffSer
 import { VIETNAM_TIME_ZONE } from '../../../utils/dateTime';
 
 const formatCurrency = (value) => `${Number(value || 0).toLocaleString('vi-VN')} đ`;
+const formatVND = (value) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
 
 const formatKpiDateTime = (value) => {
   if (!value) return '—';
@@ -30,6 +31,94 @@ const formatDuration = (minutes) => {
   return [days ? `${days} ngày` : '', hours ? `${hours} giờ` : '', `${mins} phút`]
     .filter(Boolean).join(' ');
 };
+
+const formatDayDuration = (minutes) => {
+  const total = Math.max(0, Math.floor(Number(minutes) || 0));
+  const days = Math.floor(total / 1440);
+  const hours = Math.floor((total % 1440) / 60);
+  const mins = total % 60;
+  if (days > 0) {
+    return [hours ? `${hours} giờ` : '', mins ? `${mins} phút` : ''].filter(Boolean).join(' ');
+  }
+  return [hours ? `${hours} giờ` : '', `${mins} phút`].filter(Boolean).join(' ');
+};
+
+const MINUTES_PER_DAY = 1440;
+
+function computeBlockFeeForRange(rangeMinutes, firstBlockMinutes, firstBlockFee, nextBlockMinutes, nextBlockFee) {
+  const minutes = Math.max(0, Math.floor(Number(rangeMinutes) || 0));
+  if (minutes === 0) return 0;
+  if (minutes <= firstBlockMinutes) return firstBlockFee;
+  if (!nextBlockMinutes || nextBlockMinutes <= 0 || !nextBlockFee) return firstBlockFee;
+  const extraMinutes = minutes - firstBlockMinutes;
+  const extraBlocks = Math.ceil(extraMinutes / nextBlockMinutes);
+  return firstBlockFee + extraBlocks * nextBlockFee;
+}
+
+function computeBreakdown({ fee, durationMinutes }) {
+  const firstBlockMinutes = Number(fee?.firstBlockMinutes ?? 0);
+  const firstBlockFee = Number(fee?.firstBlockFee ?? 0);
+  const additionalBlocks = Number(fee?.additionalBlocks ?? 0);
+  const additionalFee = Number(fee?.additionalFee ?? 0);
+  const dailyCap = Number(fee?.dailyCap ?? 0);
+  const total = Number(fee?.amount ?? 0);
+  const safeDuration = Math.max(0, Math.floor(Number(durationMinutes) || 0));
+
+  let nextBlockMinutes = Number(fee?.nextBlockMinutes ?? 0);
+  let nextBlockFee = Number(fee?.nextBlockFee ?? 0);
+  if ((!nextBlockMinutes || !nextBlockFee) && additionalBlocks > 0) {
+    if (!nextBlockFee) {
+      nextBlockFee = Math.round(additionalFee / additionalBlocks);
+    }
+    if (!nextBlockMinutes && safeDuration > firstBlockMinutes) {
+      nextBlockMinutes = Math.max(
+        1,
+        Math.ceil((safeDuration - firstBlockMinutes) / additionalBlocks),
+      );
+    }
+  }
+
+  if (dailyCap > 0 && safeDuration >= MINUTES_PER_DAY) {
+    const fullDays = Math.floor(safeDuration / MINUTES_PER_DAY);
+    const remainingMinutes = safeDuration - fullDays * MINUTES_PER_DAY;
+    const days = [];
+
+    for (let i = 0; i < fullDays; i += 1) {
+      days.push({
+        index: i + 1,
+        fee: dailyCap,
+        suffix: '(áp dụng giá trần)',
+      });
+    }
+
+    if (remainingMinutes > 0) {
+      const remainingFee = computeBlockFeeForRange(
+        remainingMinutes,
+        firstBlockMinutes,
+        firstBlockFee,
+        nextBlockMinutes,
+        nextBlockFee,
+      );
+      const remainingFeeCapped = Math.min(remainingFee, dailyCap);
+      days.push({
+        index: fullDays + 1,
+        fee: remainingFeeCapped,
+        suffix: `· ${formatDayDuration(remainingMinutes)}`,
+      });
+    }
+
+    const computedTotal = days.reduce((sum, day) => sum + day.fee, 0);
+    const displayTotal = total > 0 ? total : computedTotal;
+
+    return { mode: 'daily', days, dailyCap, total: displayTotal };
+  }
+
+  return {
+    mode: 'block',
+    firstBlock: { minutes: firstBlockMinutes, fee: firstBlockFee },
+    additional: { blocks: additionalBlocks, totalFee: additionalFee },
+  };
+}
 
 function InfoCard({ icon: Icon, label, value, chip }) {
   const hasValue = value && value !== '—';
@@ -175,6 +264,9 @@ export default function StaffVehicleExit() {
   const additionalBlockDisplay = hasExitData && result.fee?.additionalBlocks != null
     ? `${result.fee.additionalBlocks} · ${formatCurrency(result.fee?.additionalFee)}`
     : '—';
+  const breakdown = hasExitData
+    ? computeBreakdown({ fee: result.fee, durationMinutes: result.durationMinutes })
+    : null;
   const canToggleCash = hasExitData && isVisitor && !isExitCompleted;
 
   const canConfirmExit =
@@ -306,17 +398,66 @@ export default function StaffVehicleExit() {
           </div>
 
           {/* Fee breakdown */}
-          <div className="mb-2 shrink-0 overflow-hidden rounded-xl border border-slate-100">
-            <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
-              <span className="font-medium text-slate-500">Khung đầu</span>
-              <strong className={`truncate text-right font-bold ${firstBlockDisplay === '—' ? 'text-slate-400' : 'text-slate-800'}`}>{firstBlockDisplay}</strong>
+          {breakdown?.mode === 'daily' ? (
+            <div className="mb-2 shrink-0 overflow-hidden rounded-xl border border-slate-100">
+              {breakdown.days.map((day, idx) => (
+                <div key={day.index}>
+                  <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+                    <span className="truncate font-medium text-slate-500">
+                      Ngày {day.index} {day.suffix}
+                    </span>
+                    <strong className="shrink-0 text-right font-bold text-slate-800">{formatVND(day.fee)}</strong>
+                  </div>
+                  {idx < breakdown.days.length - 1 && <div className="mx-3 h-px bg-slate-100" />}
+                </div>
+              ))}
+              <div className="mx-3 h-px bg-slate-100" />
+              <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+                <span className="font-medium text-slate-500">Giá trần/ngày</span>
+                <strong className="text-right font-bold text-slate-800">{formatVND(breakdown.dailyCap)}</strong>
+              </div>
+              <div className="mx-3 h-px bg-slate-100" />
+              <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+                <span className="font-bold text-slate-700">Tổng</span>
+                <strong className="text-right text-[12px] font-black text-slate-900">{formatVND(breakdown.total)}</strong>
+              </div>
             </div>
-            <div className="mx-3 h-px bg-slate-100" />
-            <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
-              <span className="font-medium text-slate-500">Khung phát sinh</span>
-              <strong className={`truncate text-right font-bold ${additionalBlockDisplay === '—' ? 'text-slate-400' : 'text-slate-800'}`}>{additionalBlockDisplay}</strong>
+          ) : breakdown?.mode === 'block' ? (
+            <div className="mb-2 shrink-0 overflow-hidden rounded-xl border border-slate-100">
+              <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+                <span className="truncate font-medium text-slate-500">
+                  Khung đầu · {breakdown.firstBlock.minutes} phút
+                </span>
+                <strong className="shrink-0 text-right font-bold text-slate-800">{formatVND(breakdown.firstBlock.fee)}</strong>
+              </div>
+              <div className="mx-3 h-px bg-slate-100" />
+              <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+                <span className="truncate font-medium text-slate-500">
+                  Khung phát sinh · {breakdown.additional.blocks} block
+                </span>
+                <strong className="shrink-0 text-right font-bold text-slate-800">{formatVND(breakdown.additional.totalFee)}</strong>
+              </div>
+              <div className="mx-3 h-px bg-slate-100" />
+              <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+                <span className="font-bold text-slate-700">Tổng</span>
+                <strong className="text-right text-[12px] font-black text-slate-900">
+                  {formatVND(breakdown.firstBlock.fee + breakdown.additional.totalFee)}
+                </strong>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="mb-2 shrink-0 overflow-hidden rounded-xl border border-slate-100">
+              <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+                <span className="font-medium text-slate-500">Khung đầu</span>
+                <strong className={`truncate text-right font-bold ${firstBlockDisplay === '—' ? 'text-slate-400' : 'text-slate-800'}`}>{firstBlockDisplay}</strong>
+              </div>
+              <div className="mx-3 h-px bg-slate-100" />
+              <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+                <span className="font-medium text-slate-500">Khung phát sinh</span>
+                <strong className={`truncate text-right font-bold ${additionalBlockDisplay === '—' ? 'text-slate-400' : 'text-slate-800'}`}>{additionalBlockDisplay}</strong>
+              </div>
+            </div>
+          )}
 
           {/* Cash confirmation checkbox */}
           <label className={`mb-2 flex shrink-0 items-start gap-3 rounded-xl border px-3 py-2 transition-colors ${
