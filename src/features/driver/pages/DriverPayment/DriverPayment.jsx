@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { loadStripe } from '@stripe/stripe-js';
+import { CardElement, Elements, useElements, useStripe } from '@stripe/react-stripe-js';
 import { apiClient } from '../../../../services/apiClient';
 import { API_ENDPOINTS } from '../../../../services/endpoints';
 import PageHeader from '../../components/PageHeader';
@@ -8,92 +10,92 @@ import StatusBadge from '../../components/StatusBadge';
 import EmptyState from '../../components/EmptyState';
 import { vietnamDayjs } from '../../../../utils/dateTime';
 
+const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
+
+function unwrap(response) {
+  return response?.data?.data ?? response?.data;
+}
+
+function StripeSubscriptionForm({ plan, onPaid, onError }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [paying, setPaying] = useState(false);
+
+  const handlePay = async () => {
+    if (!stripe || !elements || !plan.clientSecret) return;
+    setPaying(true);
+    onError('');
+    try {
+      const result = await stripe.confirmCardPayment(plan.clientSecret, {
+        payment_method: {
+          card: elements.getElement(CardElement),
+        },
+      });
+
+      if (result.error) {
+        onError(result.error.message || 'Thanh toán không thành công');
+        return;
+      }
+
+      if (result.paymentIntent?.status === 'succeeded') {
+        await apiClient.post(API_ENDPOINTS.PAYMENTS.STRIPE_ORDER_CONFIRM(result.paymentIntent.id));
+        onPaid(plan);
+      }
+    } catch (error) {
+      onError(error?.response?.data?.message || error.message || 'Không thể xác nhận thanh toán');
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  return (
+    <div className="mt-3 space-y-3">
+      <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
+        <CardElement options={{ hidePostalCode: true }} />
+      </div>
+      <Button
+        variant="primary"
+        size="sm"
+        loading={paying}
+        disabled={!stripe || paying}
+        onClick={handlePay}
+      >
+        {paying ? 'Đang thanh toán...' : 'Thanh toán bằng thẻ'}
+      </Button>
+    </div>
+  );
+}
+
 export default function DriverPayment() {
   const { t } = useTranslation();
   const [subscriptionInvoices, setSubscriptionInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pendingFeePlans, setPendingFeePlans] = useState([]);
-  const [redirecting, setRedirecting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const fetchInvoices = async () => {
+    const response = await apiClient.get(API_ENDPOINTS.FEE.MY_INVOICES);
+    setSubscriptionInvoices(response.data?.data ?? []);
+  };
 
   useEffect(() => {
     const raw = localStorage.getItem('pending_fee_plan_request');
-    if (!raw) return;
-
-    try {
-      const parsed = JSON.parse(raw);
-      if (!parsed.subscriptionId || !parsed.paymentUrl) {
-        localStorage.removeItem('pending_fee_plan_request');
-        return;
-      }
-
-      apiClient.get(API_ENDPOINTS.FEE.MY_SUBSCRIPTIONS)
-        .then((response) => {
-          const subscriptions = response.data?.data ?? [];
-          const subscription = subscriptions.find((item) => item.id === parsed.subscriptionId);
-          if (subscription?.status === 'PENDING_PAYMENT') {
-            setPendingFeePlans((current) => {
-              const key = parsed.vnpTxnRef || parsed.subscriptionId;
-              const withoutDuplicate = current.filter((item) => (item.vnpTxnRef || item.subscriptionId) !== key);
-              return [parsed, ...withoutDuplicate];
-            });
-          } else {
-            localStorage.removeItem('pending_fee_plan_request');
-          }
-        })
-        .catch(() => {
-          setPendingFeePlans((current) => {
-            const key = parsed.vnpTxnRef || parsed.subscriptionId;
-            const withoutDuplicate = current.filter((item) => (item.vnpTxnRef || item.subscriptionId) !== key);
-            return [parsed, ...withoutDuplicate];
-          });
-        });
-    } catch {
-      localStorage.removeItem('pending_fee_plan_request');
-    }
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    apiClient.get(API_ENDPOINTS.FEE.MY_INVOICES)
-      .then(async (response) => {
-        const invoices = response.data?.data ?? [];
-        if (!cancelled) setSubscriptionInvoices(invoices);
-
-        const pendingInvoices = invoices.filter((invoice) => invoice.status === 'PENDING' && invoice.vnpTxnRef);
-        const pendingPlans = await Promise.all(pendingInvoices.map(async (invoice) => {
-          try {
-            const orderResponse = await apiClient.get(API_ENDPOINTS.PAYMENTS.VNPAY_ORDER_STATUS(invoice.vnpTxnRef));
-            const order = orderResponse.data?.data ?? orderResponse.data;
-            if (order?.status !== 'PENDING' || !order?.paymentUrl) return null;
-            return {
-              invoiceId: invoice.id,
-              vnpTxnRef: invoice.vnpTxnRef,
-              paymentUrl: order.paymentUrl,
-              expiredAt: order.expiredAt,
-              licensePlate: invoice.licensePlate,
-              planName: invoice.planName,
-              amount: invoice.amount,
-            };
-          } catch {
-            return null;
-          }
-        }));
-
-        if (!cancelled) {
-          setPendingFeePlans((current) => {
-            const merged = [...current];
-            pendingPlans.filter(Boolean).forEach((plan) => {
-              const existingIndex = merged.findIndex((item) => item.vnpTxnRef === plan.vnpTxnRef);
-              if (existingIndex >= 0) {
-                merged[existingIndex] = { ...merged[existingIndex], ...plan };
-              } else {
-                merged.push(plan);
-              }
-            });
-            return merged.filter((plan) => plan.paymentUrl);
-          });
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed.subscriptionId && parsed.paymentIntentId && parsed.clientSecret) {
+          setPendingFeePlans([parsed]);
+        } else {
+          localStorage.removeItem('pending_fee_plan_request');
         }
-      })
+      } catch {
+        localStorage.removeItem('pending_fee_plan_request');
+      }
+    }
+
+    let cancelled = false;
+    fetchInvoices()
       .catch(() => {
         if (!cancelled) setSubscriptionInvoices([]);
       })
@@ -103,10 +105,10 @@ export default function DriverPayment() {
     return () => { cancelled = true; };
   }, []);
 
-  const handlePayFeePlan = (plan) => {
-    if (!plan.paymentUrl) return;
-    setRedirecting(true);
-    window.location.href = plan.paymentUrl;
+  const handlePlanPaid = async (plan) => {
+    localStorage.removeItem('pending_fee_plan_request');
+    setPendingFeePlans((current) => current.filter((item) => item.paymentIntentId !== plan.paymentIntentId));
+    await fetchInvoices();
   };
 
   const totalPaid = subscriptionInvoices
@@ -126,44 +128,48 @@ export default function DriverPayment() {
         <SummaryCard label="Thanh toán lỗi" value={`${totalFailed.toLocaleString('vi-VN')} VNĐ`} tone="text-red-500" />
       </div>
 
+      {errorMessage && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+          {errorMessage}
+        </div>
+      )}
+
       {pendingFeePlans.length > 0 && (
-        <section className="rounded-2xl border border-sky-100 bg-sky-50/30 p-5">
-          <h3 className="text-sm font-bold text-slate-800">Gói đang chờ thanh toán VNPay</h3>
+        <section className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-5">
+          <h3 className="text-sm font-bold text-slate-800">Gói đang chờ thanh toán Stripe</h3>
           <div className="mt-3 space-y-3">
-            {pendingFeePlans.map((plan) => (
-              <div
-                key={plan.vnpTxnRef || plan.subscriptionId || plan.invoiceId}
-                className="flex flex-col justify-between gap-4 rounded-xl border border-slate-100 bg-white p-4 sm:flex-row sm:items-center"
-              >
-                <div>
-                  <p className="font-bold text-slate-800">
-                    {plan.planName || 'Gói thẻ xe'} - {plan.licensePlate || 'Chưa có biển số'}
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    Thanh toán qua VNPay{plan.expiredAt ? ` - Hết hạn: ${vietnamDayjs(plan.expiredAt).format('DD/MM/YYYY HH:mm')}` : ''}
-                  </p>
+            {pendingFeePlans.map((plan) => {
+              const stripeOptions = plan.clientSecret ? { clientSecret: plan.clientSecret } : undefined;
+              return (
+                <div
+                  key={plan.paymentIntentId || plan.subscriptionId || plan.invoiceId}
+                  className="rounded-xl border border-slate-100 bg-white p-4"
+                >
+                  <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                    <div>
+                      <p className="font-bold text-slate-800">
+                        {plan.planName || 'Gói thẻ xe'} - {plan.licensePlate || 'Chưa có biển số'}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">Thanh toán qua Stripe</p>
+                    </div>
+                    <p className="font-black text-indigo-600">
+                      {Number(plan.amount || 0).toLocaleString('vi-VN')} đ
+                    </p>
+                  </div>
+                  {!publishableKey && (
+                    <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+                      Thiếu VITE_STRIPE_PUBLISHABLE_KEY ở frontend.
+                    </p>
+                  )}
+                  {publishableKey && stripePromise && stripeOptions && (
+                    <Elements stripe={stripePromise} options={stripeOptions}>
+                      <StripeSubscriptionForm plan={plan} onPaid={handlePlanPaid} onError={setErrorMessage} />
+                    </Elements>
+                  )}
                 </div>
-                <div className="flex items-center gap-4">
-                  <p className="font-black text-sky-600">
-                    {Number(plan.amount || 0).toLocaleString('vi-VN')} đ
-                  </p>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    icon="open_in_new"
-                    loading={redirecting}
-                    disabled={redirecting}
-                    onClick={() => handlePayFeePlan(plan)}
-                  >
-                    {redirecting ? 'Đang chuyển...' : 'Thanh toán ngay'}
-                  </Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-          <p className="mt-3 text-xs text-slate-400">
-            Bạn sẽ được chuyển sang VNPay và quay lại hệ thống sau khi hoàn tất.
-          </p>
         </section>
       )}
 
@@ -204,7 +210,9 @@ function PaymentTable({ invoices, t }) {
                 <p className="text-xs text-slate-400">{invoice.planName || '--'}</p>
               </td>
               <td className="px-5 py-3 font-bold">{Number(invoice.amount || 0).toLocaleString('vi-VN')} VNĐ</td>
-              <td className="px-5 py-3 text-blue-600">VNPay</td>
+              <td className="px-5 py-3 text-indigo-600">
+                {invoice.stripePaymentIntentId ? 'Stripe' : '--'}
+              </td>
               <td className="px-5 py-3">
                 <StatusBadge status={invoice.status === 'SUCCESS' ? 'PAID' : invoice.status} />
               </td>

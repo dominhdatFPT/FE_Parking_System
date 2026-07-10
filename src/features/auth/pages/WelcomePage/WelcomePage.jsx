@@ -34,7 +34,7 @@ function getDashboardPath(role) {
 // --- DICTIONARY (i18n) ---
 const translations = {
   vi: {
-    nav: { home: "Trang chủ", dashboard: "Bảng điều khiển", notice: "Thông báo", explore: "Khám phá", login: "Đăng nhập", signup: "Đăng ký" },
+    nav: { home: "Trang chủ", dashboard: "Bảng điều khiển", notice: "Thông báo", explore: "Khám phá", checkout: "Checkout", login: "Đăng nhập", signup: "Đăng ký" },
     hero: { title1: "Quản lý bãi đỗ xe", title2: "tòa nhà thông minh", desc: "Nền tảng Smart Parking dành cho chung cư, văn phòng và trung tâm thương mại với đặt chỗ trước, nhận diện biển số LPR và theo dõi trạng thái thời gian thực.", f1: "Đặt chỗ trước", f2: "Nhận diện biển số LPR", f3: "Theo dõi thời gian thực" },
     kpi: { 
       c1: { title: "Tổng số Slot", unit: "chỗ" }, 
@@ -132,7 +132,7 @@ const translations = {
     }
   },
   en: {
-    nav: { home: "Home", dashboard: "Dashboard", notice: "Notices", explore: "Explore", login: "Login", signup: "Sign Up" },
+    nav: { home: "Home", dashboard: "Dashboard", notice: "Notices", explore: "Explore", checkout: "Checkout", login: "Login", signup: "Sign Up" },
     hero: { title1: "Smart Building", title2: "Parking Management", desc: "Smart Parking platform for apartments, offices and commercial centers with pre-booking, LPR system, and real-time tracking.", f1: "Pre-booking", f2: "LPR System", f3: "Real-time Tracking" },
     kpi: { 
       c1: { title: "Total Slots", unit: "slots" }, 
@@ -435,6 +435,19 @@ const Navbar = ({ lang, setLang, t }) => {
             <span>{lang === 'vi' ? 'VN' : 'EN'}</span>
           </button>
           <div className={`h-5 w-px hidden sm:block transition-all duration-300 ${isScrolled ? 'bg-slate-200' : 'bg-white/40'}`}></div>
+          <button
+            type="button"
+            title={t.nav.checkout}
+            onClick={() => navigate(ROUTES.VISITOR_CHECKOUT)}
+            className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-bold rounded-lg transition-all ${
+              isScrolled
+                ? 'bg-slate-900 text-white hover:bg-slate-800'
+                : 'bg-white text-slate-900 hover:bg-sky-50'
+            }`}
+          >
+            <CreditCard className="w-4 h-4" />
+            <span className="hidden sm:inline">{t.nav.checkout}</span>
+          </button>
           <button 
             onClick={() => navigate('/login')}
             className={`hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg transition-all ${

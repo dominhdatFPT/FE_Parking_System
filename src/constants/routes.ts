@@ -1,11 +1,12 @@
 export const ROUTES = {
   HOME: '/',
-  WELCOME: '/',
+  WELCOME: '/welcome',
   LOGIN: '/login',
   DASHBOARD: '/dashboard',
   SIGNUP: '/signup',
   ADMIN_LOGIN: '/admin/login',
   FORBIDDEN: '/403',
+  VISITOR_CHECKOUT: '/',
 
   ADMIN: {
     DASHBOARD: '/admin',

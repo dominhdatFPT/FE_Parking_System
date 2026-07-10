@@ -159,17 +159,17 @@ export default function DriverFeePlans() {
         autoRenew: false,
       });
       const result = res.data?.data ?? res.data;
-      // Lưu thông tin đơn VNPay để hiển thị nút "Thanh toán ngay" trên trang Payment
+      // Lưu thông tin Stripe để hiển thị form thanh toán trên trang Payment
       localStorage.setItem('pending_fee_plan_request', JSON.stringify({
         subscriptionId: result.subscriptionId,
         invoiceId: result.invoiceId,
-        vnpTxnRef: result.vnpTxnRef,
-        paymentUrl: result.paymentUrl,        // Link redirect sang VNPay
-        expiredAt: result.expiredAt,
+        paymentIntentId: result.paymentIntentId,
+        clientSecret: result.clientSecret,
+        currency: result.currency,
         licensePlate: selectedVehicle.licensePlate,
         planName: selectedPackage?.name,
         durationMonths: selectedPackage?.durationMonths,
-        amount: selectedPackage?.price ?? selectedPackage?.currentPrice ?? 0,
+        amount: result.amount ?? selectedPackage?.price ?? selectedPackage?.currentPrice ?? 0,
       }));
       navigate(ROUTES.DRIVER.PAYMENT);
     } catch (err) {
