@@ -80,8 +80,9 @@ function RequireBackOfficeRole({ children }) {
 export function AppRoutes() {
   return (
     <Routes>
-      <Route path={ROUTES.HOME} element={<VisitorCheckoutPage />} />
+      <Route path={ROUTES.HOME} element={<WelcomePage />} />
       <Route path={ROUTES.WELCOME} element={<WelcomePage />} />
+      <Route path={ROUTES.VISITOR_CHECKOUT} element={<VisitorCheckoutPage />} />
       <Route path={ROUTES.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.ADMIN_LOGIN} element={<Navigate to={ROUTES.LOGIN} replace />} />
       <Route path={ROUTES.SIGNUP} element={<SignupPage />} />

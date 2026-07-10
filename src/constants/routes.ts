@@ -6,7 +6,7 @@ export const ROUTES = {
   SIGNUP: '/signup',
   ADMIN_LOGIN: '/admin/login',
   FORBIDDEN: '/403',
-  VISITOR_CHECKOUT: '/',
+  VISITOR_CHECKOUT: '/checkout',
 
   ADMIN: {
     DASHBOARD: '/admin',

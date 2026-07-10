@@ -152,39 +152,39 @@ export default function VisitorCheckoutPage() {
 
   return (
     <main className="min-h-screen bg-slate-100 text-slate-950">
-      <section className="mx-auto grid min-h-screen max-w-6xl items-center gap-8 px-4 py-8 lg:grid-cols-[0.95fr_1.05fr]">
-        <div className="space-y-8">
-          <div className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1 text-sm font-semibold text-slate-700">
+      <section className="mx-auto grid min-h-screen max-w-5xl items-center gap-6 px-4 py-8 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="space-y-5">
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
             <ShieldCheck className="h-4 w-4 text-emerald-600" />
             Smart Parking Checkout
           </div>
-          <div className="space-y-4">
-            <h1 className="max-w-xl text-4xl font-bold leading-tight tracking-normal text-slate-950 md:text-6xl">
+          <div className="space-y-3">
+            <h1 className="max-w-lg text-3xl font-bold leading-tight tracking-normal text-slate-950 md:text-4xl">
               Thanh toán phí gửi xe trước khi ra cổng
             </h1>
-            <p className="max-w-xl text-base leading-7 text-slate-600">
+            <p className="max-w-lg text-sm leading-6 text-slate-600">
               Nhập mã phiên trên vé/thẻ gửi xe để thanh toán online. Khi rời bãi, bạn chỉ cần trả lại thẻ tại quầy.
             </p>
           </div>
-          <div className="grid max-w-xl gap-3 sm:grid-cols-3">
+          <div className="grid max-w-lg gap-2 sm:grid-cols-3">
             {[
               ['1', 'Nhập mã phiên'],
               ['2', 'Thanh toán thẻ'],
               ['3', 'Trả thẻ tại quầy'],
             ].map(([step, label]) => (
-              <div key={step} className="rounded border border-slate-200 bg-white p-4">
-                <div className="mb-3 grid h-8 w-8 place-items-center rounded bg-slate-900 text-sm font-bold text-white">
+              <div key={step} className="rounded border border-slate-200 bg-white p-3">
+                <div className="mb-2 grid h-7 w-7 place-items-center rounded bg-slate-900 text-xs font-bold text-white">
                   {step}
                 </div>
-                <p className="text-sm font-semibold text-slate-700">{label}</p>
+                <p className="text-xs font-semibold text-slate-700">{label}</p>
               </div>
             ))}
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => navigate(ROUTES.WELCOME)}
-              className="inline-flex h-11 items-center gap-2 rounded border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+              className="inline-flex h-10 items-center gap-2 rounded border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 hover:bg-slate-50"
             >
               Vào trang giới thiệu
               <ArrowRight className="h-4 w-4" />
@@ -192,7 +192,7 @@ export default function VisitorCheckoutPage() {
             <button
               type="button"
               onClick={() => navigate(ROUTES.LOGIN)}
-              className="inline-flex h-11 items-center gap-2 rounded bg-white px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+              className="inline-flex h-10 items-center gap-2 rounded bg-white px-3 text-sm font-semibold text-slate-800 hover:bg-slate-50"
             >
               <LogIn className="h-4 w-4" />
               Đăng nhập
@@ -200,8 +200,8 @@ export default function VisitorCheckoutPage() {
           </div>
         </div>
 
-        <div className="rounded border border-slate-200 bg-white p-5 shadow-sm">
-          <form onSubmit={handleLookup} className="space-y-4">
+        <div className="rounded border border-slate-200 bg-white p-4 shadow-sm">
+          <form onSubmit={handleLookup} className="space-y-3">
             <label className="block text-sm font-semibold text-slate-700" htmlFor="order-code">
               Mã phiên gửi xe
             </label>
@@ -211,12 +211,12 @@ export default function VisitorCheckoutPage() {
                 value={orderCode}
                 onChange={(event) => setOrderCode(event.target.value.toUpperCase())}
                 placeholder="VD: PO-178..."
-                className="h-11 min-w-0 flex-1 rounded border border-slate-300 px-3 text-sm font-semibold uppercase outline-none transition focus:border-slate-900"
+                className="h-10 min-w-0 flex-1 rounded border border-slate-300 px-3 text-sm font-semibold uppercase outline-none transition focus:border-slate-900"
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:bg-slate-400"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded bg-slate-900 px-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:bg-slate-400"
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
                 Kiểm tra
