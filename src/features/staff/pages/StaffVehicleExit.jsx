@@ -182,6 +182,7 @@ export default function StaffVehicleExit() {
 
   const hasExitData = hasCheckedVehicle && Boolean(result);
   const isVisitor = result?.exitType === 'VISITOR';
+  const alreadyPaid = isVisitor && String(result?.payment?.status || '').toUpperCase() === 'PAID';
   const extractError = (err, fallback) =>
     err?.response?.data?.message || err?.response?.data?.error || fallback;
 
@@ -213,7 +214,7 @@ export default function StaffVehicleExit() {
 
   const handleConfirmExit = async () => {
     if (!result || isExitCompleted) return;
-    if (isVisitor && !hasReceivedCash) {
+    if (isVisitor && !alreadyPaid && !hasReceivedCash) {
       setError('Vui lòng xác nhận đã nhận đủ tiền trước khi hoàn tất xe ra.');
       return;
     }
@@ -221,8 +222,8 @@ export default function StaffVehicleExit() {
     setError('');
     try {
       const data = await confirmParkingExit(result.orderId, {
-        paymentConfirmed: isVisitor ? hasReceivedCash : false,
-        paymentMethod: isVisitor ? 'CASH' : null,
+        paymentConfirmed: isVisitor ? (alreadyPaid || hasReceivedCash) : false,
+        paymentMethod: isVisitor ? (alreadyPaid ? result?.payment?.method : 'CASH') : null,
       });
       setResult(data);
       setIsExitCompleted(true);
@@ -267,11 +268,11 @@ export default function StaffVehicleExit() {
   const breakdown = hasExitData
     ? computeBreakdown({ fee: result.fee, durationMinutes: result.durationMinutes })
     : null;
-  const canToggleCash = hasExitData && isVisitor && !isExitCompleted;
+  const canToggleCash = hasExitData && isVisitor && !alreadyPaid && !isExitCompleted;
 
   const canConfirmExit =
     hasCheckedVehicle && result && !isExitCompleted &&
-    (!isVisitor || hasReceivedCash);
+    (!isVisitor || alreadyPaid || hasReceivedCash);
 
   return (
     <div className="flex h-full flex-col gap-3 overflow-hidden bg-[#EEF3FB] px-5 pb-3 pt-0 font-sans">
@@ -375,12 +376,12 @@ export default function StaffVehicleExit() {
             </span>
             <h2 className="flex-1 text-[13px] font-black tracking-tight text-slate-900">Chi tiết cần thu</h2>
             <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold ${
-              isExitCompleted
+              isExitCompleted || alreadyPaid
                 ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                 : 'border-amber-200 bg-amber-50 text-amber-600'
             }`}>
-              <span className={`h-1.5 w-1.5 rounded-full ${isExitCompleted ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-              {isExitCompleted ? 'Đã hoàn tất' : 'Chờ thanh toán'}
+              <span className={`h-1.5 w-1.5 rounded-full ${isExitCompleted || alreadyPaid ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+              {isExitCompleted ? 'Đã hoàn tất' : alreadyPaid ? 'Đã thanh toán' : 'Chờ thanh toán'}
             </span>
           </div>
 
@@ -459,26 +460,35 @@ export default function StaffVehicleExit() {
             </div>
           )}
 
-          {/* Cash confirmation checkbox */}
-          <label className={`mb-2 flex shrink-0 items-start gap-3 rounded-xl border px-3 py-2 transition-colors ${
-            !canToggleCash
-              ? 'cursor-not-allowed border-slate-200 bg-slate-50 opacity-70'
-              : hasReceivedCash
-                ? 'cursor-pointer border-emerald-200 bg-emerald-50'
-                : 'cursor-pointer border-slate-200 bg-slate-50 hover:border-slate-300'
-          }`}>
-            <input
-              type="checkbox"
-              checked={hasReceivedCash}
-              disabled={!canToggleCash}
-              onChange={(e) => setHasReceivedCash(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-emerald-600 disabled:cursor-not-allowed"
-            />
-            <span>
-              <span className={`block text-[12px] font-bold ${canToggleCash ? 'text-slate-900' : 'text-slate-500'}`}>Đã nhận đủ tiền mặt</span>
-              <span className="block text-[10px] text-slate-500">Xác nhận trước khi cho xe ra khỏi bãi.</span>
-            </span>
-          </label>
+          {alreadyPaid ? (
+            <div className="mb-2 flex shrink-0 items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-800">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.25} />
+              <span>
+                <span className="block text-[12px] font-bold">Đã thanh toán online</span>
+                <span className="block text-[10px] text-emerald-700">Chỉ cần xác nhận cho xe ra khỏi bãi.</span>
+              </span>
+            </div>
+          ) : (
+            <label className={`mb-2 flex shrink-0 items-start gap-3 rounded-xl border px-3 py-2 transition-colors ${
+              !canToggleCash
+                ? 'cursor-not-allowed border-slate-200 bg-slate-50 opacity-70'
+                : hasReceivedCash
+                  ? 'cursor-pointer border-emerald-200 bg-emerald-50'
+                  : 'cursor-pointer border-slate-200 bg-slate-50 hover:border-slate-300'
+            }`}>
+              <input
+                type="checkbox"
+                checked={hasReceivedCash}
+                disabled={!canToggleCash}
+                onChange={(e) => setHasReceivedCash(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-emerald-600 disabled:cursor-not-allowed"
+              />
+              <span>
+                <span className={`block text-[12px] font-bold ${canToggleCash ? 'text-slate-900' : 'text-slate-500'}`}>Đã nhận đủ tiền mặt</span>
+                <span className="block text-[10px] text-slate-500">Xác nhận trước khi cho xe ra khỏi bãi.</span>
+              </span>
+            </label>
+          )}
 
           {/* Action button — pushed to bottom */}
           <div className="mt-auto shrink-0 pt-2">
@@ -506,7 +516,7 @@ export default function StaffVehicleExit() {
                   ? <LoaderCircle className="h-4 w-4 animate-spin" strokeWidth={2.25} />
                   : <ShieldCheck className="h-4 w-4" strokeWidth={2.25} />
                 }
-                <span>{confirming ? 'Đang hoàn tất...' : 'Xác nhận thanh toán & cho xe ra'}</span>
+                <span>{confirming ? 'Đang hoàn tất...' : alreadyPaid ? 'Xác nhận cho xe ra' : 'Xác nhận thanh toán & cho xe ra'}</span>
               </button>
             )}
           </div>
