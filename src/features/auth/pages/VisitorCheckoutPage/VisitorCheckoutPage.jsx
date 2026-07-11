@@ -8,7 +8,11 @@ import { API_ENDPOINTS } from '../../../../services/endpoints';
 import { ROUTES } from '../../../../constants/routes';
 
 const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
+const hasStripePublishableKey = typeof publishableKey === 'string' && publishableKey.trim().length > 0;
+const stripeKeyLooksValid = hasStripePublishableKey
+  && /^pk_(test|live)_[A-Za-z0-9]/.test(publishableKey)
+  && !publishableKey.includes('*');
+const stripePromise = stripeKeyLooksValid ? loadStripe(publishableKey) : null;
 
 function unwrap(response) {
   return response?.data?.data ?? response?.data;
@@ -70,7 +74,7 @@ function CheckoutForm({ checkout, onPaid, onError }) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded border border-slate-200 bg-white px-3 py-3">
+      <div className="min-w-0 overflow-hidden rounded border border-slate-200 bg-white px-3 py-3">
         <CardElement
           options={{
             hidePostalCode: true,
@@ -107,6 +111,11 @@ export default function VisitorCheckoutPage() {
 
   const isPaid = checkout?.paymentStatus === 'PAID';
   const canPay = checkout && !isPaid && checkout.clientSecret;
+  const stripeConfigError = !hasStripePublishableKey
+    ? 'Thiếu VITE_STRIPE_PUBLISHABLE_KEY ở frontend.'
+    : !stripeKeyLooksValid
+      ? 'VITE_STRIPE_PUBLISHABLE_KEY không hợp lệ. Hãy dùng key thật từ Stripe Dashboard, dạng pk_test_... hoặc pk_live_..., không dùng key bị che bằng dấu *.'
+      : '';
   const stripeOptions = useMemo(
     () => (checkout?.clientSecret ? { clientSecret: checkout.clientSecret } : undefined),
     [checkout?.clientSecret],
@@ -151,9 +160,9 @@ export default function VisitorCheckoutPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-100 text-slate-950">
-      <section className="mx-auto grid min-h-screen max-w-5xl items-center gap-6 px-4 py-8 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="space-y-5">
+    <main className="min-h-screen overflow-x-hidden bg-slate-100 text-slate-950">
+      <section className="mx-auto grid min-h-screen w-full max-w-6xl items-center gap-6 px-4 py-8 lg:grid-cols-[minmax(280px,0.75fr)_minmax(0,1.25fr)]">
+        <div className="min-w-0 space-y-5">
           <div className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
             <ShieldCheck className="h-4 w-4 text-emerald-600" />
             Smart Parking Checkout
@@ -200,12 +209,12 @@ export default function VisitorCheckoutPage() {
           </div>
         </div>
 
-        <div className="rounded border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="min-w-0 rounded border border-slate-200 bg-white p-4 shadow-sm">
           <form onSubmit={handleLookup} className="space-y-3">
             <label className="block text-sm font-semibold text-slate-700" htmlFor="order-code">
               Mã phiên gửi xe
             </label>
-            <div className="flex gap-2">
+            <div className="flex min-w-0 gap-2">
               <input
                 id="order-code"
                 value={orderCode}
@@ -225,7 +234,7 @@ export default function VisitorCheckoutPage() {
           </form>
 
           {error && (
-            <div className="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+            <div className="mt-4 break-words rounded border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
               {error}
             </div>
           )}
@@ -287,13 +296,13 @@ export default function VisitorCheckoutPage() {
                 </button>
               )}
 
-              {!isPaid && clientReady && !publishableKey && (
-                <div className="rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
-                  Thiếu VITE_STRIPE_PUBLISHABLE_KEY ở frontend.
+              {!isPaid && clientReady && stripeConfigError && (
+                <div className="break-words rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+                  {stripeConfigError}
                 </div>
               )}
 
-              {!isPaid && canPay && stripePromise && stripeOptions && (
+              {!isPaid && canPay && stripePromise && stripeOptions && !stripeConfigError && (
                 <Elements stripe={stripePromise} options={stripeOptions}>
                   <CheckoutForm checkout={checkout} onPaid={setCheckout} onError={setError} />
                 </Elements>
