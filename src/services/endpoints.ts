@@ -16,6 +16,7 @@ export const API_ENDPOINTS = {
     MY_SUBSCRIPTIONS: '/api/subscriptions/my',
     MY_INVOICES: '/api/subscriptions/my-invoices',
     REGISTER: '/api/subscriptions/register-stripe',
+    INVOICE_STRIPE: (invoiceId: string | number) => `/api/subscriptions/invoices/${invoiceId}/stripe`,
   },
   PAYMENTS: {
     STRIPE_ORDER_STATUS: (paymentIntentId: string) => `/api/payments/stripe/orders/${paymentIntentId}/status`,

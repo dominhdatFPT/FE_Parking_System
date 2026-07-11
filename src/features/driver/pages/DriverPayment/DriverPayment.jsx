@@ -72,6 +72,7 @@ export default function DriverPayment() {
   const [subscriptionInvoices, setSubscriptionInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pendingFeePlans, setPendingFeePlans] = useState([]);
+  const [creatingPaymentId, setCreatingPaymentId] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
 
   const fetchInvoices = async () => {
@@ -109,6 +110,34 @@ export default function DriverPayment() {
     localStorage.removeItem('pending_fee_plan_request');
     setPendingFeePlans((current) => current.filter((item) => item.paymentIntentId !== plan.paymentIntentId));
     await fetchInvoices();
+  };
+
+  const handleCreateInvoicePayment = async (invoice) => {
+    setCreatingPaymentId(invoice.id);
+    setErrorMessage('');
+    try {
+      const response = await apiClient.post(API_ENDPOINTS.FEE.INVOICE_STRIPE(invoice.id));
+      const result = unwrap(response);
+      const pendingPlan = {
+        subscriptionId: result.subscriptionId ?? invoice.subscriptionId,
+        invoiceId: result.invoiceId ?? invoice.id,
+        paymentIntentId: result.paymentIntentId,
+        clientSecret: result.clientSecret,
+        currency: result.currency,
+        licensePlate: invoice.licensePlate,
+        planName: invoice.planName,
+        amount: result.amount ?? invoice.amount,
+      };
+      setPendingFeePlans((current) => [
+        pendingPlan,
+        ...current.filter((item) => item.invoiceId !== pendingPlan.invoiceId),
+      ]);
+      await fetchInvoices();
+    } catch (err) {
+      setErrorMessage(err?.response?.data?.message || 'Khong the tao phien thanh toan cho hoa don nay');
+    } finally {
+      setCreatingPaymentId(null);
+    }
   };
 
   const totalPaid = subscriptionInvoices
@@ -180,14 +209,19 @@ export default function DriverPayment() {
         ) : subscriptionInvoices.length === 0 ? (
           <EmptyState icon="sell" title="Chưa có giao dịch" description="Các giao dịch mua biểu phí sẽ hiển thị tại đây." />
         ) : (
-          <PaymentTable invoices={subscriptionInvoices} t={t} />
+          <PaymentTable
+            invoices={subscriptionInvoices}
+            t={t}
+            onPay={handleCreateInvoicePayment}
+            creatingPaymentId={creatingPaymentId}
+          />
         )}
       </section>
     </div>
   );
 }
 
-function PaymentTable({ invoices, t }) {
+function PaymentTable({ invoices, t, onPay, creatingPaymentId }) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white">
       <table className="w-full text-left text-sm">
@@ -199,6 +233,7 @@ function PaymentTable({ invoices, t }) {
             <th className="px-5 py-3">{t('payment.method')}</th>
             <th className="px-5 py-3">{t('payment.status')}</th>
             <th className="px-5 py-3">{t('payment.date')}</th>
+            <th className="px-5 py-3 text-right">Thao tác</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-50">
@@ -218,6 +253,20 @@ function PaymentTable({ invoices, t }) {
               </td>
               <td className="px-5 py-3 text-slate-400">
                 {invoice.createdAt ? vietnamDayjs(invoice.createdAt).format('DD/MM/YYYY HH:mm') : '--'}
+              </td>
+              <td className="px-5 py-3 text-right">
+                {(invoice.payable || (invoice.status === 'PENDING' && invoice.subscriptionStatus === 'PENDING_PAYMENT')) ? (
+                  <button
+                    type="button"
+                    disabled={creatingPaymentId === invoice.id}
+                    onClick={() => onPay(invoice)}
+                    className="inline-flex h-9 items-center justify-center rounded-xl bg-indigo-600 px-3 text-xs font-bold text-white shadow-sm shadow-indigo-500/20 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                  >
+                    {creatingPaymentId === invoice.id ? 'Đang tạo...' : 'Thanh toán'}
+                  </button>
+                ) : (
+                  <span className="text-xs font-semibold text-slate-300">--</span>
+                )}
               </td>
             </tr>
           ))}

@@ -183,7 +183,7 @@ export default function VehicleEntryPage() {
     : result?.canConfirm
       ? 'Chưa tạo phiên'
       : sessionCode
-        ? `Phiên ${sessionCode}`
+        ? String(sessionCode).startsWith('PO-') ? sessionCode : `Phiên ${sessionCode}`
         : 'Phiên gửi xe đã tạo';
 
   return (
@@ -330,9 +330,9 @@ export default function VehicleEntryPage() {
             </div>
           </div>
 
-          {/* Middle: license plate card (left col) + illustration (right col) */}
-          <div className="mt-3 grid min-h-0 flex-1 grid-cols-[0.95fr_1.35fr] items-center gap-5">
-            <div className="flex h-[126px] items-center justify-center overflow-hidden rounded-[20px] border border-[#DCE7F4] bg-white px-6 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+          {/* Middle: plate on the left, session facts on the right. */}
+          <div className="mt-3 grid min-h-0 flex-1 grid-cols-[0.95fr_1.35fr] items-stretch gap-5">
+            <div className="flex min-h-[132px] items-center justify-center overflow-hidden rounded-[20px] border border-[#DCE7F4] bg-white px-6 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
               <div className="w-full text-center">
                 <p className="truncate font-sans text-[40px] font-black leading-none tracking-tight text-slate-950">{displayPlate}</p>
                 <div className="mt-3 h-px bg-slate-200" />
@@ -340,38 +340,16 @@ export default function VehicleEntryPage() {
               </div>
             </div>
 
-            {/* Decorative parking gate illustration (pure CSS, low opacity) */}
-            <div className="pointer-events-none relative hidden h-[100px] min-h-0 flex-1 overflow-hidden md:block">
-              <span className="absolute bottom-0 right-0 h-px w-full bg-gradient-to-r from-transparent via-blue-200 to-transparent" />
-              <span className="absolute bottom-4 right-36 h-10 w-36 rounded-full bg-blue-300/15 blur-xl" />
-              <span className="absolute bottom-2 right-40 h-12 w-28 rounded-t-3xl border border-blue-200/50 bg-blue-100/25" />
-              <span className="absolute bottom-1 right-[180px] h-3 w-3 rounded-full bg-blue-300/50" />
-              <span className="absolute bottom-1 right-[88px] h-3 w-3 rounded-full bg-blue-300/50" />
-              <span className="absolute bottom-2 right-[252px] h-20 w-8 rounded-lg bg-gradient-to-b from-blue-700/35 to-blue-500/20" />
-              <span className="absolute bottom-[80px] right-[148px] h-3 w-44 origin-left rotate-[-20deg] rounded-full border border-blue-300/40 bg-gradient-to-r from-blue-700/55 via-sky-300/45 to-white/90" />
-              <span className="absolute bottom-[83px] right-[176px] h-3 w-6 rotate-[-20deg] rounded-sm bg-white/70" />
-              <span className="absolute bottom-[93px] right-[218px] h-3 w-6 rotate-[-20deg] rounded-sm bg-white/70" />
-              <span className="absolute bottom-2 right-12 h-20 w-10 rounded-full border border-blue-300/40 bg-blue-100/40" />
-              <span className="absolute bottom-11 right-[58px] text-2xl font-black text-blue-500/45">P</span>
-              <span className="absolute bottom-2 right-[314px] h-24 w-5 rounded-t-md bg-slate-200/35" />
-              <span className="absolute bottom-2 right-[350px] h-14 w-4 rounded-t-md bg-slate-200/25" />
-              <span className="absolute bottom-1 right-[404px] h-12 w-3 rounded-t-full bg-emerald-200/45" />
-            </div>
-          </div>
-
-          <div className="mt-auto shrink-0 pt-[20px]">
-            <div className="mb-3 grid grid-cols-[minmax(0,1.1fr)_0.85fr_0.85fr] gap-3 rounded-[18px] border border-slate-200 bg-slate-50/80 p-3">
-              <div className="min-w-0">
+            <div className="grid min-h-[132px] grid-cols-2 gap-3 rounded-[20px] border border-slate-200 bg-slate-50/80 p-3">
+              <div className="flex min-w-0 flex-col justify-center rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-100">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Phiên gửi xe</p>
-                <p className="mt-1 truncate text-sm font-black text-slate-950" title={sessionTitle}>{sessionTitle}</p>
+                <p className="mt-2 truncate text-lg font-black text-slate-950" title={sessionTitle}>{sessionTitle}</p>
+                <p className="mt-1 text-[10px] font-semibold text-slate-400">Dùng mã PO để thanh toán checkout</p>
               </div>
-              <div className="rounded-2xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-100">
+              <div className="flex min-w-0 flex-col justify-center rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-100">
                 <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">Giờ vào</p>
-                <p className="mt-1 text-sm font-extrabold text-slate-950 tabular-nums">{entryTime}</p>
-              </div>
-              <div className="rounded-2xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-100">
-                <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">Giờ ra</p>
-                <p className="mt-1 text-sm font-extrabold text-slate-950 tabular-nums">{exitTime}</p>
+                <p className="mt-2 text-lg font-extrabold text-slate-950 tabular-nums">{entryTime}</p>
+                <p className="mt-1 text-[10px] font-semibold text-slate-400">Ghi nhận theo giờ hệ thống</p>
               </div>
             </div>
           </div>

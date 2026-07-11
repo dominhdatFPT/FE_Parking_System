@@ -274,19 +274,19 @@ export default function StaffVehicleExit() {
     (!isVisitor || hasReceivedCash);
 
   return (
-    <div className="flex h-full flex-col gap-3 overflow-hidden bg-[#EEF3FB] px-5 pb-0 pt-0 font-sans">
+    <div className="flex h-full flex-col gap-3 overflow-hidden bg-[#EEF3FB] px-5 pb-3 pt-0 font-sans">
 
       {/* ══════ CAMERAS ══════ */}
-      <div className="grid h-[31vh] max-h-[298px] shrink-0 grid-cols-2 gap-3">
+      <div className="grid h-[24vh] max-h-[220px] min-h-[150px] shrink-0 grid-cols-2 gap-3">
         <CameraPanel label="CAMERA 1" />
         <CameraPanel label="CAMERA 2" />
       </div>
 
       {/* ══════ MAIN CONTENT ══════ */}
-      <div className="mt-2 grid min-h-0 flex-1 grid-cols-[58fr_42fr] gap-3">
+      <div className="grid min-h-0 flex-1 grid-cols-[58fr_42fr] gap-3">
 
         {/* ── LEFT: Kiểm soát xe ra ── */}
-        <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-3 shadow-sm">
+        <div className="flex min-h-0 flex-col overflow-y-auto rounded-2xl border border-slate-200/70 bg-white p-3 shadow-sm">
 
           {/* Header */}
           <div className="mb-2 flex shrink-0 items-center gap-2.5">
@@ -366,7 +366,7 @@ export default function StaffVehicleExit() {
         </div>
 
         {/* ── RIGHT: Chi tiết cần thu ── */}
-        <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-3 shadow-sm">
+        <div className="flex min-h-0 flex-col overflow-y-auto rounded-2xl border border-slate-200/70 bg-white p-3 shadow-sm">
 
           {/* Header */}
           <div className="mb-2 flex shrink-0 items-center gap-2.5">
@@ -481,7 +481,7 @@ export default function StaffVehicleExit() {
           </label>
 
           {/* Action button — pushed to bottom */}
-          <div className="mt-4 shrink-0">
+          <div className="mt-auto shrink-0 pt-2">
             {isExitCompleted ? (
               <button
                 type="button"

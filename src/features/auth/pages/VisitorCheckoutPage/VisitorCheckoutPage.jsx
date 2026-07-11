@@ -210,7 +210,7 @@ export default function VisitorCheckoutPage() {
                 id="order-code"
                 value={orderCode}
                 onChange={(event) => setOrderCode(event.target.value.toUpperCase())}
-                placeholder="VD: PO-178..."
+                placeholder="VD: PO-178... hoặc 46"
                 className="h-10 min-w-0 flex-1 rounded border border-slate-300 px-3 text-sm font-semibold uppercase outline-none transition focus:border-slate-900"
               />
               <button
