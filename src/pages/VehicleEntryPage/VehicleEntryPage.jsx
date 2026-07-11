@@ -183,7 +183,7 @@ export default function VehicleEntryPage() {
     : result?.canConfirm
       ? 'Chưa tạo phiên'
       : sessionCode
-        ? String(sessionCode).startsWith('PO-') ? sessionCode : `Phiên ${sessionCode}`
+        ? String(sessionCode)
         : 'Phiên gửi xe đã tạo';
 
   return (
@@ -344,7 +344,7 @@ export default function VehicleEntryPage() {
               <div className="flex min-w-0 flex-col justify-center rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-100">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Phiên gửi xe</p>
                 <p className="mt-2 truncate text-lg font-black text-slate-950" title={sessionTitle}>{sessionTitle}</p>
-                <p className="mt-1 text-[10px] font-semibold text-slate-400">Dùng mã PO để thanh toán checkout</p>
+                <p className="mt-1 text-[10px] font-semibold text-slate-400">Dùng mã này để thanh toán checkout</p>
               </div>
               <div className="flex min-w-0 flex-col justify-center rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-100">
                 <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">Giờ vào</p>
