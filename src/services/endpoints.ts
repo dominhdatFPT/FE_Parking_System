@@ -40,6 +40,13 @@ export const API_ENDPOINTS = {
   VEHICLE_REGISTRATIONS: {
     CREATE_FOR_USER: (userId: string | number) => `/api/v1/vehicle-registrations/users/${userId}`,
   },
+  PRICING: {
+    PACKAGES: '/api/v1/admin/pricing/packages',
+    PACKAGE_PRICE: (feePackageId: string | number) => `/api/v1/admin/pricing/packages/${feePackageId}/price`,
+    PACKAGE_TOGGLE: (feePackageId: string | number) => `/api/v1/admin/pricing/packages/${feePackageId}/toggle`,
+    VISITOR_RATES: '/api/v1/admin/pricing/visitor-rates',
+    VISITOR_RATE: (vehicleTypeId: string | number) => `/api/v1/admin/pricing/visitor-rates/${vehicleTypeId}`,
+  },
   NOTIFICATIONS: {
     LIST: '/api/v1/notifications',
     DETAIL: (id: number | string) => `/api/v1/notifications/${id}`,
