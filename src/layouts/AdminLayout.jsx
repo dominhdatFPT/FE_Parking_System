@@ -26,7 +26,7 @@ const mainNavigationItems = [
   { icon: Boxes, label: 'Phiên gửi xe', path: ROUTES.ADMIN.PARKING_SESSIONS },
   { icon: Package, label: 'Quản lý đăng ký xe', path: ROUTES.STAFF.VEHICLE_REGISTRATIONS },
   { icon: Users, label: 'Qu\u1EA3n l\u00FD t\u00E0i kho\u1EA3n', path: ROUTES.ADMIN.USERS },
-  { icon: CarFront, label: 'Đăng ký xe', path: ROUTES.ADMIN.USER_VEHICLE_REGISTRATION },
+  { icon: CarFront, label: 'Đăng kí xe cho người dùng', path: ROUTES.ADMIN.USER_VEHICLE_REGISTRATION },
 ];
 
 const incidentNavigationItem = {
@@ -44,7 +44,7 @@ const pageTitles = [
   { path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`, title: 'Quản lí sự cố và hỗ trợ' },
   { path: ROUTES.ADMIN.NOTIFICATIONS.BASE, title: 'Thông báo' },
   { path: ROUTES.ADMIN.USERS, title: 'Qu\u1EA3n l\u00FD t\u00E0i kho\u1EA3n' },
-  { path: ROUTES.ADMIN.USER_VEHICLE_REGISTRATION, title: 'Đăng ký xe cho user' },
+  { path: ROUTES.ADMIN.USER_VEHICLE_REGISTRATION, title: 'Đăng kí xe cho người dùng' },
 ];
 
 function getCurrentPageTitle(pathname, search) {
@@ -66,7 +66,7 @@ function isNavigationItemActive(pathname, search, itemPath) {
 
 function getNavigationLabel(item) {
   if (item.path === ROUTES.ADMIN.USERS) return 'Qu\u1EA3n l\u00FD t\u00E0i kho\u1EA3n';
-  if (item.path === ROUTES.ADMIN.USER_VEHICLE_REGISTRATION) return 'Đăng ký xe';
+  if (item.path === ROUTES.ADMIN.USER_VEHICLE_REGISTRATION) return 'Đăng kí xe cho người dùng';
   if (item.path === ROUTES.ADMIN.VEHICLE_ENTRY) return 'Xe vào';
   if (item.path === ROUTES.ADMIN.DASHBOARD) return 'Tổng quan bãi';
   if (item.path === ROUTES.ADMIN.VEHICLE_EXIT) return 'Xe ra';
@@ -171,6 +171,7 @@ export default function AdminLayout() {
                 const ItemIcon = item.icon;
                 const isActive = isNavigationItemActive(location.pathname, location.search, item.path);
                 const label = getNavigationLabel(item);
+                const canWrapLabel = item.path === ROUTES.ADMIN.USER_VEHICLE_REGISTRATION;
 
                 return (
                   <NavLink
@@ -178,7 +179,9 @@ export default function AdminLayout() {
                     to={item.path}
                     end={item.path === ROUTES.ADMIN.DASHBOARD}
                     title={collapsed ? label : undefined}
-                    className={`group relative flex h-11 items-center rounded-xl text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                    className={`group relative flex items-center rounded-xl text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                      canWrapLabel && !collapsed ? 'min-h-11 py-2' : 'h-11'
+                    } ${
                       collapsed ? 'justify-center px-0' : 'gap-3 px-2.5'
                     } ${
                       isActive
@@ -195,7 +198,11 @@ export default function AdminLayout() {
                     >
                       <ItemIcon className="h-4 w-4 shrink-0" />
                     </span>
-                    {!collapsed ? <span className="truncate">{label}</span> : null}
+                    {!collapsed ? (
+                      <span className={canWrapLabel ? 'min-w-0 flex-1 whitespace-normal break-words leading-tight' : 'truncate'}>
+                        {label}
+                      </span>
+                    ) : null}
                   </NavLink>
                 );
               })}

@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Clock3,
   CreditCard,
+  DollarSign,
   FileCheck2,
   FileImage,
   Mail,
@@ -23,6 +24,8 @@ import {
   getVehicleRegistrations,
   reviewVehicleRegistration,
 } from '../../../services/staffService';
+import { useAuth } from '../../../contexts/useAuth';
+import StaffVehicleRegistrationPricing from './StaffVehicleRegistrationPricing';
 import { VIETNAM_TIME_ZONE } from '../../../utils/dateTime';
 
 const statusConfig = {
@@ -68,6 +71,10 @@ const tabs = [
   { key: 'approved', label: 'Đã duyệt' },
   { key: 'rejected', label: 'Từ chối' },
   { key: 'all', label: 'Tất cả' },
+];
+
+const adminOnlyTabs = [
+  { key: 'pricing', label: 'Cài đặt giá', Icon: DollarSign },
 ];
 
 const formatDate = (value) => {
@@ -268,7 +275,51 @@ function OcrQuickCheck({ eKyc }) {
   );
 }
 
+function EkycSection({ record }) {
+  return (
+    <SectionCard
+      title="Kết quả OCR / eKYC"
+      icon={ShieldCheck}
+      action={
+        record.eKyc.confidence ? (
+          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200">
+            {Math.round(record.eKyc.confidence)}%
+          </span>
+        ) : null
+      }
+    >
+      <div className="grid grid-cols-2 gap-2">
+        {[
+          ['Họ tên khớp', record.eKyc.fullNameMatch],
+          ['CCCD hợp lệ', record.eKyc.cccdValid],
+          ['GPLX hợp lệ', record.eKyc.licenseValid],
+          ['Biển số hợp lệ', record.eKyc.plateValid],
+        ].map(([label, ok]) => (
+          <div
+            key={label}
+            className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold ring-1 ${
+              ok ? 'bg-emerald-50 text-emerald-700 ring-emerald-100' : 'bg-rose-50 text-rose-700 ring-rose-100'
+            }`}
+          >
+            {ok ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
+            {label}
+          </div>
+        ))}
+      </div>
+      {record.eKyc.isFake === true && (
+        <div className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 ring-1 ring-rose-100">
+          Hệ thống phát hiện tài liệu giả mạo.
+        </div>
+      )}
+    </SectionCard>
+  );
+}
+
 export default function StaffVehicleRegistrationReview() {
+  const { role: currentRole } = useAuth();
+  const isAdmin = String(currentRole || '').toUpperCase() === 'ADMIN';
+  const visibleTabs = isAdmin ? [...tabs, ...adminOnlyTabs] : tabs;
+
   const [registrations, setRegistrations] = useState([]);
   const [registrationDetails, setRegistrationDetails] = useState({});
   const [activeTab, setActiveTab] = useState('pending');
@@ -283,6 +334,12 @@ export default function StaffVehicleRegistrationReview() {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const records = useMemo(() => registrations.map(normalizeRegistration), [registrations]);
+
+  useEffect(() => {
+    if (!isAdmin && activeTab === 'pricing') {
+      setActiveTab('pending');
+    }
+  }, [activeTab, isAdmin]);
 
   const counts = useMemo(() => {
     const initialCounts = { pending: 0, approved: 0, rejected: 0, all: records.length };
@@ -437,26 +494,34 @@ export default function StaffVehicleRegistrationReview() {
       <div className="flex shrink-0 items-center justify-between gap-3">
         {/* Tabs */}
         <div className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-100/80 p-1 shadow-sm">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setActiveTab(tab.key)}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold transition ${
-                activeTab === tab.key
-                  ? 'bg-white text-blue-700 shadow-sm ring-1 ring-blue-200'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              {tab.label}
-              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${activeTab === tab.key ? 'bg-blue-50 text-blue-600' : 'bg-slate-200 text-slate-600'}`}>
-                {counts[tab.key]}
-              </span>
-            </button>
-          ))}
+          {visibleTabs.map((tab) => {
+            const TabIcon = tab.Icon;
+            const showCount = !adminOnlyTabs.some((adminTab) => adminTab.key === tab.key);
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveTab(tab.key)}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold transition ${
+                  activeTab === tab.key
+                    ? 'bg-white text-blue-700 shadow-sm ring-1 ring-blue-200'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                {TabIcon ? <TabIcon size={14} /> : null}
+                {tab.label}
+                {showCount ? (
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${activeTab === tab.key ? 'bg-blue-50 text-blue-600' : 'bg-slate-200 text-slate-600'}`}>
+                    {counts[tab.key]}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
         </div>
 
         {/* Controls */}
+        {activeTab !== 'pricing' ? (
         <div className="flex items-center gap-2">
           <label className="flex h-10 min-w-[220px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-sm focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100">
             <Search size={15} className="shrink-0 text-slate-400" />
@@ -476,17 +541,20 @@ export default function StaffVehicleRegistrationReview() {
             Làm mới
           </button>
         </div>
+        ) : null}
       </div>
 
       {/* ── MESSAGE ── */}
-      {message && (
+      {activeTab !== 'pricing' && message && (
         <div className="shrink-0 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-bold text-blue-800">
           {message}
         </div>
       )}
 
       {/* ── MAIN CONTENT ── */}
-      {loading ? (
+      {activeTab === 'pricing' ? (
+        <StaffVehicleRegistrationPricing />
+      ) : loading ? (
         <div className="flex flex-1 min-h-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-sm font-black text-slate-500 shadow-sm">
           Đang tải hồ sơ đăng ký...
         </div>
@@ -503,7 +571,7 @@ export default function StaffVehicleRegistrationReview() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-1 min-h-0 gap-4 overflow-hidden">
+        <div className="flex flex-1 min-h-0 flex-row-reverse gap-4 overflow-hidden">
 
           {/* ── LEFT: LIST ── */}
           <aside className="flex w-[300px] shrink-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -675,7 +743,6 @@ export default function StaffVehicleRegistrationReview() {
                       </div>
                     )}
                   </SectionCard>
-
                   <SectionCard title="Lịch sử xử lý" icon={BadgeCheck}>
                     <div className="space-y-3">
                       {[

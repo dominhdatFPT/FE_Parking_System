@@ -17,6 +17,7 @@ const tabs = ['Đang hoạt động', 'Đã hoàn thành', 'Tất cả'];
 const vehicleTypes = ['Tất cả', 'Ô tô', 'Xe máy'];
 const customerTypes = ['Tất cả', 'Gói tháng', 'Vãng lai'];
 const warningFilters = ['Tất cả cảnh báo', 'Bình thường', 'Quá 24 giờ', 'Quá 7 ngày'];
+const PAGE_SIZE = 10;
 
 const statusClasses = {
   'Bình thường': 'border-emerald-200 bg-emerald-50 text-emerald-700',
@@ -130,14 +131,14 @@ export default function ParkingSessionsPage() {
   const [customerType, setCustomerType] = useState('Tất cả');
   const [selectedWarning, setSelectedWarning] = useState('Tất cả cảnh báo');
   const [date, setDate] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedSession, setSelectedSession] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    getParkingSessions()
+    getParkingSessions({ page: 0, size: 200 })
       .then((items) => {
         if (active) setSessions(items.map(mapSession));
       })
@@ -164,18 +165,26 @@ export default function ParkingSessionsPage() {
       && (customerType === 'Tất cả' || session.customer === customerType)
       && matchesWarning
       && matchesDate;
-  }), [activeTab, customerType, date, search, selectedWarning, sessions, vehicleType]);
+  }).sort((a, b) => (apiDateTimeMillis(b.entryTime) || 0) - (apiDateTimeMillis(a.entryTime) || 0)), [activeTab, customerType, date, search, selectedWarning, sessions, vehicleType]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, selectedWarning, customerType, vehicleType, date, activeTab]);
+  }, [activeTab, customerType, date, search, selectedWarning, vehicleType]);
 
-  const PAGE_SIZE = 10;
-  const totalItems = filteredSessions.length;
-  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
-  const startIndex = (currentPage - 1) * PAGE_SIZE;
-  const endIndex = startIndex + PAGE_SIZE;
-  const paginatedSessions = filteredSessions.slice(startIndex, endIndex);
+  const pageCount = Math.max(1, Math.ceil(filteredSessions.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, pageCount);
+
+  useEffect(() => {
+    if (currentPage > pageCount) setCurrentPage(pageCount);
+  }, [currentPage, pageCount]);
+
+  const visibleSessions = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return filteredSessions.slice(start, start + PAGE_SIZE);
+  }, [filteredSessions, safePage]);
+
+  const rangeStart = filteredSessions.length ? (safePage - 1) * PAGE_SIZE + 1 : 0;
+  const rangeEnd = Math.min(safePage * PAGE_SIZE, filteredSessions.length);
 
   const kpis = useMemo(() => {
     const activeSessions = sessions.filter((session) => session.status !== 'Đã hoàn thành');
@@ -255,9 +264,16 @@ export default function ParkingSessionsPage() {
             </span>
             <div>
               <h2 className="text-sm font-black text-slate-950">Danh sách phiên gửi xe</h2>
-              <p className="text-xs font-medium text-slate-400">Hiển thị {filteredSessions.length.toLocaleString('vi-VN')} phiên</p>
+              <p className="text-xs font-medium text-slate-400">
+                {filteredSessions.length
+                  ? `Hiển thị ${rangeStart}-${rangeEnd} / ${filteredSessions.length.toLocaleString('vi-VN')} phiên`
+                  : 'Không có phiên phù hợp'}
+              </p>
             </div>
           </div>
+          <span className="hidden rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-500 sm:inline-flex">
+            {PAGE_SIZE} phiên / trang
+          </span>
         </div>
 
         <div className="overflow-x-auto">
@@ -290,7 +306,7 @@ export default function ParkingSessionsPage() {
                   </td>
                 </tr>
               ) : null}
-              {!loading && paginatedSessions.map((session) => (
+              {!loading && visibleSessions.map((session) => (
                 <tr key={session.id} className="h-16 text-slate-600 transition-colors hover:bg-blue-50/40">
                   <td className="px-4 py-3">
                     <span className="inline-flex max-w-[130px] items-center gap-1.5 rounded-xl bg-blue-50 px-2.5 py-1 font-black text-slate-950">
@@ -336,59 +352,34 @@ export default function ParkingSessionsPage() {
           </table>
         </div>
 
-        {filteredSessions.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-5 py-4">
-            <p className="text-sm text-slate-500">
-              Hiển thị{' '}
-              <span className="font-semibold text-slate-700">{startIndex + 1}–{Math.min(endIndex, totalItems)}</span>{' '}
-              trong tổng{' '}
-              <span className="font-semibold text-slate-700">{totalItems}</span> phiên
-            </p>
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => p - 1)}
-                className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition-all hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Trước
-              </button>
-              {(totalPages <= 7
-                ? Array.from({ length: totalPages }, (_, i) => i + 1)
-                : currentPage <= 4
-                  ? [1, 2, 3, 4, 5, '…', totalPages]
-                  : currentPage >= totalPages - 3
-                    ? [1, '…', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
-                    : [1, '…', currentPage - 1, currentPage, currentPage + 1, '…', totalPages]
-              ).map((page, idx) =>
-                page === '…' ? (
-                  <span key={`ellipsis-${idx}`} className="flex h-9 w-9 items-center justify-center text-sm text-slate-400">…</span>
-                ) : (
-                  <button
-                    key={page}
-                    type="button"
-                    onClick={() => setCurrentPage(page)}
-                    className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border text-sm font-bold transition-all ${
-                      currentPage === page
-                        ? 'border-blue-500 bg-blue-600 text-white shadow-sm'
-                        : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                )
-              )}
-              <button
-                type="button"
-                disabled={currentPage === totalPages || totalPages === 0}
-                onClick={() => setCurrentPage((p) => p + 1)}
-                className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition-all hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Sau
-              </button>
-            </div>
+        <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs font-semibold text-slate-500">
+            {filteredSessions.length
+              ? `Trang ${safePage} / ${pageCount}`
+              : 'Chưa có dữ liệu để phân trang'}
+          </p>
+          <div className="inline-flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              disabled={safePage <= 1}
+              className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Trước
+            </button>
+            <span className="min-w-16 rounded-xl bg-slate-100 px-3 py-2 text-center text-xs font-black text-slate-700">
+              {safePage}/{pageCount}
+            </span>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.min(pageCount, page + 1))}
+              disabled={safePage >= pageCount}
+              className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Sau
+            </button>
           </div>
-        )}
+        </div>
       </section>
       <SessionDetailDrawer open={isDetailOpen} session={selectedSession} onClose={() => setIsDetailOpen(false)} />
     </div>
