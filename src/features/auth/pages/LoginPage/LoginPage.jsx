@@ -595,7 +595,7 @@ export default function LoginPage() {
                 type="submit"
                 disabled={loading}
               >
-                {loading ? t('submitting') : t('submit')}
+                {loading ? t('submitting') : currentLanguage === 'vi' ? 'Đăng nhập' : t('submit')}
               </button>
 
               <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">

@@ -32,7 +32,7 @@ services:
     image: backend-service:latest
     container_name: parking-system-backend
     ports:
-      - "8080:8080"
+      - "8080:10000"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/parking_db
       - SPRING_DATASOURCE_USERNAME=root

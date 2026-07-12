@@ -144,7 +144,8 @@ export default function VehicleEntryPage() {
     try {
       const payload = {
         ...result,
-        vehicleType: vehicleType || result.vehicleType,
+        vehicleType,
+        vehicleTypeCode: vehicleType,
       };
       setResult(await confirmParkingEntry(payload));
       setNotice({ type: 'success', message: 'Đã xác nhận xe vào bãi' });

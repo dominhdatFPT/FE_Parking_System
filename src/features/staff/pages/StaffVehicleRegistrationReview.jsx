@@ -220,7 +220,7 @@ function OcrQuickCheck({ eKyc }) {
   const isValid = checks.every((check) => check.ok) && eKyc.isFake !== true;
 
   return (
-    <section className={`min-h-[140px] rounded-2xl border p-5 shadow-sm ${
+    <section className={`flex min-h-[280px] flex-col rounded-2xl border p-5 shadow-sm ${
       isValid
         ? 'border-emerald-200 bg-gradient-to-br from-emerald-50 to-white'
         : 'border-rose-200 bg-gradient-to-br from-rose-50 to-white'
@@ -258,11 +258,11 @@ function OcrQuickCheck({ eKyc }) {
         </span>
       </div>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-auto grid grid-cols-2 gap-3 pt-8">
         {checks.map((check) => (
           <span
             key={check.validLabel}
-            className={`inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold ring-1 ${
+            className={`inline-flex min-h-[58px] items-center justify-center gap-2 rounded-xl px-4 py-3 text-center text-sm font-semibold ring-1 ${
               check.ok ? 'bg-emerald-50 text-emerald-700 ring-emerald-200' : 'bg-rose-50 text-rose-700 ring-rose-200'
             }`}
           >
