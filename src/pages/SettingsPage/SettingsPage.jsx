@@ -8,7 +8,6 @@ import {
   Mail,
   Phone,
   Save,
-  ShieldCheck,
   UserRound,
   X,
 } from 'lucide-react';
@@ -51,7 +50,6 @@ function getProfileFromUser(user) {
     email: user?.email || '',
     displayName: user?.fullName || user?.name || user?.email || 'Người dùng',
     phone: user?.phone || user?.phoneNumber || '',
-    role: user?.role || 'User',
     avatar: user?.avatarUrl || user?.avatar || '',
   };
 }
@@ -175,10 +173,6 @@ function ProfileHeaderCard({ selectedAvatar, onAvatarSelect, profile }) {
         <div className="mt-4 text-center">
           <h2 className="text-2xl font-bold tracking-tight text-slate-950">{profile.displayName}</h2>
           <p className="mt-1 text-sm font-medium text-slate-500">{profile.email || 'Chưa có email'}</p>
-          <span className="mt-3 inline-flex items-center gap-2 rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700">
-            <ShieldCheck className="h-4 w-4" />
-            {profile.role}
-          </span>
         </div>
 
         {pickerOpen ? (
@@ -311,14 +305,6 @@ function ProfileInfoForm({ initialProfile, onSave }) {
                 className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-4 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
               />
             </div>
-          </FieldShell>
-
-          <FieldShell label="Vai trò">
-            <input
-              value={formData.role}
-              disabled
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-500"
-            />
           </FieldShell>
 
         </div>
@@ -497,7 +483,6 @@ export default function SettingsPage() {
         fullName: nextProfile.displayName,
         name: nextProfile.displayName,
         phone: nextProfile.phone,
-        role: nextProfile.role,
         avatarUrl: selectedAvatar,
         avatar: selectedAvatar,
       };

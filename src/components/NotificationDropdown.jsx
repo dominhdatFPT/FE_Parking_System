@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import Icon from './Icon';
 import { ROUTES } from '../constants/routes';
 import { getDatabaseNotifications } from '../services/notificationService';
@@ -12,11 +12,13 @@ const typeStyles = {
 
 export default function NotificationDropdown() {
   const navigate = useNavigate();
+  const location = useLocation();
   const buttonRef = useRef(null);
   const panelRef = useRef(null);
   const [visible, setVisible] = useState(false);
   const [items, setItems] = useState([]);
   const [readIds, setReadIds] = useState(new Set());
+  const isNotificationPage = location.pathname.includes('/notifications');
 
   useEffect(() => {
     let active = true;
@@ -39,15 +41,42 @@ export default function NotificationDropdown() {
     navigate(`${ROUTES.ADMIN.NOTIFICATIONS.BASE}/${id}`);
   };
 
+  const handleManageClick = () => {
+    setVisible(false);
+    navigate(ROUTES.ADMIN.NOTIFICATIONS.BASE);
+  };
+
   return (
     <div className="relative">
-      <button ref={buttonRef} type="button" onClick={() => setVisible((value) => !value)} aria-label="Thông báo" className="relative inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200/80 bg-white/80 text-slate-700 shadow-sm backdrop-blur transition-all duration-200 hover:scale-105 hover:border-blue-200 hover:text-[#1D6BFF] hover:shadow-md active:scale-[0.98]">
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={() => setVisible((value) => !value)}
+        aria-label="Thông báo"
+        className={`relative inline-flex h-10 w-10 items-center justify-center rounded-2xl border shadow-sm backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-md active:scale-[0.98] ${
+          isNotificationPage || visible
+            ? 'border-blue-200 bg-blue-50 text-blue-600 ring-4 ring-blue-50'
+            : 'border-slate-200/80 bg-white/80 text-slate-700 hover:border-blue-200 hover:text-[#1D6BFF]'
+        }`}
+      >
         <Icon name="notifications" />
         {unreadCount > 0 ? <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#F43F5E] px-1.5 text-[11px] font-semibold text-white ring-2 ring-white">{unreadCount}</span> : null}
       </button>
       {visible ? (
         <div ref={panelRef} className="absolute right-0 top-full z-[9999] mt-3 w-[min(380px,calc(100vw-2rem))] overflow-hidden rounded-[24px] border border-white/70 bg-white/95 shadow-2xl backdrop-blur-2xl">
-          <div className="border-b border-slate-100 px-4 py-4"><p className="text-sm font-semibold text-slate-950">Thông báo từ hệ thống</p><p className="mt-1 text-xs text-slate-500">{unreadCount} thông báo chưa đọc</p></div>
+          <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-950">Thông báo từ hệ thống</h3>
+              <p className="mt-1 text-xs text-slate-500">{unreadCount} thông báo chưa đọc</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleManageClick}
+              className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-100"
+            >
+              Quản lý
+            </button>
+          </div>
           <div className="max-h-[480px] overflow-y-auto">{items.length === 0 ? <div className="p-6 text-center text-sm text-slate-500">Database chưa có thông báo.</div> : items.map((item) => {
             const style = typeStyles[item.type] || typeStyles.warning;
             const unread = !readIds.has(item.id);

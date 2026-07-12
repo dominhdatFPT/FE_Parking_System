@@ -60,7 +60,6 @@ const loginTranslations = {
     },
     email: 'Email',
     password: 'Mật khẩu',
-    forgot: 'Quên mật khẩu?',
     remember: 'Ghi nhớ đăng nhập',
     submit: 'Đăng nhập',
     submitting: 'Đang đăng nhập...',
@@ -112,7 +111,6 @@ const loginTranslations = {
     },
     email: 'Email',
     password: 'Password',
-    forgot: 'Forgot password?',
     remember: 'Remember me',
     submit: 'Login',
     submitting: 'Logging in...',
@@ -332,9 +330,6 @@ function PasswordInput({ showPassword, onTogglePassword, t, ...props }) {
     <label className="grid gap-1.5 text-left" htmlFor="login-password">
       <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
         {t('password')}
-        <Link className="text-xs font-semibold normal-case tracking-normal text-sky-600 transition hover:text-sky-700" to="/reset-password">
-          {t('forgot')}
-        </Link>
       </span>
       <span className="relative block">
         <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />

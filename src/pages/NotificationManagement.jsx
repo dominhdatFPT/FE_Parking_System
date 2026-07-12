@@ -33,7 +33,7 @@ const emptyForm = {
 };
 
 const notificationTypes = ['Tất cả', 'Hệ thống', 'Bảo trì', 'Gói gửi xe', 'Thanh toán', 'Sự cố'];
-const statusFilters = ['Tất cả', 'Đã gửi', 'Nháp', 'Hẹn lịch'];
+const statusFilters = ['Tất cả', 'Đã gửi', 'Nháp'];
 const priorityOptions = ['Thường', 'Quan trọng'];
 const targetOptions = [
   'Tất cả user',
@@ -42,14 +42,14 @@ const targetOptions = [
   'User sắp hết hạn gói',
   'User cụ thể',
 ];
-const sendTimeOptions = ['Gửi ngay', 'Lưu nháp', 'Hẹn lịch'];
+const sendTimeOptions = ['Gửi ngay', 'Lưu nháp'];
 
 const inputClass =
   'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100';
+const PAGE_SIZE = 8;
 
 function resolveStatus(sendTime) {
   if (sendTime === 'Lưu nháp') return 'Nháp';
-  if (sendTime === 'Hẹn lịch') return 'Hẹn lịch';
   return 'Đã gửi';
 }
 
@@ -57,7 +57,6 @@ function getStatusClasses(status) {
   const styles = {
     'Đã gửi': 'bg-emerald-50 text-emerald-700 ring-emerald-200',
     Nháp: 'bg-slate-100 text-slate-600 ring-slate-200',
-    'Hẹn lịch': 'bg-sky-50 text-sky-700 ring-sky-200',
   };
 
   return styles[status] ?? 'bg-orange-50 text-orange-700 ring-orange-200';
@@ -108,7 +107,7 @@ function StatCard({ icon: Icon, label, value, tone }) {
 
 function Badge({ children, className }) {
   return (
-    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ${className}`}>
+    <span className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ring-1 ${className}`}>
       {children}
     </span>
   );
@@ -159,10 +158,10 @@ function NotificationPreview({ form }) {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getTypeClasses(form.type)}`}>
+          <span className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${getTypeClasses(form.type)}`}>
             {form.type}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+          <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
             <Clock3 className="h-3.5 w-3.5" />
             {form.sendTime}
           </span>
@@ -333,6 +332,7 @@ export default function NotificationManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
@@ -374,6 +374,22 @@ export default function NotificationManagement() {
     });
   }, [notifications, searchTerm, statusFilter, typeFilter]);
 
+  const totalItems = filteredNotifications.length;
+  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const endIndex = startIndex + PAGE_SIZE;
+  const paginatedNotifications = filteredNotifications.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, typeFilter]);
+
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   function openCreateModal() {
     setEditingNotification(null);
     setForm(emptyForm);
@@ -388,12 +404,7 @@ export default function NotificationManagement() {
       type: notification.type,
       priority: notification.priority,
       target: notification.target,
-      sendTime:
-        notification.status === 'Nháp'
-          ? 'Lưu nháp'
-          : notification.status === 'Hẹn lịch'
-            ? 'Hẹn lịch'
-            : 'Gửi ngay',
+      sendTime: notification.status === 'Nháp' ? 'Lưu nháp' : 'Gửi ngay',
     });
     setIsModalOpen(true);
   }
@@ -468,12 +479,7 @@ export default function NotificationManagement() {
       type: notification.type,
       priority: notification.priority,
       target: notification.target,
-      sendTime:
-        notification.status === 'Nháp'
-          ? 'Lưu nháp'
-          : notification.status === 'Hẹn lịch'
-            ? 'Hẹn lịch'
-            : 'Gửi ngay',
+      sendTime: notification.status === 'Nháp' ? 'Lưu nháp' : 'Gửi ngay',
     });
     setIsModalOpen(true);
   }
@@ -562,6 +568,7 @@ export default function NotificationManagement() {
                 setSearchTerm('');
                 setStatusFilter('Tất cả');
                 setTypeFilter('Tất cả');
+                setCurrentPage(1);
                 fetchNotifications();
               }}
               disabled={loading}
@@ -600,9 +607,9 @@ export default function NotificationManagement() {
               <tr>
                 <th className="px-5 py-4">Tiêu đề</th>
                 <th className="px-5 py-4">Nội dung ngắn</th>
-                <th className="px-5 py-4">Loại</th>
+                <th className="w-[130px] whitespace-nowrap px-5 py-4">Loại</th>
                 <th className="px-5 py-4">Đối tượng nhận</th>
-                <th className="px-5 py-4">Mức độ</th>
+                <th className="w-[120px] whitespace-nowrap px-5 py-4">Mức độ</th>
                 <th className="px-5 py-4">Trạng thái</th>
                 <th className="px-5 py-4">Ngày tạo</th>
                 <th className="px-5 py-4 text-right">Hành động</th>
@@ -636,7 +643,7 @@ export default function NotificationManagement() {
                   </td>
                 </tr>
               ) : (
-                filteredNotifications.map((notification) => (
+                paginatedNotifications.map((notification) => (
                   <tr key={notification.id} className="transition hover:bg-slate-50/80">
                     <td className="max-w-[220px] px-5 py-4">
                       <p className="font-semibold text-slate-950">{notification.title}</p>
@@ -644,13 +651,13 @@ export default function NotificationManagement() {
                     <td className="max-w-[280px] px-5 py-4 text-slate-600">
                       <p className="line-clamp-2">{notification.content}</p>
                     </td>
-                    <td className="px-5 py-4">
-                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getTypeClasses(notification.type)}`}>
+                    <td className="w-[130px] whitespace-nowrap px-5 py-4 align-middle">
+                      <span className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${getTypeClasses(notification.type)}`}>
                         {notification.type}
                       </span>
                     </td>
                     <td className="px-5 py-4 text-slate-600">{notification.target}</td>
-                    <td className="px-5 py-4">
+                    <td className="w-[120px] whitespace-nowrap px-5 py-4 align-middle">
                       <Badge className={getPriorityClasses(notification.priority)}>{notification.priority}</Badge>
                     </td>
                     <td className="px-5 py-4">
@@ -671,6 +678,43 @@ export default function NotificationManagement() {
             </tbody>
           </table>
         </div>
+
+        {totalPages > 1 ? (
+          <div className="flex items-center justify-end gap-2 border-t border-slate-100 px-6 py-4">
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Trước
+            </button>
+
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+              <button
+                key={page}
+                type="button"
+                onClick={() => setCurrentPage(page)}
+                className={`h-10 min-w-10 rounded-xl px-3 text-sm font-semibold transition ${
+                  currentPage === page
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Sau
+            </button>
+          </div>
+        ) : null}
       </section>
 
       {isModalOpen ? (

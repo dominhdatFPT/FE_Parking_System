@@ -168,17 +168,17 @@ export default function DriverFeePlans() {
         autoRenew: false,
       });
       const result = res.data?.data ?? res.data;
-      // Lưu thông tin đơn VNPay để hiển thị nút "Thanh toán ngay" trên trang Payment
+      // Lưu thông tin Stripe để hiển thị form thanh toán trên trang Payment
       localStorage.setItem('pending_fee_plan_request', JSON.stringify({
         subscriptionId: result.subscriptionId,
         invoiceId: result.invoiceId,
-        vnpTxnRef: result.vnpTxnRef,
-        paymentUrl: result.paymentUrl,        // Link redirect sang VNPay
-        expiredAt: result.expiredAt,
+        paymentIntentId: result.paymentIntentId,
+        clientSecret: result.clientSecret,
+        currency: result.currency,
         licensePlate: selectedVehicle.licensePlate,
         planName: selectedPackage?.name,
         durationMonths: selectedPackage?.durationMonths,
-        amount: selectedPackage?.price ?? selectedPackage?.currentPrice ?? 0,
+        amount: result.amount ?? selectedPackage?.price ?? selectedPackage?.currentPrice ?? 0,
       }));
       navigate(ROUTES.DRIVER.PAYMENT);
     } catch (err) {
@@ -240,7 +240,6 @@ export default function DriverFeePlans() {
 
       {errorMessage && !submittedSuccess && (
         <div className="rounded-2xl bg-red-50 border border-red-200 p-4 flex items-start gap-3">
-          <span className="material-symbols-outlined text-[18px] text-red-500 mt-0.5">error</span>
           <p className="text-xs font-semibold text-red-700">{errorMessage}</p>
         </div>
       )}
@@ -248,9 +247,6 @@ export default function DriverFeePlans() {
       <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
         {submittedSuccess && subscriptionResult ? (
           <div className="flex flex-col items-center justify-center py-12 text-center space-y-6 animate-in fade-in duration-300">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 text-[#0EA5E9] shadow-inner">
-              <span className="material-symbols-outlined text-[48px] font-bold">check_circle</span>
-            </div>
             <div className="space-y-2">
               <h3 className="text-2xl font-black text-slate-800">{t('feePlans.submittedTitle')}</h3>
               <p className="text-sm text-slate-500 max-w-md">{t('feePlans.submittedDesc')}</p>
@@ -309,7 +305,7 @@ export default function DriverFeePlans() {
                       <p className="text-xs font-black">{t('vehicleRegistration.motorbike')}</p>
                       <p className="text-[10px] text-slate-400 mt-0.5">{t('feePlans.step1DescMotorbike')}</p>
                     </div>
-                    {vehicleType === 'MOTORBIKE' && <span className="material-symbols-outlined text-[16px] text-blue-600 font-bold">check_circle</span>}
+                    {vehicleType === 'MOTORBIKE' && <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />}
                   </button>
                   <button
                     type="button"
@@ -320,7 +316,7 @@ export default function DriverFeePlans() {
                       <p className="text-xs font-black">{t('vehicleRegistration.car')}</p>
                       <p className="text-[10px] text-slate-400 mt-0.5">{t('feePlans.step1DescCar')}</p>
                     </div>
-                    {vehicleType === 'CAR' && <span className="material-symbols-outlined text-[16px] text-blue-600 font-bold">check_circle</span>}
+                    {vehicleType === 'CAR' && <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />}
                   </button>
                 </div>
               </div>
@@ -341,9 +337,9 @@ export default function DriverFeePlans() {
                       <button
                         type="button"
                         onClick={() => setShowSuggestions(!showSuggestions)}
-                        className="absolute right-3 text-slate-400 hover:text-slate-600 focus:outline-none flex items-center justify-center"
+                        className="absolute right-3 text-[10px] font-black uppercase tracking-wide text-slate-400 hover:text-slate-600 focus:outline-none"
                       >
-                        <span className="material-symbols-outlined text-[18px]">{showSuggestions ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}</span>
+                        {showSuggestions ? 'Đóng' : 'Mở'}
                       </button>
                     </div>
 
@@ -456,9 +452,7 @@ export default function DriverFeePlans() {
                                 ? 'border-[#0EA5E9] bg-[#0EA5E9] text-white shadow-md shadow-sky-500/20 scale-105' 
                                 : 'border-slate-200 bg-white hover:border-slate-300'
                             }`}>
-                              {isSelected && (
-                                <span className="material-symbols-outlined text-[12px] font-black">check</span>
-                              )}
+                              {isSelected && <span className="h-2 w-2 rounded-full bg-white" />}
                             </span>
                           </div>
                         </div>
@@ -493,7 +487,13 @@ export default function DriverFeePlans() {
             <div className="w-full md:w-[30%] bg-slate-50 border-l border-slate-100 p-6 flex flex-col justify-between rounded-3xl">
               {!selectedVehicle ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-center py-12 space-y-3">
-                  <span className="material-symbols-outlined text-[44px] text-slate-300">directions_car</span>
+                  <div className="h-20 w-32 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200">
+                    <img
+                      src={VEHICLE_TYPE_IMAGE[vehicleType] || VEHICLE_TYPE_IMAGE.MOTORBIKE}
+                      alt=""
+                      className="h-full w-full object-cover opacity-80"
+                    />
+                  </div>
                   <p className="text-xs font-bold text-slate-700">{t('feePlans.noVehicleSelected')}</p>
                   <p className="text-[11px] text-slate-400 px-4 leading-relaxed">{t('feePlans.noVehicleSelectedDesc')}</p>
                 </div>

@@ -2,14 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   BadgeCheck,
-  CalendarDays,
   CarFront,
   CheckCircle2,
   Clock3,
   CreditCard,
+  DollarSign,
   FileCheck2,
   FileImage,
-  Filter,
   Mail,
   PackageCheck,
   RefreshCcw,
@@ -25,6 +24,8 @@ import {
   getVehicleRegistrations,
   reviewVehicleRegistration,
 } from '../../../services/staffService';
+import { useAuth } from '../../../contexts/useAuth';
+import StaffVehicleRegistrationPricing from './StaffVehicleRegistrationPricing';
 import { VIETNAM_TIME_ZONE } from '../../../utils/dateTime';
 
 const statusConfig = {
@@ -70,6 +71,10 @@ const tabs = [
   { key: 'approved', label: 'Đã duyệt' },
   { key: 'rejected', label: 'Từ chối' },
   { key: 'all', label: 'Tất cả' },
+];
+
+const adminOnlyTabs = [
+  { key: 'pricing', label: 'Cài đặt giá', Icon: DollarSign },
 ];
 
 const formatDate = (value) => {
@@ -205,28 +210,120 @@ function InfoRow({ label, value }) {
   );
 }
 
-function EmptyState() {
+function OcrQuickCheck({ eKyc }) {
+  const checks = [
+    { validLabel: 'Họ tên khớp', invalidLabel: 'Họ tên không khớp', ok: eKyc.fullNameMatch },
+    { validLabel: 'CCCD hợp lệ', invalidLabel: 'CCCD không hợp lệ', ok: eKyc.cccdValid },
+    { validLabel: 'GPLX hợp lệ', invalidLabel: 'GPLX không hợp lệ', ok: eKyc.licenseValid },
+    { validLabel: 'Biển số hợp lệ', invalidLabel: 'Biển số không hợp lệ', ok: eKyc.plateValid },
+  ];
+  const isValid = checks.every((check) => check.ok) && eKyc.isFake !== true;
+
   return (
-    <div className="grid min-h-[520px] place-items-center rounded-2xl bg-white p-10 text-center shadow-sm ring-1 ring-slate-200">
-      <div>
-        <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-slate-50 text-slate-400 ring-1 ring-slate-200">
-          <FileCheck2 size={30} />
+    <section className={`flex min-h-[280px] flex-col rounded-2xl border p-5 shadow-sm ${
+      isValid
+        ? 'border-emerald-200 bg-gradient-to-br from-emerald-50 to-white'
+        : 'border-rose-200 bg-gradient-to-br from-rose-50 to-white'
+    }`}
+    >
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex min-w-0 items-center gap-4">
+          <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl ring-1 ${
+            isValid ? 'bg-emerald-100 text-emerald-700 ring-emerald-200' : 'bg-rose-100 text-rose-700 ring-rose-200'
+          }`}
+          >
+            {isValid ? <ShieldCheck size={26} /> : <AlertTriangle size={26} />}
+          </span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-xl font-bold text-slate-950">Kết quả OCR / eKYC</h2>
+              {eKyc.confidence ? (
+                <span className="rounded-full bg-white/80 px-2.5 py-1 text-xs font-bold text-slate-600 ring-1 ring-slate-200">
+                  {Math.round(eKyc.confidence)}%
+                </span>
+              ) : null}
+            </div>
+            <p className="mt-1 text-sm font-medium text-slate-600">
+              Kiểm tra nhanh dữ liệu nhận diện và giấy tờ xe.
+            </p>
+          </div>
         </div>
-        <h2 className="mt-5 text-xl font-black text-slate-950">Không có hồ sơ cần xử lý</h2>
-        <p className="mx-auto mt-2 max-w-md text-sm font-medium text-slate-500">
-          Tất cả yêu cầu đăng ký đã được xử lý hoặc chưa có hồ sơ mới.
-        </p>
+
+        <span className={`inline-flex w-fit shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-bold ring-1 ${
+          isValid ? 'bg-emerald-100 text-emerald-700 ring-emerald-200' : 'bg-rose-100 text-rose-700 ring-rose-200'
+        }`}
+        >
+          {isValid ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+          {isValid ? 'Hợp lệ' : 'Cần kiểm tra'}
+        </span>
       </div>
-    </div>
+
+      <div className="mt-auto grid grid-cols-2 gap-3 pt-8">
+        {checks.map((check) => (
+          <span
+            key={check.validLabel}
+            className={`inline-flex min-h-[58px] items-center justify-center gap-2 rounded-xl px-4 py-3 text-center text-sm font-semibold ring-1 ${
+              check.ok ? 'bg-emerald-50 text-emerald-700 ring-emerald-200' : 'bg-rose-50 text-rose-700 ring-rose-200'
+            }`}
+          >
+            {check.ok ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+            {check.ok ? check.validLabel : check.invalidLabel}
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function EkycSection({ record }) {
+  return (
+    <SectionCard
+      title="Kết quả OCR / eKYC"
+      icon={ShieldCheck}
+      action={
+        record.eKyc.confidence ? (
+          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200">
+            {Math.round(record.eKyc.confidence)}%
+          </span>
+        ) : null
+      }
+    >
+      <div className="grid grid-cols-2 gap-2">
+        {[
+          ['Họ tên khớp', record.eKyc.fullNameMatch],
+          ['CCCD hợp lệ', record.eKyc.cccdValid],
+          ['GPLX hợp lệ', record.eKyc.licenseValid],
+          ['Biển số hợp lệ', record.eKyc.plateValid],
+        ].map(([label, ok]) => (
+          <div
+            key={label}
+            className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold ring-1 ${
+              ok ? 'bg-emerald-50 text-emerald-700 ring-emerald-100' : 'bg-rose-50 text-rose-700 ring-rose-100'
+            }`}
+          >
+            {ok ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
+            {label}
+          </div>
+        ))}
+      </div>
+      {record.eKyc.isFake === true && (
+        <div className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 ring-1 ring-rose-100">
+          Hệ thống phát hiện tài liệu giả mạo.
+        </div>
+      )}
+    </SectionCard>
   );
 }
 
 export default function StaffVehicleRegistrationReview() {
+  const { role: currentRole } = useAuth();
+  const isAdmin = String(currentRole || '').toUpperCase() === 'ADMIN';
+  const visibleTabs = isAdmin ? [...tabs, ...adminOnlyTabs] : tabs;
+
   const [registrations, setRegistrations] = useState([]);
   const [registrationDetails, setRegistrationDetails] = useState({});
   const [activeTab, setActiveTab] = useState('pending');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState('')
   const [selectedKey, setSelectedKey] = useState('');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(true);
@@ -237,6 +334,12 @@ export default function StaffVehicleRegistrationReview() {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const records = useMemo(() => registrations.map(normalizeRegistration), [registrations]);
+
+  useEffect(() => {
+    if (!isAdmin && activeTab === 'pricing') {
+      setActiveTab('pending');
+    }
+  }, [activeTab, isAdmin]);
 
   const counts = useMemo(() => {
     const initialCounts = { pending: 0, approved: 0, rejected: 0, all: records.length };
@@ -252,15 +355,14 @@ export default function StaffVehicleRegistrationReview() {
 
     return records.filter((record) => {
       const matchesTab = activeTab === 'all' || getTabKey(record.status) === activeTab;
-      const matchesStatus = statusFilter === 'all' || record.status === statusFilter;
       const matchesKeyword = !keyword
         || [record.name, record.licensePlate, record.planName, record.vehicleType]
           .filter(Boolean)
           .some((value) => value.toLowerCase().includes(keyword));
 
-      return matchesTab && matchesStatus && matchesKeyword;
+      return matchesTab && matchesKeyword;
     });
-  }, [activeTab, records, searchTerm, statusFilter]);
+  }, [activeTab, records, searchTerm]);
 
   const selectedSummary = useMemo(() => {
     if (!filteredRecords.length) return null;
@@ -392,26 +494,34 @@ export default function StaffVehicleRegistrationReview() {
       <div className="flex shrink-0 items-center justify-between gap-3">
         {/* Tabs */}
         <div className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-100/80 p-1 shadow-sm">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setActiveTab(tab.key)}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold transition ${
-                activeTab === tab.key
-                  ? 'bg-white text-blue-700 shadow-sm ring-1 ring-blue-200'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              {tab.label}
-              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${activeTab === tab.key ? 'bg-blue-50 text-blue-600' : 'bg-slate-200 text-slate-600'}`}>
-                {counts[tab.key]}
-              </span>
-            </button>
-          ))}
+          {visibleTabs.map((tab) => {
+            const TabIcon = tab.Icon;
+            const showCount = !adminOnlyTabs.some((adminTab) => adminTab.key === tab.key);
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveTab(tab.key)}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold transition ${
+                  activeTab === tab.key
+                    ? 'bg-white text-blue-700 shadow-sm ring-1 ring-blue-200'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                {TabIcon ? <TabIcon size={14} /> : null}
+                {tab.label}
+                {showCount ? (
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${activeTab === tab.key ? 'bg-blue-50 text-blue-600' : 'bg-slate-200 text-slate-600'}`}>
+                    {counts[tab.key]}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
         </div>
 
         {/* Controls */}
+        {activeTab !== 'pricing' ? (
         <div className="flex items-center gap-2">
           <label className="flex h-10 min-w-[220px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-sm focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100">
             <Search size={15} className="shrink-0 text-slate-400" />
@@ -422,19 +532,6 @@ export default function StaffVehicleRegistrationReview() {
               className="w-full bg-transparent text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400"
             />
           </label>
-          <div className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-sm">
-            <Filter size={15} className="shrink-0 text-slate-400" />
-            <select
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
-              className="bg-transparent text-sm font-semibold text-slate-700 outline-none"
-            >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="PENDING">Chờ duyệt</option>
-              <option value="APPROVED">Đã duyệt</option>
-              <option value="REJECTED">Từ chối</option>
-            </select>
-          </div>
           <button
             type="button"
             onClick={fetchData}
@@ -444,17 +541,20 @@ export default function StaffVehicleRegistrationReview() {
             Làm mới
           </button>
         </div>
+        ) : null}
       </div>
 
       {/* ── MESSAGE ── */}
-      {message && (
+      {activeTab !== 'pricing' && message && (
         <div className="shrink-0 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-bold text-blue-800">
           {message}
         </div>
       )}
 
       {/* ── MAIN CONTENT ── */}
-      {loading ? (
+      {activeTab === 'pricing' ? (
+        <StaffVehicleRegistrationPricing />
+      ) : loading ? (
         <div className="flex flex-1 min-h-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-sm font-black text-slate-500 shadow-sm">
           Đang tải hồ sơ đăng ký...
         </div>
@@ -471,7 +571,7 @@ export default function StaffVehicleRegistrationReview() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-1 min-h-0 gap-4 overflow-hidden">
+        <div className="flex flex-1 min-h-0 flex-row-reverse gap-4 overflow-hidden">
 
           {/* ── LEFT: LIST ── */}
           <aside className="flex w-[300px] shrink-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -549,7 +649,9 @@ export default function StaffVehicleRegistrationReview() {
                   </div>
                 </div>
 
-                {/* USER INFO + VEHICLE INFO */}
+                <OcrQuickCheck eKyc={selectedRecord.eKyc} />
+
+                {/* DETAIL CARDS */}
                 <div className="grid gap-3 xl:grid-cols-2">
                   <SectionCard title="Thông tin người dùng" icon={UserRound}>
                     <div className="grid grid-cols-2 gap-2">
@@ -567,34 +669,30 @@ export default function StaffVehicleRegistrationReview() {
                       <InfoRow label="Hãng xe" value={selectedRecord.vehicleBrand} />
                     </div>
                   </SectionCard>
-                </div>
 
-                {/* PLAN INFO */}
-                <SectionCard title="Thông tin gói" icon={PackageCheck}>
-                  <div className="rounded-xl bg-gradient-to-br from-sky-50 to-emerald-50 p-4 ring-1 ring-sky-100">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <h3 className="font-black text-slate-950">{selectedRecord.planName}</h3>
-                        <p className="mt-0.5 text-xs font-medium text-slate-500">{selectedRecord.duration}</p>
+                  <SectionCard title="Thông tin gói" icon={PackageCheck}>
+                    <div className="rounded-xl bg-gradient-to-br from-sky-50 to-emerald-50 p-4 ring-1 ring-sky-100">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <h3 className="font-black text-slate-950">{selectedRecord.planName}</h3>
+                          <p className="mt-0.5 text-xs font-medium text-slate-500">{selectedRecord.duration}</p>
+                        </div>
+                        <div className="rounded-xl bg-white px-4 py-2 text-right shadow-sm ring-1 ring-slate-200">
+                          <p className="text-[10px] font-black uppercase text-slate-400">Giá</p>
+                          <p className="text-lg font-black text-slate-950">{formatCurrency(selectedRecord.price)}</p>
+                        </div>
                       </div>
-                      <div className="rounded-xl bg-white px-4 py-2 text-right shadow-sm ring-1 ring-slate-200">
-                        <p className="text-[10px] font-black uppercase text-slate-400">Giá</p>
-                        <p className="text-lg font-black text-slate-950">{formatCurrency(selectedRecord.price)}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {['Ra vào không giới hạn', 'Ưu tiên làn thẻ', 'Hỗ trợ khẩn cấp'].map((benefit) => (
+                          <span key={benefit} className="inline-flex items-center gap-1.5 rounded-lg bg-white/80 px-2.5 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100">
+                            <CheckCircle2 size={13} />
+                            {benefit}
+                          </span>
+                        ))}
                       </div>
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {['Ra vào không giới hạn', 'Ưu tiên làn thẻ', 'Hỗ trợ khẩn cấp'].map((benefit) => (
-                        <span key={benefit} className="inline-flex items-center gap-1.5 rounded-lg bg-white/80 px-2.5 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100">
-                          <CheckCircle2 size={13} />
-                          {benefit}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </SectionCard>
+                  </SectionCard>
 
-                {/* PAYMENT + DOCUMENTS */}
-                <div className="grid gap-3 xl:grid-cols-2">
                   <SectionCard title="Thanh toán" icon={CreditCard}>
                     <div className="mb-3">
                       {selectedRecord.paymentStatus === 'PAID' ? (
@@ -645,46 +743,6 @@ export default function StaffVehicleRegistrationReview() {
                       </div>
                     )}
                   </SectionCard>
-                </div>
-
-                {/* OCR + HISTORY */}
-                <div className="grid gap-3 xl:grid-cols-2">
-                  <SectionCard
-                    title="Kết quả OCR / eKYC"
-                    icon={ShieldCheck}
-                    action={
-                      selectedRecord.eKyc.confidence ? (
-                        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200">
-                          {Math.round(selectedRecord.eKyc.confidence)}%
-                        </span>
-                      ) : null
-                    }
-                  >
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        ['Họ tên khớp', selectedRecord.eKyc.fullNameMatch],
-                        ['CCCD hợp lệ', selectedRecord.eKyc.cccdValid],
-                        ['GPLX hợp lệ', selectedRecord.eKyc.licenseValid],
-                        ['Biển số hợp lệ', selectedRecord.eKyc.plateValid],
-                      ].map(([label, ok]) => (
-                        <div
-                          key={label}
-                          className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold ring-1 ${
-                            ok ? 'bg-emerald-50 text-emerald-700 ring-emerald-100' : 'bg-rose-50 text-rose-700 ring-rose-100'
-                          }`}
-                        >
-                          {ok ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
-                          {label}
-                        </div>
-                      ))}
-                    </div>
-                    {selectedRecord.eKyc.isFake === true && (
-                      <div className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 ring-1 ring-rose-100">
-                        Hệ thống phát hiện tài liệu giả mạo.
-                      </div>
-                    )}
-                  </SectionCard>
-
                   <SectionCard title="Lịch sử xử lý" icon={BadgeCheck}>
                     <div className="space-y-3">
                       {[
