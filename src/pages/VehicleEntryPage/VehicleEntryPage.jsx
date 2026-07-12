@@ -128,7 +128,7 @@ export default function VehicleEntryPage() {
         setNotice({ type: 'error', message: res.message || 'Không thể xử lý yêu cầu cho xe này.' });
       }
     }
-    catch (err) { setNotice({ type: 'error', message: err.response?.data?.message || err.response?.data?.error || 'Không thể kiểm tra biển số trong database.' }); }
+    catch (err) { setNotice({ type: 'error', message: err.response?.data?.message || err.response?.data?.error || 'Không thể kiểm tra biển số xe.' }); }
     finally { setLoading(false); }
   };
 
@@ -141,7 +141,7 @@ export default function VehicleEntryPage() {
         vehicleType: vehicleType || result.vehicleType,
       };
       setResult(await confirmParkingEntry(payload));
-      setNotice({ type: 'success', message: 'Đã tạo phiên gửi xe trong database' });
+      setNotice({ type: 'success', message: 'Đã xác nhận xe vào bãi' });
     }
     catch (err) { setNotice({ type: 'error', message: err.response?.data?.message || err.response?.data?.error || 'Không thể xác nhận xe vào.' }); }
     finally { setConfirming(false); }

@@ -16,7 +16,7 @@ import { apiDateTimeMillis, formatVietnamDateTime } from '../../utils/dateTime';
 const tabs = ['Đang hoạt động', 'Đã hoàn thành', 'Tất cả'];
 const vehicleTypes = ['Tất cả', 'Ô tô', 'Xe máy'];
 const customerTypes = ['Tất cả', 'Gói tháng', 'Vãng lai'];
-const statuses = ['Tất cả', 'Bình thường', 'Quá 24 giờ', 'Quá 7 ngày', 'Đã hoàn thành'];
+const warningFilters = ['Tất cả cảnh báo', 'Bình thường', 'Quá 24 giờ', 'Quá 7 ngày'];
 
 const statusClasses = {
   'Bình thường': 'border-emerald-200 bg-emerald-50 text-emerald-700',
@@ -128,10 +128,11 @@ export default function ParkingSessionsPage() {
   const [search, setSearch] = useState('');
   const [vehicleType, setVehicleType] = useState('Tất cả');
   const [customerType, setCustomerType] = useState('Tất cả');
-  const [status, setStatus] = useState('Tất cả');
+  const [selectedWarning, setSelectedWarning] = useState('Tất cả cảnh báo');
   const [date, setDate] = useState('');
   const [selectedSession, setSelectedSession] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     let active = true;
@@ -156,13 +157,25 @@ export default function ParkingSessionsPage() {
       || (activeTab === 'Đã hoàn thành' && completed);
     const matchesDate = !date || session.entryTime?.slice(0, 10) === date;
     const keyword = search.trim().toLowerCase();
+    const matchesWarning = selectedWarning === 'Tất cả cảnh báo' || session.status === selectedWarning;
     return matchesTab
       && (!keyword || session.plate.toLowerCase().includes(keyword) || session.id.toLowerCase().includes(keyword))
       && (vehicleType === 'Tất cả' || session.type === vehicleType)
       && (customerType === 'Tất cả' || session.customer === customerType)
-      && (status === 'Tất cả' || session.status === status)
+      && matchesWarning
       && matchesDate;
-  }), [activeTab, customerType, date, search, sessions, status, vehicleType]);
+  }), [activeTab, customerType, date, search, selectedWarning, sessions, vehicleType]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedWarning, customerType, vehicleType, date, activeTab]);
+
+  const PAGE_SIZE = 10;
+  const totalItems = filteredSessions.length;
+  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const endIndex = startIndex + PAGE_SIZE;
+  const paginatedSessions = filteredSessions.slice(startIndex, endIndex);
 
   const kpis = useMemo(() => {
     const activeSessions = sessions.filter((session) => session.status !== 'Đã hoàn thành');
@@ -228,7 +241,7 @@ export default function ParkingSessionsPage() {
             </label>
             <select value={vehicleType} onChange={(event) => setVehicleType(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100">{vehicleTypes.map((item) => <option key={item}>{item}</option>)}</select>
             <select value={customerType} onChange={(event) => setCustomerType(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100">{customerTypes.map((item) => <option key={item}>{item}</option>)}</select>
-            <select value={status} onChange={(event) => setStatus(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100">{statuses.map((item) => <option key={item}>{item}</option>)}</select>
+            <select value={selectedWarning} onChange={(event) => setSelectedWarning(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100">{warningFilters.map((item) => <option key={item}>{item}</option>)}</select>
             <input type="date" value={date} onChange={(event) => setDate(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100" />
           </div>
         </div>
@@ -247,7 +260,7 @@ export default function ParkingSessionsPage() {
           </div>
         </div>
 
-        <div className="max-h-[560px] overflow-auto">
+        <div className="overflow-x-auto">
           <table className="w-full min-w-[1060px] table-fixed text-left text-sm">
             <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50/95 text-[11px] font-black uppercase tracking-[0.12em] text-slate-500 backdrop-blur">
               <tr>
@@ -277,7 +290,7 @@ export default function ParkingSessionsPage() {
                   </td>
                 </tr>
               ) : null}
-              {!loading && filteredSessions.map((session) => (
+              {!loading && paginatedSessions.map((session) => (
                 <tr key={session.id} className="h-16 text-slate-600 transition-colors hover:bg-blue-50/40">
                   <td className="px-4 py-3">
                     <span className="inline-flex max-w-[130px] items-center gap-1.5 rounded-xl bg-blue-50 px-2.5 py-1 font-black text-slate-950">
@@ -322,6 +335,60 @@ export default function ParkingSessionsPage() {
             </tbody>
           </table>
         </div>
+
+        {filteredSessions.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-5 py-4">
+            <p className="text-sm text-slate-500">
+              Hiển thị{' '}
+              <span className="font-semibold text-slate-700">{startIndex + 1}–{Math.min(endIndex, totalItems)}</span>{' '}
+              trong tổng{' '}
+              <span className="font-semibold text-slate-700">{totalItems}</span> phiên
+            </p>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => p - 1)}
+                className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition-all hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Trước
+              </button>
+              {(totalPages <= 7
+                ? Array.from({ length: totalPages }, (_, i) => i + 1)
+                : currentPage <= 4
+                  ? [1, 2, 3, 4, 5, '…', totalPages]
+                  : currentPage >= totalPages - 3
+                    ? [1, '…', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
+                    : [1, '…', currentPage - 1, currentPage, currentPage + 1, '…', totalPages]
+              ).map((page, idx) =>
+                page === '…' ? (
+                  <span key={`ellipsis-${idx}`} className="flex h-9 w-9 items-center justify-center text-sm text-slate-400">…</span>
+                ) : (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => setCurrentPage(page)}
+                    className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border text-sm font-bold transition-all ${
+                      currentPage === page
+                        ? 'border-blue-500 bg-blue-600 text-white shadow-sm'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+              <button
+                type="button"
+                disabled={currentPage === totalPages || totalPages === 0}
+                onClick={() => setCurrentPage((p) => p + 1)}
+                className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition-all hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Sau
+              </button>
+            </div>
+          </div>
+        )}
       </section>
       <SessionDetailDrawer open={isDetailOpen} session={selectedSession} onClose={() => setIsDetailOpen(false)} />
     </div>
