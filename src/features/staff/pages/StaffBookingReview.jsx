@@ -216,12 +216,61 @@ function StatusBadge({ status }) {
   );
 }
 
-function SectionCard({ title, icon: Icon, children, action }) {
+const cardTones = {
+  sky: {
+    section: 'bg-gradient-to-br from-white via-sky-50/70 to-white ring-sky-100',
+    icon: 'bg-sky-100 text-sky-700 ring-sky-200',
+    accent: 'border-sky-300',
+  },
+  indigo: {
+    section: 'bg-gradient-to-br from-white via-indigo-50/70 to-white ring-indigo-100',
+    icon: 'bg-indigo-100 text-indigo-700 ring-indigo-200',
+    accent: 'border-indigo-300',
+  },
+  emerald: {
+    section: 'bg-gradient-to-br from-white via-emerald-50/70 to-white ring-emerald-100',
+    icon: 'bg-emerald-100 text-emerald-700 ring-emerald-200',
+    accent: 'border-emerald-300',
+  },
+  amber: {
+    section: 'bg-gradient-to-br from-white via-amber-50/70 to-white ring-amber-100',
+    icon: 'bg-amber-100 text-amber-700 ring-amber-200',
+    accent: 'border-amber-300',
+  },
+  violet: {
+    section: 'bg-gradient-to-br from-white via-violet-50/70 to-white ring-violet-100',
+    icon: 'bg-violet-100 text-violet-700 ring-violet-200',
+    accent: 'border-violet-300',
+  },
+  rose: {
+    section: 'bg-gradient-to-br from-white via-rose-50/70 to-white ring-rose-100',
+    icon: 'bg-rose-100 text-rose-700 ring-rose-200',
+    accent: 'border-rose-300',
+  },
+  slate: {
+    section: 'bg-gradient-to-br from-white via-slate-50 to-white ring-slate-200',
+    icon: 'bg-slate-100 text-slate-700 ring-slate-200',
+    accent: 'border-slate-300',
+  },
+};
+
+const infoTones = {
+  sky: 'bg-sky-50/80 ring-sky-100',
+  indigo: 'bg-indigo-50/80 ring-indigo-100',
+  emerald: 'bg-emerald-50/80 ring-emerald-100',
+  amber: 'bg-amber-50/80 ring-amber-100',
+  violet: 'bg-violet-50/80 ring-violet-100',
+  slate: 'bg-slate-50 ring-slate-100',
+};
+
+function SectionCard({ title, icon: Icon, children, action, tone = 'sky' }) {
+  const toneClasses = cardTones[tone] ?? cardTones.sky;
+
   return (
-    <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+    <section className={`overflow-hidden rounded-2xl border-l-4 p-5 shadow-sm ring-1 ${toneClasses.section} ${toneClasses.accent}`}>
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-sky-50 text-sky-600 ring-1 ring-sky-100">
+          <span className={`grid h-10 w-10 place-items-center rounded-xl ring-1 ${toneClasses.icon}`}>
             <Icon size={20} />
           </span>
           <h2 className="text-base font-black text-slate-950">{title}</h2>
@@ -233,9 +282,9 @@ function SectionCard({ title, icon: Icon, children, action }) {
   );
 }
 
-function InfoRow({ label, value }) {
+function InfoRow({ label, value, tone = 'slate' }) {
   return (
-    <div className="rounded-xl bg-slate-50 px-4 py-3">
+    <div className={`rounded-xl px-4 py-3 ring-1 ${infoTones[tone] ?? infoTones.slate}`}>
       <p className="text-xs font-black uppercase text-slate-400">{label}</p>
       <p className="mt-1 text-sm font-black text-slate-900">{value || 'Chưa có dữ liệu'}</p>
     </div>
@@ -380,20 +429,20 @@ export default function StaffBookingReview() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+    <div className="relative space-y-6 overflow-hidden rounded-[28px] bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.22),transparent_34%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.16),transparent_30%),linear-gradient(135deg,#f8fbff_0%,#eef7ff_48%,#f7fff9_100%)] p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] ring-1 ring-white/70 sm:p-6">
+      <div className="rounded-3xl border border-white/70 bg-white/80 p-5 shadow-sm backdrop-blur xl:flex xl:items-end xl:justify-between xl:gap-6">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.22em] text-sky-600">Package Review</p>
-          <h1 className="mt-2 text-3xl font-black text-slate-950">Quản lý đăng ký gói</h1>
+          <p className="inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-sky-700 ring-1 ring-sky-200">Package Review</p>
+          <h1 className="mt-3 text-3xl font-black text-slate-950">Quản lý đăng ký gói</h1>
           <p className="mt-2 max-w-3xl text-sm font-medium text-slate-500">
             Xét duyệt hồ sơ đăng ký gói gửi xe định kỳ, kiểm tra giấy tờ và kích hoạt gói dịch vụ.
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 lg:flex-row">
+        <div className="mt-5 flex flex-col gap-3 lg:flex-row xl:mt-0">
           {activeTab !== 'pricing' && (
             <>
-          <label className="flex h-12 min-w-[280px] items-center gap-3 rounded-2xl bg-white px-4 shadow-sm ring-1 ring-slate-200 focus-within:ring-2 focus-within:ring-sky-200">
+          <label className="flex h-12 min-w-[280px] items-center gap-3 rounded-2xl bg-white px-4 shadow-sm ring-1 ring-sky-100 focus-within:ring-2 focus-within:ring-sky-300">
             <Search size={18} className="text-slate-400" />
             <input
               value={searchTerm}
@@ -403,7 +452,7 @@ export default function StaffBookingReview() {
             />
           </label>
 
-          <label className="flex h-12 items-center gap-3 rounded-2xl bg-white px-4 shadow-sm ring-1 ring-slate-200">
+          <label className="flex h-12 items-center gap-3 rounded-2xl bg-white px-4 shadow-sm ring-1 ring-indigo-100">
             <Filter size={18} className="text-slate-500" />
             <select
               value={statusFilter}
@@ -420,7 +469,7 @@ export default function StaffBookingReview() {
           <button
             type="button"
             onClick={fetchData}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-black text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-black text-slate-700 shadow-sm ring-1 ring-amber-100 transition hover:bg-amber-50"
           >
             <RefreshCcw size={18} />
             Làm mới
@@ -443,7 +492,7 @@ export default function StaffBookingReview() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200">
+      <div className="flex flex-wrap gap-2 rounded-2xl bg-white/85 p-2 shadow-sm ring-1 ring-white/80 backdrop-blur">
         {tabs.map((tab) => {
           const TabIcon = tab.Icon;
           return (
@@ -453,14 +502,14 @@ export default function StaffBookingReview() {
               onClick={() => setActiveTab(tab.key)}
               className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-black transition ${
                 activeTab === tab.key
-                  ? 'bg-[#DBEAFE] text-[#1D4ED8] shadow-[0_4px_12px_rgba(37,99,235,0.12)] ring-1 ring-[#93C5FD]'
-                  : 'text-slate-600 hover:bg-[#EFF6FF] hover:text-slate-950'
+                  ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-[0_8px_20px_rgba(37,99,235,0.22)] ring-1 ring-sky-300'
+                  : 'text-slate-600 hover:bg-sky-50 hover:text-slate-950'
               }`}
             >
               {TabIcon ? <TabIcon size={15} /> : null}
               {tab.label}
               {!tab.hideCount && (
-                <span className={activeTab === tab.key ? 'rounded-full bg-white px-2 py-0.5 text-xs' : 'rounded-full bg-slate-100 px-2 py-0.5 text-xs'}>
+                <span className={activeTab === tab.key ? 'rounded-full bg-white px-2 py-0.5 text-xs text-sky-700' : 'rounded-full bg-slate-100 px-2 py-0.5 text-xs'}>
                   {counts[tab.key]}
                 </span>
               )}
@@ -484,15 +533,15 @@ export default function StaffBookingReview() {
       ) : filteredRecords.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,35%)]">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(340px,31%)]">
           <aside className="space-y-3 xl:order-2">
-            <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+            <div className="rounded-2xl bg-gradient-to-br from-slate-950 to-sky-900 p-4 text-white shadow-[0_18px_40px_rgba(15,23,42,0.16)] ring-1 ring-sky-200/30">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-black text-slate-950">Danh sách hồ sơ</h2>
-                  <p className="mt-1 text-xs font-semibold text-slate-500">{filteredRecords.length} hồ sơ phù hợp</p>
+                  <h2 className="text-base font-black text-white">Danh sách hồ sơ</h2>
+                  <p className="mt-1 text-xs font-semibold text-sky-100">{filteredRecords.length} hồ sơ phù hợp</p>
                 </div>
-                <PackageCheck className="text-sky-600" size={22} />
+                <PackageCheck className="text-sky-200" size={22} />
               </div>
             </div>
 
@@ -506,14 +555,16 @@ export default function StaffBookingReview() {
                     key={recordKey}
                     type="button"
                     onClick={() => setSelectedKey(recordKey)}
-                    className={`w-full rounded-2xl bg-white p-4 text-left shadow-sm ring-1 transition ${
+                    className={`w-full rounded-2xl p-4 text-left shadow-sm ring-1 transition ${
                       isSelected
-                        ? 'ring-2 ring-sky-300 shadow-[0_14px_36px_rgba(14,165,233,0.14)]'
-                        : 'ring-slate-200 hover:ring-sky-200'
+                        ? 'bg-sky-50 ring-2 ring-sky-300 shadow-[0_14px_36px_rgba(14,165,233,0.16)]'
+                        : 'bg-white/90 ring-white/80 hover:bg-white hover:ring-sky-200'
                     }`}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-slate-900 text-base font-black text-white">
+                      <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-base font-black text-white shadow-sm ${
+                        isSelected ? 'bg-sky-600' : 'bg-slate-900'
+                      }`}>
                         {record.avatarInitial}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -537,12 +588,12 @@ export default function StaffBookingReview() {
           </aside>
 
           <section className="min-w-0 space-y-5 pb-28 xl:order-1">
-            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+            <div className="overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-sky-900 to-emerald-800 p-5 text-white shadow-[0_22px_50px_rgba(15,23,42,0.18)] ring-1 ring-white/30">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
-                  <p className="text-sm font-black uppercase tracking-[0.18em] text-slate-400">Chi tiết đăng ký</p>
-                  <h2 className="mt-2 text-2xl font-black text-slate-950">{selectedRecord.name}</h2>
-                  <p className="mt-1 text-sm font-semibold text-slate-500">
+                  <p className="text-sm font-black uppercase tracking-[0.18em] text-sky-100">Chi tiết đăng ký</p>
+                  <h2 className="mt-2 text-2xl font-black text-white">{selectedRecord.name}</h2>
+                  <p className="mt-1 text-sm font-semibold text-sky-100">
                     Hồ sơ #{selectedRecord.id} · {selectedRecord.licensePlate}
                   </p>
                 </div>
@@ -551,26 +602,26 @@ export default function StaffBookingReview() {
             </div>
 
             <div className="grid gap-5 2xl:grid-cols-2">
-              <SectionCard title="Thông tin người dùng" icon={UserRound}>
+              <SectionCard title="Thông tin người dùng" icon={UserRound} tone="sky">
                 <div className="grid gap-3 md:grid-cols-2">
-                  <InfoRow label="Họ tên" value={selectedRecord.name} />
-                  <InfoRow label="Email" value={selectedRecord.email} />
-                  <InfoRow label="Số điện thoại" value={selectedRecord.phone} />
-                  <InfoRow label="Ngày đăng ký" value={formatDateTime(selectedRecord.createdAt)} />
+                  <InfoRow label="Họ tên" value={selectedRecord.name} tone="sky" />
+                  <InfoRow label="Email" value={selectedRecord.email} tone="sky" />
+                  <InfoRow label="Số điện thoại" value={selectedRecord.phone} tone="sky" />
+                  <InfoRow label="Ngày đăng ký" value={formatDateTime(selectedRecord.createdAt)} tone="sky" />
                 </div>
               </SectionCard>
 
-              <SectionCard title="Thông tin xe" icon={CarFront}>
+              <SectionCard title="Thông tin xe" icon={CarFront} tone="indigo">
                 <div className="grid gap-3 md:grid-cols-2">
-                  <InfoRow label="Loại xe" value={selectedRecord.vehicleType} />
-                  <InfoRow label="Biển số" value={selectedRecord.licensePlate} />
-                  <InfoRow label="Màu xe" value={selectedRecord.vehicleColor} />
-                  <InfoRow label="Hãng xe" value={selectedRecord.vehicleBrand} />
+                  <InfoRow label="Loại xe" value={selectedRecord.vehicleType} tone="indigo" />
+                  <InfoRow label="Biển số" value={selectedRecord.licensePlate} tone="indigo" />
+                  <InfoRow label="Màu xe" value={selectedRecord.vehicleColor} tone="indigo" />
+                  <InfoRow label="Hãng xe" value={selectedRecord.vehicleBrand} tone="indigo" />
                 </div>
               </SectionCard>
             </div>
 
-            <SectionCard title="Thông tin gói" icon={PackageCheck}>
+            <SectionCard title="Thông tin gói" icon={PackageCheck} tone="emerald">
               <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-emerald-50 p-5 ring-1 ring-sky-100">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
@@ -594,7 +645,7 @@ export default function StaffBookingReview() {
             </SectionCard>
 
             <div className="grid gap-5 2xl:grid-cols-2">
-              <SectionCard title="Thông tin thanh toán" icon={CreditCard}>
+              <SectionCard title="Thông tin thanh toán" icon={CreditCard} tone="amber">
                 <div className="mb-4">
                   {selectedRecord.paymentStatus === 'PAID' ? (
                     <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700 ring-1 ring-emerald-200">
@@ -611,13 +662,13 @@ export default function StaffBookingReview() {
                   )}
                 </div>
                 <div className="grid gap-3">
-                  <InfoRow label="Mã giao dịch" value={selectedRecord.transactionId} />
-                  <InfoRow label="Thời gian thanh toán" value={formatDateTime(selectedRecord.paymentTime)} />
-                  <InfoRow label="Phương thức thanh toán" value={selectedRecord.paymentMethod} />
+                  <InfoRow label="Mã giao dịch" value={selectedRecord.transactionId} tone="amber" />
+                  <InfoRow label="Thời gian thanh toán" value={formatDateTime(selectedRecord.paymentTime)} tone="amber" />
+                  <InfoRow label="Phương thức thanh toán" value={selectedRecord.paymentMethod} tone="amber" />
                 </div>
               </SectionCard>
 
-              <SectionCard title="Hồ sơ xác thực" icon={FileImage}>
+              <SectionCard title="Hồ sơ xác thực" icon={FileImage} tone="violet">
                 {selectedRecord.documents.length ? (
                   <div className="grid gap-3 sm:grid-cols-2">
                     {selectedRecord.documents.map((document) => (
@@ -650,6 +701,7 @@ export default function StaffBookingReview() {
               <SectionCard
                 title="Kết quả OCR / eKYC"
                 icon={ShieldCheck}
+                tone="rose"
                 action={
                   selectedRecord.eKyc.confidence ? (
                     <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700 ring-1 ring-emerald-200">
@@ -685,7 +737,7 @@ export default function StaffBookingReview() {
                 )}
               </SectionCard>
 
-              <SectionCard title="Lịch sử xử lý" icon={BadgeCheck}>
+              <SectionCard title="Lịch sử xử lý" icon={BadgeCheck} tone="slate">
                 <div className="space-y-4">
                   {[
                     { time: selectedRecord.createdAt, label: 'Người dùng gửi hồ sơ', icon: Mail },
