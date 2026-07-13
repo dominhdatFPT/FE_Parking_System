@@ -476,19 +476,6 @@ export default function StaffBookingReview() {
           </button>
             </>
           )}
-
-          <button
-            type="button"
-            onClick={() => setActiveTab(activeTab === 'pricing' ? 'pending' : 'pricing')}
-            className={`inline-flex h-12 items-center justify-center gap-2 rounded-2xl px-5 text-sm font-black shadow-sm ring-1 transition ${
-              activeTab === 'pricing'
-                ? 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50'
-                : 'bg-sky-600 text-white ring-sky-500 hover:bg-sky-700'
-            }`}
-          >
-            <DollarSign size={18} />
-            {activeTab === 'pricing' ? 'Xem hồ sơ' : 'Cài đặt giá'}
-          </button>
         </div>
       </div>
 
