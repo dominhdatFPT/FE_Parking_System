@@ -60,9 +60,9 @@ const checkoutTranslations = {
       placeholder: 'VD: PMJ4K8Z2',
       checking: 'Đang kiểm tra...',
       check: 'Kiểm tra',
-      help: 'Mã phiên gồm 6-8 ký tự, in trên vé giấy hoặc thẻ từ.',
+      help: 'Nhập đầy đủ mã phiên in trên vé giấy hoặc thẻ từ.',
       required: 'Vui lòng nhập mã phiên gửi xe',
-      invalid: 'Mã phiên không hợp lệ. Vui lòng nhập 6-8 ký tự trên vé hoặc thẻ từ.',
+      invalid: 'Mã phiên không hợp lệ. Vui lòng chỉ nhập chữ và số trên vé hoặc thẻ từ.',
       notFound: 'Không tìm thấy mã phiên. Vui lòng kiểm tra lại.',
       statusPaid: 'Đã thanh toán',
       statusParking: 'Đang gửi',
@@ -73,6 +73,7 @@ const checkoutTranslations = {
       payNow: 'Thanh toán ngay',
       paying: 'Đang thanh toán...',
       paidMessage: (amount) => `Bạn đã thanh toán ${amount}. Khi ra cổng, vui lòng trả lại thẻ cho nhân viên.`,
+      paidConfirm: 'Xác nhận',
       ssl: 'Giao dịch được bảo mật SSL',
       createPaymentError: 'Không tạo được phiên thanh toán',
       paymentFailed: 'Thanh toán không thành công',
@@ -113,9 +114,9 @@ const checkoutTranslations = {
       placeholder: 'E.g. PMJ4K8Z2',
       checking: 'Checking...',
       check: 'Check',
-      help: 'Session codes are 6-8 characters and are printed on the paper ticket or parking card.',
+      help: 'Enter the full session code printed on the paper ticket or parking card.',
       required: 'Please enter a parking session code',
-      invalid: 'Invalid session code. Please enter 6-8 characters from the ticket or parking card.',
+      invalid: 'Invalid session code. Please enter only letters and numbers from the ticket or parking card.',
       notFound: 'Session code was not found. Please check again.',
       statusPaid: 'Paid',
       statusParking: 'In parking',
@@ -126,6 +127,7 @@ const checkoutTranslations = {
       payNow: 'Pay now',
       paying: 'Processing payment...',
       paidMessage: (amount) => `You have paid ${amount}. Please return the card to staff when exiting.`,
+      paidConfirm: 'Confirm',
       ssl: 'Transaction secured with SSL',
       createPaymentError: 'Could not create payment session',
       paymentFailed: 'Payment was not successful',
@@ -374,6 +376,7 @@ function LookupCard({
   onLookup,
   onCreatePayment,
   onPaid,
+  onPaidConfirm,
   onError,
   t,
 }) {
@@ -496,9 +499,19 @@ function LookupCard({
           )}
 
           {isPaid && (
-            <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">
-              {t.lookup.paidMessage(formatMoney(checkout.paidAmount || checkout.amount))}
-            </p>
+            <div className="mt-4 space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3">
+              <p className="text-sm font-semibold text-emerald-800">
+                {t.lookup.paidMessage(formatMoney(checkout.paidAmount || checkout.amount))}
+              </p>
+              <button
+                type="button"
+                onClick={onPaidConfirm}
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 text-sm font-bold !text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100 [&_*]:!text-white"
+              >
+                <BadgeCheck className="h-4 w-4" />
+                {t.lookup.paidConfirm}
+              </button>
+            </div>
           )}
         </div>
       )}
@@ -563,7 +576,7 @@ export default function VisitorCheckoutPage() {
       return;
     }
 
-    if (!/^[A-Z0-9]{6,8}$/.test(normalizedCode)) {
+    if (!/^[A-Z0-9]{1,64}$/.test(normalizedCode)) {
       setCheckout(null);
       setError(t.lookup.invalid);
       return;
@@ -599,6 +612,13 @@ export default function VisitorCheckoutPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePaidConfirm = () => {
+    setCheckout(null);
+    setOrderCode('');
+    setClientReady(false);
+    setError('');
   };
 
   return (
@@ -658,6 +678,7 @@ export default function VisitorCheckoutPage() {
             onLookup={handleLookup}
             onCreatePayment={handleCreatePayment}
             onPaid={setCheckout}
+            onPaidConfirm={handlePaidConfirm}
             onError={setError}
             t={t}
           />
