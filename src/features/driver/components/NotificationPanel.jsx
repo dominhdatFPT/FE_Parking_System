@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { customerService } from '../../../services/customerService';
 import { ROUTES } from '../../../constants/routes';
 import { apiDateTimeMillis } from '../../../utils/dateTime';
+import { translateNotificationText } from '../../../utils/notificationText';
 
 const typeIcon = { info: 'info', success: 'check_circle', warning: 'warning', error: 'error' };
 const typeColor = {
@@ -26,7 +27,7 @@ function timeAgo(dateStr, t) {
 
 export default function NotificationPanel() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -78,10 +79,14 @@ export default function NotificationPanel() {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                  <p className={`text-xs font-semibold ${n.read ? 'text-slate-500' : 'text-slate-700'}`}>{n.title}</p>
+                  <p className={`text-xs font-semibold ${n.read ? 'text-slate-500' : 'text-slate-700'}`}>
+                    {translateNotificationText(n.title, i18n.language)}
+                  </p>
                   {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />}
                 </div>
-                <p className="mt-0.5 text-[11px] leading-relaxed text-slate-400 line-clamp-2">{n.message}</p>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-slate-400 line-clamp-2">
+                  {translateNotificationText(n.message, i18n.language)}
+                </p>
               </div>
               <span className="shrink-0 text-[10px] text-slate-400">{timeAgo(n.time, t)}</span>
             </div>

@@ -8,6 +8,7 @@ import dayjs from 'dayjs';
 import PageHeader from '../../components/PageHeader';
 
 const VEHICLE_TYPE_ID = { MOTORBIKE: 1, CAR: 2 };
+
 const VEHICLE_TYPE_IMAGE = {
   MOTORBIKE: '/vehicle-rear-motorbike.png',
   CAR: '/vehicle-rear-car.png',
@@ -172,17 +173,17 @@ export default function DriverFeePlans() {
         autoRenew: false,
       });
       const result = res.data?.data ?? res.data;
-      // Lưu thông tin đơn VNPay để hiển thị nút "Thanh toán ngay" trên trang Payment
+      // Lưu thông tin Stripe để hiển thị form thanh toán trên trang Payment
       localStorage.setItem('pending_fee_plan_request', JSON.stringify({
         subscriptionId: result.subscriptionId,
         invoiceId: result.invoiceId,
-        vnpTxnRef: result.vnpTxnRef,
-        paymentUrl: result.paymentUrl,        // Link redirect sang VNPay
-        expiredAt: result.expiredAt,
+        paymentIntentId: result.paymentIntentId,
+        clientSecret: result.clientSecret,
+        currency: result.currency,
         licensePlate: selectedVehicle.licensePlate,
         planName: selectedPackage?.name,
         durationMonths: selectedPackage?.durationMonths,
-        amount: selectedPackage?.price ?? selectedPackage?.currentPrice ?? 0,
+        amount: result.amount ?? selectedPackage?.price ?? selectedPackage?.currentPrice ?? 0,
       }));
       navigate(ROUTES.DRIVER.PAYMENT);
     } catch (err) {
@@ -235,12 +236,12 @@ export default function DriverFeePlans() {
   const submitErrorText = !selectedPlanId
     ? t('feePlans.errorSelectPlan')
     : !selectedVehicle
-    ? 'Vui lòng chọn biển số xe từ danh sách'
+    ? t('feePlans.errorSelectRegisteredVehicle')
     : '';
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('feePlans.title')} subtitle={t('feePlans.subtitle')} />
+      <PageHeader title={t('feePlans.title')} subtitle={t('feePlans.subtitle')} icon="sell" variant="banner" />
 
       {errorMessage && !submittedSuccess && (
         <div className="rounded-2xl bg-red-50 border border-red-200 p-4 flex items-start gap-3">
@@ -305,9 +306,6 @@ export default function DriverFeePlans() {
                     onClick={() => { setVehicleType('MOTORBIKE'); }}
                     className={`relative flex items-center gap-3 rounded-2xl border-2 p-4 text-left transition-all duration-300 ${vehicleType === 'MOTORBIKE' ? 'border-blue-600 bg-blue-50/20 text-blue-700 shadow-sm' : 'border-slate-100 hover:border-slate-200 text-slate-600 bg-white'}`}
                   >
-                    <span className="flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
-                      <img src={VEHICLE_TYPE_IMAGE.MOTORBIKE} alt="" className="h-full w-full object-cover" />
-                    </span>
                     <div className="flex-1">
                       <p className="text-xs font-black">{t('vehicleRegistration.motorbike')}</p>
                       <p className="text-[10px] text-slate-400 mt-0.5">{t('feePlans.step1DescMotorbike')}</p>
@@ -319,9 +317,6 @@ export default function DriverFeePlans() {
                     onClick={() => { setVehicleType('CAR'); }}
                     className={`relative flex items-center gap-3 rounded-2xl border-2 p-4 text-left transition-all duration-300 ${vehicleType === 'CAR' ? 'border-blue-600 bg-blue-50/20 text-blue-700 shadow-sm' : 'border-slate-100 hover:border-slate-200 text-slate-600 bg-white'}`}
                   >
-                    <span className="flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
-                      <img src={VEHICLE_TYPE_IMAGE.CAR} alt="" className="h-full w-full object-cover" />
-                    </span>
                     <div className="flex-1">
                       <p className="text-xs font-black">{t('vehicleRegistration.car')}</p>
                       <p className="text-[10px] text-slate-400 mt-0.5">{t('feePlans.step1DescCar')}</p>
@@ -342,21 +337,21 @@ export default function DriverFeePlans() {
                         value={licensePlate}
                         onChange={(e) => setLicensePlate(e.target.value)}
                         placeholder={t('feePlans.platePlaceholder')}
-                        className="w-full px-3 pr-14 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl focus:outline-none"
+                        className="w-full px-3 pr-16 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl focus:outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => setShowSuggestions(!showSuggestions)}
                         className="absolute right-3 text-[10px] font-black uppercase tracking-wide text-slate-400 hover:text-slate-600 focus:outline-none"
                       >
-                        {showSuggestions ? 'Đóng' : 'Mở'}
+                        {showSuggestions ? t('common.close') : t('common.open')}
                       </button>
                     </div>
 
                     {showSuggestions && (
                       <div className="absolute left-0 right-0 top-[52px] z-30 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 overflow-hidden divide-y divide-slate-100 max-h-40 overflow-y-auto">
                         {loadingVehicles ? (
-                          <div className="px-4 py-3 text-xs text-slate-400 italic text-center">Đang tải...</div>
+                          <div className="px-4 py-3 text-xs text-slate-400 italic text-center">{t('common.loading')}</div>
                         ) : vehicles.length > 0 ? (
                           vehicles.map((v) => (
                             <button
@@ -394,7 +389,7 @@ export default function DriverFeePlans() {
                     ))
                   ) : feePackages.length === 0 ? (
                     <div className="col-span-full text-center py-8 text-xs text-slate-400 italic">
-                      Không có gói cước nào cho loại xe này
+                      {t('feePlans.noPackagesForVehicleType')}
                     </div>
                   ) : (
                     feePackages.map((pkg) => {
@@ -446,7 +441,7 @@ export default function DriverFeePlans() {
                               <ul className="mt-4 space-y-1.5">
                                 {benefitsList.map((benefit, idx) => (
                                   <li key={idx} className="flex items-start gap-1.5 text-[10px] text-slate-500 font-semibold leading-relaxed">
-                                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                                    <span className="material-symbols-outlined text-[13px] text-emerald-500 font-bold shrink-0 mt-0.5">check_circle</span>
                                     <span>{BENEFIT_KEYS[benefit] ? t(BENEFIT_KEYS[benefit]) : benefit}</span>
                                   </li>
                                 ))}
@@ -488,7 +483,7 @@ export default function DriverFeePlans() {
                     disabled={!canSubmit || submitting}
                     className={`px-6 py-3 font-bold text-sm rounded-xl flex items-center justify-center transition-all duration-300 w-full sm:w-auto ${canSubmit && !submitting ? 'bg-[#0EA5E9] hover:bg-[#0284c7] !text-white text-white shadow-md shadow-sky-500/20 active:scale-95' : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'}`}
                   >
-                    <span className="!text-white text-white">{submitting ? 'Đang xử lý...' : t('feePlans.addToPayment')}</span>
+                    <span className="!text-white text-white">{submitting ? t('common.processing') : t('feePlans.addToPayment')}</span>
                   </button>
                 </div>
               </div>

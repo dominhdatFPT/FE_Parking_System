@@ -7,6 +7,7 @@ import DriverLayout from '../layouts/DriverLayout';
 import LoginPage from '../features/auth/pages/LoginPage';
 import HomePage from '../pages/HomePage';
 import WelcomePage from '../features/auth/pages/WelcomePage';
+import VisitorCheckoutPage from '../features/auth/pages/VisitorCheckoutPage';
 import SignupPage from '../features/auth/pages/SignupPage';
 import DriverDashboard from '../features/driver/pages/DriverDashboard';
 import DriverPayment from '../features/driver/pages/DriverPayment';
@@ -30,7 +31,6 @@ import StaffSessions from '../features/staff/pages/StaffSessions';
 import StaffExceptions from '../features/staff/pages/StaffExceptions';
 import VehicleEntryPage from '../pages/VehicleEntryPage';
 import ParkingSessionsPage from '../pages/ParkingSessionsPage';
-import SubscriptionResultPage from '../pages/SubscriptionResultPage';
 
 function AuthLoadingScreen() {
   return (
@@ -81,6 +81,8 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path={ROUTES.HOME} element={<WelcomePage />} />
+      <Route path={ROUTES.WELCOME} element={<WelcomePage />} />
+      <Route path={ROUTES.VISITOR_CHECKOUT} element={<VisitorCheckoutPage />} />
       <Route path={ROUTES.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.ADMIN_LOGIN} element={<Navigate to={ROUTES.LOGIN} replace />} />
       <Route path={ROUTES.SIGNUP} element={<SignupPage />} />
@@ -131,7 +133,6 @@ export function AppRoutes() {
         }
       />
 
-      <Route path={ROUTES.SUBSCRIPTION.RESULT} element={<SubscriptionResultPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

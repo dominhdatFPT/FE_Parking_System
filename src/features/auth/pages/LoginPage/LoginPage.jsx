@@ -144,52 +144,23 @@ const loginTranslations = {
   },
 };
 
-const getInitialLanguage = () => {
-  if (typeof window === 'undefined') return 'vi';
-  const savedLanguage = window.localStorage.getItem(LOGIN_LANGUAGE_KEY) || 'vi';
-  return savedLanguage.startsWith('en') ? 'en' : 'vi';
-};
-
 const getLoginText = (language, key) => {
   const dictionary = loginTranslations[language] || loginTranslations.vi;
   return key.split('.').reduce((value, part) => value?.[part], dictionary) ?? key;
 };
 
-if (!i18n.isInitialized) {
-  i18n.use(initReactI18next).init({
-    resources: {
-      vi: { translation: loginTranslations.vi },
-      en: { translation: loginTranslations.en },
-    },
-    lng: getInitialLanguage(),
-    fallbackLng: 'vi',
-    interpolation: { escapeValue: false },
-  });
-} else {
-  i18n.addResourceBundle('vi', 'translation', loginTranslations.vi, true, true);
-  i18n.addResourceBundle('en', 'translation', loginTranslations.en, true, true);
-}
-
 function getDashboardPath(role) {
   const normalizedRole = role?.toLowerCase();
 
-  if (normalizedRole === 'admin' || normalizedRole === 'staff') {
+  if (normalizedRole === 'admin') {
     return ROUTES.ADMIN.DASHBOARD;
+  }
+
+  if (normalizedRole === 'staff') {
+    return ROUTES.STAFF.DASHBOARD;
   }
 
   return '/driver-dashboard';
-}
-
-function getPostLoginPath(role) {
-  const redirectPath = sessionStorage.getItem('redirect_after_login');
-  sessionStorage.removeItem('redirect_after_login');
-
-  const normalizedRole = role?.toLowerCase();
-  if ((normalizedRole === 'admin' || normalizedRole === 'staff') && redirectPath === ROUTES.STAFF.DASHBOARD) {
-    return ROUTES.ADMIN.DASHBOARD;
-  }
-
-  return redirectPath || getDashboardPath(role);
 }
 
 function BrandLogo({ compact = false }) {
@@ -444,7 +415,7 @@ export default function LoginPage() {
     }
 
     try {
-      const response = await login(email, password, rememberMe);
+      const response = await login(email, password);
 
       if (!response?.token) {
         throw new Error(t('errors.missingToken'));
@@ -463,25 +434,27 @@ export default function LoginPage() {
       sessionStorage.setItem(STORAGE_KEYS.SHOW_SYSTEM_RULES_AFTER_LOGIN, 'true');
       setUser(authenticatedUser);
       sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authenticatedUser));
-      sessionStorage.setItem('smart-parking-user', JSON.stringify(authenticatedUser));
       localStorage.setItem('userRole', authenticatedUser.role || 'driver');
 
       if (rememberMe) {
         localStorage.setItem('rememberMe', 'true');
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
         localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authenticatedUser));
-        localStorage.setItem('smart-parking-user', JSON.stringify(authenticatedUser));
       } else {
         localStorage.removeItem('rememberMe');
         localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USER);
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('smart-parking-user');
       }
 
-      navigate(getPostLoginPath(authenticatedUser.role), { replace: true });
+      const redirectPath = sessionStorage.getItem('redirect_after_login');
+      if (redirectPath) {
+        sessionStorage.removeItem('redirect_after_login');
+        navigate(redirectPath);
+      } else {
+        navigate(getDashboardPath(authenticatedUser.role));
+      }
     } catch (err) {
-      const serverMessage = err.response?.data?.message;
-      setError(serverMessage || t('errors.loginFailed'));
+      setError(t('errors.loginFailed'));
       console.error('Login error:', err);
     } finally {
       setLoading(false);
@@ -510,20 +483,21 @@ export default function LoginPage() {
 
         sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
         sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(nextUser));
-        sessionStorage.setItem('smart-parking-user', JSON.stringify(nextUser));
         localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USER);
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('smart-parking-user');
-        localStorage.removeItem('rememberMe');
         localStorage.setItem('userRole', response.role || 'driver');
         sessionStorage.setItem(STORAGE_KEYS.SHOW_SYSTEM_RULES_AFTER_LOGIN, 'true');
         setUser(nextUser);
-        navigate(getPostLoginPath(response.role), { replace: true });
+        const redirectPath = sessionStorage.getItem('redirect_after_login');
+        if (redirectPath) {
+          sessionStorage.removeItem('redirect_after_login');
+          navigate(redirectPath);
+        } else {
+          navigate(getDashboardPath(response.role));
+        }
       }
     } catch (err) {
-      const serverMessage = err.response?.data?.message;
-      setError(serverMessage || t('errors.googleFailed'));
+      setError(t('errors.googleFailed'));
       console.error('Google login error:', err);
     } finally {
       setGoogleLoading(false);

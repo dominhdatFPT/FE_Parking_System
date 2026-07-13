@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Navigate, useNavigate } from 'react-router';
+import { Navigate, useLocation, useNavigate } from 'react-router';
 import i18n from 'i18next';
 import {
   Car, Zap, MapPin, CreditCard, Globe, ScanLine, CalendarDays,
@@ -34,7 +34,7 @@ function getDashboardPath(role) {
 // --- DICTIONARY (i18n) ---
 const translations = {
   vi: {
-    nav: { home: "Trang chủ", dashboard: "Bảng điều khiển", notice: "Thông báo", explore: "Khám phá", login: "Đăng nhập", signup: "Đăng ký" },
+    nav: { home: "Trang chủ", dashboard: "Bảng điều khiển", notice: "Thông báo", explore: "Khám phá", checkout: "Thanh toán", login: "Đăng nhập", signup: "Đăng ký" },
     hero: { title1: "Quản lý bãi đỗ xe", title2: "tòa nhà thông minh", desc: "Nền tảng Smart Parking dành cho chung cư, văn phòng và trung tâm thương mại với đặt chỗ trước, nhận diện biển số LPR và theo dõi trạng thái thời gian thực.", f1: "Đặt chỗ trước", f2: "Nhận diện biển số LPR", f3: "Theo dõi thời gian thực" },
     kpi: { 
       c1: { title: "Tổng số Slot", unit: "chỗ" }, 
@@ -156,7 +156,7 @@ const translations = {
     }
   },
   en: {
-    nav: { home: "Home", dashboard: "Dashboard", notice: "Notices", explore: "Explore", login: "Login", signup: "Sign Up" },
+    nav: { home: "Home", dashboard: "Dashboard", notice: "Notices", explore: "Explore", checkout: "Checkout", login: "Login", signup: "Sign Up" },
     hero: { title1: "Smart Building", title2: "Parking Management", desc: "Smart Parking platform for apartments, offices and commercial centers with pre-booking, LPR system, and real-time tracking.", f1: "Pre-booking", f2: "LPR System", f3: "Real-time Tracking" },
     kpi: { 
       c1: { title: "Total Slots", unit: "slots" }, 
@@ -429,14 +429,15 @@ const Navbar = ({ lang, setLang, t }) => {
 
   const getNavLinkClass = (sectionId) => {
     const isActive = activeSection === sectionId;
+    const baseClass = 'inline-flex h-11 items-center justify-center whitespace-nowrap rounded-xl px-3 text-sm font-bold leading-none transition-all duration-300 xl:px-4';
     if (isActive) {
       return isScrolled
-        ? 'px-4 py-2 text-sm font-semibold rounded-lg text-sky-700 bg-sky-50 transition-all duration-300'
-        : 'px-4 py-2 text-sm font-semibold rounded-lg text-sky-400 bg-white/10 transition-all duration-300';
+        ? `${baseClass} text-sky-700 bg-sky-50`
+        : `${baseClass} text-sky-300 bg-white/10`;
     }
     return isScrolled
-      ? 'px-4 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-sky-600 hover:bg-slate-50 transition-all duration-300'
-      : 'px-4 py-2 text-sm font-semibold rounded-lg text-white hover:text-sky-300 hover:bg-white/5 transition-all duration-300';
+      ? `${baseClass} text-slate-700 hover:text-sky-700 hover:bg-slate-50`
+      : `${baseClass} text-white hover:text-sky-300 hover:bg-white/5`;
   };
 
   return (
@@ -447,13 +448,13 @@ const Navbar = ({ lang, setLang, t }) => {
           : 'bg-transparent border-b border-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-8">
-          <div className="cursor-pointer" onClick={reloadPage}>
+      <div className="mx-auto flex h-20 max-w-[1500px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <div className="flex min-w-0 items-center gap-5 xl:gap-8">
+          <div className="shrink-0 cursor-pointer" onClick={reloadPage}>
             <Logo variant="horizontal" size="md" theme={isScrolled ? 'brand' : 'dark'} />
           </div>
 
-          <nav className="hidden md:flex items-center gap-2">
+          <nav className="hidden items-center gap-1 lg:flex xl:gap-2">
             <a href="#" onClick={handleScrollToTop} className={getNavLinkClass('hero')}>
               {t.nav.home}
             </a>
@@ -469,10 +470,10 @@ const Navbar = ({ lang, setLang, t }) => {
           </nav>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-2 xl:gap-3">
           <button 
             onClick={() => setLang(lang === 'vi' ? 'en' : 'vi')}
-            className={`flex items-center gap-1.5 text-sm font-semibold transition-all px-3 py-1.5 rounded-lg ${
+            className={`inline-flex h-11 items-center gap-1.5 whitespace-nowrap rounded-xl px-3 text-sm font-bold leading-none transition-all ${
               isScrolled 
                 ? 'bg-slate-100 hover:bg-slate-200 hover:text-sky-600' 
                 : 'bg-white/10 hover:bg-white/20 hover:text-sky-300'
@@ -483,9 +484,22 @@ const Navbar = ({ lang, setLang, t }) => {
             <span>{lang === 'vi' ? 'VN' : 'EN'}</span>
           </button>
           <div className={`h-5 w-px hidden sm:block transition-all duration-300 ${isScrolled ? 'bg-slate-200' : 'bg-white/40'}`}></div>
+          <button
+            type="button"
+            title={t.nav.checkout}
+            onClick={() => navigate(ROUTES.VISITOR_CHECKOUT)}
+            className={`inline-flex h-11 items-center gap-2 whitespace-nowrap rounded-xl px-3 text-sm font-bold leading-none transition-all sm:px-4 ${
+              isScrolled
+                ? 'bg-sky-50 text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100 hover:text-sky-800'
+                : 'bg-white text-slate-900 hover:bg-sky-50'
+            }`}
+          >
+            <CreditCard className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">{t.nav.checkout}</span>
+          </button>
           <button 
             onClick={() => navigate('/login')}
-            className={`hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+            className={`hidden h-11 items-center gap-2 whitespace-nowrap rounded-xl px-3 text-sm font-bold leading-none transition-all sm:flex xl:px-4 ${
               isScrolled 
                 ? 'hover:bg-slate-50 hover:text-sky-600' 
                 : 'hover:bg-white/10 hover:text-sky-300'
@@ -497,7 +511,7 @@ const Navbar = ({ lang, setLang, t }) => {
           </button>
           <button 
             onClick={() => navigate('/signup')}
-            className="flex items-center gap-2 bg-[#0EA5E9] hover:bg-[#0284c7] px-5 py-2.5 rounded-lg text-sm font-semibold shadow-md shadow-sky-500/20 transition-all hover:-translate-y-0.5 text-white"
+            className="flex h-11 items-center gap-2 whitespace-nowrap rounded-xl bg-[#0EA5E9] px-4 text-sm font-bold leading-none text-white shadow-md shadow-sky-500/20 transition-all hover:-translate-y-0.5 hover:bg-[#0284c7] xl:px-5"
             style={{ color: '#FFFFFF' }}
           >
             <UserPlus className="w-4 h-4 text-white" style={{ color: '#FFFFFF' }} />
@@ -1590,6 +1604,7 @@ const Footer = ({ t, onOpenModal }) => {
 };
 
 export default function WelcomePage() {
+  const location = useLocation();
   const { isAuthenticated, isAuthLoading, role } = useAuth();
   const getInitialLang = () => {
     const current = i18n.language || localStorage.getItem('language') || 'vi';
@@ -1613,6 +1628,26 @@ export default function WelcomePage() {
       i18n.off('languageChanged', handleLangChange);
     };
   }, []);
+
+  useEffect(() => {
+    const targetId = location.hash.replace('#', '');
+    if (!targetId) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      return;
+    }
+
+    const scrollToHashTarget = () => {
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      const headerOffset = 160;
+      const targetTop = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+      window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+    };
+
+    const frameId = window.requestAnimationFrame(scrollToHashTarget);
+    return () => window.cancelAnimationFrame(frameId);
+  }, [location.hash]);
 
   const [activeModal, setActiveModal] = useState(null);
 

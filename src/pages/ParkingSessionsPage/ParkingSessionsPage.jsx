@@ -2,11 +2,16 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Bike,
   CarFront,
+  CalendarDays,
   CheckCircle2,
+  ChevronDown,
   Clock3,
   ListFilter,
+  RotateCcw,
   Search,
   TimerReset,
+  TriangleAlert,
+  Users,
   WalletCards,
 } from 'lucide-react';
 import SessionDetailDrawer from '../../components/parking/SessionDetailDrawer';
@@ -16,7 +21,7 @@ import { apiDateTimeMillis, formatVietnamDateTime } from '../../utils/dateTime';
 const tabs = ['Đang hoạt động', 'Đã hoàn thành', 'Tất cả'];
 const vehicleTypes = ['Tất cả', 'Ô tô', 'Xe máy'];
 const customerTypes = ['Tất cả', 'Gói tháng', 'Vãng lai'];
-const statuses = ['Tất cả', 'Bình thường', 'Quá 24 giờ', 'Quá 7 ngày', 'Đã hoàn thành'];
+const warningFilters = ['Tất cả cảnh báo', 'Bình thường', 'Quá 24 giờ', 'Quá 7 ngày'];
 const PAGE_SIZE = 10;
 
 const statusClasses = {
@@ -26,9 +31,20 @@ const statusClasses = {
   'Đã hoàn thành': 'border-blue-200 bg-blue-50 text-blue-700',
 };
 
-const normalizeVehicleType = (value) => {
-  const normalized = String(value || '').toUpperCase();
-  return normalized.includes('MOTOR') || normalized.includes('MÁY') || normalized.includes('MAY')
+const normalizeVehicleType = (item) => {
+  const rawValue = typeof item === 'object' && item !== null
+    ? item.vehicleTypeCode || item.vehicleType || item.vehicleTypeName || item.vehicleTypeId
+    : item;
+  const normalized = String(rawValue || '')
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, ' ')
+    .trim();
+
+  if (normalized === '2') return 'Ô tô';
+  if (normalized === '1') return 'Xe máy';
+  return normalized.includes('MOTOR') || normalized.includes('MOTO') || normalized.includes('BIKE') || normalized.includes('XE MAY')
     ? 'Xe máy'
     : 'Ô tô';
 };
@@ -72,7 +88,7 @@ function mapSession(item) {
     id: item.orderCode || String(item.id),
     rawId: item.id,
     plate: item.licensePlate || '--',
-    type: normalizeVehicleType(item.vehicleType),
+    type: normalizeVehicleType(item),
     customer: normalizeCustomerType(item.customerType),
     cardId: item.visitorCardCode || '--',
     entry: formatDateTime(item.entryTime),
@@ -121,6 +137,43 @@ function KpiCard({ icon: Icon, label, value, hint, tone }) {
   );
 }
 
+function FilterField({ icon: Icon, label, hasChevron = false, children }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="pl-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
+        {label}
+      </span>
+      <label className="group flex h-14 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-sm transition-all focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100">
+        <Icon className="h-4 w-4 shrink-0 text-slate-400 transition group-focus-within:text-blue-500" strokeWidth={2.25} />
+        <div className="min-w-0 flex-1">
+          {children}
+        </div>
+        {hasChevron && (
+          <ChevronDown className="pointer-events-none h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2.25} />
+        )}
+      </label>
+    </div>
+  );
+}
+
+function FilterSelect({ icon, label, value, onChange, options, getOptionLabel = (option) => option }) {
+  return (
+    <FilterField icon={icon} label={label} hasChevron>
+      <select
+        value={value}
+        onChange={onChange}
+        className="w-full cursor-pointer appearance-none bg-transparent text-sm font-bold text-slate-800 outline-none"
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {getOptionLabel(option)}
+          </option>
+        ))}
+      </select>
+    </FilterField>
+  );
+}
+
 export default function ParkingSessionsPage() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -129,7 +182,7 @@ export default function ParkingSessionsPage() {
   const [search, setSearch] = useState('');
   const [vehicleType, setVehicleType] = useState('Tất cả');
   const [customerType, setCustomerType] = useState('Tất cả');
-  const [status, setStatus] = useState('Tất cả');
+  const [selectedWarning, setSelectedWarning] = useState('Tất cả cảnh báo');
   const [date, setDate] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedSession, setSelectedSession] = useState(null);
@@ -158,17 +211,18 @@ export default function ParkingSessionsPage() {
       || (activeTab === 'Đã hoàn thành' && completed);
     const matchesDate = !date || session.entryTime?.slice(0, 10) === date;
     const keyword = search.trim().toLowerCase();
+    const matchesWarning = selectedWarning === 'Tất cả cảnh báo' || session.status === selectedWarning;
     return matchesTab
       && (!keyword || session.plate.toLowerCase().includes(keyword) || session.id.toLowerCase().includes(keyword))
       && (vehicleType === 'Tất cả' || session.type === vehicleType)
       && (customerType === 'Tất cả' || session.customer === customerType)
-      && (status === 'Tất cả' || session.status === status)
+      && matchesWarning
       && matchesDate;
-  }).sort((a, b) => (apiDateTimeMillis(b.entryTime) || 0) - (apiDateTimeMillis(a.entryTime) || 0)), [activeTab, customerType, date, search, sessions, status, vehicleType]);
+  }).sort((a, b) => (apiDateTimeMillis(b.entryTime) || 0) - (apiDateTimeMillis(a.entryTime) || 0)), [activeTab, customerType, date, search, selectedWarning, sessions, vehicleType]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeTab, customerType, date, search, status, vehicleType]);
+  }, [activeTab, customerType, date, search, selectedWarning, vehicleType]);
 
   const pageCount = Math.max(1, Math.ceil(filteredSessions.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, pageCount);
@@ -207,6 +261,15 @@ export default function ParkingSessionsPage() {
     setIsDetailOpen(true);
   };
 
+  const resetFilters = () => {
+    setSearch('');
+    setVehicleType('Tất cả');
+    setCustomerType('Tất cả');
+    setSelectedWarning('Tất cả cảnh báo');
+    setDate('');
+    setCurrentPage(1);
+  };
+
   return (
     <div className="space-y-5">
       <section className="flex flex-col gap-4">
@@ -237,20 +300,57 @@ export default function ParkingSessionsPage() {
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
-          <div className="grid gap-3 lg:grid-cols-[minmax(240px,1fr)_150px_160px_170px_160px]">
-            <label className="relative block">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" strokeWidth={2.25} />
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-[minmax(250px,1.6fr)_160px_180px_195px_175px_56px]">
+            <FilterField icon={Search} label="Tìm kiếm">
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Tìm theo biển số, mã phiên..."
-                className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-10 pr-3 text-sm font-semibold text-slate-800 outline-none transition-all placeholder:font-medium placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                placeholder="Biển số, mã phiên..."
+                className="w-full bg-transparent text-sm font-bold text-slate-800 outline-none placeholder:font-semibold placeholder:text-slate-400"
               />
-            </label>
-            <select value={vehicleType} onChange={(event) => setVehicleType(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100">{vehicleTypes.map((item) => <option key={item}>{item}</option>)}</select>
-            <select value={customerType} onChange={(event) => setCustomerType(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100">{customerTypes.map((item) => <option key={item}>{item}</option>)}</select>
-            <select value={status} onChange={(event) => setStatus(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100">{statuses.map((item) => <option key={item}>{item}</option>)}</select>
-            <input type="date" value={date} onChange={(event) => setDate(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100" />
+            </FilterField>
+            <FilterSelect
+              icon={CarFront}
+              label="Loại xe"
+              value={vehicleType}
+              onChange={(event) => setVehicleType(event.target.value)}
+              options={vehicleTypes}
+            />
+            <FilterSelect
+              icon={Users}
+              label="Loại khách"
+              value={customerType}
+              onChange={(event) => setCustomerType(event.target.value)}
+              options={customerTypes}
+            />
+            <FilterSelect
+              icon={TriangleAlert}
+              label="Cảnh báo"
+              value={selectedWarning}
+              onChange={(event) => setSelectedWarning(event.target.value)}
+              options={warningFilters}
+              getOptionLabel={(item) => (item === warningFilters[0] ? vehicleTypes[0] : item)}
+            />
+            <FilterField icon={CalendarDays} label="Ngày vào">
+              <input
+                type="date"
+                value={date}
+                onChange={(event) => setDate(event.target.value)}
+                className="w-full cursor-pointer bg-transparent text-sm font-bold text-slate-800 outline-none"
+              />
+            </FilterField>
+            <div className="flex flex-col gap-1.5">
+              <span className="select-none pl-1 text-[10px] font-black uppercase tracking-[0.12em] text-transparent" aria-hidden="true">_</span>
+              <button
+                type="button"
+                onClick={resetFilters}
+                title="Làm mới bộ lọc"
+                aria-label="Làm mới bộ lọc"
+                className="inline-flex h-14 w-14 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-100 active:scale-[0.98]"
+              >
+                <RotateCcw className="h-4 w-4 shrink-0" strokeWidth={2.25} />
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -275,7 +375,7 @@ export default function ParkingSessionsPage() {
           </span>
         </div>
 
-        <div className="max-h-[560px] overflow-auto">
+        <div className="overflow-x-auto">
           <table className="w-full min-w-[1060px] table-fixed text-left text-sm">
             <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50/95 text-[11px] font-black uppercase tracking-[0.12em] text-slate-500 backdrop-blur">
               <tr>
