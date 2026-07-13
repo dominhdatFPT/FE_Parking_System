@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
+import { useFormik } from 'formik';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
+import * as Yup from 'yup';
 import {
   ArrowRight,
   BadgeCheck,
@@ -148,6 +150,8 @@ const getLoginText = (language, key) => {
   const dictionary = loginTranslations[language] || loginTranslations.vi;
   return key.split('.').reduce((value, part) => value?.[part], dictionary) ?? key;
 };
+
+const GMAIL_PATTERN = /^[A-Z0-9._%+-]+@gmail\.com$/i;
 
 function getDashboardPath(role) {
   const normalizedRole = role?.toLowerCase();
@@ -306,7 +310,17 @@ function ParkingLineIllustrations({ t }) {
   );
 }
 
-function AuthInput({ icon: Icon, id, label, rightAddon, ...props }) {
+function FieldError({ message }) {
+  if (!message) return null;
+
+  return (
+    <p className="text-left text-xs font-semibold text-rose-600">
+      {message}
+    </p>
+  );
+}
+
+function AuthInput({ icon: Icon, id, label, rightAddon, error, ...props }) {
   return (
     <label className="grid gap-1.5 text-left" htmlFor={id}>
       <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
@@ -318,14 +332,16 @@ function AuthInput({ icon: Icon, id, label, rightAddon, ...props }) {
         <input
           className="h-11 w-full rounded-[15px] border border-[#E2E8F0] bg-[#F8FAFC] py-2.5 pl-12 pr-4 text-[15px] text-slate-950 outline-none transition duration-200 placeholder:text-slate-400 hover:border-sky-200 hover:bg-white focus:border-[#0EA5E9] focus:bg-white focus:shadow-[0_0_0_4px_rgba(14,165,233,0.14)]"
           id={id}
+          aria-invalid={Boolean(error)}
           {...props}
         />
       </span>
+      <FieldError message={error} />
     </label>
   );
 }
 
-function PasswordInput({ showPassword, onTogglePassword, t, ...props }) {
+function PasswordInput({ showPassword, onTogglePassword, t, error, ...props }) {
   return (
     <label className="grid gap-1.5 text-left" htmlFor="login-password">
       <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
@@ -337,6 +353,7 @@ function PasswordInput({ showPassword, onTogglePassword, t, ...props }) {
           className="h-11 w-full rounded-[15px] border border-[#E2E8F0] bg-[#F8FAFC] py-2.5 pl-12 pr-12 text-[15px] text-slate-950 outline-none transition duration-200 placeholder:text-slate-400 hover:border-sky-200 hover:bg-white focus:border-[#0EA5E9] focus:bg-white focus:shadow-[0_0_0_4px_rgba(14,165,233,0.14)]"
           id="login-password"
           type={showPassword ? 'text' : 'password'}
+          aria-invalid={Boolean(error)}
           {...props}
         />
         <button
@@ -348,6 +365,7 @@ function PasswordInput({ showPassword, onTogglePassword, t, ...props }) {
           {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
         </button>
       </span>
+      <FieldError message={error} />
     </label>
   );
 }
@@ -365,17 +383,30 @@ function GoogleIcon() {
 
 export default function LoginPage() {
   const { i18n: loginI18n } = useTranslation();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { setUser } = useAuth();
   const currentLanguage = loginI18n.language.startsWith('en') ? 'en' : 'vi';
   const t = (key) => getLoginText(currentLanguage, key);
+  const validationSchema = useMemo(
+    () => Yup.object({
+      email: Yup.string()
+        .trim()
+        .required(currentLanguage === 'vi' ? 'Vui lòng nhập email.' : 'Please enter email.')
+        .matches(
+          GMAIL_PATTERN,
+          currentLanguage === 'vi'
+            ? 'Email phải là tài khoản @gmail.com.'
+            : 'Email must be a @gmail.com account.',
+        ),
+      password: Yup.string()
+        .required(currentLanguage === 'vi' ? 'Vui lòng nhập mật khẩu.' : 'Please enter password.'),
+      rememberMe: Yup.boolean(),
+    }),
+    [currentLanguage],
+  );
 
   useEffect(() => {
     localStorage.setItem(LOGIN_LANGUAGE_KEY, currentLanguage);
@@ -386,80 +417,67 @@ export default function LoginPage() {
     localStorage.setItem(LOGIN_LANGUAGE_KEY, nextLanguage);
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setLoading(true);
-    setError('');
+  const formik = useFormik({
+    initialValues: {
+      email: '',
+      password: '',
+      rememberMe: false,
+    },
+    validationSchema,
+    validateOnBlur: true,
+    validateOnChange: false,
+    onSubmit: async (values, { setSubmitting }) => {
+      const normalizedEmail = values.email.trim().toLowerCase();
+      setError('');
 
-    // Input Validation
-    if (!email) {
-      setError(currentLanguage === 'vi' ? 'Vui lòng nhập email.' : 'Please enter email.');
-      setLoading(false);
-      return;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError(currentLanguage === 'vi' ? 'Định dạng email không hợp lệ.' : 'Invalid email format.');
-      setLoading(false);
-      return;
-    }
-    if (!password) {
-      setError(currentLanguage === 'vi' ? 'Vui lòng nhập mật khẩu.' : 'Please enter password.');
-      setLoading(false);
-      return;
-    }
-    if (password.length < 6) {
-      setError(currentLanguage === 'vi' ? 'Mật khẩu phải từ 6 ký tự trở lên.' : 'Password must be at least 6 characters.');
-      setLoading(false);
-      return;
-    }
+      try {
+        const response = await login(normalizedEmail, values.password, values.rememberMe);
 
-    try {
-      const response = await login(email, password);
+        if (!response?.token) {
+          throw new Error(t('errors.missingToken'));
+        }
 
-      if (!response?.token) {
-        throw new Error(t('errors.missingToken'));
+        sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
+
+        const authenticatedUser = {
+          id: response.user?.id ?? response.userId ?? normalizedEmail,
+          fullName: response.user?.fullName ?? response.fullName ?? response.user?.name ?? t('errors.defaultUser'),
+          email: response.user?.email ?? response.email ?? normalizedEmail,
+          role: response.user?.role ?? response.role ?? 'driver',
+          avatarUrl: response.user?.avatarUrl ?? response.avatarUrl ?? '',
+        };
+
+        sessionStorage.setItem(STORAGE_KEYS.SHOW_SYSTEM_RULES_AFTER_LOGIN, 'true');
+        setUser(authenticatedUser);
+        sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authenticatedUser));
+        localStorage.setItem('userRole', authenticatedUser.role || 'driver');
+
+        if (values.rememberMe) {
+          localStorage.setItem('rememberMe', 'true');
+          localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
+          localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authenticatedUser));
+        } else {
+          localStorage.removeItem('rememberMe');
+          localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+          localStorage.removeItem(STORAGE_KEYS.USER);
+        }
+
+        const redirectPath = sessionStorage.getItem('redirect_after_login');
+        if (redirectPath) {
+          sessionStorage.removeItem('redirect_after_login');
+          navigate(redirectPath);
+        } else {
+          navigate(getDashboardPath(authenticatedUser.role));
+        }
+      } catch (err) {
+        setError(t('errors.loginFailed'));
+        console.error('Login error:', err);
+      } finally {
+        setSubmitting(false);
       }
+    },
+  });
 
-      sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
-
-      const authenticatedUser = {
-        id: response.user?.id ?? response.userId ?? email,
-        fullName: response.user?.fullName ?? response.fullName ?? response.user?.name ?? t('errors.defaultUser'),
-        email: response.user?.email ?? response.email ?? email,
-        role: response.user?.role ?? response.role ?? 'driver',
-        avatarUrl: response.user?.avatarUrl ?? response.avatarUrl ?? '',
-      };
-
-      sessionStorage.setItem(STORAGE_KEYS.SHOW_SYSTEM_RULES_AFTER_LOGIN, 'true');
-      setUser(authenticatedUser);
-      sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authenticatedUser));
-      localStorage.setItem('userRole', authenticatedUser.role || 'driver');
-
-      if (rememberMe) {
-        localStorage.setItem('rememberMe', 'true');
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authenticatedUser));
-      } else {
-        localStorage.removeItem('rememberMe');
-        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-        localStorage.removeItem(STORAGE_KEYS.USER);
-      }
-
-      const redirectPath = sessionStorage.getItem('redirect_after_login');
-      if (redirectPath) {
-        sessionStorage.removeItem('redirect_after_login');
-        navigate(redirectPath);
-      } else {
-        navigate(getDashboardPath(authenticatedUser.role));
-      }
-    } catch (err) {
-      setError(t('errors.loginFailed'));
-      console.error('Login error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
@@ -525,28 +543,36 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form className="mt-4 grid gap-3" onSubmit={handleSubmit}>
+            <form className="mt-4 grid gap-3" onSubmit={formik.handleSubmit} noValidate>
               <AuthInput
                 icon={Mail}
                 id="login-email"
                 label={t('email')}
                 name="email"
-                placeholder="yourname@company.com"
+                placeholder="yourname@gmail.com"
                 type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
+                value={formik.values.email}
+                onBlur={formik.handleBlur}
+                onChange={(event) => {
+                  setError('');
+                  formik.handleChange(event);
+                }}
+                error={formik.touched.email ? formik.errors.email : ''}
               />
 
               <PasswordInput
                 name="password"
                 placeholder="••••••••"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                value={formik.values.password}
+                onBlur={formik.handleBlur}
+                onChange={(event) => {
+                  setError('');
+                  formik.handleChange(event);
+                }}
                 showPassword={showPassword}
                 onTogglePassword={() => setShowPassword((current) => !current)}
+                error={formik.touched.password ? formik.errors.password : ''}
                 t={t}
-                required
               />
 
               <div className="flex items-center justify-between gap-3 rounded-[15px] border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-2">
@@ -555,9 +581,10 @@ export default function LoginPage() {
                     <input
                       className="peer h-5 w-5 appearance-none rounded-md border border-slate-300 bg-white transition checked:border-sky-500 checked:bg-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-100"
                       id="remember-me"
+                      name="rememberMe"
                       type="checkbox"
-                      checked={rememberMe}
-                      onChange={(event) => setRememberMe(event.target.checked)}
+                      checked={formik.values.rememberMe}
+                      onChange={formik.handleChange}
                     />
                     <Check className="pointer-events-none absolute h-3.5 w-3.5 text-white opacity-0 transition peer-checked:opacity-100" />
                   </span>
@@ -568,10 +595,10 @@ export default function LoginPage() {
               <button
                 className="mt-0.5 inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0EA5E9] px-5 text-[15px] font-bold !text-white shadow-[0_10px_30px_rgba(14,165,233,0.25)] transition duration-200 hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_16px_38px_rgba(14,165,233,0.32)] focus:outline-none focus:ring-4 focus:ring-sky-100 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70"
                 type="submit"
-                disabled={loading}
+                disabled={formik.isSubmitting}
               >
-                {loading ? t('submitting') : t('submit')}
-                {!loading && <ArrowRight className="h-5 w-5 !text-white" />}
+                {formik.isSubmitting ? t('submitting') : t('submit')}
+                {!formik.isSubmitting && <ArrowRight className="h-5 w-5 !text-white" />}
               </button>
 
               <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">

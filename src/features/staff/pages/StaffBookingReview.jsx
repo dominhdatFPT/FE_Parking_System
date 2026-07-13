@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Clock3,
   CreditCard,
+  DollarSign,
   FileCheck2,
   FileImage,
   Filter,
@@ -25,6 +26,7 @@ import {
   reviewVehicleRegistration,
 } from '../../../services/staffService';
 import { VIETNAM_TIME_ZONE } from '../../../utils/dateTime';
+import StaffVehicleRegistrationPricing from './StaffVehicleRegistrationPricing';
 
 const statusConfig = {
   PENDING: {
@@ -69,6 +71,7 @@ const tabs = [
   { key: 'approved', label: 'Đã duyệt' },
   { key: 'rejected', label: 'Từ chối' },
   { key: 'all', label: 'Tất cả' },
+  { key: 'pricing', label: 'Cài đặt giá', Icon: DollarSign, hideCount: true },
 ];
 
 const formatDate = (value) => {
@@ -387,6 +390,7 @@ export default function StaffBookingReview() {
           </p>
         </div>
 
+        {activeTab !== 'pricing' && (
         <div className="flex flex-col gap-3 lg:flex-row">
           <label className="flex h-12 min-w-[280px] items-center gap-3 rounded-2xl bg-white px-4 shadow-sm ring-1 ring-slate-200 focus-within:ring-2 focus-within:ring-sky-200">
             <Search size={18} className="text-slate-400" />
@@ -421,35 +425,44 @@ export default function StaffBookingReview() {
             Làm mới
           </button>
         </div>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-2 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => setActiveTab(tab.key)}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-black transition ${
-              activeTab === tab.key
-                ? 'bg-[#DBEAFE] text-[#1D4ED8] shadow-[0_4px_12px_rgba(37,99,235,0.12)] ring-1 ring-[#93C5FD]'
-                : 'text-slate-600 hover:bg-[#EFF6FF] hover:text-slate-950'
-            }`}
-          >
-            {tab.label}
-            <span className={activeTab === tab.key ? 'rounded-full bg-white px-2 py-0.5 text-xs' : 'rounded-full bg-slate-100 px-2 py-0.5 text-xs'}>
-              {counts[tab.key]}
-            </span>
-          </button>
-        ))}
+        {tabs.map((tab) => {
+          const TabIcon = tab.Icon;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-black transition ${
+                activeTab === tab.key
+                  ? 'bg-[#DBEAFE] text-[#1D4ED8] shadow-[0_4px_12px_rgba(37,99,235,0.12)] ring-1 ring-[#93C5FD]'
+                  : 'text-slate-600 hover:bg-[#EFF6FF] hover:text-slate-950'
+              }`}
+            >
+              {TabIcon ? <TabIcon size={15} /> : null}
+              {tab.label}
+              {!tab.hideCount && (
+                <span className={activeTab === tab.key ? 'rounded-full bg-white px-2 py-0.5 text-xs' : 'rounded-full bg-slate-100 px-2 py-0.5 text-xs'}>
+                  {counts[tab.key]}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {message && (
+      {activeTab !== 'pricing' && message && (
         <div className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-bold text-sky-800">
           {message}
         </div>
       )}
 
-      {loading ? (
+      {activeTab === 'pricing' ? (
+        <StaffVehicleRegistrationPricing />
+      ) : loading ? (
         <div className="grid min-h-[520px] place-items-center rounded-2xl bg-white text-sm font-black text-slate-500 shadow-sm ring-1 ring-slate-200">
           Đang tải hồ sơ đăng ký...
         </div>
