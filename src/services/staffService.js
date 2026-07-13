@@ -72,6 +72,21 @@ export const reviewVehicleRegistration = async (id, status, rejectReason = '') =
   return unwrapData(response);
 };
 
+export const approveStaffBooking = async (id, staffNote = '') => {
+  const response = await apiClient.put(`/api/v1/bookings/${id}/approve`, {
+    staffNote,
+  });
+  return unwrapData(response);
+};
+
+export const rejectStaffBooking = async (id, staffNote = '') => {
+  const response = await apiClient.put(`/api/v1/bookings/${id}/reject`, {
+    staffNote,
+    rejectReason: staffNote,
+  });
+  return unwrapData(response);
+};
+
 export const deleteVehicleRegistration = async (id) => {
   const response = await apiClient.delete(`/api/v1/vehicle-registrations/${id}`);
   return unwrapData(response);

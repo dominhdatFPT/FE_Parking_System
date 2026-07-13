@@ -61,6 +61,10 @@ function getCurrentPageTitle(pathname, search) {
 }
 
 function isNavigationItemActive(pathname, search, itemPath) {
+  if (!itemPath) {
+    return false;
+  }
+
   if (itemPath.includes('?')) {
     return `${pathname}${search}` === itemPath;
   }

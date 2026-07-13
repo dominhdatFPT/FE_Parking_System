@@ -29,8 +29,10 @@ import StaffVehicleRegistrationReview from '../features/staff/pages/StaffVehicle
 import StaffVehicleExit from '../features/staff/pages/StaffVehicleExit';
 import StaffSessions from '../features/staff/pages/StaffSessions';
 import StaffExceptions from '../features/staff/pages/StaffExceptions';
+import StaffBookingReview from '../features/staff/pages/StaffBookingReview';
 import VehicleEntryPage from '../pages/VehicleEntryPage';
 import ParkingSessionsPage from '../pages/ParkingSessionsPage';
+import PermissionPage from '../pages/PermissionPage';
 
 function AuthLoadingScreen() {
   return (
@@ -113,6 +115,7 @@ export function AppRoutes() {
         <Route path={ROUTES.ADMIN.VEHICLE_EXIT} element={<StaffVehicleExit />} />
         <Route path={ROUTES.ADMIN.SYSTEM_CONFIG} element={<SystemConfigurationPage />} />
         <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AuditLogPage />} />
+        <Route path={ROUTES.ADMIN.PERMISSIONS} element={<PermissionPage />} />
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.BASE} element={<NotificationManagement />} />
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.DETAIL} element={<NotificationDetailPage />} />
         <Route path={ROUTES.STAFF.DASHBOARD} element={<Navigate to={ROUTES.ADMIN.DASHBOARD} replace />} />
@@ -121,6 +124,7 @@ export function AppRoutes() {
         <Route path={ROUTES.STAFF.VEHICLE_EXIT} element={<StaffVehicleExit />} />
         <Route path={ROUTES.STAFF.SESSIONS} element={<StaffSessions />} />
         <Route path={ROUTES.STAFF.EXCEPTIONS} element={<StaffExceptions />} />
+        <Route path={ROUTES.STAFF.BOOKINGS} element={<StaffBookingReview />} />
         <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />} />
       </Route>
 
