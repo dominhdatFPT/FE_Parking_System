@@ -48,6 +48,7 @@ const quickActions = [
   },
 ];
 
+// Display-only sample data for the driver overview. This is not loaded from an API yet.
 const suggestedLots = [
   {
     id: 'zone-a',
@@ -147,7 +148,7 @@ export default function DriverDashboard() {
                   <button
                     type="button"
                     onClick={() => navigate(ROUTES.DRIVER.VEHICLE_REGISTRATION)}
-                    className="inline-flex items-center gap-2 rounded-full bg-[#0EA5E9] px-4 py-2 text-xs font-bold text-white shadow-[0_12px_24px_rgba(14,165,233,0.22)] transition hover:bg-[#0284C7] active:scale-[0.98]"
+                    className="inline-flex items-center gap-2 rounded-full bg-[#0EA5E9] px-4 py-2 text-xs font-bold !text-white text-white shadow-[0_12px_24px_rgba(14,165,233,0.22)] transition hover:bg-[#0284C7] active:scale-[0.98] [&_*]:!text-white"
                   >
                     <span className="material-symbols-outlined text-[16px]">assignment_ind</span>
                     {t('dashboard.submitApplication')}
@@ -210,19 +211,20 @@ export default function DriverDashboard() {
             <h3 className="border-b border-[#E5E7EB] pb-3 text-xs font-black uppercase tracking-[0.18em] text-[#64748B]">
               {t('dashboard.suggestedParkingAreas')}
             </h3>
+            <p className="mt-3 rounded-2xl border border-amber-100 bg-amber-50 px-3 py-2 text-[11px] font-semibold leading-relaxed text-amber-700">
+              {t('dashboard.suggestedParkingAreasStaticNote')}
+            </p>
             <div className="mt-4 space-y-4">
               {suggestedLots.map((area) => {
                 const fillRate = Math.round(((area.totalSlots - area.availableSlots) / area.totalSlots) * 100);
                 return (
-                  <button
+                  <article
                     key={area.id}
-                    type="button"
-                    onClick={() => navigate(ROUTES.DRIVER.FEE_PLANS)}
-                    className="group w-full rounded-2xl border border-[#E5E7EB] p-4 text-left transition duration-300 hover:-translate-y-0.5 hover:border-[#BAE6FD] hover:bg-[#F8FAFC] hover:shadow-[0_14px_30px_rgba(14,165,233,0.08)]"
+                    className="w-full rounded-2xl border border-[#E5E7EB] p-4 text-left"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <h4 className="text-sm font-black tracking-tight text-[#0F172A] group-hover:text-[#0EA5E9]">{t(area.nameKey)}</h4>
+                        <h4 className="text-sm font-black tracking-tight text-[#0F172A]">{t(area.nameKey)}</h4>
                         <p className="mt-1 text-xs font-medium text-[#64748B]">{t(area.addressKey)}</p>
                       </div>
                       <span className="material-symbols-outlined text-[18px] text-[#0EA5E9]">location_on</span>
@@ -239,7 +241,7 @@ export default function DriverDashboard() {
                         />
                       </div>
                     </div>
-                  </button>
+                  </article>
                 );
               })}
             </div>

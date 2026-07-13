@@ -9,6 +9,11 @@ import PageHeader from '../../components/PageHeader';
 
 const VEHICLE_TYPE_ID = { MOTORBIKE: 1, CAR: 2 };
 
+const VEHICLE_TYPE_IMAGE = {
+  MOTORBIKE: '/vehicle-rear-motorbike.png',
+  CAR: '/vehicle-rear-car.png',
+};
+
 const PLAN_NAME_KEYS = {
   1: 'feePlans.planName',
   3: 'feePlans.planNameQuarter',
@@ -231,7 +236,7 @@ export default function DriverFeePlans() {
   const submitErrorText = !selectedPlanId
     ? t('feePlans.errorSelectPlan')
     : !selectedVehicle
-    ? 'Vui lòng chọn biển số xe từ danh sách'
+    ? t('feePlans.errorSelectRegisteredVehicle')
     : '';
 
   return (
@@ -339,14 +344,14 @@ export default function DriverFeePlans() {
                         onClick={() => setShowSuggestions(!showSuggestions)}
                         className="absolute right-3 text-[10px] font-black uppercase tracking-wide text-slate-400 hover:text-slate-600 focus:outline-none"
                       >
-                        {showSuggestions ? 'Đóng' : 'Mở'}
+                        {showSuggestions ? t('common.close') : t('common.open')}
                       </button>
                     </div>
 
                     {showSuggestions && (
                       <div className="absolute left-0 right-0 top-[52px] z-30 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 overflow-hidden divide-y divide-slate-100 max-h-40 overflow-y-auto">
                         {loadingVehicles ? (
-                          <div className="px-4 py-3 text-xs text-slate-400 italic text-center">Đang tải...</div>
+                          <div className="px-4 py-3 text-xs text-slate-400 italic text-center">{t('common.loading')}</div>
                         ) : vehicles.length > 0 ? (
                           vehicles.map((v) => (
                             <button
@@ -384,7 +389,7 @@ export default function DriverFeePlans() {
                     ))
                   ) : feePackages.length === 0 ? (
                     <div className="col-span-full text-center py-8 text-xs text-slate-400 italic">
-                      Không có gói cước nào cho loại xe này
+                      {t('feePlans.noPackagesForVehicleType')}
                     </div>
                   ) : (
                     feePackages.map((pkg) => {
@@ -478,7 +483,7 @@ export default function DriverFeePlans() {
                     disabled={!canSubmit || submitting}
                     className={`px-6 py-3 font-bold text-sm rounded-xl flex items-center justify-center transition-all duration-300 w-full sm:w-auto ${canSubmit && !submitting ? 'bg-[#0EA5E9] hover:bg-[#0284c7] !text-white text-white shadow-md shadow-sky-500/20 active:scale-95' : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'}`}
                   >
-                    <span className="!text-white text-white">{submitting ? 'Đang xử lý...' : t('feePlans.addToPayment')}</span>
+                    <span className="!text-white text-white">{submitting ? t('common.processing') : t('feePlans.addToPayment')}</span>
                   </button>
                 </div>
               </div>

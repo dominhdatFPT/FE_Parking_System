@@ -20,7 +20,7 @@ export default function DriverVehicleRegistration() {
   const [selectedPlans, setSelectedPlans] = useState(preselectedPlans);
   const [licensePlate, setLicensePlate] = useState('');
 
-  // File Upload State (CCCD requires 2 sides)
+  // File Upload State (optional proof documents, no license-plate photo required)
   const [cccdFrontFile, setCccdFrontFile] = useState(null);
   const [cccdBackFile, setCccdBackFile] = useState(null);
   const [driverLicenseFile, setDriverLicenseFile] = useState(null);
@@ -43,7 +43,7 @@ export default function DriverVehicleRegistration() {
   const validateAndSetFile = (file, setter) => {
     setError('');
     if (!file?.type?.startsWith('image/')) {
-      setError('Chỉ chấp nhận ảnh CCCD, bằng lái, đăng ký xe hoặc biển số; không nhận PDF.');
+      setError('Chỉ chấp nhận ảnh CCCD, bằng lái hoặc đăng ký xe; không nhận PDF.');
       return;
     }
     if (file.size > 4 * 1024 * 1024) {
@@ -217,7 +217,6 @@ export default function DriverVehicleRegistration() {
                       setCccdBackFile(null);
                       setDriverLicenseFile(null);
                       setVehicleDocsFile(null);
-                      setLicensePlateFile(null);
                       setLicensePlate('');
                       setSelectedPlans([]);
                     }}

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { vietnamDayjs } from '../../../utils/dateTime';
+import { translateNotificationText } from '../../../utils/notificationText';
 
 const TYPE_LABEL_KEYS = {
   info: 'notifications.info',
@@ -23,7 +24,7 @@ const TYPE_ICONS = {
 };
 
 export default function NotificationDetailModal({ notification, onClose }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   if (!notification) return null;
 
@@ -40,7 +41,9 @@ export default function NotificationDetailModal({ notification, onClose }) {
               <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 {t(TYPE_LABEL_KEYS[notification.type] || TYPE_LABEL_KEYS.info)}
               </p>
-              <h2 className="mt-1 text-xl font-extrabold leading-7 text-slate-900">{notification.title}</h2>
+              <h2 className="mt-1 text-xl font-extrabold leading-7 text-slate-900">
+                {translateNotificationText(notification.title, i18n.language)}
+              </h2>
             </div>
           </div>
           <button type="button" onClick={onClose} aria-label={t('notifications.closeDetail')} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-500 transition hover:bg-slate-200">
@@ -52,7 +55,7 @@ export default function NotificationDetailModal({ notification, onClose }) {
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{t('notifications.contentLabel')}</p>
             <p className="mt-3 whitespace-pre-wrap rounded-2xl bg-slate-50 p-5 text-sm leading-7 text-slate-700 ring-1 ring-slate-100">
-              {notification.content || notification.message || t('notifications.noContent')}
+              {translateNotificationText(notification.content || notification.message, i18n.language) || t('notifications.noContent')}
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 text-xs text-slate-500">
