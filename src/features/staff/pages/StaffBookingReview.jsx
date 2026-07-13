@@ -390,8 +390,9 @@ export default function StaffBookingReview() {
           </p>
         </div>
 
-        {activeTab !== 'pricing' && (
         <div className="flex flex-col gap-3 lg:flex-row">
+          {activeTab !== 'pricing' && (
+            <>
           <label className="flex h-12 min-w-[280px] items-center gap-3 rounded-2xl bg-white px-4 shadow-sm ring-1 ring-slate-200 focus-within:ring-2 focus-within:ring-sky-200">
             <Search size={18} className="text-slate-400" />
             <input
@@ -424,8 +425,22 @@ export default function StaffBookingReview() {
             <RefreshCcw size={18} />
             Làm mới
           </button>
+            </>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setActiveTab(activeTab === 'pricing' ? 'pending' : 'pricing')}
+            className={`inline-flex h-12 items-center justify-center gap-2 rounded-2xl px-5 text-sm font-black shadow-sm ring-1 transition ${
+              activeTab === 'pricing'
+                ? 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50'
+                : 'bg-sky-600 text-white ring-sky-500 hover:bg-sky-700'
+            }`}
+          >
+            <DollarSign size={18} />
+            {activeTab === 'pricing' ? 'Xem hồ sơ' : 'Cài đặt giá'}
+          </button>
         </div>
-        )}
       </div>
 
       <div className="flex flex-wrap gap-2 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200">
