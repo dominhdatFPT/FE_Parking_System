@@ -16,7 +16,6 @@ export const ROUTES = {
     USERS: '/admin/users',
     USER_VEHICLE_REGISTRATION: '/admin/user-vehicle-registration',
     ROLES: '/admin/roles',
-    PERMISSIONS: '/admin/permissions',
     SYSTEM_CONFIG: '/admin/system-configuration',
     AUDIT_LOG: '/admin/audit-log',
     NOTIFICATIONS: {

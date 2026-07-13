@@ -11,7 +11,6 @@ import {
   LayoutDashboard,
   LogOut,
   Package,
-  Shield,
   Users,
 } from 'lucide-react';
 import { useAuth } from '../contexts/useAuth';
@@ -30,7 +29,6 @@ const mainNavigationItems = [
   { icon: Package, label: 'Quản lý gói', path: ROUTES.STAFF.BOOKINGS },
   { icon: BellRing, label: 'Thông báo', path: ROUTES.ADMIN.NOTIFICATIONS.BASE },
   { icon: Users, label: 'Quản lý tài khoản', path: ROUTES.ADMIN.USERS },
-  { icon: Shield, label: 'Phân quyền', path: ROUTES.ADMIN.PERMISSIONS },
 ];
 
 const incidentNavigationItem = {
@@ -48,7 +46,6 @@ const pageTitles = [
   { path: `${ROUTES.ADMIN.AUDIT_LOG}?view=incidents`, title: 'Quản lí sự cố và hỗ trợ' },
   { path: ROUTES.ADMIN.NOTIFICATIONS.BASE, title: 'Thông báo' },
   { path: ROUTES.ADMIN.USERS, title: 'Quản lý tài khoản' },
-  { path: ROUTES.ADMIN.PERMISSIONS, title: 'Phân quyền & Tài khoản' },
 ];
 
 function getCurrentPageTitle(pathname, search) {

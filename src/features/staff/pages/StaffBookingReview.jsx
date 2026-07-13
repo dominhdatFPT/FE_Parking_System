@@ -456,8 +456,8 @@ export default function StaffBookingReview() {
       ) : filteredRecords.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="grid gap-6 xl:grid-cols-[minmax(360px,35%)_minmax(0,1fr)]">
-          <aside className="space-y-3">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,35%)]">
+          <aside className="space-y-3 xl:order-2">
             <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
               <div className="flex items-center justify-between">
                 <div>
@@ -508,7 +508,7 @@ export default function StaffBookingReview() {
             </div>
           </aside>
 
-          <section className="min-w-0 space-y-5 pb-28">
+          <section className="min-w-0 space-y-5 pb-28 xl:order-1">
             <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
