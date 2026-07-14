@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   Clock3,
   CreditCard,
-  DollarSign,
   FileCheck2,
   FileImage,
   Mail,
@@ -24,8 +23,6 @@ import {
   getVehicleRegistrations,
   reviewVehicleRegistration,
 } from '../../../services/staffService';
-import { useAuth } from '../../../contexts/useAuth';
-import StaffVehicleRegistrationPricing from './StaffVehicleRegistrationPricing';
 import { VIETNAM_TIME_ZONE } from '../../../utils/dateTime';
 
 const statusConfig = {
@@ -71,10 +68,6 @@ const tabs = [
   { key: 'approved', label: 'Đã duyệt' },
   { key: 'rejected', label: 'Từ chối' },
   { key: 'all', label: 'Tất cả' },
-];
-
-const adminOnlyTabs = [
-  { key: 'pricing', label: 'Cài đặt giá', Icon: DollarSign },
 ];
 
 const formatDate = (value) => {
@@ -316,10 +309,6 @@ function EkycSection({ record }) {
 }
 
 export default function StaffVehicleRegistrationReview() {
-  const { role: currentRole } = useAuth();
-  const isAdmin = String(currentRole || '').toUpperCase() === 'ADMIN';
-  const visibleTabs = isAdmin ? [...tabs, ...adminOnlyTabs] : tabs;
-
   const [registrations, setRegistrations] = useState([]);
   const [registrationDetails, setRegistrationDetails] = useState({});
   const [activeTab, setActiveTab] = useState('pending');
@@ -334,12 +323,6 @@ export default function StaffVehicleRegistrationReview() {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const records = useMemo(() => registrations.map(normalizeRegistration), [registrations]);
-
-  useEffect(() => {
-    if (!isAdmin && activeTab === 'pricing') {
-      setActiveTab('pending');
-    }
-  }, [activeTab, isAdmin]);
 
   const counts = useMemo(() => {
     const initialCounts = { pending: 0, approved: 0, rejected: 0, all: records.length };
@@ -494,9 +477,8 @@ export default function StaffVehicleRegistrationReview() {
       <div className="flex shrink-0 items-center justify-between gap-3">
         {/* Tabs */}
         <div className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-100/80 p-1 shadow-sm">
-          {visibleTabs.map((tab) => {
+          {tabs.map((tab) => {
             const TabIcon = tab.Icon;
-            const showCount = !adminOnlyTabs.some((adminTab) => adminTab.key === tab.key);
             return (
               <button
                 key={tab.key}
@@ -510,18 +492,15 @@ export default function StaffVehicleRegistrationReview() {
               >
                 {TabIcon ? <TabIcon size={14} /> : null}
                 {tab.label}
-                {showCount ? (
-                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${activeTab === tab.key ? 'bg-blue-50 text-blue-600' : 'bg-slate-200 text-slate-600'}`}>
-                    {counts[tab.key]}
-                  </span>
-                ) : null}
+                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${activeTab === tab.key ? 'bg-blue-50 text-blue-600' : 'bg-slate-200 text-slate-600'}`}>
+                  {counts[tab.key]}
+                </span>
               </button>
             );
           })}
         </div>
 
         {/* Controls */}
-        {activeTab !== 'pricing' ? (
         <div className="flex items-center gap-2">
           <label className="flex h-10 min-w-[220px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-sm focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100">
             <Search size={15} className="shrink-0 text-slate-400" />
@@ -541,20 +520,17 @@ export default function StaffVehicleRegistrationReview() {
             Làm mới
           </button>
         </div>
-        ) : null}
       </div>
 
       {/* ── MESSAGE ── */}
-      {activeTab !== 'pricing' && message && (
+      {message && (
         <div className="shrink-0 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-bold text-blue-800">
           {message}
         </div>
       )}
 
       {/* ── MAIN CONTENT ── */}
-      {activeTab === 'pricing' ? (
-        <StaffVehicleRegistrationPricing />
-      ) : loading ? (
+      {loading ? (
         <div className="flex flex-1 min-h-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-sm font-black text-slate-500 shadow-sm">
           Đang tải hồ sơ đăng ký...
         </div>
