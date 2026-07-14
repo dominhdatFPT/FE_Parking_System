@@ -615,7 +615,7 @@ export default function StaffBookingReview() {
                     <button
                       type="button"
                       onClick={() => setShowDeleteConfirm(true)}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 ring-1 ring-rose-200 transition hover:bg-rose-100"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm shadow-rose-500/25 ring-1 ring-rose-500 transition hover:bg-rose-700"
                     >
                       <Trash2 size={13} />
                       Xóa xe
