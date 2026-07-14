@@ -17,6 +17,7 @@ import {
 import SessionDetailDrawer from '../../components/parking/SessionDetailDrawer';
 import { getParkingSessions } from '../../services/staffService';
 import { apiDateTimeMillis, formatVietnamDateTime } from '../../utils/dateTime';
+import { getRememberedVehicleType, normalizeVehicleTypeCode } from '../../utils/vehicleTypeMemory';
 
 const tabs = ['Đang hoạt động', 'Đã hoàn thành', 'Tất cả'];
 const vehicleTypes = ['Tất cả', 'Ô tô', 'Xe máy'];
@@ -32,21 +33,25 @@ const statusClasses = {
 };
 
 const normalizeVehicleType = (item) => {
+  const rememberedType = typeof item === 'object' && item !== null
+    ? getRememberedVehicleType(item.licensePlate)
+    : '';
+  const rememberedCode = normalizeVehicleTypeCode(rememberedType);
+  if (rememberedCode === 'MOTORBIKE') return 'Xe máy';
+  if (rememberedCode === 'CAR') return 'Ô tô';
+
+  const cardCode = typeof item === 'object' && item !== null
+    ? String(item.visitorCardCode || item.cardId || '').toUpperCase()
+    : '';
+  if (cardCode.startsWith('CAR')) return 'Ô tô';
+  if (cardCode.startsWith('VIS') || cardCode.startsWith('MOTO') || cardCode.startsWith('BIKE')) return 'Xe máy';
+
   const rawValue = typeof item === 'object' && item !== null
     ? item.vehicleTypeCode || item.vehicleType || item.vehicleTypeName || item.vehicleTypeId
     : item;
-  const normalized = String(rawValue || '')
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, ' ')
-    .trim();
+  const normalized = normalizeVehicleTypeCode(rawValue);
 
-  if (normalized === '2') return 'Ô tô';
-  if (normalized === '1') return 'Xe máy';
-  return normalized.includes('MOTOR') || normalized.includes('MOTO') || normalized.includes('BIKE') || normalized.includes('XE MAY')
-    ? 'Xe máy'
-    : 'Ô tô';
+  return normalized === 'MOTORBIKE' ? 'Xe máy' : 'Ô tô';
 };
 
 const normalizeCustomerType = (value) =>

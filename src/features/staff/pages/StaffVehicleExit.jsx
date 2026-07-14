@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import {
-  AlertCircle, ArrowUpFromLine, CarFront, CheckCircle2, Clock3,
+  AlertCircle, ArrowUpFromLine, Bike, CarFront, CheckCircle2, Clock3,
   CreditCard, Keyboard, LoaderCircle, ReceiptText, ScanLine,
   ShieldCheck, TimerReset, UserRound,
 } from 'lucide-react';
 import { checkParkingExit, confirmParkingExit } from '../../../services/staffService';
 import { VIETNAM_TIME_ZONE } from '../../../utils/dateTime';
+import { getRememberedVehicleType, normalizeVehicleTypeCode } from '../../../utils/vehicleTypeMemory';
 
 const formatCurrency = (value) => `${Number(value || 0).toLocaleString('vi-VN')} đ`;
 const formatVND = (value) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
@@ -245,10 +246,15 @@ export default function StaffVehicleExit() {
     setSuccessMessage('');
   };
 
-  const vehicleTypeDisplay =
-    result?.vehicleType === 'MOTORBIKE' ? 'Xe máy (2 bánh)' :
-    result?.vehicleType === 'CAR' ? 'Ô tô (4 chỗ)' :
-    result?.vehicleType || '—';
+  const rememberedVehicleType = getRememberedVehicleType(result?.licensePlate || licensePlate);
+  const resolvedVehicleType = normalizeVehicleTypeCode(rememberedVehicleType || result?.vehicleType);
+  const isMotorbike = resolvedVehicleType === 'MOTORBIKE';
+  const vehicleTypeDisplay = !hasExitData
+    ? '—'
+    : isMotorbike
+      ? 'Xe máy (2 bánh)'
+      : 'Ô tô (4 chỗ)';
+  const VehicleIcon = isMotorbike ? Bike : CarFront;
   const visitorCardDisplay = hasExitData
     ? (result.visitorCardCode || (isVisitor ? '—' : 'Không có'))
     : '—';
@@ -321,7 +327,7 @@ export default function StaffVehicleExit() {
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-blue-500">
-                  <CarFront className="h-4 w-4" strokeWidth={2.25} />
+                  <VehicleIcon className="h-4 w-4" strokeWidth={2.25} />
                 </span>
                 <input
                   autoFocus
@@ -353,7 +359,7 @@ export default function StaffVehicleExit() {
           {/* Info grid */}
           <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-2 gap-2 overflow-hidden">
             <InfoCard icon={ReceiptText} label="Mã lượt gửi" value={hasExitData ? result.orderCode : '—'} />
-            <InfoCard icon={CarFront} label="Loại xe" value={hasExitData ? vehicleTypeDisplay : '—'} />
+            <InfoCard icon={VehicleIcon} label="Loại xe" value={hasExitData ? vehicleTypeDisplay : '—'} />
             <InfoCard
               icon={CreditCard}
               label="Thẻ vãng lai"

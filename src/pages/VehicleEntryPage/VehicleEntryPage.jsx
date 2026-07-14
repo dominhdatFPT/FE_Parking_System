@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AlertCircle, CarFront, CheckCircle2, TicketCheck, Bike, Keyboard, ChevronDown, Clock3, User, ScanLine, SlidersHorizontal } from 'lucide-react';
 import { checkParkingEntry, confirmParkingEntry } from '../../services/staffService';
 import { VIETNAM_TIME_ZONE } from '../../utils/dateTime';
+import { rememberVehicleType } from '../../utils/vehicleTypeMemory';
 
 const formatKpiDateTime = (value) => {
   if (!value) return '—';
@@ -148,6 +149,7 @@ export default function VehicleEntryPage() {
         vehicleTypeCode: vehicleType,
       };
       setResult(await confirmParkingEntry(payload));
+      rememberVehicleType(result?.licensePlate || licensePlate, vehicleType);
       setNotice({ type: 'success', message: 'Đã xác nhận xe vào bãi' });
     }
     catch (err) { setNotice({ type: 'error', message: err.response?.data?.message || err.response?.data?.error || 'Không thể xác nhận xe vào.' }); }

@@ -8,6 +8,7 @@ import {
   Boxes,
   ChevronLeft,
   ChevronRight,
+  ClipboardPlus,
   LayoutDashboard,
   LogOut,
   Package,
@@ -27,6 +28,7 @@ const mainNavigationItems = [
   { icon: ArrowUpFromLine, label: 'Xe ra', path: ROUTES.ADMIN.VEHICLE_EXIT },
   { icon: Boxes, label: 'Phiên gửi xe', path: ROUTES.ADMIN.PARKING_SESSIONS },
   { icon: Package, label: 'Quản lý gói', path: ROUTES.STAFF.BOOKINGS },
+  { icon: ClipboardPlus, label: 'Đăng ký gói', path: ROUTES.ADMIN.USER_VEHICLE_REGISTRATION },
   { icon: BellRing, label: 'Thông báo', path: ROUTES.ADMIN.NOTIFICATIONS.BASE },
   { icon: Users, label: 'Quản lý tài khoản', path: ROUTES.ADMIN.USERS },
 ];
@@ -40,6 +42,7 @@ const incidentNavigationItem = {
 const pageTitles = [
   { path: ROUTES.ADMIN.DASHBOARD, title: 'Tổng quan bãi', end: true },
   { path: ROUTES.STAFF.BOOKINGS, title: 'Quản lý gói' },
+  { path: ROUTES.ADMIN.USER_VEHICLE_REGISTRATION, title: 'Đăng ký gói' },
   { path: ROUTES.ADMIN.VEHICLE_ENTRY, title: 'Xe vào' },
   { path: ROUTES.ADMIN.PARKING_SESSIONS, title: 'Tất cả phiên gửi xe' },
   { path: ROUTES.ADMIN.VEHICLE_EXIT, title: 'Xe ra' },
@@ -114,14 +117,16 @@ export default function AdminLayout() {
       }`}
     >
       <aside
-        className={`hidden min-h-screen flex-shrink-0 border-r border-white/10 bg-slate-950 text-white shadow-[18px_0_48px_rgba(15,23,42,0.22)] transition-[width] duration-300 ease-out lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:h-screen lg:flex-col ${
-          collapsed ? 'w-20' : 'w-[260px]'
+        className={`hidden min-h-screen flex-shrink-0 border-r border-white/[0.08] bg-gradient-to-b from-[#08203D] via-[#071A32] to-[#020B18] text-white shadow-[8px_0_32px_rgba(2,11,24,0.52)] transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:h-screen lg:flex-col ${
+          collapsed ? 'w-20' : 'w-[276px]'
         }`}
       >
         <div className="relative flex h-full flex-col overflow-hidden p-4">
+          <div className="pointer-events-none absolute -left-24 top-8 h-56 w-56 rounded-full bg-sky-400/12 blur-3xl" />
+          <div className="pointer-events-none absolute -right-24 bottom-20 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
 
           <div
-            className={`relative flex items-center gap-3 border-b border-white/10 pb-4 ${
+            className={`relative z-10 flex items-center gap-3 border-b border-white/10 pb-4 ${
               collapsed ? 'justify-center' : 'justify-between'
             }`}
           >
@@ -156,15 +161,15 @@ export default function AdminLayout() {
             <button
               type="button"
               onClick={() => setCollapsed(false)}
-              className="relative mx-auto mt-4 grid h-10 w-10 place-items-center rounded-2xl border border-white/10 bg-white/10 text-slate-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_24px_rgba(2,6,23,0.18)] transition hover:bg-white/15 hover:text-white active:scale-95"
+              className="relative z-10 mx-auto mt-4 grid h-10 w-10 place-items-center rounded-2xl border border-white/10 bg-white/[0.08] text-slate-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_24px_rgba(2,6,23,0.18)] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-white/15 hover:text-white active:scale-95"
               aria-label="Mở rộng sidebar"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
           ) : null}
 
-          <nav className="relative mt-5 flex-1 overflow-y-auto overflow-x-hidden pr-0.5">
-            <div className="space-y-1.5">
+          <nav className="relative z-10 mt-6 flex-1 overflow-y-auto overflow-x-hidden pr-0.5">
+            <div className="space-y-2">
               {mainNavigationItems.map((item) => {
                 const ItemIcon = item.icon;
                 const isActive = isNavigationItemActive(location.pathname, location.search, item.path);
@@ -175,19 +180,19 @@ export default function AdminLayout() {
                     to={item.path}
                     end={item.path === ROUTES.ADMIN.DASHBOARD}
                     title={collapsed ? item.label : undefined}
-                    className={`group relative flex h-11 items-center rounded-xl text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                    className={`group relative flex h-12 items-center rounded-2xl text-sm font-semibold transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
                       collapsed ? 'justify-center px-0' : 'gap-3 px-2.5'
                     } ${
                       isActive
-                        ? 'bg-sky-600 text-white shadow-sm shadow-sky-600/10'
-                        : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                        ? 'bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-[0_14px_30px_rgba(37,99,235,0.28)]'
+                        : 'text-slate-300/90 hover:bg-sky-400/[0.08] hover:text-white'
                     }`}
                   >
                     <span
-                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ring-1 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                      className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ring-1 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
                         isActive
-                          ? 'bg-white/10 text-white ring-white/10'
-                          : 'bg-white/5 text-slate-300 ring-white/5 group-hover:bg-white/10 group-hover:text-white'
+                          ? 'bg-white/20 text-white ring-white/20'
+                          : 'bg-white/[0.06] text-slate-400 ring-white/[0.06] group-hover:bg-sky-400/20 group-hover:text-sky-300 group-hover:ring-sky-400/20'
                       }`}
                     >
                       <ItemIcon className="h-4 w-4 shrink-0" />
@@ -199,7 +204,7 @@ export default function AdminLayout() {
             </div>
           </nav>
 
-          <div className={`relative mt-auto border-t border-white/10 pt-4 ${collapsed ? 'space-y-2' : 'flex gap-2'}`}>
+          <div className={`relative z-10 mt-auto border-t border-white/10 pt-4 ${collapsed ? 'space-y-2' : 'flex gap-2'}`}>
             {(() => {
               const IncidentIcon = incidentNavigationItem.icon;
               const isIncidentActive = isNavigationItemActive(
@@ -216,15 +221,15 @@ export default function AdminLayout() {
                     collapsed ? 'w-full justify-center px-0' : 'min-w-0 flex-[7] gap-2 px-2.5'
                   } ${
                     isIncidentActive
-                      ? 'border-amber-500/20 bg-amber-500/20 text-amber-50'
-                      : 'border-amber-500/10 bg-amber-500/5 text-amber-200 hover:bg-amber-500/15'
+                      ? 'border-amber-400/25 bg-amber-500/20 text-amber-50'
+                      : 'border-amber-400/[0.12] bg-amber-400/[0.06] text-amber-200/80 hover:bg-amber-400/15 hover:text-amber-100'
                   }`}
                 >
                   <span
                     className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ring-1 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
                       isIncidentActive
-                        ? 'bg-amber-500/20 text-amber-50 ring-amber-500/20'
-                        : 'bg-amber-500/10 text-amber-200 ring-amber-500/10 group-hover:bg-amber-500/20'
+                        ? 'bg-amber-400/25 text-amber-50 ring-amber-400/25'
+                        : 'bg-amber-400/[0.08] text-amber-300/80 ring-amber-400/[0.08] group-hover:bg-amber-400/20 group-hover:text-amber-100'
                     }`}
                   >
                     <IncidentIcon className="h-4 w-4 shrink-0" />
@@ -238,11 +243,11 @@ export default function AdminLayout() {
               type="button"
               title="Đăng xuất"
               onClick={handleLogout}
-              className={`flex h-11 items-center rounded-xl border border-rose-500/20 bg-rose-500/5 text-sm font-medium text-rose-200 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-rose-500/15 hover:text-white active:scale-[0.98] ${
+              className={`flex h-11 items-center rounded-xl border border-rose-400/[0.15] bg-rose-400/[0.06] text-sm font-medium text-rose-300/80 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-rose-400/15 hover:text-rose-100 active:scale-[0.98] ${
                 collapsed ? 'w-full justify-center px-0' : 'min-w-0 flex-[3] justify-center px-2'
               }`}
             >
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-rose-500/10 text-rose-200 ring-1 ring-rose-500/10">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-rose-400/[0.08] text-rose-300/80 ring-1 ring-rose-400/[0.08]">
                 <LogOut className="h-4 w-4 shrink-0" />
               </span>
               {!collapsed ? <span className="sr-only">Đăng xuất</span> : null}
@@ -253,7 +258,7 @@ export default function AdminLayout() {
 
       <div
         className={`relative z-10 flex min-w-0 flex-1 flex-col transition-[margin] duration-300 ease-out ${
-          collapsed ? 'lg:ml-20' : 'lg:ml-[260px]'
+          collapsed ? 'lg:ml-20' : 'lg:ml-[276px]'
         } ${isVehicleEntryPage ? 'h-full overflow-hidden' : ''}`}
       >
         <header className="sticky top-0 z-40 border-b border-slate-100 bg-white px-5 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)] lg:px-8">
