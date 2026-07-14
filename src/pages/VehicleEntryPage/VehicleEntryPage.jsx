@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { AlertCircle, CarFront, CheckCircle2, TicketCheck, Bike, Keyboard, ChevronDown, Clock3, User, ScanLine, SlidersHorizontal } from 'lucide-react';
 import { checkParkingEntry, confirmParkingEntry } from '../../services/staffService';
 import { VIETNAM_TIME_ZONE } from '../../utils/dateTime';
+import { rememberVehicleType } from '../../utils/vehicleTypeMemory';
 
 const PLATE_REGEX = /^[A-Z0-9-]*$/;
 const PLATE_MAX_LENGTH = 12;
@@ -166,6 +167,7 @@ export default function VehicleEntryPage() {
         vehicleTypeCode: vehicleType,
       };
       setResult(await confirmParkingEntry(payload));
+      rememberVehicleType(result?.licensePlate || licensePlate, vehicleType);
       setNotice({ type: 'success', message: 'Đã xác nhận xe vào bãi' });
       setLicensePlate('');
       setVehicleType('CAR');

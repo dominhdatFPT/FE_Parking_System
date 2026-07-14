@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bike, CarFront, X } from 'lucide-react';
 import { formatVietnamDateTime } from '../../utils/dateTime';
+import { normalizeVehicleTypeCode } from '../../utils/vehicleTypeMemory';
 
 const statusClasses = {
   'Bình thường': 'bg-emerald-50 text-emerald-700',
@@ -40,8 +41,7 @@ function TimelineItem({ tone = 'emerald', label, value, last = false }) {
 }
 
 function isMotorbikeSession(session) {
-  const vehicleType = String(session?.type || session?.vehicleType || '').toLowerCase();
-  return vehicleType.includes('motor') || vehicleType.includes('bike') || vehicleType.includes('xe máy');
+  return normalizeVehicleTypeCode(session?.type || session?.vehicleType) === 'MOTORBIKE';
 }
 
 export default function SessionDetailDrawer({ open, session, onClose }) {
