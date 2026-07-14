@@ -28,7 +28,8 @@ const mainNavigationItems = [
   { icon: ArrowUpFromLine, label: 'Xe ra', path: ROUTES.ADMIN.VEHICLE_EXIT },
   { icon: Boxes, label: 'Phiên gửi xe', path: ROUTES.ADMIN.PARKING_SESSIONS },
   { icon: Package, label: 'Quản lý gói', path: ROUTES.STAFF.BOOKINGS },
-  { icon: ClipboardPlus, label: 'Đăng ký gói', path: ROUTES.ADMIN.USER_VEHICLE_REGISTRATION },
+  { icon: ClipboardPlus, label: 'Đăng ký xe', path: ROUTES.ADMIN.USER_VEHICLE_REGISTRATION },
+  { icon: ClipboardPlus, label: 'Duyệt đăng ký xe', path: ROUTES.STAFF.VEHICLE_REGISTRATIONS },
   { icon: BellRing, label: 'Thông báo', path: ROUTES.ADMIN.NOTIFICATIONS.BASE },
   { icon: Users, label: 'Quản lý tài khoản', path: ROUTES.ADMIN.USERS },
 ];
@@ -42,7 +43,8 @@ const incidentNavigationItem = {
 const pageTitles = [
   { path: ROUTES.ADMIN.DASHBOARD, title: 'Tổng quan bãi', end: true },
   { path: ROUTES.STAFF.BOOKINGS, title: 'Quản lý gói' },
-  { path: ROUTES.ADMIN.USER_VEHICLE_REGISTRATION, title: 'Đăng ký gói' },
+  { path: ROUTES.ADMIN.USER_VEHICLE_REGISTRATION, title: 'Đăng ký xe' },
+  { path: ROUTES.STAFF.VEHICLE_REGISTRATIONS, title: 'Duyệt đăng ký xe' },
   { path: ROUTES.ADMIN.VEHICLE_ENTRY, title: 'Xe vào' },
   { path: ROUTES.ADMIN.PARKING_SESSIONS, title: 'Tất cả phiên gửi xe' },
   { path: ROUTES.ADMIN.VEHICLE_EXIT, title: 'Xe ra' },
