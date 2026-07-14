@@ -121,6 +121,13 @@ export default function SessionDetailDrawer({ open, session, onClose }) {
             </div>
           </section>
 
+          <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Phí gửi xe</h3>
+            <div className="mt-3 space-y-1">
+              <DetailRow label="Phí gửi xe" value={session.calculatedFee != null ? `${Number(session.calculatedFee).toLocaleString('vi-VN')}đ` : '--'} />
+            </div>
+          </section>
+
 
         </div>
 
