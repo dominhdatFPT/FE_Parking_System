@@ -139,6 +139,9 @@ function mapActivityToSession(activity) {
     cardId: activity.visitorCardCode || '--',
     entry: formatTime(activity.entryTime),
     exit: isCompleted ? formatTime(activity.exitTime) : '--',
+    entryTime: activity.entryTime || null,
+    exitTime: activity.exitTime || null,
+    calculatedFee: activity.calculatedFee ?? null,
     duration: formatDuration(activity.entryTime, activity.exitTime),
     floor: activity.floorName || '--',
     zone: activity.parkingName || '--',
@@ -686,6 +689,7 @@ export default function HomePage() {
           <input
             type="date"
             value={selectedDate}
+            max={getToday()}
             onChange={(event) => setSelectedDate(event.target.value)}
             className="h-12 rounded-full border border-[#E6EDF5] bg-white/90 px-4 text-sm font-semibold text-[#0F172A] outline-none transition-all duration-200 hover:border-blue-200 focus:border-[#1D6BFF] focus:ring-4 focus:ring-blue-100"
           />
@@ -731,6 +735,7 @@ export default function HomePage() {
             <input
               type="date"
               value={selectedDate}
+              max={getToday()}
               onChange={(event) => setSelectedDate(event.target.value)}
               className="h-12 rounded-full border border-[#E6EDF5] bg-white/90 px-4 text-sm font-semibold text-[#0F172A] outline-none transition-all duration-200 hover:border-blue-200 focus:border-[#1D6BFF] focus:ring-4 focus:ring-blue-100"
             />

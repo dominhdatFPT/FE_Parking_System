@@ -1,7 +1,8 @@
 function parseNumber(value) {
   if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
   const normalized = String(value ?? '')
-    .replace(/[^\d.-]/g, '');
+    .replace(/[^\d.-]/g, '')
+    .replace(/\./g, '');
   const number = Number(normalized);
   return Number.isFinite(number) ? number : 0;
 }
@@ -181,7 +182,7 @@ export async function exportParkingDashboardReport({ data, selectedDate }) {
   worksheet.getCell('F5').value = 'Tất cả';
   worksheet.getCell('H5').value = 'Thời điểm xuất';
   worksheet.getCell('I5').value = new Date();
-  worksheet.getCell('I5').numFmt = 'dd/mm/yyyy hh:mm';
+  worksheet.getCell('I5').numFmt = 'dd/mm/yyyy hh:mm:ss';
 
   ['B5', 'E5', 'H5'].forEach((address) => {
     worksheet.getCell(address).font = { color: { argb: '44546A' } };
@@ -197,7 +198,7 @@ export async function exportParkingDashboardReport({ data, selectedDate }) {
 
   addKpiCard(worksheet, 'B7:C8', '🚗 Lượt xe vào', String(data.entries), 'D9EAF7');
   addKpiCard(worksheet, 'D7:E8', '🚙 Lượt xe ra', String(data.exits), 'FFF2CC', 'BF9000');
-  addKpiCard(worksheet, 'F7:G8', '💰 Doanh thu', revenue.toLocaleString('vi-VN'), 'E2F0D9', '00875A');
+  addKpiCard(worksheet, 'F7:G8', '💰 Doanh thu', `${revenue.toLocaleString('vi-VN')}đ`, 'E2F0D9', '00875A');
   addKpiCard(worksheet, 'H7:I8', '🅿️ Công suất bãi', `${capacity.used} / ${capacity.total}`, 'EDEDED');
 
   addSectionTitle(worksheet, 11, 'CHI TIẾT CHỈ SỐ VẬN HÀNH');

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  AlertCircle, ArrowUpFromLine, CarFront, CheckCircle2, Clock3,
+  AlertCircle, ArrowUpFromLine, Bike, CarFront, CheckCircle2, Clock3,
   CreditCard, Keyboard, LoaderCircle, ReceiptText, ScanLine,
   ShieldCheck, TimerReset, UserRound,
 } from 'lucide-react';
@@ -9,6 +9,10 @@ import { VIETNAM_TIME_ZONE } from '../../../utils/dateTime';
 
 const formatCurrency = (value) => `${Number(value || 0).toLocaleString('vi-VN')} đ`;
 const formatVND = (value) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
+
+const PLATE_REGEX = /^[A-Z0-9-]*$/;
+const PLATE_MIN_LENGTH = 5;
+const PLATE_MAX_LENGTH = 12;
 
 const formatKpiDateTime = (value) => {
   if (!value) return '—';
@@ -171,6 +175,7 @@ function CameraPanel({ label, status = 'Online' }) {
 
 export default function StaffVehicleExit() {
   const [licensePlate, setLicensePlate] = useState('');
+  const [plateError, setPlateError] = useState('');
   const [result, setResult] = useState(null);
   const [hasCheckedVehicle, setHasCheckedVehicle] = useState(false);
   const [hasReceivedCash, setHasReceivedCash] = useState(false);
@@ -188,12 +193,21 @@ export default function StaffVehicleExit() {
 
   const handleSearch = async (event) => {
     event?.preventDefault();
-    const plate = licensePlate.trim();
+    const plate = licensePlate.trim().toUpperCase();
     if (!plate) {
-      setError('Vui lòng nhập biển số xe cần kiểm tra.');
+      setPlateError('Vui lòng nhập biển số xe');
+      return;
+    }
+    if (plate.length < PLATE_MIN_LENGTH || plate.length > PLATE_MAX_LENGTH) {
+      setPlateError('Biển số phải từ 5-12 ký tự');
+      return;
+    }
+    if (!PLATE_REGEX.test(plate)) {
+      setPlateError('Biển số chỉ được chứa chữ cái, số và dấu gạch ngang');
       return;
     }
     setLoading(true);
+    setPlateError('');
     setError('');
     setSuccessMessage('');
     setResult(null);
@@ -203,7 +217,7 @@ export default function StaffVehicleExit() {
     try {
       const data = await checkParkingExit(plate);
       setResult(data);
-      setLicensePlate(data.licensePlate || plate.toUpperCase());
+      setLicensePlate(data.licensePlate || plate);
       setHasCheckedVehicle(true);
     } catch (err) {
       setError(extractError(err, 'Không tìm thấy phiên gửi xe đang hoạt động.'));
@@ -255,7 +269,7 @@ export default function StaffVehicleExit() {
   const entryTimeDisplay = hasExitData ? formatKpiDateTime(result.entryTime) : '—';
   const durationDisplay = hasExitData ? formatDuration(result.durationMinutes) : '—';
   const customerDisplay = hasExitData ? (result.customerName || 'Khách vãng lai') : '—';
-  const totalFeeDisplay = hasExitData ? formatCurrency(result.fee?.amount) : '—';
+  const totalFeeDisplay = hasExitData ? formatVND(result.fee?.amount) : '—';
   const feeDescription = hasExitData
     ? (result.fee?.description || 'Tính theo thời gian gửi thực tế, làm tròn lên theo mỗi khung phí')
     : 'Nhập biển số để xem chi tiết phí.';
@@ -321,21 +335,29 @@ export default function StaffVehicleExit() {
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-blue-500">
-                  <CarFront className="h-4 w-4" strokeWidth={2.25} />
+                  {hasExitData && result?.vehicleType === 'MOTORBIKE' 
+                    ? <Bike className="h-4 w-4" strokeWidth={2.25} /> 
+                    : <CarFront className="h-4 w-4" strokeWidth={2.25} />}
                 </span>
                 <input
                   autoFocus
                   value={licensePlate}
+                  maxLength={PLATE_MAX_LENGTH}
                   onChange={(e) => {
-                    setLicensePlate(e.target.value.toUpperCase());
+                    const raw = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, PLATE_MAX_LENGTH);
+                    setLicensePlate(raw);
+                    setPlateError('');
                     if (!isExitCompleted) { setResult(null); setError(''); setHasCheckedVehicle(false); }
                   }}
                   placeholder="VD: 30A-123.45"
                   disabled={isExitCompleted}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-9 text-sm font-bold uppercase tracking-wide text-slate-950 outline-none transition-all placeholder:normal-case placeholder:font-medium placeholder:tracking-normal placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-3 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  className={`h-10 w-full rounded-xl border bg-slate-50 pl-10 pr-9 text-sm font-bold uppercase tracking-wide text-slate-950 outline-none transition-all placeholder:normal-case placeholder:font-medium placeholder:tracking-normal placeholder:text-slate-400 focus:bg-white focus:ring-3 ${plateError ? 'border-rose-400 focus:border-rose-400 focus:ring-rose-100' : 'border-slate-200 focus:border-blue-400 focus:ring-blue-100'} disabled:cursor-not-allowed disabled:opacity-60`}
                 />
                 <Keyboard className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-300" />
               </div>
+              {plateError && (
+                <p className="absolute left-10 mt-1 text-[10px] font-semibold text-rose-600">{plateError}</p>
+              )}
               <button
                 type="submit"
                 disabled={loading || isExitCompleted}
@@ -353,7 +375,7 @@ export default function StaffVehicleExit() {
           {/* Info grid */}
           <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-2 gap-2 overflow-hidden">
             <InfoCard icon={ReceiptText} label="Mã lượt gửi" value={hasExitData ? result.orderCode : '—'} />
-            <InfoCard icon={CarFront} label="Loại xe" value={hasExitData ? vehicleTypeDisplay : '—'} />
+            <InfoCard icon={hasExitData && result?.vehicleType === 'MOTORBIKE' ? Bike : CarFront} label="Loại xe" value={hasExitData ? vehicleTypeDisplay : '—'} />
             <InfoCard
               icon={CreditCard}
               label="Thẻ vãng lai"
