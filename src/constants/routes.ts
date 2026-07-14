@@ -29,16 +29,6 @@ export const ROUTES = {
     DETAIL: '/notifications/:id',
   },
 
-  MANAGER: {
-    DASHBOARD: '/manager',
-    BUILDINGS: '/manager/buildings',
-    VEHICLE_TYPES: '/manager/vehicle-types',
-    FLOORS_ZONES: '/manager/floors-zones',
-    SLOTS: '/manager/slots',
-    PRICING: '/manager/pricing',
-    REPORTS: '/manager/reports',
-    AI_OPTIMIZATION: '/manager/ai-optimization',
-  },
 
   STAFF: {
     DASHBOARD: '/staff',
