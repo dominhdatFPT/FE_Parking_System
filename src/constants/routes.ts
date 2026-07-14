@@ -29,16 +29,6 @@ export const ROUTES = {
     DETAIL: '/notifications/:id',
   },
 
-  SETTINGS: {
-    BASE: '/settings',
-    PROFILE: '/settings/profile',
-    PASSWORD: '/settings/password',
-    NOTIFICATIONS: '/settings/notifications',
-    LANGUAGE: '/settings/language',
-    SYSTEM: '/settings/system',
-    SECURITY_LOGS: '/settings/security-logs',
-  },
-
   MANAGER: {
     DASHBOARD: '/manager',
     BUILDINGS: '/manager/buildings',

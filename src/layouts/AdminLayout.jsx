@@ -276,8 +276,6 @@ export default function AdminLayout() {
               <NotificationDropdown />
               <UserProfileDropdown
                 profile={profile}
-                onViewProfile={() => navigate(ROUTES.SETTINGS.PROFILE)}
-                onChangePassword={() => navigate(ROUTES.SETTINGS.PASSWORD)}
                 onViewNotifications={() => navigate(ROUTES.ADMIN.NOTIFICATIONS.BASE)}
                 onViewRules={openRules}
                 onLogout={handleLogout}

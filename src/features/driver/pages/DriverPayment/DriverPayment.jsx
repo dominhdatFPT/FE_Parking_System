@@ -170,7 +170,7 @@ export default function DriverPayment() {
 
       {pendingFeePlans.length > 0 && (
         <section className="rounded-2xl border border-sky-100 bg-sky-50/30 p-5">
-          <h3 className="text-sm font-bold text-slate-800">{t('payment.pendingVnpayPlans')}</h3>
+          <h3 className="text-sm font-bold text-slate-800">{t('payment.pendingRequestTitle')}</h3>
           <div className="mt-3 space-y-3">
             {pendingFeePlans.map((plan) => (
               <div
@@ -182,31 +182,30 @@ export default function DriverPayment() {
                     {plan.planName || t('payment.vehicleCardPlan')} - {plan.licensePlate || t('payment.noLicensePlate')}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    {t('payment.payViaVnpay')}
-                    {plan.expiredAt ? ` - ${t('payment.expiresAt', { date: vietnamDayjs(plan.expiredAt).format('DD/MM/YYYY HH:mm') })}` : ''}
+                    {plan.expiredAt ? t('payment.expiresAt', { date: vietnamDayjs(plan.expiredAt).format('DD/MM/YYYY HH:mm') }) : t('payment.vehicleCardSubtitle')}
                   </p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="min-w-[260px]">
                   <p className="font-black text-sky-600">
                     {t('payment.currencyAmount', { amount: Number(plan.amount || 0).toLocaleString('vi-VN') })}
                   </p>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    icon="open_in_new"
-                    loading={redirecting}
-                    disabled={redirecting}
-                    onClick={() => handlePayFeePlan(plan)}
-                  >
-                    {redirecting ? t('payment.redirecting') : t('payment.payNow')}
-                  </Button>
+                  {stripePromise && plan.clientSecret ? (
+                    <Elements stripe={stripePromise}>
+                      <StripeSubscriptionForm
+                        plan={plan}
+                        onPaid={handlePlanPaid}
+                        onError={setErrorMessage}
+                      />
+                    </Elements>
+                  ) : (
+                    <p className="mt-2 text-xs font-semibold text-amber-600">
+                      Chưa cấu hình Stripe publishable key nên không thể hiển thị form thanh toán.
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
           </div>
-          <p className="mt-3 text-xs text-slate-400">
-            {t('payment.vnpayRedirectNote')}
-          </p>
         </section>
       )}
 

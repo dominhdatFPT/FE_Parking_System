@@ -20,7 +20,6 @@ import NotFoundPage from '../pages/NotFoundPage';
 import ForbiddenPage from '../pages/ForbiddenPage';
 import AccountManagementPage from '../pages/AccountManagementPage';
 import UserVehicleRegistrationPage from '../pages/UserVehicleRegistrationPage';
-import SettingsPage from '../pages/SettingsPage';
 import NotificationDetailPage from '../pages/NotificationDetailPage';
 import NotificationManagement from '../pages/NotificationManagement';
 import SystemConfigurationPage from '../pages/SystemConfigurationPage';
@@ -123,7 +122,6 @@ export function AppRoutes() {
         <Route path={ROUTES.STAFF.SESSIONS} element={<StaffSessions />} />
         <Route path={ROUTES.STAFF.EXCEPTIONS} element={<StaffExceptions />} />
         <Route path={ROUTES.STAFF.BOOKINGS} element={<StaffBookingReview />} />
-        <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />} />
       </Route>
 
       <Route
