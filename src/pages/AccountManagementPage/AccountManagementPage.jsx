@@ -93,6 +93,54 @@ const buildStaffCode = (userId) => {
   return `STF${String(userId).padStart(3, '0')}`;
 };
 
+const CREATE_FIELD_LABELS = {
+  fullName: 'Họ tên',
+  email: 'Email',
+  phone: 'Số điện thoại',
+  password: 'Mật khẩu',
+  role: 'Phân quyền',
+};
+
+const CREATE_FIELD_ERROR_TRANSLATIONS = {
+  'Full name is required': 'Họ tên không được để trống',
+  'Email is required': 'Email không được để trống',
+  'Email must be a Gmail address': 'Email phải là địa chỉ Gmail',
+  'Phone number must be 10-11 digits': 'Số điện thoại phải có 10-11 chữ số',
+  'Password is required': 'Mật khẩu không được để trống',
+  'Password must be at least 8 characters and contain at least one letter and one number':
+    'Mật khẩu phải có ít nhất 8 ký tự, gồm cả chữ và số',
+  'Role is required': 'Vui lòng chọn phân quyền',
+  'Role must be USER, STAFF, or ADMIN': 'Phân quyền chỉ được chọn USER, STAFF hoặc ADMIN',
+};
+
+const translateCreateFieldError = (field, message) => {
+  const normalizedMessage = String(message || '').trim();
+  if (!normalizedMessage) {
+    return `${CREATE_FIELD_LABELS[field] || 'Trường này'} không hợp lệ`;
+  }
+  return CREATE_FIELD_ERROR_TRANSLATIONS[normalizedMessage] || normalizedMessage;
+};
+
+const extractCreateFieldErrors = (errors) => {
+  if (!errors || typeof errors !== 'object' || Array.isArray(errors)) return {};
+
+  return Object.entries(errors).reduce((fieldErrors, [field, message]) => {
+    if (Object.prototype.hasOwnProperty.call(CREATE_FIELD_LABELS, field)) {
+      fieldErrors[field] = translateCreateFieldError(field, message);
+    }
+    return fieldErrors;
+  }, {});
+};
+
+const extractCreateBusinessError = (message) => {
+  const normalizedMessage = String(message || '').trim();
+  if (!normalizedMessage) return {};
+  if (normalizedMessage.toLowerCase().startsWith('email already exists')) {
+    return { email: 'Email đã tồn tại trong hệ thống' };
+  }
+  return {};
+};
+
 const extractList = (payload) => {
   if (!payload) return [];
   if (Array.isArray(payload?.content)) return payload.content;
@@ -418,8 +466,11 @@ export default function AccountManagementPage() {
     }
     if (!form.email.trim()) {
       errors.email = 'Email không được để trống';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+    } else if (!/^[A-Z0-9._%+-]+@gmail\.com$/i.test(form.email.trim())) {
       errors.email = 'Email không hợp lệ';
+    }
+    if (errors.email && form.email.trim()) {
+      errors.email = 'Email phải là địa chỉ Gmail';
     }
     const trimmedPhone = form.phone.trim();
     if (trimmedPhone && !/^\d{10,11}$/.test(trimmedPhone)) {
@@ -427,8 +478,11 @@ export default function AccountManagementPage() {
     }
     if (!form.password) {
       errors.password = 'Mật khẩu không được để trống';
-    } else if (form.password.length < 6) {
+    } else if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(form.password)) {
       errors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
+    }
+    if (errors.password && form.password) {
+      errors.password = 'Mật khẩu phải có ít nhất 8 ký tự, gồm cả chữ và số';
     }
     if (!form.role) {
       errors.role = 'Vui lòng chọn phân quyền';
@@ -458,6 +512,18 @@ export default function AccountManagementPage() {
       resetCreateForm();
       await fetchAccounts();
     } catch (error) {
+      const responseData = error?.response?.data;
+      const fieldErrors = {
+        ...extractCreateFieldErrors(responseData?.errors),
+        ...extractCreateBusinessError(responseData?.message),
+      };
+
+      if (Object.keys(fieldErrors).length > 0) {
+        setCreateErrors(fieldErrors);
+        setCreateError('');
+        return;
+      }
+
       const message = error?.response?.data?.message
         || error?.message
         || 'Tạo tài khoản thất bại. Vui lòng thử lại.';

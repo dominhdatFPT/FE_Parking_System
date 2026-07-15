@@ -29,26 +29,6 @@ export const ROUTES = {
     DETAIL: '/notifications/:id',
   },
 
-  SETTINGS: {
-    BASE: '/settings',
-    PROFILE: '/settings/profile',
-    PASSWORD: '/settings/password',
-    NOTIFICATIONS: '/settings/notifications',
-    LANGUAGE: '/settings/language',
-    SYSTEM: '/settings/system',
-    SECURITY_LOGS: '/settings/security-logs',
-  },
-
-  MANAGER: {
-    DASHBOARD: '/manager',
-    BUILDINGS: '/manager/buildings',
-    VEHICLE_TYPES: '/manager/vehicle-types',
-    FLOORS_ZONES: '/manager/floors-zones',
-    SLOTS: '/manager/slots',
-    PRICING: '/manager/pricing',
-    REPORTS: '/manager/reports',
-    AI_OPTIMIZATION: '/manager/ai-optimization',
-  },
 
   STAFF: {
     DASHBOARD: '/staff',

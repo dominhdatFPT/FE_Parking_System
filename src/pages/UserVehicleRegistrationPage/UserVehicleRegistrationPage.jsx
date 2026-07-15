@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   CarFront,
   CheckCircle2,
@@ -299,8 +300,8 @@ export default function UserVehicleRegistrationPage() {
         )}
       </section>
 
-      {selectedUser && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden bg-slate-900/60 p-3 backdrop-blur-sm sm:p-5" role="dialog" aria-modal="true">
+      {selectedUser && createPortal(
+        <div className="fixed inset-0 z-[1200] flex items-center justify-center overflow-hidden bg-slate-900/60 p-3 backdrop-blur-sm sm:p-5" role="dialog" aria-modal="true">
           <div className="flex max-h-[calc(100dvh-2rem)] w-full max-w-6xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
             <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
               <div>
@@ -515,7 +516,8 @@ export default function UserVehicleRegistrationPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

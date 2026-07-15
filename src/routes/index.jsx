@@ -1,7 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router';
 import { useAuth } from '../contexts/useAuth';
 import { ROUTES } from '../constants/routes';
-import MainLayout from '../layouts/MainLayout';
 import AdminLayout from '../layouts/AdminLayout';
 import DriverLayout from '../layouts/DriverLayout';
 import LoginPage from '../features/auth/pages/LoginPage';
@@ -20,12 +19,10 @@ import NotFoundPage from '../pages/NotFoundPage';
 import ForbiddenPage from '../pages/ForbiddenPage';
 import AccountManagementPage from '../pages/AccountManagementPage';
 import UserVehicleRegistrationPage from '../pages/UserVehicleRegistrationPage';
-import SettingsPage from '../pages/SettingsPage';
 import NotificationDetailPage from '../pages/NotificationDetailPage';
 import NotificationManagement from '../pages/NotificationManagement';
 import SystemConfigurationPage from '../pages/SystemConfigurationPage';
 import AuditLogPage from '../pages/AuditLogPage';
-import StaffVehicleRegistrationReview from '../features/staff/pages/StaffVehicleRegistrationReview';
 import StaffVehicleExit from '../features/staff/pages/StaffVehicleExit';
 import StaffSessions from '../features/staff/pages/StaffSessions';
 import StaffExceptions from '../features/staff/pages/StaffExceptions';
@@ -117,13 +114,12 @@ export function AppRoutes() {
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.BASE} element={<NotificationManagement />} />
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.DETAIL} element={<NotificationDetailPage />} />
         <Route path={ROUTES.STAFF.DASHBOARD} element={<Navigate to={ROUTES.ADMIN.DASHBOARD} replace />} />
-        <Route path={ROUTES.STAFF.VEHICLE_REGISTRATIONS} element={<StaffVehicleRegistrationReview />} />
+        <Route path={ROUTES.STAFF.VEHICLE_REGISTRATIONS} element={<Navigate to={ROUTES.STAFF.BOOKINGS} replace />} />
         <Route path={ROUTES.STAFF.VEHICLE_ENTRY} element={<VehicleEntryPage />} />
         <Route path={ROUTES.STAFF.VEHICLE_EXIT} element={<StaffVehicleExit />} />
         <Route path={ROUTES.STAFF.SESSIONS} element={<StaffSessions />} />
         <Route path={ROUTES.STAFF.EXCEPTIONS} element={<StaffExceptions />} />
         <Route path={ROUTES.STAFF.BOOKINGS} element={<StaffBookingReview />} />
-        <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />} />
       </Route>
 
       <Route
