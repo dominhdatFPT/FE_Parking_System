@@ -195,7 +195,7 @@ export async function exportParkingDashboardReport({ data, selectedDate }) {
   worksheet.getCell('F5').value = 'Tất cả';
   worksheet.getCell('H5').value = 'Thời điểm xuất';
   worksheet.getCell('I5').value = new Date();
-  worksheet.getCell('I5').numFmt = 'dd/mm/yyyy hh:mm';
+  worksheet.getCell('I5').numFmt = 'dd/mm/yyyy hh:mm:ss';
 
   ['B5', 'E5', 'H5'].forEach((address) => {
     worksheet.getCell(address).font = { color: { argb: '44546A' } };
