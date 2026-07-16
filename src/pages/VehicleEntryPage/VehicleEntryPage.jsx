@@ -1,7 +1,11 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { AlertCircle, CarFront, CheckCircle2, TicketCheck, Bike, Keyboard, ChevronDown, Clock3, User, ScanLine, SlidersHorizontal } from 'lucide-react';
 import { checkParkingEntry, confirmParkingEntry } from '../../services/staffService';
 import { VIETNAM_TIME_ZONE } from '../../utils/dateTime';
+import { rememberVehicleType } from '../../utils/vehicleTypeMemory';
+
+const PLATE_REGEX = /^[A-Z0-9-]*$/;
+const PLATE_MAX_LENGTH = 12;
 
 const formatKpiDateTime = (value) => {
   if (!value) return '—';
@@ -97,6 +101,7 @@ function CameraPanel({ label, status = 'Online' }) {
 }
 
 export default function VehicleEntryPage() {
+  const plateInputRef = useRef(null);
   const [licensePlate, setLicensePlate] = useState('');
   const [vehicleType, setVehicleType] = useState('CAR');
   const [result, setResult] = useState(null);
@@ -106,14 +111,28 @@ export default function VehicleEntryPage() {
   const [notice, setNotice] = useState(null);
   // hasChecked: true only after the user explicitly pressed "Kiểm tra xe" and got a response
   const [hasChecked, setHasChecked] = useState(false);
+  const [plateError, setPlateError] = useState('');
+  const [typeError, setTypeError] = useState('');
 
   const check = async (event) => {
     event?.preventDefault();
     const plate = licensePlate.trim().toUpperCase();
+    let hasError = false;
     if (!plate) {
-      setNotice({ type: 'error', message: 'Vui lòng nhập biển số xe trước khi kiểm tra.' });
-      return;
+      setPlateError('Vui lòng nhập biển số xe');
+      hasError = true;
+    } else if (plate.length < 5 || plate.length > 12) {
+      setPlateError('Biển số phải từ 5-12 ký tự');
+      hasError = true;
+    } else if (!PLATE_REGEX.test(plate)) {
+      setPlateError('Biển số chỉ được chứa chữ cái, số và dấu gạch ngang');
+      hasError = true;
     }
+    if (!vehicleType) {
+      setTypeError('Vui lòng chọn loại xe');
+      hasError = true;
+    }
+    if (hasError) return;
     setLoading(true); setNotice(null); setResult(null); setHasChecked(false);
     try {
       const res = await checkParkingEntry(plate, vehicleType || null);
@@ -134,7 +153,7 @@ export default function VehicleEntryPage() {
         setNotice({ type: 'error', message: res.message || 'Không thể xử lý yêu cầu cho xe này.' });
       }
     }
-    catch (err) { setNotice({ type: 'error', message: err.response?.data?.message || err.response?.data?.error || 'Không thể kiểm tra biển số trong database.' }); }
+    catch (err) { setNotice({ type: 'error', message: err.response?.data?.message || err.response?.data?.error || 'Không thể kiểm tra biển số xe.' }); }
     finally { setLoading(false); }
   };
 
@@ -144,10 +163,19 @@ export default function VehicleEntryPage() {
     try {
       const payload = {
         ...result,
-        vehicleType: vehicleType || result.vehicleType,
+        vehicleType,
+        vehicleTypeCode: vehicleType,
       };
       setResult(await confirmParkingEntry(payload));
-      setNotice({ type: 'success', message: 'Đã tạo phiên gửi xe trong database' });
+      rememberVehicleType(result?.licensePlate || licensePlate, vehicleType);
+      setNotice({ type: 'success', message: 'Đã xác nhận xe vào bãi' });
+      setLicensePlate('');
+      setVehicleType('CAR');
+      setResult(null);
+      setHasChecked(false);
+      setPlateError('');
+      setTypeError('');
+      setTimeout(() => plateInputRef.current?.focus(), 0);
     }
     catch (err) { setNotice({ type: 'error', message: err.response?.data?.message || err.response?.data?.error || 'Không thể xác nhận xe vào.' }); }
     finally { setConfirming(false); }
@@ -172,9 +200,7 @@ export default function VehicleEntryPage() {
   const entryTime = hasChecked ? formatKpiDateTime(result?.entryTime || result?.checkInTime || result?.createdAt) : '—';
   const exitTime = hasChecked ? formatKpiDateTime(result?.exitTime || result?.checkOutTime) : '—';
   const sessionCode = getSessionCode(result);
-  const checkedVehicleType = result?.vehicleType || vehicleType;
-  const isMotorbike = String(checkedVehicleType || '').toUpperCase().includes('MOTORBIKE')
-    || String(checkedVehicleType || '').toLowerCase().includes('xe máy');
+  const isMotorbike = String(vehicleType || '').toUpperCase() === 'MOTORBIKE';
   const vehicleTypeDisplay = !hasChecked ? '—' : isMotorbike ? 'Xe máy' : 'Ô tô';
   const VehicleTypeIcon = isMotorbike ? Bike : CarFront;
   const sessionStatusDisplay = hasChecked ? formatSessionStatus(result?.sessionStatus, result?.canConfirm, isInvalid) : '—';
@@ -183,7 +209,7 @@ export default function VehicleEntryPage() {
     : result?.canConfirm
       ? 'Chưa tạo phiên'
       : sessionCode
-        ? `Phiên ${sessionCode}`
+        ? String(sessionCode)
         : 'Phiên gửi xe đã tạo';
 
   return (
@@ -223,17 +249,27 @@ export default function VehicleEntryPage() {
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">BIỂN SỐ XE</label>
                 <div className="relative">
                   <span className="pointer-events-none absolute left-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-xl bg-blue-50 text-blue-600">
-                    <CarFront className="h-4 w-4" strokeWidth={2.25} />
+                    {vehicleType === 'MOTORBIKE' ? <Bike className="h-4 w-4" strokeWidth={2.25} /> : <CarFront className="h-4 w-4" strokeWidth={2.25} />}
                   </span>
                   <input
+                    ref={plateInputRef}
                     autoFocus
                     value={licensePlate}
-                    onChange={(e) => { setLicensePlate(e.target.value.toUpperCase()); setResult(null); setNotice(null); setHasChecked(false); }}
+                    maxLength={PLATE_MAX_LENGTH}
+                    onChange={(e) => {
+                      const raw = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, PLATE_MAX_LENGTH);
+                      setLicensePlate(raw);
+                      setPlateError('');
+                      setResult(null);
+                      setNotice(null);
+                      setHasChecked(false);
+                    }}
                     placeholder="VD: 30A-123.45"
-                    className="h-12 w-full rounded-[14px] border border-[#D8E3F1] bg-white pl-[52px] pr-11 font-sans text-sm font-bold uppercase tracking-wide text-slate-950 shadow-sm outline-none transition-all duration-200 placeholder:normal-case placeholder:font-medium placeholder:tracking-normal placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                    className={`h-12 w-full rounded-[14px] border bg-white pl-[52px] pr-11 font-sans text-sm font-bold uppercase tracking-wide text-slate-950 shadow-sm outline-none transition-all duration-200 placeholder:normal-case placeholder:font-medium placeholder:tracking-normal placeholder:text-slate-400 focus:ring-4 ${plateError ? 'border-red-400 focus:border-red-400 focus:ring-red-100' : 'border-[#D8E3F1] focus:border-blue-400 focus:ring-blue-100'}`}
                   />
                   <Keyboard className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 </div>
+                {plateError && <p className="mt-1 text-xs font-semibold text-red-500">{plateError}</p>}
               </div>
 
               {/* Vehicle Type */}
@@ -245,14 +281,15 @@ export default function VehicleEntryPage() {
                   </span>
                   <select
                     value={vehicleType}
-                    onChange={(e) => { setVehicleType(e.target.value); setResult(null); setNotice(null); setHasChecked(false); }}
-                    className="h-12 w-full appearance-none rounded-[14px] border border-[#D8E3F1] bg-white pl-[52px] pr-11 font-sans text-sm font-bold text-slate-800 shadow-sm outline-none transition-all duration-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                    onChange={(e) => { setVehicleType(e.target.value); setTypeError(''); setResult(null); setNotice(null); setHasChecked(false); }}
+                    className={`h-12 w-full appearance-none rounded-[14px] border bg-white pl-[52px] pr-11 font-sans text-sm font-bold text-slate-800 shadow-sm outline-none transition-all duration-200 focus:ring-4 ${typeError ? 'border-red-400 focus:border-red-400 focus:ring-red-100' : 'border-[#D8E3F1] focus:border-blue-400 focus:ring-blue-100'}`}
                   >
                     <option value="CAR">Ô tô</option>
                     <option value="MOTORBIKE">Xe máy</option>
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
                 </div>
+                {typeError && <p className="mt-1 text-xs font-semibold text-red-500">{typeError}</p>}
               </div>
             </div>
 
@@ -330,9 +367,9 @@ export default function VehicleEntryPage() {
             </div>
           </div>
 
-          {/* Middle: license plate card (left col) + illustration (right col) */}
-          <div className="mt-3 grid min-h-0 flex-1 grid-cols-[0.95fr_1.35fr] items-center gap-5">
-            <div className="flex h-[126px] items-center justify-center overflow-hidden rounded-[20px] border border-[#DCE7F4] bg-white px-6 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+          {/* Middle: plate on the left, session facts on the right. */}
+          <div className="mt-3 grid min-h-0 flex-1 grid-cols-[0.95fr_1.35fr] items-stretch gap-5">
+            <div className="flex min-h-[132px] items-center justify-center overflow-hidden rounded-[20px] border border-[#DCE7F4] bg-white px-6 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
               <div className="w-full text-center">
                 <p className="truncate font-sans text-[40px] font-black leading-none tracking-tight text-slate-950">{displayPlate}</p>
                 <div className="mt-3 h-px bg-slate-200" />
@@ -340,38 +377,16 @@ export default function VehicleEntryPage() {
               </div>
             </div>
 
-            {/* Decorative parking gate illustration (pure CSS, low opacity) */}
-            <div className="pointer-events-none relative hidden h-[100px] min-h-0 flex-1 overflow-hidden md:block">
-              <span className="absolute bottom-0 right-0 h-px w-full bg-gradient-to-r from-transparent via-blue-200 to-transparent" />
-              <span className="absolute bottom-4 right-36 h-10 w-36 rounded-full bg-blue-300/15 blur-xl" />
-              <span className="absolute bottom-2 right-40 h-12 w-28 rounded-t-3xl border border-blue-200/50 bg-blue-100/25" />
-              <span className="absolute bottom-1 right-[180px] h-3 w-3 rounded-full bg-blue-300/50" />
-              <span className="absolute bottom-1 right-[88px] h-3 w-3 rounded-full bg-blue-300/50" />
-              <span className="absolute bottom-2 right-[252px] h-20 w-8 rounded-lg bg-gradient-to-b from-blue-700/35 to-blue-500/20" />
-              <span className="absolute bottom-[80px] right-[148px] h-3 w-44 origin-left rotate-[-20deg] rounded-full border border-blue-300/40 bg-gradient-to-r from-blue-700/55 via-sky-300/45 to-white/90" />
-              <span className="absolute bottom-[83px] right-[176px] h-3 w-6 rotate-[-20deg] rounded-sm bg-white/70" />
-              <span className="absolute bottom-[93px] right-[218px] h-3 w-6 rotate-[-20deg] rounded-sm bg-white/70" />
-              <span className="absolute bottom-2 right-12 h-20 w-10 rounded-full border border-blue-300/40 bg-blue-100/40" />
-              <span className="absolute bottom-11 right-[58px] text-2xl font-black text-blue-500/45">P</span>
-              <span className="absolute bottom-2 right-[314px] h-24 w-5 rounded-t-md bg-slate-200/35" />
-              <span className="absolute bottom-2 right-[350px] h-14 w-4 rounded-t-md bg-slate-200/25" />
-              <span className="absolute bottom-1 right-[404px] h-12 w-3 rounded-t-full bg-emerald-200/45" />
-            </div>
-          </div>
-
-          <div className="mt-auto shrink-0 pt-[20px]">
-            <div className="mb-3 grid grid-cols-[minmax(0,1.1fr)_0.85fr_0.85fr] gap-3 rounded-[18px] border border-slate-200 bg-slate-50/80 p-3">
-              <div className="min-w-0">
+            <div className="grid min-h-[132px] grid-cols-2 gap-3 rounded-[20px] border border-slate-200 bg-slate-50/80 p-3">
+              <div className="flex min-w-0 flex-col justify-center rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-100">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Phiên gửi xe</p>
-                <p className="mt-1 truncate text-sm font-black text-slate-950" title={sessionTitle}>{sessionTitle}</p>
+                <p className="mt-2 truncate text-lg font-black text-slate-950" title={sessionTitle}>{sessionTitle}</p>
+                <p className="mt-1 text-[10px] font-semibold text-slate-400">Dùng mã này để thanh toán checkout</p>
               </div>
-              <div className="rounded-2xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-100">
+              <div className="flex min-w-0 flex-col justify-center rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-100">
                 <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">Giờ vào</p>
-                <p className="mt-1 text-sm font-extrabold text-slate-950 tabular-nums">{entryTime}</p>
-              </div>
-              <div className="rounded-2xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-100">
-                <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">Giờ ra</p>
-                <p className="mt-1 text-sm font-extrabold text-slate-950 tabular-nums">{exitTime}</p>
+                <p className="mt-2 text-lg font-extrabold text-slate-950 tabular-nums">{entryTime}</p>
+                <p className="mt-1 text-[10px] font-semibold text-slate-400">Ghi nhận theo giờ hệ thống</p>
               </div>
             </div>
           </div>

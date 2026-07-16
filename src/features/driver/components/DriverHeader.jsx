@@ -6,6 +6,7 @@ import { customerService } from '../../../services/customerService';
 import { ROUTES } from '../../../constants/routes';
 import NotificationDetailModal from './NotificationDetailModal';
 import { apiDateTimeMillis } from '../../../utils/dateTime';
+import { translateNotificationText } from '../../../utils/notificationText';
 
 export default function DriverHeader({ onToggleSidebar }) {
   const { user } = useAuth();
@@ -175,8 +176,12 @@ export default function DriverHeader({ onToggleSidebar }) {
                         <span className="material-symbols-outlined text-[16px]">{typeIcon[n.type] || 'info'}</span>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className={`text-xs font-semibold ${n.read ? 'text-[#64748B]' : 'text-[#0F172A]'}`}>{n.title}</p>
-                        <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-[#64748B]">{n.message}</p>
+                        <p className={`text-xs font-semibold ${n.read ? 'text-[#64748B]' : 'text-[#0F172A]'}`}>
+                          {translateNotificationText(n.title, currentLang)}
+                        </p>
+                        <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-[#64748B]">
+                          {translateNotificationText(n.message, currentLang)}
+                        </p>
                       </div>
                       <span className="shrink-0 text-[10px] text-[#64748B]">{timeAgo(n.time)}</span>
                     </button>

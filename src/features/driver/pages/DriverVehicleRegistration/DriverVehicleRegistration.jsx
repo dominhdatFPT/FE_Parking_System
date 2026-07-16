@@ -20,12 +20,11 @@ export default function DriverVehicleRegistration() {
   const [selectedPlans, setSelectedPlans] = useState(preselectedPlans);
   const [licensePlate, setLicensePlate] = useState('');
 
-  // File Upload State (CCCD requires 2 sides)
+  // File Upload State (optional proof documents, no license-plate photo required)
   const [cccdFrontFile, setCccdFrontFile] = useState(null);
   const [cccdBackFile, setCccdBackFile] = useState(null);
   const [driverLicenseFile, setDriverLicenseFile] = useState(null);
   const [vehicleDocsFile, setVehicleDocsFile] = useState(null);
-  const [licensePlateFile, setLicensePlateFile] = useState(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -44,7 +43,7 @@ export default function DriverVehicleRegistration() {
   const validateAndSetFile = (file, setter) => {
     setError('');
     if (!file?.type?.startsWith('image/')) {
-      setError('Chỉ chấp nhận ảnh CCCD, bằng lái, đăng ký xe hoặc biển số; không nhận PDF.');
+      setError('Chỉ chấp nhận ảnh CCCD, bằng lái hoặc đăng ký xe; không nhận PDF.');
       return;
     }
     if (file.size > 4 * 1024 * 1024) {
@@ -99,7 +98,6 @@ export default function DriverVehicleRegistration() {
         cccdBackImage: cccdBackFile ? await fileToBase64(cccdBackFile) : null,
         licenseImage: driverLicenseFile ? await fileToBase64(driverLicenseFile) : null,
         vehicleDocumentImage: vehicleDocsFile ? await fileToBase64(vehicleDocsFile) : null,
-        plateImage: licensePlateFile ? await fileToBase64(licensePlateFile) : null,
       };
 
       const { error: err, message } = await customerService.registerVehicleCard(payload);
@@ -176,8 +174,8 @@ export default function DriverVehicleRegistration() {
   // Only the plate is required. Photos are optional evidence for staff review.
   const totalSteps = 1;
   const completedSteps = licensePlate.trim() ? 1 : 0;
-  const uploadedPhotoCount = [cccdFrontFile, cccdBackFile, driverLicenseFile, vehicleDocsFile, licensePlateFile].filter(Boolean).length;
-  const totalPhotoSlots = 5;
+  const uploadedPhotoCount = [cccdFrontFile, cccdBackFile, driverLicenseFile, vehicleDocsFile].filter(Boolean).length;
+  const totalPhotoSlots = 4;
   const getFormStatus = () => {
     if (submitted) return t('vehicleRegistration.statusPending');
     if (completedSteps === totalSteps) return t('vehicleRegistration.statusReady');
@@ -189,7 +187,7 @@ export default function DriverVehicleRegistration() {
       <PageHeader
         title={t('vehicleRegistration.title')}
         subtitle={t('vehicleRegistration.subtitle')}
-        icon="assignment_ind"
+        icon="assignment_ind" variant="banner"
       />
 
       <div className="grid gap-6 lg:grid-cols-5">
@@ -219,7 +217,6 @@ export default function DriverVehicleRegistration() {
                       setCccdBackFile(null);
                       setDriverLicenseFile(null);
                       setVehicleDocsFile(null);
-                      setLicensePlateFile(null);
                       setLicensePlate('');
                       setSelectedPlans([]);
                     }}
@@ -336,9 +333,6 @@ export default function DriverVehicleRegistration() {
                   {renderFileDropzone(t('vehicleRegistration.cccdBack'), cccdBackFile, setCccdBackFile)}
                   {renderFileDropzone(t('vehicleRegistration.driverLicense'), driverLicenseFile, setDriverLicenseFile)}
                   {renderFileDropzone(t('vehicleRegistration.vehicleDocs'), vehicleDocsFile, setVehicleDocsFile)}
-                  <div className="sm:col-span-2">
-                    {renderFileDropzone(t('vehicleRegistration.licensePlateOptional'), licensePlateFile, setLicensePlateFile)}
-                  </div>
                 </div>
 
                 {error && (

@@ -5,6 +5,7 @@ import {
   ArrowDownToLine,
   ArrowRight,
   ArrowUpFromLine,
+  Bike,
   Building2,
   CarFront,
   CalendarDays,
@@ -18,6 +19,7 @@ import SessionDetailDrawer from '../../components/parking/SessionDetailDrawer';
 import { getStaffOperationsDashboard } from '../../services/staffService';
 import { apiDateTimeMillis, formatVietnamTime } from '../../utils/dateTime';
 import { exportParkingDashboardReport } from '../../utils/parkingDashboardReport';
+import { getRememberedVehicleType, normalizeVehicleTypeCode } from '../../utils/vehicleTypeMemory';
 
 const emptyDashboardData = {
   entries: 0,
@@ -61,10 +63,10 @@ function asNumber(value) {
 function formatMoney(value) {
   const amount = asNumber(value);
   if (amount >= 1000000) {
-    return `${(amount / 1000000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}M`;
+    return `${(amount / 1000000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} triệu`;
   }
   if (amount >= 1000) {
-    return `${(amount / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}K`;
+    return `${(amount / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} nghìn`;
   }
   return amount.toLocaleString('vi-VN');
 }
@@ -107,8 +109,14 @@ function parseCapacity(capacity) {
   return { used, total, percent: percentValue };
 }
 
-function mapVehicleType(value) {
-  return value === 'MOTORBIKE' ? 'Xe máy' : 'Ô tô';
+function mapVehicleType(activity) {
+  const rememberedType = getRememberedVehicleType(activity?.licensePlate);
+  const cardCode = String(activity?.visitorCardCode || '').toUpperCase();
+  if (normalizeVehicleTypeCode(rememberedType) === 'MOTORBIKE') return 'Xe máy';
+  if (normalizeVehicleTypeCode(rememberedType) === 'CAR') return 'Ô tô';
+  if (cardCode.startsWith('CAR')) return 'Ô tô';
+  if (cardCode.startsWith('VIS') || cardCode.startsWith('MOTO') || cardCode.startsWith('BIKE')) return 'Xe máy';
+  return normalizeVehicleTypeCode(activity?.vehicleType) === 'MOTORBIKE' ? 'Xe máy' : 'Ô tô';
 }
 
 function mapCustomerType(value) {
@@ -134,11 +142,14 @@ function mapActivityToSession(activity) {
   return {
     id: activity.orderCode || `PO-${activity.id}`,
     plate: activity.licensePlate || '--',
-    type: mapVehicleType(activity.vehicleType),
+    type: mapVehicleType(activity),
     customer: mapCustomerType(activity.customerType),
     cardId: activity.visitorCardCode || '--',
     entry: formatTime(activity.entryTime),
     exit: isCompleted ? formatTime(activity.exitTime) : '--',
+    entryTime: activity.entryTime || null,
+    exitTime: activity.exitTime || null,
+    calculatedFee: activity.calculatedFee ?? null,
     duration: formatDuration(activity.entryTime, activity.exitTime),
     floor: activity.floorName || '--',
     zone: activity.parkingName || '--',
@@ -164,6 +175,13 @@ function buildDashboardData(payload) {
   const vehiclesInToday = asNumber(metrics.vehiclesInToday);
   const vehiclesOutToday = asNumber(metrics.vehiclesOutToday);
   const revenueToday = asNumber(metrics.revenueToday);
+  const completedActivities = activities.filter((activity) => activity.exitTime || activity.status === 'COMPLETED');
+  const fallbackVisitorRevenue = completedActivities
+    .filter((activity) => activity.customerType !== 'MONTHLY')
+    .reduce((sum, activity) => sum + asNumber(activity.calculatedFee), 0);
+  const visitorRevenueToday = asNumber(metrics.visitorRevenueToday) || fallbackVisitorRevenue;
+  const subscriptionRevenueToday = asNumber(metrics.subscriptionRevenueToday)
+    || Math.max(0, revenueToday - visitorRevenueToday);
 
   return {
     entries: vehiclesInToday,
@@ -174,7 +192,9 @@ function buildDashboardData(payload) {
     sessions: activeSessions,
     completedSessions,
     revenueBreakdown: [
-      { label: 'Tổng cộng', value: formatCurrency(revenueToday) },
+      { label: 'Tổng doanh thu', value: formatCurrency(revenueToday) },
+      { label: 'Doanh thu xe gói', value: formatCurrency(subscriptionRevenueToday) },
+      { label: 'Doanh thu xe vãng lai', value: formatCurrency(visitorRevenueToday) },
     ],
     vehicleBreakdown: [
       { label: 'Ô tô', value: String(activeCars), percent: percent(activeCars, vehiclesInParking) },
@@ -502,7 +522,9 @@ function SessionTable({ title, subtitle, sessions, emptyText, onViewAll, onDetai
             <p className="mt-1 text-sm text-[#64748B]">{emptyText}</p>
           </div>
         ) : (
-          sessions.slice(0, 5).map((session) => (
+          sessions.slice(0, 5).map((session) => {
+            const VehicleIcon = session.type === 'Xe máy' ? Bike : CarFront;
+            return (
             <div
               key={session.id}
               className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3 rounded-[22px] border border-[#DCE7F5] bg-white px-5 py-4 transition-all duration-200 hover:border-blue-200 hover:shadow-md"
@@ -510,7 +532,7 @@ function SessionTable({ title, subtitle, sessions, emptyText, onViewAll, onDetai
               {/* Left: icon + plate + badge */}
               <div className="flex min-w-0 flex-1 items-center gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] bg-[#EEF5FF] text-[#1D6BFF]">
-                  <CarFront className="h-5 w-5" />
+                  <VehicleIcon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-lg font-bold text-[#0F172A]">{session.plate}</p>
@@ -552,7 +574,8 @@ function SessionTable({ title, subtitle, sessions, emptyText, onViewAll, onDetai
                 Chi tiết <ArrowRight className="h-4 w-4" />
               </button>
             </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
@@ -613,7 +636,7 @@ export default function HomePage() {
         key: 'revenue',
         label: 'Doanh thu',
         value: loading ? '...' : currentData.revenue,
-        description: 'Đã thu trong ngày',
+        description: 'Xe gói + xe vãng lai trong ngày',
         data: currentData,
       },
       {
@@ -686,6 +709,7 @@ export default function HomePage() {
           <input
             type="date"
             value={selectedDate}
+            max={getToday()}
             onChange={(event) => setSelectedDate(event.target.value)}
             className="h-12 rounded-full border border-[#E6EDF5] bg-white/90 px-4 text-sm font-semibold text-[#0F172A] outline-none transition-all duration-200 hover:border-blue-200 focus:border-[#1D6BFF] focus:ring-4 focus:ring-blue-100"
           />
@@ -731,6 +755,7 @@ export default function HomePage() {
             <input
               type="date"
               value={selectedDate}
+              max={getToday()}
               onChange={(event) => setSelectedDate(event.target.value)}
               className="h-12 rounded-full border border-[#E6EDF5] bg-white/90 px-4 text-sm font-semibold text-[#0F172A] outline-none transition-all duration-200 hover:border-blue-200 focus:border-[#1D6BFF] focus:ring-4 focus:ring-blue-100"
             />

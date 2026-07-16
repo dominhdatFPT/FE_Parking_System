@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bike, CarFront, X } from 'lucide-react';
 import { formatVietnamDateTime } from '../../utils/dateTime';
+import { normalizeVehicleTypeCode } from '../../utils/vehicleTypeMemory';
 
 const statusClasses = {
   'Bình thường': 'bg-emerald-50 text-emerald-700',
@@ -40,8 +41,7 @@ function TimelineItem({ tone = 'emerald', label, value, last = false }) {
 }
 
 function isMotorbikeSession(session) {
-  const vehicleType = String(session?.type || session?.vehicleType || '').toLowerCase();
-  return vehicleType.includes('motor') || vehicleType.includes('bike') || vehicleType.includes('xe máy');
+  return normalizeVehicleTypeCode(session?.type || session?.vehicleType) === 'MOTORBIKE';
 }
 
 export default function SessionDetailDrawer({ open, session, onClose }) {
@@ -118,6 +118,13 @@ export default function SessionDetailDrawer({ open, session, onClose }) {
               <TimelineItem tone="emerald" label="Xe vào" value={formatVietnamDateTime(session.entryTime) || '--'} />
               <TimelineItem tone="blue" label="Xe ra" value={isCompleted ? (formatVietnamDateTime(session.exitTime) || '--') : '--'} />
               <TimelineItem tone="slate" label="Thời gian gửi" value={session.duration} last />
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Phí gửi xe</h3>
+            <div className="mt-3 space-y-1">
+              <DetailRow label="Phí gửi xe" value={session.calculatedFee != null ? `${Number(session.calculatedFee).toLocaleString('vi-VN')}đ` : '--'} />
             </div>
           </section>
 

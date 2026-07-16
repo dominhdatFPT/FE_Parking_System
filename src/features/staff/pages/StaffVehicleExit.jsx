@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
 import {
-  AlertCircle, ArrowUpFromLine, CarFront, CheckCircle2, Clock3,
+  AlertCircle, ArrowUpFromLine, Bike, CarFront, CheckCircle2, Clock3,
   CreditCard, Keyboard, LoaderCircle, ReceiptText, ScanLine,
   ShieldCheck, TimerReset, UserRound,
 } from 'lucide-react';
 import { checkParkingExit, confirmParkingExit } from '../../../services/staffService';
 import { VIETNAM_TIME_ZONE } from '../../../utils/dateTime';
+import { getRememberedVehicleType, normalizeVehicleTypeCode } from '../../../utils/vehicleTypeMemory';
 
 const formatCurrency = (value) => `${Number(value || 0).toLocaleString('vi-VN')} đ`;
+const formatVND = (value) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
+
+const PLATE_REGEX = /^[A-Z0-9-]*$/;
+const PLATE_MIN_LENGTH = 5;
+const PLATE_MAX_LENGTH = 12;
 
 const formatKpiDateTime = (value) => {
   if (!value) return '—';
@@ -30,6 +36,94 @@ const formatDuration = (minutes) => {
   return [days ? `${days} ngày` : '', hours ? `${hours} giờ` : '', `${mins} phút`]
     .filter(Boolean).join(' ');
 };
+
+const formatDayDuration = (minutes) => {
+  const total = Math.max(0, Math.floor(Number(minutes) || 0));
+  const days = Math.floor(total / 1440);
+  const hours = Math.floor((total % 1440) / 60);
+  const mins = total % 60;
+  if (days > 0) {
+    return [hours ? `${hours} giờ` : '', mins ? `${mins} phút` : ''].filter(Boolean).join(' ');
+  }
+  return [hours ? `${hours} giờ` : '', `${mins} phút`].filter(Boolean).join(' ');
+};
+
+const MINUTES_PER_DAY = 1440;
+
+function computeBlockFeeForRange(rangeMinutes, firstBlockMinutes, firstBlockFee, nextBlockMinutes, nextBlockFee) {
+  const minutes = Math.max(0, Math.floor(Number(rangeMinutes) || 0));
+  if (minutes === 0) return 0;
+  if (minutes <= firstBlockMinutes) return firstBlockFee;
+  if (!nextBlockMinutes || nextBlockMinutes <= 0 || !nextBlockFee) return firstBlockFee;
+  const extraMinutes = minutes - firstBlockMinutes;
+  const extraBlocks = Math.ceil(extraMinutes / nextBlockMinutes);
+  return firstBlockFee + extraBlocks * nextBlockFee;
+}
+
+function computeBreakdown({ fee, durationMinutes }) {
+  const firstBlockMinutes = Number(fee?.firstBlockMinutes ?? 0);
+  const firstBlockFee = Number(fee?.firstBlockFee ?? 0);
+  const additionalBlocks = Number(fee?.additionalBlocks ?? 0);
+  const additionalFee = Number(fee?.additionalFee ?? 0);
+  const dailyCap = Number(fee?.dailyCap ?? 0);
+  const total = Number(fee?.amount ?? 0);
+  const safeDuration = Math.max(0, Math.floor(Number(durationMinutes) || 0));
+
+  let nextBlockMinutes = Number(fee?.nextBlockMinutes ?? 0);
+  let nextBlockFee = Number(fee?.nextBlockFee ?? 0);
+  if ((!nextBlockMinutes || !nextBlockFee) && additionalBlocks > 0) {
+    if (!nextBlockFee) {
+      nextBlockFee = Math.round(additionalFee / additionalBlocks);
+    }
+    if (!nextBlockMinutes && safeDuration > firstBlockMinutes) {
+      nextBlockMinutes = Math.max(
+        1,
+        Math.ceil((safeDuration - firstBlockMinutes) / additionalBlocks),
+      );
+    }
+  }
+
+  if (dailyCap > 0 && safeDuration >= MINUTES_PER_DAY) {
+    const fullDays = Math.floor(safeDuration / MINUTES_PER_DAY);
+    const remainingMinutes = safeDuration - fullDays * MINUTES_PER_DAY;
+    const days = [];
+
+    for (let i = 0; i < fullDays; i += 1) {
+      days.push({
+        index: i + 1,
+        fee: dailyCap,
+        suffix: '(áp dụng giá trần)',
+      });
+    }
+
+    if (remainingMinutes > 0) {
+      const remainingFee = computeBlockFeeForRange(
+        remainingMinutes,
+        firstBlockMinutes,
+        firstBlockFee,
+        nextBlockMinutes,
+        nextBlockFee,
+      );
+      const remainingFeeCapped = Math.min(remainingFee, dailyCap);
+      days.push({
+        index: fullDays + 1,
+        fee: remainingFeeCapped,
+        suffix: `· ${formatDayDuration(remainingMinutes)}`,
+      });
+    }
+
+    const computedTotal = days.reduce((sum, day) => sum + day.fee, 0);
+    const displayTotal = total > 0 ? total : computedTotal;
+
+    return { mode: 'daily', days, dailyCap, total: displayTotal };
+  }
+
+  return {
+    mode: 'block',
+    firstBlock: { minutes: firstBlockMinutes, fee: firstBlockFee },
+    additional: { blocks: additionalBlocks, totalFee: additionalFee },
+  };
+}
 
 function InfoCard({ icon: Icon, label, value, chip }) {
   const hasValue = value && value !== '—';
@@ -82,6 +176,7 @@ function CameraPanel({ label, status = 'Online' }) {
 
 export default function StaffVehicleExit() {
   const [licensePlate, setLicensePlate] = useState('');
+  const [plateError, setPlateError] = useState('');
   const [result, setResult] = useState(null);
   const [hasCheckedVehicle, setHasCheckedVehicle] = useState(false);
   const [hasReceivedCash, setHasReceivedCash] = useState(false);
@@ -93,17 +188,27 @@ export default function StaffVehicleExit() {
 
   const hasExitData = hasCheckedVehicle && Boolean(result);
   const isVisitor = result?.exitType === 'VISITOR';
+  const alreadyPaid = isVisitor && String(result?.payment?.status || '').toUpperCase() === 'PAID';
   const extractError = (err, fallback) =>
     err?.response?.data?.message || err?.response?.data?.error || fallback;
 
   const handleSearch = async (event) => {
     event?.preventDefault();
-    const plate = licensePlate.trim();
+    const plate = licensePlate.trim().toUpperCase();
     if (!plate) {
-      setError('Vui lòng nhập biển số xe cần kiểm tra.');
+      setPlateError('Vui lòng nhập biển số xe');
+      return;
+    }
+    if (plate.length < PLATE_MIN_LENGTH || plate.length > PLATE_MAX_LENGTH) {
+      setPlateError('Biển số phải từ 5-12 ký tự');
+      return;
+    }
+    if (!PLATE_REGEX.test(plate)) {
+      setPlateError('Biển số chỉ được chứa chữ cái, số và dấu gạch ngang');
       return;
     }
     setLoading(true);
+    setPlateError('');
     setError('');
     setSuccessMessage('');
     setResult(null);
@@ -113,7 +218,7 @@ export default function StaffVehicleExit() {
     try {
       const data = await checkParkingExit(plate);
       setResult(data);
-      setLicensePlate(data.licensePlate || plate.toUpperCase());
+      setLicensePlate(data.licensePlate || plate);
       setHasCheckedVehicle(true);
     } catch (err) {
       setError(extractError(err, 'Không tìm thấy phiên gửi xe đang hoạt động.'));
@@ -124,7 +229,7 @@ export default function StaffVehicleExit() {
 
   const handleConfirmExit = async () => {
     if (!result || isExitCompleted) return;
-    if (isVisitor && !hasReceivedCash) {
+    if (isVisitor && !alreadyPaid && !hasReceivedCash) {
       setError('Vui lòng xác nhận đã nhận đủ tiền trước khi hoàn tất xe ra.');
       return;
     }
@@ -132,8 +237,8 @@ export default function StaffVehicleExit() {
     setError('');
     try {
       const data = await confirmParkingExit(result.orderId, {
-        paymentConfirmed: isVisitor ? hasReceivedCash : false,
-        paymentMethod: isVisitor ? 'CASH' : null,
+        paymentConfirmed: isVisitor ? (alreadyPaid || hasReceivedCash) : false,
+        paymentMethod: isVisitor ? (alreadyPaid ? result?.payment?.method : 'CASH') : null,
       });
       setResult(data);
       setIsExitCompleted(true);
@@ -155,17 +260,22 @@ export default function StaffVehicleExit() {
     setSuccessMessage('');
   };
 
-  const vehicleTypeDisplay =
-    result?.vehicleType === 'MOTORBIKE' ? 'Xe máy (2 bánh)' :
-    result?.vehicleType === 'CAR' ? 'Ô tô (4 chỗ)' :
-    result?.vehicleType || '—';
+  const rememberedVehicleType = getRememberedVehicleType(result?.licensePlate || licensePlate);
+  const resolvedVehicleType = normalizeVehicleTypeCode(rememberedVehicleType || result?.vehicleType);
+  const isMotorbike = resolvedVehicleType === 'MOTORBIKE';
+  const vehicleTypeDisplay = !hasExitData
+    ? '—'
+    : isMotorbike
+      ? 'Xe máy (2 bánh)'
+      : 'Ô tô (4 chỗ)';
+  const VehicleIcon = isMotorbike ? Bike : CarFront;
   const visitorCardDisplay = hasExitData
     ? (result.visitorCardCode || (isVisitor ? '—' : 'Không có'))
     : '—';
   const entryTimeDisplay = hasExitData ? formatKpiDateTime(result.entryTime) : '—';
   const durationDisplay = hasExitData ? formatDuration(result.durationMinutes) : '—';
   const customerDisplay = hasExitData ? (result.customerName || 'Khách vãng lai') : '—';
-  const totalFeeDisplay = hasExitData ? formatCurrency(result.fee?.amount) : '—';
+  const totalFeeDisplay = hasExitData ? formatVND(result.fee?.amount) : '—';
   const feeDescription = hasExitData
     ? (result.fee?.description || 'Tính theo thời gian gửi thực tế, làm tròn lên theo mỗi khung phí')
     : 'Nhập biển số để xem chi tiết phí.';
@@ -175,26 +285,29 @@ export default function StaffVehicleExit() {
   const additionalBlockDisplay = hasExitData && result.fee?.additionalBlocks != null
     ? `${result.fee.additionalBlocks} · ${formatCurrency(result.fee?.additionalFee)}`
     : '—';
-  const canToggleCash = hasExitData && isVisitor && !isExitCompleted;
+  const breakdown = hasExitData
+    ? computeBreakdown({ fee: result.fee, durationMinutes: result.durationMinutes })
+    : null;
+  const canToggleCash = hasExitData && isVisitor && !alreadyPaid && !isExitCompleted;
 
   const canConfirmExit =
     hasCheckedVehicle && result && !isExitCompleted &&
-    (!isVisitor || hasReceivedCash);
+    (!isVisitor || alreadyPaid || hasReceivedCash);
 
   return (
-    <div className="flex h-full flex-col gap-3 overflow-hidden bg-[#EEF3FB] px-5 pb-0 pt-0 font-sans">
+    <div className="flex h-full flex-col gap-3 overflow-hidden bg-[#EEF3FB] px-5 pb-3 pt-0 font-sans">
 
       {/* ══════ CAMERAS ══════ */}
-      <div className="grid h-[31vh] max-h-[298px] shrink-0 grid-cols-2 gap-3">
+      <div className="grid h-[24vh] max-h-[220px] min-h-[150px] shrink-0 grid-cols-2 gap-3">
         <CameraPanel label="CAMERA 1" />
         <CameraPanel label="CAMERA 2" />
       </div>
 
       {/* ══════ MAIN CONTENT ══════ */}
-      <div className="mt-2 grid min-h-0 flex-1 grid-cols-[58fr_42fr] gap-3">
+      <div className="grid min-h-0 flex-1 grid-cols-[58fr_42fr] gap-3">
 
         {/* ── LEFT: Kiểm soát xe ra ── */}
-        <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-3 shadow-sm">
+        <div className="flex min-h-0 flex-col overflow-y-auto rounded-2xl border border-slate-200/70 bg-white p-3 shadow-sm">
 
           {/* Header */}
           <div className="mb-2 flex shrink-0 items-center gap-2.5">
@@ -228,21 +341,27 @@ export default function StaffVehicleExit() {
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-blue-500">
-                  <CarFront className="h-4 w-4" strokeWidth={2.25} />
+                  <VehicleIcon className="h-4 w-4" strokeWidth={2.25} />
                 </span>
                 <input
                   autoFocus
                   value={licensePlate}
+                  maxLength={PLATE_MAX_LENGTH}
                   onChange={(e) => {
-                    setLicensePlate(e.target.value.toUpperCase());
+                    const raw = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, PLATE_MAX_LENGTH);
+                    setLicensePlate(raw);
+                    setPlateError('');
                     if (!isExitCompleted) { setResult(null); setError(''); setHasCheckedVehicle(false); }
                   }}
                   placeholder="VD: 30A-123.45"
                   disabled={isExitCompleted}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-9 text-sm font-bold uppercase tracking-wide text-slate-950 outline-none transition-all placeholder:normal-case placeholder:font-medium placeholder:tracking-normal placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-3 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  className={`h-10 w-full rounded-xl border bg-slate-50 pl-10 pr-9 text-sm font-bold uppercase tracking-wide text-slate-950 outline-none transition-all placeholder:normal-case placeholder:font-medium placeholder:tracking-normal placeholder:text-slate-400 focus:bg-white focus:ring-3 ${plateError ? 'border-rose-400 focus:border-rose-400 focus:ring-rose-100' : 'border-slate-200 focus:border-blue-400 focus:ring-blue-100'} disabled:cursor-not-allowed disabled:opacity-60`}
                 />
                 <Keyboard className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-300" />
               </div>
+              {plateError && (
+                <p className="absolute left-10 mt-1 text-[10px] font-semibold text-rose-600">{plateError}</p>
+              )}
               <button
                 type="submit"
                 disabled={loading || isExitCompleted}
@@ -260,7 +379,7 @@ export default function StaffVehicleExit() {
           {/* Info grid */}
           <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-2 gap-2 overflow-hidden">
             <InfoCard icon={ReceiptText} label="Mã lượt gửi" value={hasExitData ? result.orderCode : '—'} />
-            <InfoCard icon={CarFront} label="Loại xe" value={hasExitData ? vehicleTypeDisplay : '—'} />
+            <InfoCard icon={VehicleIcon} label="Loại xe" value={hasExitData ? vehicleTypeDisplay : '—'} />
             <InfoCard
               icon={CreditCard}
               label="Thẻ vãng lai"
@@ -274,7 +393,7 @@ export default function StaffVehicleExit() {
         </div>
 
         {/* ── RIGHT: Chi tiết cần thu ── */}
-        <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-3 shadow-sm">
+        <div className="flex min-h-0 flex-col overflow-y-auto rounded-2xl border border-slate-200/70 bg-white p-3 shadow-sm">
 
           {/* Header */}
           <div className="mb-2 flex shrink-0 items-center gap-2.5">
@@ -283,12 +402,12 @@ export default function StaffVehicleExit() {
             </span>
             <h2 className="flex-1 text-[13px] font-black tracking-tight text-slate-900">Chi tiết cần thu</h2>
             <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold ${
-              isExitCompleted
+              isExitCompleted || alreadyPaid
                 ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                 : 'border-amber-200 bg-amber-50 text-amber-600'
             }`}>
-              <span className={`h-1.5 w-1.5 rounded-full ${isExitCompleted ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-              {isExitCompleted ? 'Đã hoàn tất' : 'Chờ thanh toán'}
+              <span className={`h-1.5 w-1.5 rounded-full ${isExitCompleted || alreadyPaid ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+              {isExitCompleted ? 'Đã hoàn tất' : alreadyPaid ? 'Đã thanh toán' : 'Chờ thanh toán'}
             </span>
           </div>
 
@@ -306,41 +425,99 @@ export default function StaffVehicleExit() {
           </div>
 
           {/* Fee breakdown */}
-          <div className="mb-2 shrink-0 overflow-hidden rounded-xl border border-slate-100">
-            <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
-              <span className="font-medium text-slate-500">Khung đầu</span>
-              <strong className={`truncate text-right font-bold ${firstBlockDisplay === '—' ? 'text-slate-400' : 'text-slate-800'}`}>{firstBlockDisplay}</strong>
+          {breakdown?.mode === 'daily' ? (
+            <div className="mb-2 shrink-0 overflow-hidden rounded-xl border border-slate-100">
+              {breakdown.days.map((day, idx) => (
+                <div key={day.index}>
+                  <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+                    <span className="truncate font-medium text-slate-500">
+                      Ngày {day.index} {day.suffix}
+                    </span>
+                    <strong className="shrink-0 text-right font-bold text-slate-800">{formatVND(day.fee)}</strong>
+                  </div>
+                  {idx < breakdown.days.length - 1 && <div className="mx-3 h-px bg-slate-100" />}
+                </div>
+              ))}
+              <div className="mx-3 h-px bg-slate-100" />
+              <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+                <span className="font-medium text-slate-500">Giá trần/ngày</span>
+                <strong className="text-right font-bold text-slate-800">{formatVND(breakdown.dailyCap)}</strong>
+              </div>
+              <div className="mx-3 h-px bg-slate-100" />
+              <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+                <span className="font-bold text-slate-700">Tổng</span>
+                <strong className="text-right text-[12px] font-black text-slate-900">{formatVND(breakdown.total)}</strong>
+              </div>
             </div>
-            <div className="mx-3 h-px bg-slate-100" />
-            <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
-              <span className="font-medium text-slate-500">Khung phát sinh</span>
-              <strong className={`truncate text-right font-bold ${additionalBlockDisplay === '—' ? 'text-slate-400' : 'text-slate-800'}`}>{additionalBlockDisplay}</strong>
+          ) : breakdown?.mode === 'block' ? (
+            <div className="mb-2 shrink-0 overflow-hidden rounded-xl border border-slate-100">
+              <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+                <span className="truncate font-medium text-slate-500">
+                  Khung đầu · {breakdown.firstBlock.minutes} phút
+                </span>
+                <strong className="shrink-0 text-right font-bold text-slate-800">{formatVND(breakdown.firstBlock.fee)}</strong>
+              </div>
+              <div className="mx-3 h-px bg-slate-100" />
+              <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+                <span className="truncate font-medium text-slate-500">
+                  Khung phát sinh · {breakdown.additional.blocks} block
+                </span>
+                <strong className="shrink-0 text-right font-bold text-slate-800">{formatVND(breakdown.additional.totalFee)}</strong>
+              </div>
+              <div className="mx-3 h-px bg-slate-100" />
+              <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+                <span className="font-bold text-slate-700">Tổng</span>
+                <strong className="text-right text-[12px] font-black text-slate-900">
+                  {formatVND(breakdown.firstBlock.fee + breakdown.additional.totalFee)}
+                </strong>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="mb-2 shrink-0 overflow-hidden rounded-xl border border-slate-100">
+              <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+                <span className="font-medium text-slate-500">Khung đầu</span>
+                <strong className={`truncate text-right font-bold ${firstBlockDisplay === '—' ? 'text-slate-400' : 'text-slate-800'}`}>{firstBlockDisplay}</strong>
+              </div>
+              <div className="mx-3 h-px bg-slate-100" />
+              <div className="flex items-center justify-between gap-3 px-3 py-2 text-[11px]">
+                <span className="font-medium text-slate-500">Khung phát sinh</span>
+                <strong className={`truncate text-right font-bold ${additionalBlockDisplay === '—' ? 'text-slate-400' : 'text-slate-800'}`}>{additionalBlockDisplay}</strong>
+              </div>
+            </div>
+          )}
 
-          {/* Cash confirmation checkbox */}
-          <label className={`mb-2 flex shrink-0 items-start gap-3 rounded-xl border px-3 py-2 transition-colors ${
-            !canToggleCash
-              ? 'cursor-not-allowed border-slate-200 bg-slate-50 opacity-70'
-              : hasReceivedCash
-                ? 'cursor-pointer border-emerald-200 bg-emerald-50'
-                : 'cursor-pointer border-slate-200 bg-slate-50 hover:border-slate-300'
-          }`}>
-            <input
-              type="checkbox"
-              checked={hasReceivedCash}
-              disabled={!canToggleCash}
-              onChange={(e) => setHasReceivedCash(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-emerald-600 disabled:cursor-not-allowed"
-            />
-            <span>
-              <span className={`block text-[12px] font-bold ${canToggleCash ? 'text-slate-900' : 'text-slate-500'}`}>Đã nhận đủ tiền mặt</span>
-              <span className="block text-[10px] text-slate-500">Xác nhận trước khi cho xe ra khỏi bãi.</span>
-            </span>
-          </label>
+          {alreadyPaid ? (
+            <div className="mb-2 flex shrink-0 items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-800">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.25} />
+              <span>
+                <span className="block text-[12px] font-bold">Đã thanh toán online</span>
+                <span className="block text-[10px] text-emerald-700">Chỉ cần xác nhận cho xe ra khỏi bãi.</span>
+              </span>
+            </div>
+          ) : (
+            <label className={`mb-2 flex shrink-0 items-start gap-3 rounded-xl border px-3 py-2 transition-colors ${
+              !canToggleCash
+                ? 'cursor-not-allowed border-slate-200 bg-slate-50 opacity-70'
+                : hasReceivedCash
+                  ? 'cursor-pointer border-emerald-200 bg-emerald-50'
+                  : 'cursor-pointer border-slate-200 bg-slate-50 hover:border-slate-300'
+            }`}>
+              <input
+                type="checkbox"
+                checked={hasReceivedCash}
+                disabled={!canToggleCash}
+                onChange={(e) => setHasReceivedCash(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-emerald-600 disabled:cursor-not-allowed"
+              />
+              <span>
+                <span className={`block text-[12px] font-bold ${canToggleCash ? 'text-slate-900' : 'text-slate-500'}`}>Đã nhận đủ tiền mặt</span>
+                <span className="block text-[10px] text-slate-500">Xác nhận trước khi cho xe ra khỏi bãi.</span>
+              </span>
+            </label>
+          )}
 
           {/* Action button — pushed to bottom */}
-          <div className="mt-4 shrink-0">
+          <div className="mt-auto shrink-0 pt-2">
             {isExitCompleted ? (
               <button
                 type="button"
@@ -365,7 +542,7 @@ export default function StaffVehicleExit() {
                   ? <LoaderCircle className="h-4 w-4 animate-spin" strokeWidth={2.25} />
                   : <ShieldCheck className="h-4 w-4" strokeWidth={2.25} />
                 }
-                <span>{confirming ? 'Đang hoàn tất...' : 'Xác nhận thanh toán & cho xe ra'}</span>
+                <span>{confirming ? 'Đang hoàn tất...' : alreadyPaid ? 'Xác nhận cho xe ra' : 'Xác nhận thanh toán & cho xe ra'}</span>
               </button>
             )}
           </div>

@@ -6,6 +6,7 @@ import Button from '../../components/Button';
 import EmptyState from '../../components/EmptyState';
 import NotificationDetailModal from '../../components/NotificationDetailModal';
 import { vietnamDayjs } from '../../../../utils/dateTime';
+import { translateNotificationText } from '../../../../utils/notificationText';
 
 const typeIcon = { info: 'info', success: 'check_circle', warning: 'warning', error: 'error' };
 const typeColor = {
@@ -16,7 +17,7 @@ const typeColor = {
 };
 
 export default function DriverNotifications() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
@@ -74,6 +75,7 @@ export default function DriverNotifications() {
         title={t('notifications.title')}
         subtitle={unreadCount > 0 ? t('notifications.unreadCount', { count: unreadCount }) : t('notifications.noNotificationsDesc')}
         icon="notifications"
+        variant="banner"
         actions={
           unreadCount > 0 ? (
             <Button variant="secondary" size="md" icon="done_all" onClick={handleMarkAllRead}>
@@ -133,10 +135,14 @@ export default function DriverNotifications() {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className={`text-sm font-bold ${n.read ? 'text-slate-600' : 'text-slate-800'}`}>{n.title}</p>
+                  <p className={`text-sm font-bold ${n.read ? 'text-slate-600' : 'text-slate-800'}`}>
+                    {translateNotificationText(n.title, i18n.language)}
+                  </p>
                   {!n.read && <span className="h-2 w-2 rounded-full bg-sky-500" />}
                 </div>
-                <p className="mt-1 text-sm leading-relaxed text-slate-500">{n.message}</p>
+                <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                  {translateNotificationText(n.message, i18n.language)}
+                </p>
                 <p className="mt-2 text-xs text-slate-400">{vietnamDayjs(n.time).format('HH:mm DD/MM/YYYY')}</p>
               </div>
               {!n.read && (

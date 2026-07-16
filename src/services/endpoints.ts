@@ -15,16 +15,17 @@ export const API_ENDPOINTS = {
     SUBSCRIPTIONS: '/api/v1/fee-subscriptions',
     MY_SUBSCRIPTIONS: '/api/subscriptions/my',
     MY_INVOICES: '/api/subscriptions/my-invoices',
-    REGISTER: '/api/subscriptions/register',
+    REGISTER: '/api/subscriptions/register-stripe',
+    INVOICE_STRIPE: (invoiceId: string | number) => `/api/subscriptions/invoices/${invoiceId}/stripe`,
   },
   PAYMENTS: {
-    VNPAY_ORDER_STATUS: (txnRef: string) => `/api/payments/vnpay/orders/${txnRef}/status`,
-    VNPAY_CANCEL: (txnRef: string) => `/api/payments/vnpay/orders/${txnRef}/cancel`,
-    STRIPE_ORDER_STATUS: (piId: string) => `/api/payments/stripe/orders/${piId}/status`,
-    STRIPE_ORDER_CONFIRM: (piId: string) => `/api/payments/stripe/orders/${piId}/confirm`,
+    STRIPE_ORDER_STATUS: (paymentIntentId: string) => `/api/payments/stripe/orders/${paymentIntentId}/status`,
+    STRIPE_ORDER_CONFIRM: (paymentIntentId: string) => `/api/payments/stripe/orders/${paymentIntentId}/confirm`,
   },
-  SUBSCRIPTIONS: {
-    REGISTER_STRIPE: '/api/subscriptions/register-stripe',
+  VISITOR_CHECKOUT: {
+    LOOKUP: '/api/v1/visitor-checkout/lookup',
+    STRIPE: '/api/v1/visitor-checkout/stripe',
+    STRIPE_CONFIRM: (paymentIntentId: string) => `/api/v1/visitor-checkout/stripe/${paymentIntentId}/confirm`,
   },
   ADMIN_NOTIFICATIONS: {
     BASE: '/api/v1/admin/notifications',
@@ -39,6 +40,13 @@ export const API_ENDPOINTS = {
   },
   VEHICLE_REGISTRATIONS: {
     CREATE_FOR_USER: (userId: string | number) => `/api/v1/vehicle-registrations/users/${userId}`,
+  },
+  PRICING: {
+    PACKAGES: '/api/v1/admin/pricing/packages',
+    PACKAGE_PRICE: (feePackageId: string | number) => `/api/v1/admin/pricing/packages/${feePackageId}/price`,
+    PACKAGE_TOGGLE: (feePackageId: string | number) => `/api/v1/admin/pricing/packages/${feePackageId}/toggle`,
+    VISITOR_RATES: '/api/v1/admin/pricing/visitor-rates',
+    VISITOR_RATE: (vehicleTypeId: string | number) => `/api/v1/admin/pricing/visitor-rates/${vehicleTypeId}`,
   },
   NOTIFICATIONS: {
     LIST: '/api/v1/notifications',

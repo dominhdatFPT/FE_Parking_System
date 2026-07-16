@@ -1,12 +1,12 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router';
 import { useAuth } from '../contexts/useAuth';
 import { ROUTES } from '../constants/routes';
-import MainLayout from '../layouts/MainLayout';
 import AdminLayout from '../layouts/AdminLayout';
 import DriverLayout from '../layouts/DriverLayout';
 import LoginPage from '../features/auth/pages/LoginPage';
 import HomePage from '../pages/HomePage';
 import WelcomePage from '../features/auth/pages/WelcomePage';
+import VisitorCheckoutPage from '../features/auth/pages/VisitorCheckoutPage';
 import SignupPage from '../features/auth/pages/SignupPage';
 import DriverDashboard from '../features/driver/pages/DriverDashboard';
 import DriverPayment from '../features/driver/pages/DriverPayment';
@@ -19,18 +19,16 @@ import NotFoundPage from '../pages/NotFoundPage';
 import ForbiddenPage from '../pages/ForbiddenPage';
 import AccountManagementPage from '../pages/AccountManagementPage';
 import UserVehicleRegistrationPage from '../pages/UserVehicleRegistrationPage';
-import SettingsPage from '../pages/SettingsPage';
 import NotificationDetailPage from '../pages/NotificationDetailPage';
 import NotificationManagement from '../pages/NotificationManagement';
 import SystemConfigurationPage from '../pages/SystemConfigurationPage';
 import AuditLogPage from '../pages/AuditLogPage';
-import StaffVehicleRegistrationReview from '../features/staff/pages/StaffVehicleRegistrationReview';
 import StaffVehicleExit from '../features/staff/pages/StaffVehicleExit';
 import StaffSessions from '../features/staff/pages/StaffSessions';
 import StaffExceptions from '../features/staff/pages/StaffExceptions';
+import StaffBookingReview from '../features/staff/pages/StaffBookingReview';
 import VehicleEntryPage from '../pages/VehicleEntryPage';
 import ParkingSessionsPage from '../pages/ParkingSessionsPage';
-import SubscriptionResultPage from '../pages/SubscriptionResultPage';
 
 function AuthLoadingScreen() {
   return (
@@ -81,6 +79,8 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path={ROUTES.HOME} element={<WelcomePage />} />
+      <Route path={ROUTES.WELCOME} element={<WelcomePage />} />
+      <Route path={ROUTES.VISITOR_CHECKOUT} element={<VisitorCheckoutPage />} />
       <Route path={ROUTES.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.ADMIN_LOGIN} element={<Navigate to={ROUTES.LOGIN} replace />} />
       <Route path={ROUTES.SIGNUP} element={<SignupPage />} />
@@ -114,12 +114,12 @@ export function AppRoutes() {
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.BASE} element={<NotificationManagement />} />
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.DETAIL} element={<NotificationDetailPage />} />
         <Route path={ROUTES.STAFF.DASHBOARD} element={<Navigate to={ROUTES.ADMIN.DASHBOARD} replace />} />
-        <Route path={ROUTES.STAFF.VEHICLE_REGISTRATIONS} element={<StaffVehicleRegistrationReview />} />
+        <Route path={ROUTES.STAFF.VEHICLE_REGISTRATIONS} element={<Navigate to={ROUTES.STAFF.BOOKINGS} replace />} />
         <Route path={ROUTES.STAFF.VEHICLE_ENTRY} element={<VehicleEntryPage />} />
         <Route path={ROUTES.STAFF.VEHICLE_EXIT} element={<StaffVehicleExit />} />
         <Route path={ROUTES.STAFF.SESSIONS} element={<StaffSessions />} />
         <Route path={ROUTES.STAFF.EXCEPTIONS} element={<StaffExceptions />} />
-        <Route path={`${ROUTES.SETTINGS.BASE}/:section`} element={<SettingsPage />} />
+        <Route path={ROUTES.STAFF.BOOKINGS} element={<StaffBookingReview />} />
       </Route>
 
       <Route
@@ -131,7 +131,6 @@ export function AppRoutes() {
         }
       />
 
-      <Route path={ROUTES.SUBSCRIPTION.RESULT} element={<SubscriptionResultPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

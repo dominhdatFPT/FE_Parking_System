@@ -48,27 +48,28 @@ const quickActions = [
   },
 ];
 
+// Display-only sample data for the driver overview. This is not loaded from an API yet.
 const suggestedLots = [
   {
     id: 'zone-a',
-    name: 'Khu gửi xe trung tâm',
-    address: 'Cổng chính, tầng trệt',
+    nameKey: 'dashboard.centralParking',
+    addressKey: 'dashboard.mainGateGroundFloor',
     availableSlots: 42,
     totalSlots: 100,
   },
   {
     id: 'zone-b',
-    name: 'Khu thẻ tháng',
-    address: 'Lối vào khu B',
+    nameKey: 'dashboard.monthlyPassArea',
+    addressKey: 'dashboard.zoneBEntrance',
     availableSlots: 18,
     totalSlots: 64,
   },
 ];
 
 const steps = [
-  { icon: 'badge', title: 'Hồ sơ', text: 'Chuẩn bị CCCD, bằng lái và ảnh đăng ký xe.' },
-  { icon: 'approval_delegation', title: 'Xét duyệt', text: 'Staff đối chiếu thông tin trước khi kích hoạt.' },
-  { icon: 'credit_card', title: 'Thanh toán', text: 'Mua gói thẻ xe sau khi hồ sơ hợp lệ.' },
+  { icon: 'badge', titleKey: 'dashboard.profileStep', textKey: 'dashboard.profileStepDesc' },
+  { icon: 'approval_delegation', titleKey: 'dashboard.reviewStep', textKey: 'dashboard.reviewStepDesc' },
+  { icon: 'credit_card', titleKey: 'dashboard.paymentStep', textKey: 'dashboard.paymentStepDesc' },
 ];
 
 const containerVariants = {
@@ -110,12 +111,12 @@ export default function DriverDashboard() {
         <div className="pointer-events-none absolute bottom-0 left-1/3 h-20 w-80 rounded-full bg-[#0EA5E9]/20 blur-2xl" />
         <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/80">Driver workspace</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/80">{t('dashboard.workspace')}</p>
             <h1 className="mt-2 text-2xl font-black tracking-tight text-white md:text-3xl">
-              Xin chào, {displayName}
+              {t('dashboard.welcome', { name: displayName })}
             </h1>
             <p className="mt-2 max-w-2xl text-sm font-semibold leading-relaxed text-white/90">
-              Theo dõi hồ sơ thẻ xe, biểu phí, thanh toán và thông báo trong một màn hình tổng quan.
+              {t('dashboard.overviewSubtitle')}
             </p>
           </div>
           <button
@@ -124,7 +125,7 @@ export default function DriverDashboard() {
             className="inline-flex items-center justify-center gap-2 rounded-full border border-white/70 bg-white px-4 py-2.5 text-sm font-bold text-[#0369A1] shadow-[0_14px_30px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 hover:bg-[#F8FAFC] active:scale-[0.98]"
           >
             <span className="material-symbols-outlined text-[18px]">add_circle</span>
-            Đăng ký thẻ xe
+            {t('dashboard.registerVehicleCard')}
           </button>
         </div>
       </motion.section>
@@ -135,22 +136,22 @@ export default function DriverDashboard() {
             <div className="rounded-[18px] border border-[#E5E7EB] bg-gradient-to-br from-white via-[#F8FAFC] to-[#E0F2FE] p-5">
               <div className="space-y-4">
                 <span className="inline-flex rounded-full bg-[#E0F2FE] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#0369A1]">
-                  Tổng quan thẻ xe
+                  {t('dashboard.vehicleCardOverview')}
                 </span>
                 <div>
-                  <h2 className="text-xl font-black tracking-tight text-[#0F172A]">Bắt đầu bằng hồ sơ đăng ký</h2>
+                  <h2 className="text-xl font-black tracking-tight text-[#0F172A]">{t('dashboard.startWithApplication')}</h2>
                   <p className="mt-2 max-w-[52ch] text-sm font-medium leading-relaxed text-[#64748B]">
-                    Nhập biển số, chọn loại phương tiện và gửi 4 ảnh minh chứng để staff xét duyệt thẻ tháng.
+                    {t('dashboard.applicationGuide')}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={() => navigate(ROUTES.DRIVER.VEHICLE_REGISTRATION)}
-                    className="inline-flex items-center gap-2 rounded-full bg-[#0EA5E9] px-4 py-2 text-xs font-bold text-white shadow-[0_12px_24px_rgba(14,165,233,0.22)] transition hover:bg-[#0284C7] active:scale-[0.98]"
+                    className="inline-flex items-center gap-2 rounded-full bg-[#0EA5E9] px-4 py-2 text-xs font-bold !text-white text-white shadow-[0_12px_24px_rgba(14,165,233,0.22)] transition hover:bg-[#0284C7] active:scale-[0.98] [&_*]:!text-white"
                   >
                     <span className="material-symbols-outlined text-[16px]">assignment_ind</span>
-                    Gửi hồ sơ
+                    {t('dashboard.submitApplication')}
                   </button>
                   <button
                     type="button"
@@ -158,7 +159,7 @@ export default function DriverDashboard() {
                     className="inline-flex items-center gap-2 rounded-full border border-[#BAE6FD] bg-white px-4 py-2 text-xs font-bold text-[#0369A1] transition hover:bg-[#F0F9FF] active:scale-[0.98]"
                   >
                     <span className="material-symbols-outlined text-[16px]">sell</span>
-                    Xem biểu phí
+                    {t('dashboard.viewFeePlans')}
                   </button>
                 </div>
               </div>
@@ -167,7 +168,7 @@ export default function DriverDashboard() {
           </motion.section>
 
           <motion.section variants={itemVariants} className="space-y-3">
-            <h3 className="px-1 text-xs font-black uppercase tracking-[0.18em] text-[#64748B]">Thao tác nhanh</h3>
+            <h3 className="px-1 text-xs font-black uppercase tracking-[0.18em] text-[#64748B]">{t('dashboard.quickActions')}</h3>
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               {quickActions.map((action) => (
                 <button
@@ -194,12 +195,12 @@ export default function DriverDashboard() {
 
           <motion.section variants={itemVariants} className="grid gap-4 md:grid-cols-3">
             {steps.map((step) => (
-              <div key={step.title} className="rounded-[22px] border border-[#E5E7EB] bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
+              <div key={step.titleKey} className="rounded-[22px] border border-[#E5E7EB] bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F1F5F9] text-[#0EA5E9]">
                   <span className="material-symbols-outlined text-[20px]">{step.icon}</span>
                 </span>
-                <h4 className="mt-4 text-sm font-black text-[#0F172A]">{step.title}</h4>
-                <p className="mt-1 text-xs font-medium leading-relaxed text-[#64748B]">{step.text}</p>
+                <h4 className="mt-4 text-sm font-black text-[#0F172A]">{t(step.titleKey)}</h4>
+                <p className="mt-1 text-xs font-medium leading-relaxed text-[#64748B]">{t(step.textKey)}</p>
               </div>
             ))}
           </motion.section>
@@ -208,28 +209,29 @@ export default function DriverDashboard() {
         <div className="space-y-6">
           <motion.section variants={itemVariants} className="rounded-[24px] border border-[#E5E7EB] bg-white p-5 shadow-[0_18px_46px_rgba(15,23,42,0.06)]">
             <h3 className="border-b border-[#E5E7EB] pb-3 text-xs font-black uppercase tracking-[0.18em] text-[#64748B]">
-              Khu gửi xe gợi ý
+              {t('dashboard.suggestedParkingAreas')}
             </h3>
+            <p className="mt-3 rounded-2xl border border-amber-100 bg-amber-50 px-3 py-2 text-[11px] font-semibold leading-relaxed text-amber-700">
+              {t('dashboard.suggestedParkingAreasStaticNote')}
+            </p>
             <div className="mt-4 space-y-4">
               {suggestedLots.map((area) => {
                 const fillRate = Math.round(((area.totalSlots - area.availableSlots) / area.totalSlots) * 100);
                 return (
-                  <button
+                  <article
                     key={area.id}
-                    type="button"
-                    onClick={() => navigate(ROUTES.DRIVER.FEE_PLANS)}
-                    className="group w-full rounded-2xl border border-[#E5E7EB] p-4 text-left transition duration-300 hover:-translate-y-0.5 hover:border-[#BAE6FD] hover:bg-[#F8FAFC] hover:shadow-[0_14px_30px_rgba(14,165,233,0.08)]"
+                    className="w-full rounded-2xl border border-[#E5E7EB] p-4 text-left"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <h4 className="text-sm font-black tracking-tight text-[#0F172A] group-hover:text-[#0EA5E9]">{area.name}</h4>
-                        <p className="mt-1 text-xs font-medium text-[#64748B]">{area.address}</p>
+                        <h4 className="text-sm font-black tracking-tight text-[#0F172A]">{t(area.nameKey)}</h4>
+                        <p className="mt-1 text-xs font-medium text-[#64748B]">{t(area.addressKey)}</p>
                       </div>
                       <span className="material-symbols-outlined text-[18px] text-[#0EA5E9]">location_on</span>
                     </div>
                     <div className="mt-4 space-y-2">
                       <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.12em] text-[#64748B]">
-                        <span>Còn trống</span>
+                        <span>{t('dashboard.available')}</span>
                         <span className="font-mono text-[#334155]">{area.availableSlots} / {area.totalSlots}</span>
                       </div>
                       <div className="h-1.5 overflow-hidden rounded-full bg-[#E5E7EB]">
@@ -239,7 +241,7 @@ export default function DriverDashboard() {
                         />
                       </div>
                     </div>
-                  </button>
+                  </article>
                 );
               })}
             </div>
