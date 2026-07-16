@@ -17,10 +17,11 @@ function unwrap(response) {
   return response?.data?.data ?? response?.data;
 }
 
-function StripeSubscriptionForm({ plan, onPaid, onError }) {
+function StripeSubscriptionForm({ plan, onPaid, onCancelled, onError }) {
   const stripe = useStripe();
   const elements = useElements();
   const [paying, setPaying] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   const handlePay = async () => {
     if (!stripe || !elements || !plan.clientSecret) return;
@@ -49,20 +50,45 @@ function StripeSubscriptionForm({ plan, onPaid, onError }) {
     }
   };
 
+  const handleCancel = async () => {
+    if (!plan.subscriptionId) return;
+    setCancelling(true);
+    onError('');
+    try {
+      await apiClient.patch(API_ENDPOINTS.FEE.CANCEL_SUBSCRIPTION(plan.subscriptionId));
+      onCancelled(plan);
+    } catch (error) {
+      onError(error?.response?.data?.message || error.message || 'Không thể hủy đơn thanh toán');
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   return (
     <div className="mt-3 space-y-3">
       <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
         <CardElement options={{ hidePostalCode: true }} />
       </div>
-      <Button
-        variant="primary"
-        size="sm"
-        loading={paying}
-        disabled={!stripe || paying}
-        onClick={handlePay}
-      >
-        {paying ? 'Đang thanh toán...' : 'Thanh toán bằng thẻ'}
-      </Button>
+      <div className="flex gap-2">
+        <Button
+          variant="primary"
+          size="sm"
+          loading={paying}
+          disabled={!stripe || paying || cancelling}
+          onClick={handlePay}
+        >
+          {paying ? 'Đang thanh toán...' : 'Thanh toán bằng thẻ'}
+        </Button>
+        <Button
+          variant="danger"
+          size="sm"
+          loading={cancelling}
+          disabled={paying || cancelling}
+          onClick={handleCancel}
+        >
+          {cancelling ? 'Đang hủy...' : 'Hủy'}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -107,6 +133,12 @@ export default function DriverPayment() {
   }, []);
 
   const handlePlanPaid = async (plan) => {
+    localStorage.removeItem('pending_fee_plan_request');
+    setPendingFeePlans((current) => current.filter((item) => item.paymentIntentId !== plan.paymentIntentId));
+    await fetchInvoices();
+  };
+
+  const handlePlanCancelled = async (plan) => {
     localStorage.removeItem('pending_fee_plan_request');
     setPendingFeePlans((current) => current.filter((item) => item.paymentIntentId !== plan.paymentIntentId));
     await fetchInvoices();
@@ -194,6 +226,7 @@ export default function DriverPayment() {
                       <StripeSubscriptionForm
                         plan={plan}
                         onPaid={handlePlanPaid}
+                        onCancelled={handlePlanCancelled}
                         onError={setErrorMessage}
                       />
                     </Elements>
