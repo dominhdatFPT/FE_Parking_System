@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../../../contexts/useAuth';
 import { bookingService } from '../../../../services/bookingService';
+import { apiClient } from '../../../../services/apiClient';
+import { API_ENDPOINTS } from '../../../../services/endpoints';
 import { vietnamDayjs } from '../../../../utils/dateTime';
 import PageHeader from '../../components/PageHeader';
 
@@ -50,6 +52,7 @@ const tProfile = {
     successDesc: 'Mật khẩu của bạn đã được cập nhật thành công. Vui lòng sử dụng mật khẩu mới cho các lần đăng nhập tiếp theo.',
     errorRequired: 'Trường này không được để trống.',
     errorVerifyFailed: 'Mật khẩu hiện tại không chính xác.',
+    errorGeneric: 'Có lỗi xảy ra khi cập nhật mật khẩu.',
     verifying: 'Đang xác thực...',
     updating: 'Đang cập nhật...',
     hide: 'Ẩn',
@@ -99,6 +102,7 @@ const tProfile = {
     successDesc: 'Your password has been updated successfully. Please use your new password for future logins.',
     errorRequired: 'This field is required.',
     errorVerifyFailed: 'Current password is incorrect.',
+    errorGeneric: 'Something went wrong while updating your password.',
     verifying: 'Verifying...',
     updating: 'Updating...',
     hide: 'Hide',
@@ -224,7 +228,7 @@ export default function DriverProfile() {
     }, 300);
   };
 
-  const handleStep1Submit = (e) => {
+  const handleStep1Submit = async (e) => {
     e.preventDefault();
     if (!currentPassword) {
       setErrorMsg(localT.errorRequired);
@@ -233,31 +237,14 @@ export default function DriverProfile() {
     setErrorMsg('');
     setIsLoading(true);
 
-    // ==========================================
-    // HƯỚNG DẪN KẾT NỐI API CHO BACKEND DEVELOPER:
-    // ==========================================
-    // Thay thế đoạn setTimeout bên dưới bằng code gọi API thực tế.
-    // Ví dụ:
-    // import { apiClient } from '../../../../services/apiClient';
-    // 
-    // try {
-    //   const response = await apiClient.post('/api/v1/profile/verify-password', { password: currentPassword });
-    //   if (response.data.success) {
-    //     setCurrentStep(2);
-    //   } else {
-    //     setErrorMsg(localT.errorVerifyFailed);
-    //   }
-    // } catch (error) {
-    //   setErrorMsg(error.response?.data?.message || localT.errorVerifyFailed);
-    // } finally {
-    //   setIsLoading(false);
-    // }
-
-    // Hiện tại (Chỉ chạy trên FE): Chấp nhận mọi mật khẩu và chuyển tiếp sau 1 giây.
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await apiClient.post(API_ENDPOINTS.PROFILE.VERIFY_PASSWORD, { password: currentPassword });
       setCurrentStep(2);
-    }, 1000);
+    } catch (error) {
+      setErrorMsg(error.response?.data?.message || localT.errorVerifyFailed);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleStep2Submit = (e) => {
@@ -270,7 +257,7 @@ export default function DriverProfile() {
     setCurrentStep(3);
   };
 
-  const handleStep3Submit = (e) => {
+  const handleStep3Submit = async (e) => {
     e.preventDefault();
     if (!confirmPassword) {
       setErrorMsg(localT.errorRequired);
@@ -283,31 +270,17 @@ export default function DriverProfile() {
     setErrorMsg('');
     setIsLoading(true);
 
-    // ==========================================
-    // HƯỚNG DẪN KẾT NỐI API CHO BACKEND DEVELOPER:
-    // ==========================================
-    // Thay thế đoạn setTimeout bên dưới bằng code gọi API thực tế.
-    // Ví dụ:
-    // import { apiClient } from '../../../../services/apiClient';
-    // 
-    // try {
-    //   await apiClient.post('/api/v1/profile/change-password', {
-    //     currentPassword: currentPassword,
-    //     newPassword: newPassword,
-    //     confirmPassword: confirmPassword
-    //   });
-    //   setCurrentStep(4);
-    // } catch (error) {
-    //   setErrorMsg(error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật mật khẩu.');
-    // } finally {
-    //   setIsLoading(false);
-    // }
-
-    // Hiện tại (Chỉ chạy trên FE): Giả lập cập nhật thành công sau 1.2 giây.
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await apiClient.post(API_ENDPOINTS.PROFILE.CHANGE_PASSWORD, {
+        currentPassword,
+        newPassword,
+      });
       setCurrentStep(4);
-    }, 1200);
+    } catch (error) {
+      setErrorMsg(error.response?.data?.message || localT.errorGeneric);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
