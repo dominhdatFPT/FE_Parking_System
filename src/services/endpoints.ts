@@ -54,4 +54,8 @@ export const API_ENDPOINTS = {
     DETAIL: (id: number | string) => `/api/v1/notifications/${id}`,
     REGISTER_TOKEN: '/api/v1/notifications/register-token',
   },
+  PROFILE: {
+    VERIFY_PASSWORD: '/api/v1/profile/verify-password',
+    CHANGE_PASSWORD: '/api/v1/profile/change-password',
+  },
 } as const;
