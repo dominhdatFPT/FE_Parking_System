@@ -36,6 +36,10 @@ async function refreshAccessToken() {
   }
 
   sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+  // Nếu rememberMe → giữ localStorage token đồng bộ để tránh 401 khi reload trang
+  if (localStorage.getItem('rememberMe') === 'true') {
+    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+  }
   return token;
 }
 
