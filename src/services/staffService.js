@@ -41,7 +41,24 @@ const normalizeVehicleTypeCode = (value) => {
     return 'MOTORBIKE';
   }
 
-  return 'CAR';
+  return '';
+};
+
+const getVehicleTypeCode = (value) => {
+  const rawValue = value && typeof value === 'object'
+    ? value.code || value.vehicleTypeCode || value.vehicleType || value.vehicleTypeId
+    : value;
+
+  return normalizeVehicleTypeCode(rawValue);
+};
+
+const getVehicleTypeId = (value, vehicleTypeCode) => {
+  if (value && typeof value === 'object') {
+    const explicitId = Number(value.vehicleTypeId ?? (value.code ? value.id : undefined));
+    if (Number.isFinite(explicitId) && explicitId > 0) return explicitId;
+  }
+
+  return VEHICLE_TYPE_ID[vehicleTypeCode];
 };
 
 export const getVehicleRegistrations = async (status = 'ALL') => {
@@ -117,24 +134,25 @@ export const getParkingSessions = async (params = {}) => {
 export const checkParkingEntry = async (licensePlate, vehicleType = null) => {
   const payload = { licensePlate };
   if (vehicleType) {
-    const vehicleTypeCode = normalizeVehicleTypeCode(vehicleType);
-    payload.vehicleType = vehicleTypeCode;
-    payload.vehicleTypeCode = vehicleTypeCode;
-    payload.vehicleTypeId = VEHICLE_TYPE_ID[vehicleTypeCode];
+    const vehicleTypeCode = getVehicleTypeCode(vehicleType);
+    if (vehicleTypeCode) {
+      payload.vehicleType = vehicleTypeCode;
+      payload.vehicleTypeCode = vehicleTypeCode;
+      payload.vehicleTypeId = getVehicleTypeId(vehicleType, vehicleTypeCode);
+    }
   }
+  console.log('[HTTP check] sending payload:', JSON.stringify(payload));
   const response = await apiClient.post('/api/v1/parking-entry/check', payload);
   return unwrapData(response);
 };
 
 export const confirmParkingEntry = async (entry) => {
-  const vehicleTypeCode = normalizeVehicleTypeCode(
-    entry.vehicleTypeCode || entry.vehicleType || entry.vehicleTypeId,
-  );
+  const vehicleTypeCode = getVehicleTypeCode(entry);
   const response = await apiClient.post('/api/v1/parking-entry/confirm', {
     licensePlate: entry.licensePlate,
     vehicleType: vehicleTypeCode,
     vehicleTypeCode,
-    vehicleTypeId: VEHICLE_TYPE_ID[vehicleTypeCode],
+    vehicleTypeId: getVehicleTypeId(entry, vehicleTypeCode),
     visitorCardCode: entry.entryType === 'VISITOR' ? entry.visitorCardCode : null,
   });
   return unwrapData(response);

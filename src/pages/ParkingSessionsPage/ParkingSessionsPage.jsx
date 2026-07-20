@@ -32,25 +32,22 @@ const statusClasses = {
 };
 
 const normalizeVehicleType = (item) => {
-  const rememberedType = typeof item === 'object' && item !== null
-    ? getRememberedVehicleType(item.licensePlate)
-    : '';
+  if (typeof item !== 'object' || item === null) return 'Ô tô';
+
+  const rawValue = item.vehicleTypeCode || item.vehicleType || item.vehicleTypeName || item.vehicleTypeId;
+  const normalized = normalizeVehicleTypeCode(rawValue);
+  if (normalized === 'MOTORBIKE') return 'Xe máy';
+  if (normalized === 'CAR') return 'Ô tô';
+
+  const rememberedType = getRememberedVehicleType(item.licensePlate);
   const rememberedCode = normalizeVehicleTypeCode(rememberedType);
   if (rememberedCode === 'MOTORBIKE') return 'Xe máy';
   if (rememberedCode === 'CAR') return 'Ô tô';
 
-  const cardCode = typeof item === 'object' && item !== null
-    ? String(item.visitorCardCode || item.cardId || '').toUpperCase()
-    : '';
-  if (cardCode.startsWith('CAR')) return 'Ô tô';
-  if (cardCode.startsWith('VIS') || cardCode.startsWith('MOTO') || cardCode.startsWith('BIKE')) return 'Xe máy';
+  const cardCode = String(item.visitorCardCode || item.cardId || '').toUpperCase();
+  if (cardCode.startsWith('MOTO') || cardCode.startsWith('BIKE')) return 'Xe máy';
 
-  const rawValue = typeof item === 'object' && item !== null
-    ? item.vehicleTypeCode || item.vehicleType || item.vehicleTypeName || item.vehicleTypeId
-    : item;
-  const normalized = normalizeVehicleTypeCode(rawValue);
-
-  return normalized === 'MOTORBIKE' ? 'Xe máy' : 'Ô tô';
+  return 'Ô tô';
 };
 
 const normalizeCustomerType = (value) =>
