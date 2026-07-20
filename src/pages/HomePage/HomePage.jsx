@@ -63,10 +63,10 @@ function asNumber(value) {
 function formatMoney(value) {
   const amount = asNumber(value);
   if (amount >= 1000000) {
-    return `${(amount / 1000000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}M`;
+    return `${(amount / 1000000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} triệu`;
   }
   if (amount >= 1000) {
-    return `${(amount / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}K`;
+    return `${(amount / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} nghìn`;
   }
   return amount.toLocaleString('vi-VN');
 }
@@ -175,6 +175,13 @@ function buildDashboardData(payload) {
   const vehiclesInToday = asNumber(metrics.vehiclesInToday);
   const vehiclesOutToday = asNumber(metrics.vehiclesOutToday);
   const revenueToday = asNumber(metrics.revenueToday);
+  const completedActivities = activities.filter((activity) => activity.exitTime || activity.status === 'COMPLETED');
+  const fallbackVisitorRevenue = completedActivities
+    .filter((activity) => activity.customerType !== 'MONTHLY')
+    .reduce((sum, activity) => sum + asNumber(activity.calculatedFee), 0);
+  const visitorRevenueToday = asNumber(metrics.visitorRevenueToday) || fallbackVisitorRevenue;
+  const subscriptionRevenueToday = asNumber(metrics.subscriptionRevenueToday)
+    || Math.max(0, revenueToday - visitorRevenueToday);
 
   return {
     entries: vehiclesInToday,
@@ -185,7 +192,9 @@ function buildDashboardData(payload) {
     sessions: activeSessions,
     completedSessions,
     revenueBreakdown: [
-      { label: 'Tổng cộng', value: formatCurrency(revenueToday) },
+      { label: 'Tổng doanh thu', value: formatCurrency(revenueToday) },
+      { label: 'Doanh thu xe gói', value: formatCurrency(subscriptionRevenueToday) },
+      { label: 'Doanh thu xe vãng lai', value: formatCurrency(visitorRevenueToday) },
     ],
     vehicleBreakdown: [
       { label: 'Ô tô', value: String(activeCars), percent: percent(activeCars, vehiclesInParking) },
@@ -627,7 +636,7 @@ export default function HomePage() {
         key: 'revenue',
         label: 'Doanh thu',
         value: loading ? '...' : currentData.revenue,
-        description: 'Đã thu trong ngày',
+        description: 'Xe gói + xe vãng lai trong ngày',
         data: currentData,
       },
       {

@@ -17,10 +17,11 @@ function unwrap(response) {
   return response?.data?.data ?? response?.data;
 }
 
-function StripeSubscriptionForm({ plan, onPaid, onError }) {
+function StripeSubscriptionForm({ plan, onPaid, onCancelled, onError }) {
   const stripe = useStripe();
   const elements = useElements();
   const [paying, setPaying] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   const handlePay = async () => {
     if (!stripe || !elements || !plan.clientSecret) return;
@@ -49,20 +50,45 @@ function StripeSubscriptionForm({ plan, onPaid, onError }) {
     }
   };
 
+  const handleCancel = async () => {
+    if (!plan.subscriptionId) return;
+    setCancelling(true);
+    onError('');
+    try {
+      await apiClient.patch(API_ENDPOINTS.FEE.CANCEL_SUBSCRIPTION(plan.subscriptionId));
+      onCancelled(plan);
+    } catch (error) {
+      onError(error?.response?.data?.message || error.message || 'Không thể hủy đơn thanh toán');
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   return (
     <div className="mt-3 space-y-3">
       <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
         <CardElement options={{ hidePostalCode: true }} />
       </div>
-      <Button
-        variant="primary"
-        size="sm"
-        loading={paying}
-        disabled={!stripe || paying}
-        onClick={handlePay}
-      >
-        {paying ? 'Đang thanh toán...' : 'Thanh toán bằng thẻ'}
-      </Button>
+      <div className="flex gap-2">
+        <Button
+          variant="primary"
+          size="sm"
+          loading={paying}
+          disabled={!stripe || paying || cancelling}
+          onClick={handlePay}
+        >
+          {paying ? 'Đang thanh toán...' : 'Thanh toán bằng thẻ'}
+        </Button>
+        <Button
+          variant="danger"
+          size="sm"
+          loading={cancelling}
+          disabled={paying || cancelling}
+          onClick={handleCancel}
+        >
+          {cancelling ? 'Đang hủy...' : 'Hủy'}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -107,6 +133,12 @@ export default function DriverPayment() {
   }, []);
 
   const handlePlanPaid = async (plan) => {
+    localStorage.removeItem('pending_fee_plan_request');
+    setPendingFeePlans((current) => current.filter((item) => item.paymentIntentId !== plan.paymentIntentId));
+    await fetchInvoices();
+  };
+
+  const handlePlanCancelled = async (plan) => {
     localStorage.removeItem('pending_fee_plan_request');
     setPendingFeePlans((current) => current.filter((item) => item.paymentIntentId !== plan.paymentIntentId));
     await fetchInvoices();
@@ -170,7 +202,7 @@ export default function DriverPayment() {
 
       {pendingFeePlans.length > 0 && (
         <section className="rounded-2xl border border-sky-100 bg-sky-50/30 p-5">
-          <h3 className="text-sm font-bold text-slate-800">{t('payment.pendingVnpayPlans')}</h3>
+          <h3 className="text-sm font-bold text-slate-800">{t('payment.pendingRequestTitle')}</h3>
           <div className="mt-3 space-y-3">
             {pendingFeePlans.map((plan) => (
               <div
@@ -182,31 +214,31 @@ export default function DriverPayment() {
                     {plan.planName || t('payment.vehicleCardPlan')} - {plan.licensePlate || t('payment.noLicensePlate')}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    {t('payment.payViaVnpay')}
-                    {plan.expiredAt ? ` - ${t('payment.expiresAt', { date: vietnamDayjs(plan.expiredAt).format('DD/MM/YYYY HH:mm') })}` : ''}
+                    {plan.expiredAt ? t('payment.expiresAt', { date: vietnamDayjs(plan.expiredAt).format('DD/MM/YYYY HH:mm') }) : t('payment.vehicleCardSubtitle')}
                   </p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="min-w-[260px]">
                   <p className="font-black text-sky-600">
                     {t('payment.currencyAmount', { amount: Number(plan.amount || 0).toLocaleString('vi-VN') })}
                   </p>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    icon="open_in_new"
-                    loading={redirecting}
-                    disabled={redirecting}
-                    onClick={() => handlePayFeePlan(plan)}
-                  >
-                    {redirecting ? t('payment.redirecting') : t('payment.payNow')}
-                  </Button>
+                  {stripePromise && plan.clientSecret ? (
+                    <Elements stripe={stripePromise}>
+                      <StripeSubscriptionForm
+                        plan={plan}
+                        onPaid={handlePlanPaid}
+                        onCancelled={handlePlanCancelled}
+                        onError={setErrorMessage}
+                      />
+                    </Elements>
+                  ) : (
+                    <p className="mt-2 text-xs font-semibold text-amber-600">
+                      Chưa cấu hình Stripe publishable key nên không thể hiển thị form thanh toán.
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
           </div>
-          <p className="mt-3 text-xs text-slate-400">
-            {t('payment.vnpayRedirectNote')}
-          </p>
         </section>
       )}
 

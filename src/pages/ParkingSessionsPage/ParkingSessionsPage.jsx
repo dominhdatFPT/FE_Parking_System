@@ -12,7 +12,6 @@ import {
   TimerReset,
   TriangleAlert,
   Users,
-  WalletCards,
 } from 'lucide-react';
 import SessionDetailDrawer from '../../components/parking/SessionDetailDrawer';
 import { getParkingSessions } from '../../services/staffService';
@@ -33,6 +32,7 @@ const statusClasses = {
 };
 
 const normalizeVehicleType = (item) => {
+<<<<<<< HEAD
   const rememberedType = typeof item === 'object' && item !== null
     ? getRememberedVehicleType(item.licensePlate)
     : '';
@@ -52,6 +52,24 @@ const normalizeVehicleType = (item) => {
   const normalized = normalizeVehicleTypeCode(rawValue);
 
   return normalized === 'MOTORBIKE' ? 'Xe máy' : 'Ô tô';
+=======
+  if (typeof item !== 'object' || item === null) return 'Ô tô';
+
+  const rawValue = item.vehicleTypeCode || item.vehicleType || item.vehicleTypeName || item.vehicleTypeId;
+  const normalized = normalizeVehicleTypeCode(rawValue);
+  if (normalized === 'MOTORBIKE') return 'Xe máy';
+  if (normalized === 'CAR') return 'Ô tô';
+
+  const rememberedType = getRememberedVehicleType(item.licensePlate);
+  const rememberedCode = normalizeVehicleTypeCode(rememberedType);
+  if (rememberedCode === 'MOTORBIKE') return 'Xe máy';
+  if (rememberedCode === 'CAR') return 'Ô tô';
+
+  const cardCode = String(item.visitorCardCode || item.cardId || '').toUpperCase();
+  if (cardCode.startsWith('MOTO') || cardCode.startsWith('BIKE')) return 'Xe máy';
+
+  return 'Ô tô';
+>>>>>>> main
 };
 
 const normalizeCustomerType = (value) =>
@@ -248,16 +266,11 @@ export default function ParkingSessionsPage() {
     const activeSessions = sessions.filter((session) => session.status !== 'Đã hoàn thành');
     const completedSessions = sessions.filter((session) => session.status === 'Đã hoàn thành');
     const over24Hours = sessions.filter((session) => session.durationMinutes >= 1440 && session.status !== 'Đã hoàn thành');
-    const estimatedRevenue = sessions.reduce((total, session) => {
-      const amount = Number(session.estimatedFee?.replace(/[^\d]/g, '') || 0);
-      return total + amount;
-    }, 0);
 
     return [
       { icon: CarFront, label: 'Đang hoạt động', value: activeSessions.length, hint: 'Phiên chưa xe ra', tone: 'blue' },
       { icon: CheckCircle2, label: 'Đã hoàn thành', value: completedSessions.length, hint: 'Phiên đã kết thúc', tone: 'emerald' },
       { icon: Clock3, label: 'Quá 24 giờ', value: over24Hours.length, hint: 'Cần theo dõi', tone: 'orange' },
-      { icon: WalletCards, label: 'Phí đang tính', value: `${estimatedRevenue.toLocaleString('vi-VN')} đ`, hint: 'Tạm tính từ dữ liệu', tone: 'violet' },
     ];
   }, [sessions]);
 
@@ -278,7 +291,7 @@ export default function ParkingSessionsPage() {
   return (
     <div className="space-y-5">
       <section className="flex flex-col gap-4">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {kpis.map((item) => <KpiCard key={item.label} {...item} />)}
         </div>
       </section>
@@ -381,7 +394,7 @@ export default function ParkingSessionsPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1060px] table-fixed text-left text-sm">
+          <table className="w-full min-w-[940px] table-fixed text-left text-sm">
             <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50/95 text-[11px] font-black uppercase tracking-[0.12em] text-slate-500 backdrop-blur">
               <tr>
                 <th className="w-[145px] px-4 py-3">Biển số</th>
@@ -390,7 +403,6 @@ export default function ParkingSessionsPage() {
                 <th className="w-[135px] px-4 py-3">Giờ vào</th>
                 <th className="w-[120px] px-4 py-3">Giờ ra</th>
                 <th className="w-[125px] px-4 py-3">Thời gian gửi</th>
-                <th className="w-[120px] px-4 py-3">Phí</th>
                 <th className="w-[145px] px-4 py-3">Trạng thái</th>
                 <th className="w-[100px] px-4 py-3 text-right">Chi tiết</th>
               </tr>
@@ -398,14 +410,14 @@ export default function ParkingSessionsPage() {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan="9" className="px-4 py-16 text-center text-sm font-semibold text-slate-500">
+                  <td colSpan="8" className="px-4 py-16 text-center text-sm font-semibold text-slate-500">
                     Đang tải dữ liệu từ database...
                   </td>
                 </tr>
               ) : null}
               {!loading && filteredSessions.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="px-4 py-16 text-center text-sm font-semibold text-slate-500">
+                  <td colSpan="8" className="px-4 py-16 text-center text-sm font-semibold text-slate-500">
                     Không có phiên gửi xe phù hợp.
                   </td>
                 </tr>
@@ -429,15 +441,6 @@ export default function ParkingSessionsPage() {
                     <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                       <TimerReset className="h-3.5 w-3.5 text-slate-400" strokeWidth={2.25} />
                       {session.duration}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-bold ${
-                      session.status === 'Đã hoàn thành'
-                        ? 'border-slate-200 bg-slate-50 text-slate-700'
-                        : 'border-blue-200 bg-blue-50 text-blue-700'
-                    }`}>
-                      {session.fee}
                     </span>
                   </td>
                   <td className="px-4 py-3"><StatusBadge status={session.status} /></td>

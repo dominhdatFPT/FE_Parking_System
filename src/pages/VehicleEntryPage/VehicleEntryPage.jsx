@@ -7,6 +7,14 @@ import { rememberVehicleType } from '../../utils/vehicleTypeMemory';
 const PLATE_REGEX = /^[A-Z0-9-]*$/;
 const PLATE_MAX_LENGTH = 12;
 
+const VEHICLE_TYPES = {
+  MOTORBIKE: { code: 'MOTORBIKE', id: 1 },
+  CAR: { code: 'CAR', id: 2 },
+};
+const DEFAULT_VEHICLE_TYPE = VEHICLE_TYPES.MOTORBIKE.code;
+
+const getVehicleType = (value) => VEHICLE_TYPES[String(value || '').toUpperCase()] || null;
+
 const formatKpiDateTime = (value) => {
   if (!value) return '—';
   const date = new Date(value);
@@ -103,7 +111,7 @@ function CameraPanel({ label, status = 'Online' }) {
 export default function VehicleEntryPage() {
   const plateInputRef = useRef(null);
   const [licensePlate, setLicensePlate] = useState('');
-  const [vehicleType, setVehicleType] = useState('CAR');
+  const [vehicleType, setVehicleType] = useState(DEFAULT_VEHICLE_TYPE);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -113,6 +121,7 @@ export default function VehicleEntryPage() {
   const [hasChecked, setHasChecked] = useState(false);
   const [plateError, setPlateError] = useState('');
   const [typeError, setTypeError] = useState('');
+  const selectedVehicleType = getVehicleType(vehicleType);
 
   const check = async (event) => {
     event?.preventDefault();
@@ -128,14 +137,15 @@ export default function VehicleEntryPage() {
       setPlateError('Biển số chỉ được chứa chữ cái, số và dấu gạch ngang');
       hasError = true;
     }
-    if (!vehicleType) {
+    if (!selectedVehicleType) {
       setTypeError('Vui lòng chọn loại xe');
       hasError = true;
     }
     if (hasError) return;
     setLoading(true); setNotice(null); setResult(null); setHasChecked(false);
     try {
-      const res = await checkParkingEntry(plate, vehicleType || null);
+      console.log('[DEBUG check] vehicleType state:', selectedVehicleType.code, '| vehicleTypeId:', selectedVehicleType.id, '| plate:', plate);
+      const res = await checkParkingEntry(plate, selectedVehicleType);
       setResult(res);
       setHasChecked(true);
       if (res.entryType === 'MONTHLY') {
@@ -158,19 +168,27 @@ export default function VehicleEntryPage() {
   };
 
   const confirm = async () => {
-    if (!result?.canConfirm) return;
+    if (!result?.canConfirm || !selectedVehicleType) return;
     setConfirming(true); setNotice(null);
     try {
       const payload = {
-        ...result,
-        vehicleType,
-        vehicleTypeCode: vehicleType,
+        licensePlate: result.licensePlate || licensePlate.trim().toUpperCase(),
+        entryType: result.entryType,
+        visitorCardCode: result.visitorCardCode,
+        vehicleType: selectedVehicleType.code,
+        vehicleTypeCode: selectedVehicleType.code,
+        vehicleTypeId: selectedVehicleType.id,
       };
+      console.log('[DEBUG confirm] vehicleType state:', selectedVehicleType.code, '| vehicleTypeId:', selectedVehicleType.id, '| payload.vehicleType:', payload.vehicleType, '| payload.vehicleTypeCode:', payload.vehicleTypeCode, '| result.vehicleType:', result?.vehicleType);
       setResult(await confirmParkingEntry(payload));
+<<<<<<< HEAD
       rememberVehicleType(result?.licensePlate || licensePlate, vehicleType);
+=======
+      rememberVehicleType(result?.licensePlate || licensePlate, selectedVehicleType.code);
+>>>>>>> main
       setNotice({ type: 'success', message: 'Đã xác nhận xe vào bãi' });
       setLicensePlate('');
-      setVehicleType('CAR');
+      setVehicleType(DEFAULT_VEHICLE_TYPE);
       setResult(null);
       setHasChecked(false);
       setPlateError('');
@@ -200,7 +218,7 @@ export default function VehicleEntryPage() {
   const entryTime = hasChecked ? formatKpiDateTime(result?.entryTime || result?.checkInTime || result?.createdAt) : '—';
   const exitTime = hasChecked ? formatKpiDateTime(result?.exitTime || result?.checkOutTime) : '—';
   const sessionCode = getSessionCode(result);
-  const isMotorbike = String(vehicleType || '').toUpperCase() === 'MOTORBIKE';
+  const isMotorbike = selectedVehicleType?.code === VEHICLE_TYPES.MOTORBIKE.code;
   const vehicleTypeDisplay = !hasChecked ? '—' : isMotorbike ? 'Xe máy' : 'Ô tô';
   const VehicleTypeIcon = isMotorbike ? Bike : CarFront;
   const sessionStatusDisplay = hasChecked ? formatSessionStatus(result?.sessionStatus, result?.canConfirm, isInvalid) : '—';
@@ -281,11 +299,11 @@ export default function VehicleEntryPage() {
                   </span>
                   <select
                     value={vehicleType}
-                    onChange={(e) => { setVehicleType(e.target.value); setTypeError(''); setResult(null); setNotice(null); setHasChecked(false); }}
+                    onChange={(e) => { setVehicleType(getVehicleType(e.target.value)?.code || ''); setTypeError(''); setResult(null); setNotice(null); setHasChecked(false); }}
                     className={`h-12 w-full appearance-none rounded-[14px] border bg-white pl-[52px] pr-11 font-sans text-sm font-bold text-slate-800 shadow-sm outline-none transition-all duration-200 focus:ring-4 ${typeError ? 'border-red-400 focus:border-red-400 focus:ring-red-100' : 'border-[#D8E3F1] focus:border-blue-400 focus:ring-blue-100'}`}
                   >
-                    <option value="CAR">Ô tô</option>
-                    <option value="MOTORBIKE">Xe máy</option>
+                    <option value={VEHICLE_TYPES.MOTORBIKE.code}>Xe máy</option>
+                    <option value={VEHICLE_TYPES.CAR.code}>Ô tô</option>
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
                 </div>

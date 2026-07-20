@@ -37,16 +37,29 @@ export function AuthProvider({ children }) {
         let cancelled = false;
 
         async function restoreSessionFromCookie() {
-            if (readInitialUser()) {
+            const existingUser = readInitialUser();
+            const hasToken = !!(
+                window.sessionStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) ||
+                window.localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
+            );
+
+            // Có user VÀ có token → không cần refresh, load ngay
+            if (existingUser && hasToken) {
                 setAuthReady(true);
                 return;
             }
 
+            // Có user nhưng không có token (tab mới / đóng-mở tab với rememberMe)
+            // → thử refresh cookie để lấy token mới
             try {
                 const response = await refreshSession();
-                if (cancelled || !response?.token) return;
+                if (cancelled || !response?.token) {
+                    // Refresh không trả token → giữ nguyên state nếu đã có user
+                    if (!existingUser) clearAuthStorage();
+                    return;
+                }
 
-                const restoredUser = {
+                const restoredUser = existingUser ?? {
                     id: response.user?.id ?? response.userId,
                     fullName: response.user?.fullName ?? response.fullName ?? response.user?.name ?? 'Người dùng',
                     email: response.user?.email ?? response.email ?? '',
@@ -57,11 +70,14 @@ export function AuthProvider({ children }) {
                 window.sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
                 window.sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(restoredUser));
                 window.sessionStorage.setItem('smart-parking-user', JSON.stringify(restoredUser));
-                window.localStorage.setItem('rememberMe', 'true');
-                window.localStorage.setItem('smart-parking-user', JSON.stringify(restoredUser));
+                if (window.localStorage.getItem('rememberMe') === 'true') {
+                    window.localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
+                    window.localStorage.setItem('smart-parking-user', JSON.stringify(restoredUser));
+                }
                 setUser(restoredUser);
             } catch {
-                clearAuthStorage();
+                // Refresh thất bại — chỉ xóa auth nếu không có user từ localStorage
+                if (!existingUser) clearAuthStorage();
             } finally {
                 if (!cancelled) {
                     setAuthReady(true);

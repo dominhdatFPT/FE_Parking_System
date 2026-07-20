@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
     MY_INVOICES: '/api/subscriptions/my-invoices',
     REGISTER: '/api/subscriptions/register-stripe',
     INVOICE_STRIPE: (invoiceId: string | number) => `/api/subscriptions/invoices/${invoiceId}/stripe`,
+    CANCEL_SUBSCRIPTION: (subscriptionId: string | number) => `/api/subscriptions/${subscriptionId}/cancel`,
   },
   PAYMENTS: {
     STRIPE_ORDER_STATUS: (paymentIntentId: string) => `/api/payments/stripe/orders/${paymentIntentId}/status`,
@@ -52,5 +53,9 @@ export const API_ENDPOINTS = {
     LIST: '/api/v1/notifications',
     DETAIL: (id: number | string) => `/api/v1/notifications/${id}`,
     REGISTER_TOKEN: '/api/v1/notifications/register-token',
+  },
+  PROFILE: {
+    VERIFY_PASSWORD: '/api/v1/profile/verify-password',
+    CHANGE_PASSWORD: '/api/v1/profile/change-password',
   },
 } as const;

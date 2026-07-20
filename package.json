@@ -12,6 +12,8 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^6.7.0",
+    "@stripe/stripe-js": "^9.9.0",
     "axios": "^1.7.9",
     "dayjs": "^1.11.21",
     "exceljs": "^4.4.0",
@@ -20,8 +22,6 @@
     "framer-motion": "^11.0.0",
     "i18next": "^26.3.1",
     "lucide-react": "^0.470.0",
-    "@stripe/react-stripe-js": "^3.9.2",
-    "@stripe/stripe-js": "^7.9.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-i18next": "^17.0.8",

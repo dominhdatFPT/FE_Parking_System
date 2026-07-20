@@ -6,7 +6,11 @@ import {
 } from 'lucide-react';
 import { checkParkingExit, confirmParkingExit } from '../../../services/staffService';
 import { VIETNAM_TIME_ZONE } from '../../../utils/dateTime';
+<<<<<<< HEAD
 import { getRememberedVehicleType, normalizeVehicleTypeCode } from '../../../utils/vehicleTypeMemory';
+=======
+import { normalizeVehicleTypeCode } from '../../../utils/vehicleTypeMemory';
+>>>>>>> main
 
 const formatCurrency = (value) => `${Number(value || 0).toLocaleString('vi-VN')} đ`;
 const formatVND = (value) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
@@ -260,8 +264,12 @@ export default function StaffVehicleExit() {
     setSuccessMessage('');
   };
 
+<<<<<<< HEAD
   const rememberedVehicleType = getRememberedVehicleType(result?.licensePlate || licensePlate);
   const resolvedVehicleType = normalizeVehicleTypeCode(rememberedVehicleType || result?.vehicleType);
+=======
+  const resolvedVehicleType = normalizeVehicleTypeCode(result?.vehicleType);
+>>>>>>> main
   const isMotorbike = resolvedVehicleType === 'MOTORBIKE';
   const vehicleTypeDisplay = !hasExitData
     ? '—'
