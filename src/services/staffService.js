@@ -13,7 +13,17 @@ const VEHICLE_TYPE_ID = {
   CAR: 2,
 };
 
-const normalizeVehicleTypeCode = (value) => {
+const KNOWN_VEHICLE_CODES = new Map([
+  ['MOTORBIKE', 'MOTORBIKE'],
+  ['CAR', 'CAR'],
+  ['1', 'MOTORBIKE'],
+  ['2', 'CAR'],
+]);
+
+function normalizeVehicleTypeCode(value) {
+  if (value && typeof value === 'object') {
+    value = value.code || value.vehicleTypeCode || '';
+  }
   const normalized = String(value || '')
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '')
@@ -21,35 +31,20 @@ const normalizeVehicleTypeCode = (value) => {
     .replace(/[^A-Z0-9]+/g, ' ')
     .trim();
 
-  if (normalized === '2') return 'CAR';
-  if (normalized === '1') return 'MOTORBIKE';
-  if (
-    normalized === 'CAR'
-    || normalized.includes('AUTO')
-    || normalized.includes('O TO')
-    || normalized.includes('OTO')
-  ) {
+  const known = KNOWN_VEHICLE_CODES.get(normalized);
+  if (known) return known;
+
+  if (normalized.includes('AUTO') || normalized.includes('O TO') || normalized.includes('OTO')) {
     return 'CAR';
   }
-  if (
-    normalized === 'MOTORBIKE'
-    || normalized.includes('MOTOR')
-    || normalized.includes('MOTO')
-    || normalized.includes('BIKE')
-    || normalized.includes('XE MAY')
-  ) {
+  if (normalized.includes('MOTOR') || normalized.includes('MOTO') || normalized.includes('BIKE') || normalized.includes('XE MAY')) {
     return 'MOTORBIKE';
   }
-
   return '';
-};
+}
 
 const getVehicleTypeCode = (value) => {
-  const rawValue = value && typeof value === 'object'
-    ? value.code || value.vehicleTypeCode || value.vehicleType || value.vehicleTypeId
-    : value;
-
-  return normalizeVehicleTypeCode(rawValue);
+  return normalizeVehicleTypeCode(value);
 };
 
 const getVehicleTypeId = (value, vehicleTypeCode) => {
