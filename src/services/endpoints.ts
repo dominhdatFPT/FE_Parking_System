@@ -38,6 +38,8 @@ export const API_ENDPOINTS = {
     EMPLOYEES: '/api/v1/admin/accounts/employees',
     USER_STATUS: (userId: string | number) => `/api/v1/admin/accounts/users/${userId}/status`,
     USER_ROLE: (userId: string | number) => `/api/v1/admin/accounts/users/${userId}/role`,
+    CANCEL_SUBSCRIPTION: (subscriptionId: string | number) => `/api/v1/admin/accounts/subscriptions/${subscriptionId}/cancel`,
+    PAY_SUBSCRIPTION: (subscriptionId: string | number) => `/api/v1/admin/accounts/subscriptions/${subscriptionId}/pay`,
   },
   VEHICLE_REGISTRATIONS: {
     CREATE_FOR_USER: (userId: string | number) => `/api/v1/vehicle-registrations/users/${userId}`,

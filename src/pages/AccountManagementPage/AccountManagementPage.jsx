@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Search,
   Lock,
   Unlock,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   AlertTriangle,
   Shield,
   Loader2,
@@ -20,6 +22,11 @@ import {
   EyeOff,
   X,
   AlertCircle,
+  Car,
+  Bike,
+  Truck,
+  ClipboardList,
+  CreditCard,
 } from 'lucide-react';
 import {
   getAccountUsers,
@@ -27,6 +34,8 @@ import {
   toggleUserStatus,
   changeUserRole,
   createAccountUser,
+  cancelFeeSubscription,
+  payFeeSubscription,
 } from '../../services/accountApi';
 import { formatVietnamDate } from '../../utils/dateTime';
 import { useAuth } from '../../contexts/useAuth';
@@ -88,9 +97,63 @@ const mapRoleToApi = (role = '') => {
 
 const formatDate = (value) => formatVietnamDate(value) || (value ? String(value) : '');
 
+const formatDateShort = (value) => {
+  if (!value) return '—';
+  try {
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return String(value);
+    return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  } catch {
+    return String(value);
+  }
+};
+
+const getDaysRemaining = (endDate) => {
+  if (!endDate) return null;
+  const end = new Date(endDate);
+  const now = new Date();
+  const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+  return diff;
+};
+
 const buildStaffCode = (userId) => {
   if (userId === null || userId === undefined) return 'STF---';
   return `STF${String(userId).padStart(3, '0')}`;
+};
+
+const VEHICLE_TYPE_ICON_MAP = {
+  XE_MAY: Bike,
+  'XE MÁY': Bike,
+  MOTORCYCLE: Bike,
+  MOTOBIKE: Bike,
+  O_TO: Car,
+  'XE Ô TÔ': Car,
+  'XE O TO': Car,
+  CAR: Car,
+  SEDAN: Car,
+  SUV: Car,
+  HATCHBACK: Car,
+  XE_TAI: Truck,
+  'XE TẢI': Truck,
+  'XE TAI': Truck,
+  TRUCK: Truck,
+  VAN: Truck,
+};
+
+const getVehicleTypeIcon = (typeName, typeCode) => {
+  const normalizedCode = String(typeCode || '').trim().toUpperCase();
+  const normalizedName = String(typeName || '').trim().toUpperCase();
+
+  if (VEHICLE_TYPE_ICON_MAP[normalizedCode]) return VEHICLE_TYPE_ICON_MAP[normalizedCode];
+  if (VEHICLE_TYPE_ICON_MAP[normalizedName]) return VEHICLE_TYPE_ICON_MAP[normalizedName];
+
+  if (normalizedName.includes('MÁY') || normalizedName.includes('MAY') || normalizedName.includes('MOTO') || normalizedName.includes('BIKE')) {
+    return Bike;
+  }
+  if (normalizedName.includes('TẢI') || normalizedName.includes('TAI') || normalizedName.includes('TRUCK')) {
+    return Truck;
+  }
+  return Car;
 };
 
 const CREATE_FIELD_LABELS = {
@@ -177,6 +240,24 @@ const normalizeAccount = (item) => {
   const rawRole = item.role ?? 'USER';
   const rawPayment = item.paymentStatus ?? item.payment_status ?? item.isPaid ?? null;
   const isPaid = rawPayment === 'PAID' || rawPayment === true || String(rawPayment).toUpperCase() === 'PAID';
+  const vehicles = Array.isArray(item.vehicles)
+    ? item.vehicles.map((v) => ({
+        vehicleId: v.vehicleId,
+        subscriptionId: v.subscriptionId ?? null,
+        licensePlate: v.licensePlate || '',
+        brand: v.brand || '',
+        color: v.color || '',
+        vehicleTypeName: v.vehicleTypeName || '',
+        vehicleTypeCode: v.vehicleTypeCode || '',
+        subscriptionStatus: v.subscriptionStatus || null,
+        paymentStatus: v.paymentStatus || 'UNPAID',
+        paymentStatusLabel: v.paymentStatusLabel || 'Chua thanh toan',
+        feePackageName: v.feePackageName || null,
+        amountToPay: v.amountToPay ?? null,
+        startDate: v.startDate || null,
+        endDate: v.endDate || null,
+      }))
+    : [];
   return {
     id: item.userId ?? item.id,
     userId: item.userId ?? item.id,
@@ -190,6 +271,7 @@ const normalizeAccount = (item) => {
     statusApi: String(rawStatus).toUpperCase(),
     createdAt: formatDate(item.createdAt ?? item.createdDate ?? item.created_at),
     paid: rawPayment === null ? null : isPaid,
+    vehicles,
   };
 };
 
@@ -271,6 +353,9 @@ export default function AccountManagementPage() {
     role: 'USER',
   });
   const fullNameInputRef = useRef(null);
+
+  // Vehicle expand state
+  const [expandedVehicles, setExpandedVehicles] = useState(new Set());
 
   // Toast state
   const [toast, setToast] = useState(null);
@@ -443,6 +528,82 @@ export default function AccountManagementPage() {
     setShowCreateDialog(false);
     resetCreateForm();
   }, [createLoading, resetCreateForm]);
+
+  const toggleVehicleExpand = useCallback((userId) => {
+    setExpandedVehicles((prev) => {
+      const next = new Set(prev);
+      if (next.has(userId)) {
+        next.delete(userId);
+      } else {
+        next.add(userId);
+      }
+      return next;
+    });
+  }, []);
+
+  // Cancel subscription
+  const [cancelLoading, setCancelLoading] = useState(null);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelTarget, setCancelTarget] = useState(null);
+
+  const openCancelDialog = useCallback((vehicle, user) => {
+    setCancelTarget({ vehicle, user });
+    setShowCancelDialog(true);
+  }, []);
+
+  const closeCancelDialog = useCallback(() => {
+    if (cancelLoading) return;
+    setShowCancelDialog(false);
+    setCancelTarget(null);
+  }, [cancelLoading]);
+
+  const confirmCancelSubscription = useCallback(async () => {
+    if (!cancelTarget) return;
+    setCancelLoading(cancelTarget.vehicle.subscriptionId);
+    try {
+      await cancelFeeSubscription(cancelTarget.vehicle.subscriptionId);
+      showToast('success', 'Hủy gói cước thành công');
+      setShowCancelDialog(false);
+      setCancelTarget(null);
+      await fetchAccounts();
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setCancelLoading(null);
+    }
+  }, [cancelTarget, fetchAccounts, handleApiError, showToast]);
+
+  // Pay subscription
+  const [payLoading, setPayLoading] = useState(null);
+  const [showPayDialog, setShowPayDialog] = useState(false);
+  const [payTarget, setPayTarget] = useState(null);
+
+  const openPayDialog = useCallback((vehicle, user) => {
+    setPayTarget({ vehicle, user });
+    setShowPayDialog(true);
+  }, []);
+
+  const closePayDialog = useCallback(() => {
+    if (payLoading) return;
+    setShowPayDialog(false);
+    setPayTarget(null);
+  }, [payLoading]);
+
+  const confirmPaySubscription = useCallback(async () => {
+    if (!payTarget) return;
+    setPayLoading(payTarget.vehicle.subscriptionId);
+    try {
+      await payFeeSubscription(payTarget.vehicle.subscriptionId);
+      showToast('success', 'Thanh toán gói cước thành công');
+      setShowPayDialog(false);
+      setPayTarget(null);
+      await fetchAccounts();
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setPayLoading(null);
+    }
+  }, [payTarget, fetchAccounts, handleApiError, showToast]);
 
   const handleCreateChange = useCallback(
     (field) => (e) => {
@@ -681,7 +842,7 @@ export default function AccountManagementPage() {
                   <th className="px-6 py-4 w-[260px]">Người dùng</th>
                   <th className="px-6 py-4">Email</th>
                   <th className="px-6 py-4">Số điện thoại</th>
-                  <th className="px-6 py-4">Thanh toán</th>
+                  <th className="px-6 py-4">Phương tiện</th>
                   <th className="px-6 py-4 text-center">Hành động</th>
                 </tr>
               </thead>
@@ -699,8 +860,11 @@ export default function AccountManagementPage() {
                     accounts.map((user) => {
                       const avatarStyle = getAvatarStyle(user.name);
                       const isLocked = user.status === 'Bị khóa';
+                      const vehicleCount = user.vehicles.length;
+                      const isExpanded = expandedVehicles.has(user.userId);
                       return (
-                        <tr key={user.userId ?? user.id} className="hover:bg-blue-50/40 transition duration-150 group">
+                        <Fragment key={user.userId ?? user.id}>
+                        <tr className="hover:bg-blue-50/40 transition duration-150 group">
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
                               <span className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border shrink-0 ${avatarStyle}`}>
@@ -729,16 +893,22 @@ export default function AccountManagementPage() {
                           </td>
                           <td className="px-6 py-4 text-slate-700 font-medium">{user.phone || '—'}</td>
                           <td className="px-6 py-4">
-                            {user.paid === true ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                Đã thanh toán
-                              </span>
+                            {vehicleCount > 0 ? (
+                              <button
+                                type="button"
+                                onClick={() => toggleVehicleExpand(user.userId)}
+                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-blue-50 hover:border-blue-300 text-sm font-medium text-slate-700 hover:text-blue-600 transition duration-150 group/veh"
+                              >
+                                <ClipboardList size={15} className="text-slate-400 group-hover/veh:text-blue-500 transition" />
+                                <span>{vehicleCount} phương tiện</span>
+                                {isExpanded ? (
+                                  <ChevronUp size={14} className="text-slate-400 group-hover/veh:text-blue-500 transition" />
+                                ) : (
+                                  <ChevronDown size={14} className="text-slate-400 group-hover/veh:text-blue-500 transition" />
+                                )}
+                              </button>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                                Chưa thanh toán
-                              </span>
+                              <span className="text-xs text-slate-400 italic">Chưa đăng ký xe</span>
                             )}
                           </td>
                           <td className="px-6 py-4 text-center">
@@ -770,6 +940,135 @@ export default function AccountManagementPage() {
                             </div>
                           </td>
                         </tr>
+                        {isExpanded && vehicleCount > 0 && (
+                          <tr className="bg-blue-50/60">
+                            <td colSpan="5" className="px-6 py-0">
+                              <div className="py-3 pl-6 pr-4">
+                                <div className="grid gap-2">
+                                  {user.vehicles.map((v) => {
+                                    const isPaid = v.paymentStatus === 'PAID';
+                                    const isNotSubscribed = v.paymentStatus === 'NOT_SUBSCRIBED';
+                                    const isCancelled = v.paymentStatus === 'CANCELLED';
+                                    const canCancel = v.subscriptionStatus === 'ACTIVE';
+                                    const canPay = v.subscriptionStatus === 'PENDING_PAYMENT';
+                                    const VehIcon = getVehicleTypeIcon(v.vehicleTypeName, v.vehicleTypeCode);
+                                    const daysLeft = getDaysRemaining(v.endDate);
+                                    const isExpiringSoon = daysLeft !== null && daysLeft <= 7 && daysLeft > 0;
+                                    const isExpired = daysLeft !== null && daysLeft <= 0;
+                                    return (
+                                      <div key={v.vehicleId} className="px-4 py-3 bg-white rounded-xl border border-slate-200">
+                                        <div className="flex items-center justify-between gap-3">
+                                          <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                                              <VehIcon size={16} className="text-slate-600" />
+                                            </div>
+                                            <div className="min-w-0">
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-sm font-semibold text-slate-900">{v.licensePlate}</span>
+                                                <span className="text-[10px] text-slate-400 font-medium uppercase">{v.vehicleTypeName}</span>
+                                              </div>
+                                              <div className="flex items-center gap-2 mt-0.5">
+                                                {v.brand && <span className="text-xs text-slate-500">{v.brand}</span>}
+                                                {v.color && <span className="text-xs text-slate-400">· {v.color}</span>}
+                                                {v.feePackageName && <span className="text-xs text-slate-400">· {v.feePackageName}</span>}
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div className="shrink-0">
+                                            {isNotSubscribed ? (
+                                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-50 text-slate-500 border border-slate-200">
+                                                Chưa đăng ký gói
+                                              </span>
+                                            ) : isPaid ? (
+                                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                                Đã thanh toán
+                                              </span>
+                                            ) : isCancelled ? (
+                                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+                                                Đã hủy
+                                              </span>
+                                            ) : (
+                                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                                                Chưa thanh toán
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                         {/* Subscription dates & actions */}
+                                        {(v.startDate || v.endDate || canPay || canCancel) && !isNotSubscribed && (
+                                          <div className="mt-2.5 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                                            <div className="flex items-center gap-4 text-xs">
+                                              {v.startDate && (
+                                                <div className="flex items-center gap-1.5">
+                                                  <span className="text-slate-400">Từ:</span>
+                                                  <span className="font-medium text-slate-700">{formatDateShort(v.startDate)}</span>
+                                                </div>
+                                              )}
+                                              {v.endDate && (
+                                                <div className="flex items-center gap-1.5">
+                                                  <span className="text-slate-400">Đến:</span>
+                                                  <span className="font-medium text-slate-700">{formatDateShort(v.endDate)}</span>
+                                                </div>
+                                              )}
+                                              {daysLeft !== null && !isExpired && (
+                                                <span className={`inline-flex items-center gap-1 font-semibold ${
+                                                  isExpiringSoon ? 'text-amber-600' : 'text-emerald-600'
+                                                }`}>
+                                                  Còn {daysLeft} ngày
+                                                </span>
+                                              )}
+                                              {isExpired && isCancelled && (
+                                                <span className="text-slate-400 font-medium">Đã hết hạn</span>
+                                              )}
+                                            </div>
+                                            {v.amountToPay != null && (
+                                              <span className="text-xs font-semibold text-slate-700">
+                                                Phí: {Number(v.amountToPay).toLocaleString('vi-VN')} VNĐ
+                                              </span>
+                                            )}
+                                            {canPay && (
+                                              <button
+                                                type="button"
+                                                onClick={() => openPayDialog(v, user)}
+                                                disabled={payLoading === v.subscriptionId}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                                              >
+                                                {payLoading === v.subscriptionId ? (
+                                                  <Loader2 size={12} className="animate-spin" />
+                                                ) : (
+                                                  <CreditCard size={12} />
+                                                )}
+                                                Thanh toán
+                                              </button>
+                                            )}
+                                            {canCancel && (
+                                              <button
+                                                type="button"
+                                                onClick={() => openCancelDialog(v, user)}
+                                                disabled={cancelLoading === v.subscriptionId}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white hover:border-red-600 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                                              >
+                                                {cancelLoading === v.subscriptionId ? (
+                                                  <Loader2 size={12} className="animate-spin" />
+                                                ) : (
+                                                  <X size={12} />
+                                                )}
+                                                Hủy gói
+                                              </button>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                        </Fragment>
                       );
                     })
                   )}
@@ -1303,6 +1602,97 @@ export default function AccountManagementPage() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* ================= CANCEL SUBSCRIPTION CONFIRM DIALOG ================= */}
+      {showPayDialog && payTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div onClick={closePayDialog} className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" />
+
+          <div className="relative bg-white border border-slate-200 w-full max-w-md rounded-2xl p-6 text-center shadow-xl z-10 animate-in fade-in zoom-in-95 duration-150">
+            <div className="mx-auto w-14 h-14 bg-emerald-50 border border-emerald-200 text-emerald-600 rounded-full flex items-center justify-center mb-4">
+              <CreditCard size={28} />
+            </div>
+
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Xác nhận thanh toán?</h3>
+
+            <p className="text-slate-500 text-sm leading-relaxed mb-6">
+              Xác nhận thanh toán gói{' '}
+              <span className="font-semibold text-slate-900">{payTarget.vehicle.feePackageName}</span>{' '}
+              cho xe <span className="font-semibold text-slate-900">{payTarget.vehicle.licensePlate}</span>?
+              {payTarget.vehicle.amountToPay != null && (
+                <span className="block mt-1 text-emerald-600 font-semibold">
+                  Số tiền: {Number(payTarget.vehicle.amountToPay).toLocaleString('vi-VN')} VNĐ
+                </span>
+              )}
+            </p>
+
+            <div className="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={closePayDialog}
+                disabled={payLoading !== null}
+                className="w-1/2 py-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={confirmPaySubscription}
+                disabled={payLoading !== null}
+                className="w-1/2 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {payLoading !== null && <Loader2 size={16} className="animate-spin" />}
+                Xác nhận thanh toán
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCancelDialog && cancelTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div onClick={closeCancelDialog} className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" />
+
+          <div className="relative bg-white border border-slate-200 w-full max-w-md rounded-2xl p-6 text-center shadow-xl z-10 animate-in fade-in zoom-in-95 duration-150">
+            <div className="mx-auto w-14 h-14 bg-red-50 border border-red-200 text-red-600 rounded-full flex items-center justify-center mb-4">
+              <AlertTriangle size={28} />
+            </div>
+
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Hủy gói cước?</h3>
+
+            <p className="text-slate-500 text-sm leading-relaxed mb-6">
+              Bạn có chắc muốn hủy gói{' '}
+              <span className="font-semibold text-slate-900">{cancelTarget.vehicle.feePackageName}</span>{' '}
+              cho xe <span className="font-semibold text-slate-900">{cancelTarget.vehicle.licensePlate}</span>?
+              {cancelTarget.vehicle.paymentStatus === 'PAID' && (
+                <span className="block mt-1 text-amber-600 font-medium">
+                  Gói này đã thanh toán. Sau khi hủy, xe sẽ không còn quyền lợi gói cước.
+                </span>
+              )}
+            </p>
+
+            <div className="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={closeCancelDialog}
+                disabled={cancelLoading !== null}
+                className="w-1/2 py-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Không, giữ lại
+              </button>
+              <button
+                type="button"
+                onClick={confirmCancelSubscription}
+                disabled={cancelLoading !== null}
+                className="w-1/2 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-sm transition inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {cancelLoading !== null && <Loader2 size={16} className="animate-spin" />}
+                Hủy gói
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
