@@ -42,3 +42,13 @@ export const createAccountUser = async (payload) => {
   const response = await apiClient.post(API_ENDPOINTS.ACCOUNTS.USERS, payload);
   return unwrapData(response);
 };
+
+export const cancelFeeSubscription = async (subscriptionId) => {
+  const response = await apiClient.patch(API_ENDPOINTS.ACCOUNTS.CANCEL_SUBSCRIPTION(subscriptionId));
+  return unwrapData(response);
+};
+
+export const payFeeSubscription = async (subscriptionId) => {
+  const response = await apiClient.post(API_ENDPOINTS.ACCOUNTS.PAY_SUBSCRIPTION(subscriptionId));
+  return unwrapData(response);
+};
