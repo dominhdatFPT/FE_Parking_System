@@ -434,7 +434,7 @@ function PackageEditModal({ pkg, onClose, onSaved }) {
 function VisitorRateCard({ rate, onEdit }) {
   const dailyCap = rate?.dailyCap;
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-sky-300 hover:shadow-md">
+    <div className="flex h-auto flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-sky-300 hover:shadow-md">
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-xl bg-gradient-to-br from-sky-50 to-white p-3 ring-1 ring-sky-100">
           <p className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-sky-600">
@@ -911,7 +911,7 @@ export default function StaffVehicleRegistrationPricing() {
       </section>
 
       {/* SECTION 2 — GIÁ VÃNG LAI */}
-      <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-indigo-50/30 to-white p-4 shadow-sm sm:p-5">
+      <section className="h-auto rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-indigo-50/30 to-white p-4 pb-6 shadow-sm sm:p-5 sm:pb-6">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-indigo-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-indigo-700 ring-1 ring-indigo-200">
@@ -934,7 +934,7 @@ export default function StaffVehicleRegistrationPricing() {
           </button>
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className="grid items-start gap-4 xl:grid-cols-2">
           {VEHICLE_COLUMNS.map((col) => (
             <VisitorRateColumn
               key={col.key}

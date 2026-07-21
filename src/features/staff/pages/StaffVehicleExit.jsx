@@ -6,11 +6,7 @@ import {
 } from 'lucide-react';
 import { checkParkingExit, confirmParkingExit } from '../../../services/staffService';
 import { VIETNAM_TIME_ZONE } from '../../../utils/dateTime';
-<<<<<<< HEAD
 import { getRememberedVehicleType, normalizeVehicleTypeCode } from '../../../utils/vehicleTypeMemory';
-=======
-import { normalizeVehicleTypeCode } from '../../../utils/vehicleTypeMemory';
->>>>>>> main
 
 const formatCurrency = (value) => `${Number(value || 0).toLocaleString('vi-VN')} đ`;
 const formatVND = (value) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
@@ -264,12 +260,8 @@ export default function StaffVehicleExit() {
     setSuccessMessage('');
   };
 
-<<<<<<< HEAD
   const rememberedVehicleType = getRememberedVehicleType(result?.licensePlate || licensePlate);
   const resolvedVehicleType = normalizeVehicleTypeCode(rememberedVehicleType || result?.vehicleType);
-=======
-  const resolvedVehicleType = normalizeVehicleTypeCode(result?.vehicleType);
->>>>>>> main
   const isMotorbike = resolvedVehicleType === 'MOTORBIKE';
   const vehicleTypeDisplay = !hasExitData
     ? '—'
@@ -278,7 +270,7 @@ export default function StaffVehicleExit() {
       : 'Ô tô (4 chỗ)';
   const VehicleIcon = isMotorbike ? Bike : CarFront;
   const visitorCardDisplay = hasExitData
-    ? (result.visitorCardCode || (isVisitor ? '—' : 'Không có'))
+    ? (isVisitor ? `Thẻ vãng lai · ${result.visitorCardCode || '—'}` : 'Không có')
     : '—';
   const entryTimeDisplay = hasExitData ? formatKpiDateTime(result.entryTime) : '—';
   const durationDisplay = hasExitData ? formatDuration(result.durationMinutes) : '—';
@@ -390,9 +382,8 @@ export default function StaffVehicleExit() {
             <InfoCard icon={VehicleIcon} label="Loại xe" value={hasExitData ? vehicleTypeDisplay : '—'} />
             <InfoCard
               icon={CreditCard}
-              label="Thẻ vãng lai"
+              label="Loại thẻ"
               value={visitorCardDisplay}
-              chip={hasExitData && isVisitor ? 'Thẻ vãng lai' : undefined}
             />
             <InfoCard icon={Clock3} label="Thời gian vào" value={entryTimeDisplay} />
             <InfoCard icon={TimerReset} label="Thời gian gửi" value={durationDisplay} />

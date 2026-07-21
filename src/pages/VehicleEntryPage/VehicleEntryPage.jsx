@@ -1,19 +1,45 @@
 import { useRef, useState } from 'react';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 import { AlertCircle, CarFront, CheckCircle2, TicketCheck, Bike, Keyboard, ChevronDown, Clock3, User, ScanLine, SlidersHorizontal } from 'lucide-react';
 import { checkParkingEntry, confirmParkingEntry } from '../../services/staffService';
 import { VIETNAM_TIME_ZONE } from '../../utils/dateTime';
 import { rememberVehicleType } from '../../utils/vehicleTypeMemory';
 
-const PLATE_REGEX = /^[A-Z0-9-]*$/;
+const PLATE_REGEX = /^(?=.*[A-Z])(?=.*\d)(?!-)(?!.*--)[A-Z0-9]+(?:-[A-Z0-9]+)*$/;
+const PLATE_MIN_LENGTH = 5;
 const PLATE_MAX_LENGTH = 12;
 
 const VEHICLE_TYPES = {
   MOTORBIKE: { code: 'MOTORBIKE', id: 1 },
   CAR: { code: 'CAR', id: 2 },
 };
+const VALID_VEHICLE_TYPES = Object.values(VEHICLE_TYPES).map((item) => item.code);
 const DEFAULT_VEHICLE_TYPE = VEHICLE_TYPES.MOTORBIKE.code;
 
 const getVehicleType = (value) => VEHICLE_TYPES[String(value || '').toUpperCase()] || null;
+
+const normalizeLicensePlate = (value = '') =>
+  value
+    .toUpperCase()
+    .replace(/[^A-Z0-9-]/g, '')
+    .slice(0, PLATE_MAX_LENGTH);
+
+const sanitizeLicensePlateInput = (value = '') =>
+  value
+    .toUpperCase()
+    .replace(/[^A-Z0-9-]/g, '');
+
+const validationSchema = Yup.object({
+  licensePlate: Yup.string()
+    .required('Vui lòng nhập biển số xe')
+    .min(PLATE_MIN_LENGTH, 'Biển số phải từ 5 đến 12 ký tự')
+    .max(PLATE_MAX_LENGTH, 'Biển số phải từ 5 đến 12 ký tự')
+    .matches(PLATE_REGEX, 'Biển số không đúng định dạng'),
+  vehicleType: Yup.string()
+    .required('Vui lòng chọn loại xe')
+    .oneOf(VALID_VEHICLE_TYPES, 'Vui lòng chọn loại xe'),
+});
 
 const formatKpiDateTime = (value) => {
   if (!value) return '—';
@@ -53,6 +79,15 @@ const formatSessionStatus = (value, canConfirm, invalid) => {
   }
   if (invalid) return 'Chưa tạo phiên';
   return canConfirm ? 'Chưa tạo phiên' : 'Đã tạo phiên';
+};
+
+const formatEntryMessage = (message, fallback) => {
+  const rawMessage = String(message || '').trim();
+  const normalized = rawMessage.toUpperCase();
+  if (normalized.includes('DANG CO PHIEN GUI XE ACTIVE')) {
+    return 'Xe đã có trong bãi';
+  }
+  return rawMessage || fallback;
 };
 
 function Info({ label, value, tone = 'blue', icon: Icon = CarFront }) {
@@ -110,8 +145,6 @@ function CameraPanel({ label, status = 'Online' }) {
 
 export default function VehicleEntryPage() {
   const plateInputRef = useRef(null);
-  const [licensePlate, setLicensePlate] = useState('');
-  const [vehicleType, setVehicleType] = useState(DEFAULT_VEHICLE_TYPE);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -119,34 +152,20 @@ export default function VehicleEntryPage() {
   const [notice, setNotice] = useState(null);
   // hasChecked: true only after the user explicitly pressed "Kiểm tra xe" and got a response
   const [hasChecked, setHasChecked] = useState(false);
-  const [plateError, setPlateError] = useState('');
-  const [typeError, setTypeError] = useState('');
-  const selectedVehicleType = getVehicleType(vehicleType);
 
-  const check = async (event) => {
-    event?.preventDefault();
-    const plate = licensePlate.trim().toUpperCase();
-    let hasError = false;
-    if (!plate) {
-      setPlateError('Vui lòng nhập biển số xe');
-      hasError = true;
-    } else if (plate.length < 5 || plate.length > 12) {
-      setPlateError('Biển số phải từ 5-12 ký tự');
-      hasError = true;
-    } else if (!PLATE_REGEX.test(plate)) {
-      setPlateError('Biển số chỉ được chứa chữ cái, số và dấu gạch ngang');
-      hasError = true;
-    }
-    if (!selectedVehicleType) {
-      setTypeError('Vui lòng chọn loại xe');
-      hasError = true;
-    }
-    if (hasError) return;
+  const handleCheckVehicle = async (values) => {
+    const plate = normalizeLicensePlate(values.licensePlate);
+    const selectedVehicleType = getVehicleType(values.vehicleType);
+    if (!selectedVehicleType) return;
     setLoading(true); setNotice(null); setResult(null); setHasChecked(false);
     try {
       console.log('[DEBUG check] vehicleType state:', selectedVehicleType.code, '| vehicleTypeId:', selectedVehicleType.id, '| plate:', plate);
       const res = await checkParkingEntry(plate, selectedVehicleType);
-      setResult(res);
+      setResult({
+        ...res,
+        checkedPlate: plate,
+        checkedVehicleType: values.vehicleType,
+      });
       setHasChecked(true);
       if (res.entryType === 'MONTHLY') {
         setNotice({ type: 'success', message: 'Xe đã đăng ký gói tháng. Không cần cấp thẻ vãng lai.' });
@@ -157,14 +176,52 @@ export default function VehicleEntryPage() {
           code: res.visitorCardCode,
         });
       } else if (res.entryType === 'INVALID') {
-        setNotice({ type: 'error', message: res.message || 'Biển số không hợp lệ hoặc xe đang trong bãi.' });
+        setNotice({ type: 'error', message: formatEntryMessage(res.message, 'Biển số không hợp lệ hoặc xe đang trong bãi.') });
       } else {
         // Catch-all: unknown entryType hoặc trường hợp backend chưa định nghĩa
-        setNotice({ type: 'error', message: res.message || 'Không thể xử lý yêu cầu cho xe này.' });
+        setNotice({ type: 'error', message: formatEntryMessage(res.message, 'Không thể xử lý yêu cầu cho xe này.') });
       }
     }
-    catch (err) { setNotice({ type: 'error', message: err.response?.data?.message || err.response?.data?.error || 'Không thể kiểm tra biển số xe.' }); }
+    catch (err) { setNotice({ type: 'error', message: formatEntryMessage(err.response?.data?.message || err.response?.data?.error, 'Không thể kiểm tra biển số xe.') }); }
     finally { setLoading(false); }
+  };
+
+  const formik = useFormik({
+    initialValues: {
+      licensePlate: '',
+      vehicleType: DEFAULT_VEHICLE_TYPE,
+    },
+    validationSchema,
+    validateOnBlur: true,
+    validateOnChange: true,
+    onSubmit: handleCheckVehicle,
+  });
+
+  const selectedVehicleType = getVehicleType(formik.values.vehicleType);
+  const hasPlateError = formik.touched.licensePlate && Boolean(formik.errors.licensePlate);
+  const hasVehicleTypeError = formik.touched.vehicleType && Boolean(formik.errors.vehicleType);
+  const validationMessage = hasPlateError
+    ? formik.errors.licensePlate
+    : hasVehicleTypeError
+      ? formik.errors.vehicleType
+      : '';
+
+  const handlePlateChange = (event) => {
+    const value = sanitizeLicensePlateInput(event.target.value);
+    formik.setFieldValue('licensePlate', value, true);
+    formik.setFieldTouched('licensePlate', true, false);
+    setResult(null);
+    setNotice(null);
+    setHasChecked(false);
+  };
+
+  const handleVehicleTypeChange = (value) => {
+    const nextVehicleType = getVehicleType(value)?.code || '';
+    formik.setFieldValue('vehicleType', nextVehicleType, true);
+    formik.setFieldTouched('vehicleType', true, true);
+    setResult(null);
+    setNotice(null);
+    setHasChecked(false);
   };
 
   const confirm = async () => {
@@ -172,7 +229,7 @@ export default function VehicleEntryPage() {
     setConfirming(true); setNotice(null);
     try {
       const payload = {
-        licensePlate: result.licensePlate || licensePlate.trim().toUpperCase(),
+        licensePlate: result.checkedPlate || normalizeLicensePlate(formik.values.licensePlate),
         entryType: result.entryType,
         visitorCardCode: result.visitorCardCode,
         vehicleType: selectedVehicleType.code,
@@ -181,18 +238,16 @@ export default function VehicleEntryPage() {
       };
       console.log('[DEBUG confirm] vehicleType state:', selectedVehicleType.code, '| vehicleTypeId:', selectedVehicleType.id, '| payload.vehicleType:', payload.vehicleType, '| payload.vehicleTypeCode:', payload.vehicleTypeCode, '| result.vehicleType:', result?.vehicleType);
       setResult(await confirmParkingEntry(payload));
-<<<<<<< HEAD
-      rememberVehicleType(result?.licensePlate || licensePlate, vehicleType);
-=======
-      rememberVehicleType(result?.licensePlate || licensePlate, selectedVehicleType.code);
->>>>>>> main
+      rememberVehicleType(result?.licensePlate || formik.values.licensePlate, selectedVehicleType.code);
       setNotice({ type: 'success', message: 'Đã xác nhận xe vào bãi' });
-      setLicensePlate('');
-      setVehicleType(DEFAULT_VEHICLE_TYPE);
+      formik.resetForm({
+        values: {
+          licensePlate: '',
+          vehicleType: DEFAULT_VEHICLE_TYPE,
+        },
+      });
       setResult(null);
       setHasChecked(false);
-      setPlateError('');
-      setTypeError('');
       setTimeout(() => plateInputRef.current?.focus(), 0);
     }
     catch (err) { setNotice({ type: 'error', message: err.response?.data?.message || err.response?.data?.error || 'Không thể xác nhận xe vào.' }); }
@@ -202,6 +257,17 @@ export default function VehicleEntryPage() {
   const isRegistered = result?.entryType === 'MONTHLY';
   const isVisitor = result?.entryType === 'VISITOR';
   const isInvalid = result?.entryType === 'INVALID';
+  const currentNormalizedPlate = normalizeLicensePlate(formik.values.licensePlate);
+  const isConfirmDisabled =
+    confirming ||
+    loading ||
+    !formik.isValid ||
+    !result?.canConfirm ||
+    result?.checkedPlate !== currentNormalizedPlate ||
+    result?.checkedVehicleType !== formik.values.vehicleType;
+  const bannerNotice = validationMessage
+    ? { type: 'validation', message: validationMessage }
+    : notice;
   // All display values are blank/neutral until hasChecked is true
   const badgeClassName = loading
     ? 'bg-blue-50 text-blue-600 border-blue-200'
@@ -213,7 +279,7 @@ export default function VehicleEntryPage() {
           ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
           : 'bg-blue-50 text-blue-700 border-blue-200';
   const badgeLabel = loading ? 'ĐANG KIỂM TRA' : !hasChecked ? 'CHƯA KIỂM TRA' : isRegistered ? 'XE ĐÃ ĐĂNG KÝ GÓI' : isVisitor ? 'KHÁCH VÃNG LAI' : isInvalid ? 'KHÔNG HỢP LỆ' : 'CHƯA KIỂM TRA';
-  const displayPlate = hasChecked ? (result?.licensePlate || licensePlate.trim().toUpperCase() || '—') : '—';
+  const displayPlate = hasChecked ? (result?.licensePlate || currentNormalizedPlate || '—') : '—';
   const customerType = !hasChecked ? '—' : isRegistered ? 'Khách tháng' : isVisitor ? 'Vãng lai' : isInvalid ? 'Không hợp lệ' : '—';
   const entryTime = hasChecked ? formatKpiDateTime(result?.entryTime || result?.checkInTime || result?.createdAt) : '—';
   const exitTime = hasChecked ? formatKpiDateTime(result?.exitTime || result?.checkOutTime) : '—';
@@ -260,34 +326,27 @@ export default function VehicleEntryPage() {
             <h2 className="font-sans text-[15px] font-black uppercase tracking-tight text-slate-900">ĐIỀU KHIỂN</h2>
           </div>
 
-          <form onSubmit={check} className="flex min-h-0 flex-1 flex-col">
+          <form onSubmit={formik.handleSubmit} className="flex min-h-0 flex-1 flex-col">
             <div className="space-y-3">
               {/* License Plate */}
               <div className="space-y-1.5">
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">BIỂN SỐ XE</label>
                 <div className="relative">
                   <span className="pointer-events-none absolute left-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-xl bg-blue-50 text-blue-600">
-                    {vehicleType === 'MOTORBIKE' ? <Bike className="h-4 w-4" strokeWidth={2.25} /> : <CarFront className="h-4 w-4" strokeWidth={2.25} />}
+                    {formik.values.vehicleType === 'MOTORBIKE' ? <Bike className="h-4 w-4" strokeWidth={2.25} /> : <CarFront className="h-4 w-4" strokeWidth={2.25} />}
                   </span>
                   <input
+                    name="licensePlate"
                     ref={plateInputRef}
                     autoFocus
-                    value={licensePlate}
-                    maxLength={PLATE_MAX_LENGTH}
-                    onChange={(e) => {
-                      const raw = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, PLATE_MAX_LENGTH);
-                      setLicensePlate(raw);
-                      setPlateError('');
-                      setResult(null);
-                      setNotice(null);
-                      setHasChecked(false);
-                    }}
+                    value={formik.values.licensePlate}
+                    onChange={handlePlateChange}
+                    onBlur={formik.handleBlur}
                     placeholder="VD: 30A-123.45"
-                    className={`h-12 w-full rounded-[14px] border bg-white pl-[52px] pr-11 font-sans text-sm font-bold uppercase tracking-wide text-slate-950 shadow-sm outline-none transition-all duration-200 placeholder:normal-case placeholder:font-medium placeholder:tracking-normal placeholder:text-slate-400 focus:ring-4 ${plateError ? 'border-red-400 focus:border-red-400 focus:ring-red-100' : 'border-[#D8E3F1] focus:border-blue-400 focus:ring-blue-100'}`}
+                    className={`h-12 w-full rounded-[14px] border bg-white pl-[52px] pr-11 font-sans text-sm font-bold uppercase tracking-wide text-slate-950 shadow-sm outline-none transition-all duration-200 placeholder:normal-case placeholder:font-medium placeholder:tracking-normal placeholder:text-slate-400 focus:ring-4 ${hasPlateError ? 'border-red-400 focus:border-red-400 focus:ring-red-100' : 'border-[#D8E3F1] focus:border-blue-400 focus:ring-blue-100'}`}
                   />
                   <Keyboard className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 </div>
-                {plateError && <p className="mt-1 text-xs font-semibold text-red-500">{plateError}</p>}
               </div>
 
               {/* Vehicle Type */}
@@ -295,19 +354,20 @@ export default function VehicleEntryPage() {
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">LOẠI XE</label>
                 <div className="relative">
                   <span className="pointer-events-none absolute left-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-xl bg-blue-50 text-blue-600">
-                    {vehicleType === 'MOTORBIKE' ? <Bike className="h-4 w-4" strokeWidth={2.25} /> : <CarFront className="h-4 w-4" strokeWidth={2.25} />}
+                    {formik.values.vehicleType === 'MOTORBIKE' ? <Bike className="h-4 w-4" strokeWidth={2.25} /> : <CarFront className="h-4 w-4" strokeWidth={2.25} />}
                   </span>
                   <select
-                    value={vehicleType}
-                    onChange={(e) => { setVehicleType(getVehicleType(e.target.value)?.code || ''); setTypeError(''); setResult(null); setNotice(null); setHasChecked(false); }}
-                    className={`h-12 w-full appearance-none rounded-[14px] border bg-white pl-[52px] pr-11 font-sans text-sm font-bold text-slate-800 shadow-sm outline-none transition-all duration-200 focus:ring-4 ${typeError ? 'border-red-400 focus:border-red-400 focus:ring-red-100' : 'border-[#D8E3F1] focus:border-blue-400 focus:ring-blue-100'}`}
+                    name="vehicleType"
+                    value={formik.values.vehicleType}
+                    onChange={(event) => handleVehicleTypeChange(event.target.value)}
+                    onBlur={formik.handleBlur}
+                    className={`h-12 w-full appearance-none rounded-[14px] border bg-white pl-[52px] pr-11 font-sans text-sm font-bold text-slate-800 shadow-sm outline-none transition-all duration-200 focus:ring-4 ${hasVehicleTypeError ? 'border-red-400 focus:border-red-400 focus:ring-red-100' : 'border-[#D8E3F1] focus:border-blue-400 focus:ring-blue-100'}`}
                   >
                     <option value={VEHICLE_TYPES.MOTORBIKE.code}>Xe máy</option>
                     <option value={VEHICLE_TYPES.CAR.code}>Ô tô</option>
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
                 </div>
-                {typeError && <p className="mt-1 text-xs font-semibold text-red-500">{typeError}</p>}
               </div>
             </div>
 
@@ -324,7 +384,7 @@ export default function VehicleEntryPage() {
               <button
                 type="button"
                 onClick={confirm}
-                disabled={!result?.canConfirm || confirming}
+                disabled={isConfirmDisabled}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-[14px] bg-gradient-to-r from-blue-600 to-sky-500 px-4 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:scale-[1.01] hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
               >
                 <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} />
@@ -347,39 +407,39 @@ export default function VehicleEntryPage() {
 
             {/* Notice slot — always rendered at h-11; invisible when empty to prevent layout shift */}
             <div className={`ml-auto inline-flex h-11 max-w-[70%] shrink-0 items-center gap-3 rounded-[18px] border px-3 shadow-sm transition-colors duration-150 ${
-              !notice
+              !bannerNotice
                 ? 'invisible border-transparent bg-transparent shadow-none'
-                : notice.type === 'error'
+                : bannerNotice.type === 'validation' || bannerNotice.type === 'error'
                   ? 'border-red-200 bg-red-50'
-                  : notice.type === 'warning'
+                  : bannerNotice.type === 'warning'
                     ? 'border-amber-200 bg-gradient-to-r from-amber-50 via-orange-50/70 to-white shadow-amber-900/[0.04]'
                     : 'border-emerald-200 bg-gradient-to-r from-emerald-50 to-white'
             }`}>
-              {notice?.type === 'error' && (
+              {(bannerNotice?.type === 'validation' || bannerNotice?.type === 'error') && (
                 <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-red-100 text-red-600 ring-1 ring-red-200">
                   <AlertCircle className="h-3.5 w-3.5" strokeWidth={2.25} />
                 </span>
               )}
-              {notice?.type === 'warning' && (
+              {bannerNotice?.type === 'warning' && (
                 <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-amber-100 text-orange-600 ring-1 ring-amber-200">
                   <TicketCheck className="h-3.5 w-3.5" strokeWidth={2.25} />
                 </span>
               )}
-              {notice?.type === 'success' && (
+              {bannerNotice?.type === 'success' && (
                 <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-600 ring-1 ring-emerald-200">
                   <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.25} />
                 </span>
               )}
               <span className={`truncate text-sm font-semibold ${
-                !notice ? '' :
-                notice.type === 'error' ? 'text-red-700' :
-                notice.type === 'warning' ? 'text-slate-800' :
+                !bannerNotice ? '' :
+                bannerNotice.type === 'validation' || bannerNotice.type === 'error' ? 'text-red-700' :
+                bannerNotice.type === 'warning' ? 'text-slate-800' :
                 'text-emerald-800'
-              }`}>{notice?.message ?? ''}</span>
-              {notice?.type === 'warning' && notice?.code && (
+              }`}>{bannerNotice?.message ?? ''}</span>
+              {bannerNotice?.type === 'warning' && bannerNotice?.code && (
                 <span className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full border border-amber-300 bg-white px-3 text-xs font-black text-orange-600">
                   <TicketCheck className="h-3.5 w-3.5" strokeWidth={2.25} />
-                  {notice.code}
+                  {bannerNotice.code}
                 </span>
               )}
             </div>
@@ -410,7 +470,7 @@ export default function VehicleEntryPage() {
           </div>
 
           {/* 4 KPI tiles — compact state summary for quick scanning */}
-          <div className="grid shrink-0 grid-cols-4 gap-3">
+          <div className="grid shrink-0 translate-y-2 grid-cols-4 gap-3">
             <Info label="Loại xe"    value={vehicleTypeDisplay}                                           tone="blue"   icon={VehicleTypeIcon} />
             <Info label="Loại khách" value={customerType}                                                   tone="green"  icon={User}        />
             <Info label="Giờ vào"    value={entryTime}                                                      tone="purple" icon={Clock3}      />

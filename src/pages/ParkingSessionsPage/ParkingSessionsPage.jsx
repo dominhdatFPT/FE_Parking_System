@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Bike,
   CarFront,
@@ -32,27 +32,6 @@ const statusClasses = {
 };
 
 const normalizeVehicleType = (item) => {
-<<<<<<< HEAD
-  const rememberedType = typeof item === 'object' && item !== null
-    ? getRememberedVehicleType(item.licensePlate)
-    : '';
-  const rememberedCode = normalizeVehicleTypeCode(rememberedType);
-  if (rememberedCode === 'MOTORBIKE') return 'Xe máy';
-  if (rememberedCode === 'CAR') return 'Ô tô';
-
-  const cardCode = typeof item === 'object' && item !== null
-    ? String(item.visitorCardCode || item.cardId || '').toUpperCase()
-    : '';
-  if (cardCode.startsWith('CAR')) return 'Ô tô';
-  if (cardCode.startsWith('VIS') || cardCode.startsWith('MOTO') || cardCode.startsWith('BIKE')) return 'Xe máy';
-
-  const rawValue = typeof item === 'object' && item !== null
-    ? item.vehicleTypeCode || item.vehicleType || item.vehicleTypeName || item.vehicleTypeId
-    : item;
-  const normalized = normalizeVehicleTypeCode(rawValue);
-
-  return normalized === 'MOTORBIKE' ? 'Xe máy' : 'Ô tô';
-=======
   if (typeof item !== 'object' || item === null) return 'Ô tô';
 
   const rawValue = item.vehicleTypeCode || item.vehicleType || item.vehicleTypeName || item.vehicleTypeId;
@@ -66,10 +45,10 @@ const normalizeVehicleType = (item) => {
   if (rememberedCode === 'CAR') return 'Ô tô';
 
   const cardCode = String(item.visitorCardCode || item.cardId || '').toUpperCase();
-  if (cardCode.startsWith('MOTO') || cardCode.startsWith('BIKE')) return 'Xe máy';
+  if (cardCode.startsWith('CAR')) return 'Ô tô';
+  if (cardCode.startsWith('VIS') || cardCode.startsWith('MOTO') || cardCode.startsWith('BIKE')) return 'Xe máy';
 
   return 'Ô tô';
->>>>>>> main
 };
 
 const normalizeCustomerType = (value) =>
@@ -77,6 +56,11 @@ const normalizeCustomerType = (value) =>
 
 const formatDateTime = (value) => {
   return formatVietnamDateTime(value, { year: undefined, day: undefined, month: undefined }) || '--';
+};
+
+const formatFilterDateDisplay = (value) => {
+  const [year, month, day] = String(value || '').split('-');
+  return year && month && day ? `${day}/${month}/${year}` : '';
 };
 
 const durationMinutes = (entryTime, exitTime) => {
@@ -166,13 +150,13 @@ function FilterField({ icon: Icon, label, hasChevron = false, children }) {
       <span className="pl-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
         {label}
       </span>
-      <label className="group flex h-14 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-sm transition-all focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100">
+      <label className="group relative flex h-14 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-sm transition-all focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100">
         <Icon className="h-4 w-4 shrink-0 text-slate-400 transition group-focus-within:text-blue-500" strokeWidth={2.25} />
-        <div className="min-w-0 flex-1">
+        <div className={`min-w-0 flex-1 ${hasChevron ? 'pr-6' : ''}`}>
           {children}
         </div>
         {hasChevron && (
-          <ChevronDown className="pointer-events-none h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2.25} />
+          <ChevronDown className="pointer-events-none absolute right-3 h-3.5 w-3.5 text-slate-400" strokeWidth={2.25} />
         )}
       </label>
     </div>
@@ -180,24 +164,37 @@ function FilterField({ icon: Icon, label, hasChevron = false, children }) {
 }
 
 function FilterSelect({ icon, label, value, onChange, options, getOptionLabel = (option) => option }) {
+  const Icon = icon;
+
   return (
-    <FilterField icon={icon} label={label} hasChevron>
-      <select
-        value={value}
-        onChange={onChange}
-        className="w-full cursor-pointer appearance-none bg-transparent text-sm font-bold text-slate-800 outline-none"
-      >
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {getOptionLabel(option)}
-          </option>
-        ))}
-      </select>
-    </FilterField>
+    <div className="flex flex-col gap-1.5">
+      <span className="pl-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
+        {label}
+      </span>
+      <label className="group relative flex h-14 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-sm transition-all focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100">
+        <Icon className="h-4 w-4 shrink-0 text-slate-400 transition group-focus-within:text-blue-500" strokeWidth={2.25} />
+        <span className="min-w-0 flex-1 truncate pr-6 text-sm font-bold text-slate-800">
+          {getOptionLabel(value)}
+        </span>
+        <ChevronDown className="pointer-events-none absolute right-3 h-3.5 w-3.5 text-slate-400" strokeWidth={2.25} />
+        <select
+          value={value}
+          onChange={onChange}
+          className="absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none opacity-0 outline-none"
+        >
+          {options.map((option) => (
+            <option key={option} value={option}>
+              {getOptionLabel(option)}
+            </option>
+          ))}
+        </select>
+      </label>
+    </div>
   );
 }
 
 export default function ParkingSessionsPage() {
+  const datePickerRef = useRef(null);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -288,6 +285,15 @@ export default function ParkingSessionsPage() {
     setCurrentPage(1);
   };
 
+  const openDatePicker = () => {
+    if (typeof datePickerRef.current?.showPicker === 'function') {
+      datePickerRef.current.showPicker();
+      return;
+    }
+    datePickerRef.current?.focus();
+    datePickerRef.current?.click();
+  };
+
   return (
     <div className="space-y-5">
       <section className="flex flex-col gap-4">
@@ -343,19 +349,31 @@ export default function ParkingSessionsPage() {
             />
             <FilterSelect
               icon={TriangleAlert}
-              label="Cảnh báo"
+              label="Trạng thái"
               value={selectedWarning}
               onChange={(event) => setSelectedWarning(event.target.value)}
               options={warningFilters}
               getOptionLabel={(item) => (item === warningFilters[0] ? vehicleTypes[0] : item)}
             />
             <FilterField icon={CalendarDays} label="Ngày vào">
-              <input
-                type="date"
-                value={date}
-                onChange={(event) => setDate(event.target.value)}
-                className="w-full cursor-pointer bg-transparent text-sm font-bold text-slate-800 outline-none"
-              />
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={openDatePicker}
+                  className={`flex w-full cursor-pointer items-center justify-between gap-2 bg-transparent text-left text-sm font-bold outline-none ${date ? 'text-slate-800' : 'text-slate-400'}`}
+                >
+                  <span>{date ? formatFilterDateDisplay(date) : 'dd/mm/yyyy'}</span>
+                  <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2.25} />
+                </button>
+                <input
+                  ref={datePickerRef}
+                  type="date"
+                  value={date}
+                  onChange={(event) => setDate(event.target.value)}
+                  className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
+                  aria-label="Ngày vào"
+                />
+              </div>
             </FilterField>
             <div className="flex flex-col gap-1.5">
               <span className="select-none pl-1 text-[10px] font-black uppercase tracking-[0.12em] text-transparent" aria-hidden="true">_</span>
