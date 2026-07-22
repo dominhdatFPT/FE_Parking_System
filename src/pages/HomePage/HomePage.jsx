@@ -174,14 +174,9 @@ function buildDashboardData(payload) {
   const activeMotorbikes = asNumber(metrics.activeMotorbikes);
   const vehiclesInToday = asNumber(metrics.vehiclesInToday);
   const vehiclesOutToday = asNumber(metrics.vehiclesOutToday);
-  const revenueToday = asNumber(metrics.revenueToday);
-  const completedActivities = activities.filter((activity) => activity.exitTime || activity.status === 'COMPLETED');
-  const fallbackVisitorRevenue = completedActivities
-    .filter((activity) => activity.customerType !== 'MONTHLY')
-    .reduce((sum, activity) => sum + asNumber(activity.calculatedFee), 0);
-  const visitorRevenueToday = asNumber(metrics.visitorRevenueToday) || fallbackVisitorRevenue;
-  const subscriptionRevenueToday = asNumber(metrics.subscriptionRevenueToday)
-    || Math.max(0, revenueToday - visitorRevenueToday);
+  const visitorRevenueToday = asNumber(metrics.visitorRevenueToday);
+  const subscriptionRevenueToday = asNumber(metrics.subscriptionRevenueToday);
+  const revenueToday = visitorRevenueToday + subscriptionRevenueToday;
 
   return {
     entries: vehiclesInToday,
@@ -458,7 +453,9 @@ function OperationsDock({ stats, capacityPercent, openKpi, onKpiClick, currentDa
                   ) : (
                     <div className="mt-6 flex flex-1 flex-col justify-end">
                       <p className={`text-5xl font-bold tracking-tight leading-none ${numberTone}`}>{stat.value}</p>
-                      <p className="mt-2 text-sm text-slate-500">{stat.description}</p>
+                      {stat.key !== 'revenue' && stat.description ? (
+                        <p className="mt-2 text-sm text-slate-500">{stat.description}</p>
+                      ) : null}
                     </div>
                   )}
                 </div>
