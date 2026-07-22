@@ -72,14 +72,24 @@ const tProfile = {
     vehicleManagementDesc: 'Tính năng quản lý phương tiện sẽ khả dụng khi API được kết nối.',
     loadingUsage: 'Đang tải tổng quan sử dụng',
     cancelSubscriptionBtn: 'Hủy đăng ký thẻ',
-    cancelModalTitle: 'Hủy tự động gia hạn?',
-    cancelModalDesc: 'Bạn có chắc chắn muốn hủy tự động gia hạn thẻ không?',
-    cancelModalWarning: 'Sau khi hủy, thẻ vẫn có hiệu lực sử dụng cho đến hết thời hạn hiện tại và sẽ không tự động gia hạn tiếp.',
+    cancelSelectTitle: 'Chọn xe cần hủy',
+    cancelSelectDesc: 'Chọn xe đang có gói đăng ký hoạt động mà bạn muốn hủy.',
+    cancelSelectLoading: 'Đang tải danh sách gói đăng ký...',
+    cancelSelectLoadError: 'Không thể tải danh sách gói đăng ký. Vui lòng thử lại sau.',
+    cancelSelectEmpty: 'Bạn không có xe nào đang có gói đăng ký hoạt động.',
+    cancelPlanLabel: 'Gói cước',
+    cancelPlateLabel: 'Biển số',
+    cancelExpiryLabel: 'Hết hạn',
+    cancelPriceLabel: 'Giá gói',
+    cancelModalTitle: 'Xác nhận hủy đăng ký thẻ',
+    cancelModalDesc: 'Bạn có chắc chắn muốn hủy gói đăng ký thẻ dưới đây không?',
+    cancelModalWarning: 'Sau khi hủy, gói đăng ký sẽ ngừng hiệu lực ngay lập tức và không thể hoàn tác.',
     cancelModalConfirmBtn: 'Xác nhận hủy',
     cancelling: 'Đang hủy...',
-    cancelSuccessTitle: 'Đã hủy tự động gia hạn!',
-    cancelSuccessDesc: 'Thẻ của bạn vẫn có hiệu lực đến hết thời hạn hiện tại và sẽ không tự động gia hạn tiếp.',
-    cancelErrorGeneric: 'Không thể hủy tự động gia hạn. Vui lòng thử lại sau.',
+    btnBack: 'Quay lại',
+    cancelSuccessTitle: 'Đã hủy đăng ký thẻ!',
+    cancelSuccessDesc: 'Gói đăng ký của xe đã được hủy thành công.',
+    cancelErrorGeneric: 'Không thể hủy đăng ký thẻ. Vui lòng thử lại sau.',
   },
   en: {
     resetPasswordBtn: 'Reset Password',
@@ -131,14 +141,24 @@ const tProfile = {
     vehicleManagementDesc: 'Vehicle management will be available when the API is connected.',
     loadingUsage: 'Loading usage overview',
     cancelSubscriptionBtn: 'Cancel Subscription',
-    cancelModalTitle: 'Cancel auto-renewal?',
-    cancelModalDesc: 'Are you sure you want to cancel the auto-renewal of your subscription?',
-    cancelModalWarning: 'After cancelling, your subscription will remain valid until the end of the current period and will not be automatically renewed.',
+    cancelSelectTitle: 'Select a vehicle to cancel',
+    cancelSelectDesc: 'Choose the vehicle with an active subscription you want to cancel.',
+    cancelSelectLoading: 'Loading your subscriptions...',
+    cancelSelectLoadError: 'Could not load your subscriptions. Please try again later.',
+    cancelSelectEmpty: 'You have no vehicles with an active subscription.',
+    cancelPlanLabel: 'Plan',
+    cancelPlateLabel: 'License plate',
+    cancelExpiryLabel: 'Expires',
+    cancelPriceLabel: 'Plan price',
+    cancelModalTitle: 'Confirm cancellation',
+    cancelModalDesc: 'Are you sure you want to cancel the subscription below?',
+    cancelModalWarning: 'Once cancelled, the subscription will stop immediately and this cannot be undone.',
     cancelModalConfirmBtn: 'Confirm cancellation',
     cancelling: 'Cancelling...',
-    cancelSuccessTitle: 'Auto-renewal cancelled!',
-    cancelSuccessDesc: 'Your subscription remains valid until the end of the current period and will not be automatically renewed.',
-    cancelErrorGeneric: 'Could not cancel auto-renewal. Please try again later.',
+    btnBack: 'Back',
+    cancelSuccessTitle: 'Subscription cancelled!',
+    cancelSuccessDesc: "The vehicle's subscription has been cancelled successfully.",
+    cancelErrorGeneric: 'Could not cancel the subscription. Please try again later.',
   }
 };
 
@@ -165,10 +185,15 @@ export default function DriverProfile() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Cancel auto-renew states
+  // Cancel subscription states
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelStep, setCancelStep] = useState('select'); // select | confirm | success
   const [cancelStatus, setCancelStatus] = useState('idle'); // idle | loading | success | error
   const [cancelErrorMsg, setCancelErrorMsg] = useState('');
+  const [cancelableSubscriptions, setCancelableSubscriptions] = useState([]);
+  const [cancelListLoading, setCancelListLoading] = useState(false);
+  const [cancelListError, setCancelListError] = useState(false);
+  const [selectedCancelSub, setSelectedCancelSub] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -307,21 +332,49 @@ export default function DriverProfile() {
     }
   };
 
+  const handleOpenCancelModal = async () => {
+    setIsCancelModalOpen(true);
+    setCancelStep('select');
+    setCancelListLoading(true);
+    setCancelListError(false);
+
+    try {
+      const res = await apiClient.get(API_ENDPOINTS.FEE.MY_SUBSCRIPTIONS);
+      const all = res.data?.data ?? [];
+      setCancelableSubscriptions(all.filter((sub) => sub.status === 'ACTIVE'));
+    } catch {
+      setCancelListError(true);
+      setCancelableSubscriptions([]);
+    } finally {
+      setCancelListLoading(false);
+    }
+  };
+
   const handleCloseCancelModal = () => {
     setIsCancelModalOpen(false);
     setTimeout(() => {
+      setCancelStep('select');
       setCancelStatus('idle');
       setCancelErrorMsg('');
+      setSelectedCancelSub(null);
+      setCancelableSubscriptions([]);
     }, 300);
   };
 
-  const handleConfirmCancelAutoRenew = async () => {
+  const handleSelectCancelSub = (sub) => {
+    setSelectedCancelSub(sub);
+    setCancelStep('confirm');
+  };
+
+  const handleConfirmCancelSubscription = async () => {
+    if (!selectedCancelSub) return;
     setCancelStatus('loading');
     setCancelErrorMsg('');
 
     try {
-      await apiClient.post(API_ENDPOINTS.FEE.CANCEL_AUTO_RENEW);
+      await apiClient.patch(API_ENDPOINTS.FEE.CANCEL_SUBSCRIPTION(selectedCancelSub.id));
       setCancelStatus('success');
+      setCancelStep('success');
     } catch (error) {
       setCancelStatus('error');
       setCancelErrorMsg(error.response?.data?.message || localT.cancelErrorGeneric);
@@ -354,7 +407,7 @@ export default function DriverProfile() {
           </button>
 
           <button
-            onClick={() => setIsCancelModalOpen(true)}
+            onClick={handleOpenCancelModal}
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50/60 px-4 py-2.5 text-sm font-semibold text-rose-600 shadow-sm transition hover:bg-rose-50 hover:border-rose-300 active:scale-[0.98] cursor-pointer"
           >
             <Ban className="h-4 w-4 text-rose-500" />
@@ -802,7 +855,7 @@ export default function DriverProfile() {
         )}
       </AnimatePresence>
 
-      {/* Cancel Auto-Renew Modal */}
+      {/* Cancel Subscription Modal */}
       <AnimatePresence>
         {isCancelModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -831,7 +884,7 @@ export default function DriverProfile() {
                 </button>
               )}
 
-              {cancelStatus === 'success' ? (
+              {cancelStep === 'success' ? (
                 <div className="text-center space-y-5 py-2">
                   <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 shadow-inner">
                     <ShieldCheck className="h-8 w-8" />
@@ -849,6 +902,62 @@ export default function DriverProfile() {
                     {localT.btnDone}
                   </button>
                 </div>
+              ) : cancelStep === 'select' ? (
+                <>
+                  <div className="text-center mb-6">
+                    <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-rose-50 text-rose-600">
+                      <Ban className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900">{localT.cancelSelectTitle}</h3>
+                    <p className="mt-1 text-sm text-slate-500 leading-relaxed">{localT.cancelSelectDesc}</p>
+                  </div>
+
+                  {cancelListLoading ? (
+                    <div className="space-y-2" aria-label={localT.cancelSelectLoading}>
+                      {[1, 2].map((item) => (
+                        <div key={item} className="h-16 animate-pulse rounded-2xl bg-slate-100" />
+                      ))}
+                    </div>
+                  ) : cancelListError ? (
+                    <div className="flex items-center gap-2 p-3 text-xs text-rose-600 bg-rose-50 rounded-xl border border-rose-100">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <span>{localT.cancelSelectLoadError}</span>
+                    </div>
+                  ) : cancelableSubscriptions.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-4 py-6 text-center text-sm text-slate-500">
+                      {localT.cancelSelectEmpty}
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                      {cancelableSubscriptions.map((sub) => (
+                        <button
+                          key={sub.id}
+                          type="button"
+                          onClick={() => handleSelectCancelSub(sub)}
+                          className="flex w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left transition hover:border-rose-300 hover:bg-rose-50/50 active:scale-[0.99]"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-bold text-slate-800">{sub.licensePlate}</p>
+                            <p className="truncate text-xs text-slate-500">{sub.planName}</p>
+                          </div>
+                          <span className="shrink-0 text-xs font-semibold text-slate-400">
+                            {sub.endDate ? vietnamDayjs(sub.endDate).format('DD/MM/YYYY') : ''}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={handleCloseCancelModal}
+                      className="flex-1 h-11 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 active:scale-95 transition"
+                    >
+                      {localT.btnCancel}
+                    </button>
+                  </div>
+                </>
               ) : (
                 <>
                   <div className="text-center mb-6">
@@ -862,6 +971,29 @@ export default function DriverProfile() {
                     <p className="text-sm text-slate-500 leading-relaxed text-center">
                       {localT.cancelModalDesc}
                     </p>
+
+                    <div className="space-y-2 rounded-2xl bg-slate-50 p-4 text-sm ring-1 ring-slate-100">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400">{localT.cancelPlateLabel}</span>
+                        <span className="font-semibold text-slate-800">{selectedCancelSub?.licensePlate}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400">{localT.cancelPlanLabel}</span>
+                        <span className="font-semibold text-slate-800">{selectedCancelSub?.planName}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400">{localT.cancelPriceLabel}</span>
+                        <span className="font-semibold text-slate-800">
+                          {Number(selectedCancelSub?.amountToPay || 0).toLocaleString('vi-VN')} đ
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400">{localT.cancelExpiryLabel}</span>
+                        <span className="font-semibold text-slate-800">
+                          {selectedCancelSub?.endDate ? vietnamDayjs(selectedCancelSub.endDate).format('DD/MM/YYYY') : ''}
+                        </span>
+                      </div>
+                    </div>
 
                     <div className="flex items-start gap-2 rounded-xl border border-amber-100 bg-amber-50 p-3 text-xs text-amber-700">
                       <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
@@ -878,15 +1010,15 @@ export default function DriverProfile() {
                     <div className="flex gap-3 pt-2">
                       <button
                         type="button"
-                        onClick={handleCloseCancelModal}
+                        onClick={() => setCancelStep('select')}
                         disabled={cancelStatus === 'loading'}
                         className="flex-1 h-11 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 active:scale-95 transition disabled:opacity-50"
                       >
-                        {localT.btnCancel}
+                        {localT.btnBack}
                       </button>
                       <button
                         type="button"
-                        onClick={handleConfirmCancelAutoRenew}
+                        onClick={handleConfirmCancelSubscription}
                         disabled={cancelStatus === 'loading'}
                         className="flex-1 h-11 bg-rose-600 !text-white rounded-xl text-sm font-semibold hover:bg-rose-700 active:scale-95 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
                       >
