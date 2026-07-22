@@ -390,6 +390,7 @@
     "errorDriverLicense": "Please upload driver license photo.",
     "errorVehicleDocs": "Please upload vehicle registration photo.",
     "errorLicensePlate": "Please enter a license plate.",
+    "errorInvalidPlateFormat": "Invalid license plate format. Example: 30A12345 or 30A-12345.",
     "errorGeneric": "Registration failed. Please try again.",
     "submit": "Submit Request for Verification",
     "summaryTitle": "Registration Summary",
