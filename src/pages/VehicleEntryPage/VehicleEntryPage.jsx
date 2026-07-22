@@ -5,10 +5,13 @@ import { AlertCircle, CarFront, CheckCircle2, TicketCheck, Bike, Keyboard, Chevr
 import { checkParkingEntry, confirmParkingEntry } from '../../services/staffService';
 import { VIETNAM_TIME_ZONE } from '../../utils/dateTime';
 import { rememberVehicleType } from '../../utils/vehicleTypeMemory';
-
-const PLATE_REGEX = /^(?=.*[A-Z])(?=.*\d)(?!-)(?!.*--)[A-Z0-9]+(?:-[A-Z0-9]+)*$/;
-const PLATE_MIN_LENGTH = 5;
-const PLATE_MAX_LENGTH = 12;
+import {
+  PLATE_REGEX,
+  PLATE_MIN_LENGTH,
+  PLATE_MAX_LENGTH,
+  normalizeLicensePlate,
+  sanitizeLicensePlateInput,
+} from '../../utils/licensePlate';
 
 const VEHICLE_TYPES = {
   MOTORBIKE: { code: 'MOTORBIKE', id: 1 },
@@ -18,17 +21,6 @@ const VALID_VEHICLE_TYPES = Object.values(VEHICLE_TYPES).map((item) => item.code
 const DEFAULT_VEHICLE_TYPE = VEHICLE_TYPES.MOTORBIKE.code;
 
 const getVehicleType = (value) => VEHICLE_TYPES[String(value || '').toUpperCase()] || null;
-
-const normalizeLicensePlate = (value = '') =>
-  value
-    .toUpperCase()
-    .replace(/[^A-Z0-9-]/g, '')
-    .slice(0, PLATE_MAX_LENGTH);
-
-const sanitizeLicensePlateInput = (value = '') =>
-  value
-    .toUpperCase()
-    .replace(/[^A-Z0-9-]/g, '');
 
 const validationSchema = Yup.object({
   licensePlate: Yup.string()

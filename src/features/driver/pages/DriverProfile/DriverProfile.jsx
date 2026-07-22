@@ -11,7 +11,8 @@ import {
   ShieldCheck,
   AlertCircle,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  Ban
 } from 'lucide-react';
 import { useAuth } from '../../../../contexts/useAuth';
 import { bookingService } from '../../../../services/bookingService';
@@ -69,7 +70,16 @@ const tProfile = {
     role: 'Vai trò',
     vehicleManagement: 'Quản lý phương tiện',
     vehicleManagementDesc: 'Tính năng quản lý phương tiện sẽ khả dụng khi API được kết nối.',
-    loadingUsage: 'Đang tải tổng quan sử dụng'
+    loadingUsage: 'Đang tải tổng quan sử dụng',
+    cancelSubscriptionBtn: 'Hủy đăng ký thẻ',
+    cancelModalTitle: 'Hủy tự động gia hạn?',
+    cancelModalDesc: 'Bạn có chắc chắn muốn hủy tự động gia hạn thẻ không?',
+    cancelModalWarning: 'Sau khi hủy, thẻ vẫn có hiệu lực sử dụng cho đến hết thời hạn hiện tại và sẽ không tự động gia hạn tiếp.',
+    cancelModalConfirmBtn: 'Xác nhận hủy',
+    cancelling: 'Đang hủy...',
+    cancelSuccessTitle: 'Đã hủy tự động gia hạn!',
+    cancelSuccessDesc: 'Thẻ của bạn vẫn có hiệu lực đến hết thời hạn hiện tại và sẽ không tự động gia hạn tiếp.',
+    cancelErrorGeneric: 'Không thể hủy tự động gia hạn. Vui lòng thử lại sau.',
   },
   en: {
     resetPasswordBtn: 'Reset Password',
@@ -119,7 +129,16 @@ const tProfile = {
     role: 'Role',
     vehicleManagement: 'Vehicle Management',
     vehicleManagementDesc: 'Vehicle management will be available when the API is connected.',
-    loadingUsage: 'Loading usage overview'
+    loadingUsage: 'Loading usage overview',
+    cancelSubscriptionBtn: 'Cancel Subscription',
+    cancelModalTitle: 'Cancel auto-renewal?',
+    cancelModalDesc: 'Are you sure you want to cancel the auto-renewal of your subscription?',
+    cancelModalWarning: 'After cancelling, your subscription will remain valid until the end of the current period and will not be automatically renewed.',
+    cancelModalConfirmBtn: 'Confirm cancellation',
+    cancelling: 'Cancelling...',
+    cancelSuccessTitle: 'Auto-renewal cancelled!',
+    cancelSuccessDesc: 'Your subscription remains valid until the end of the current period and will not be automatically renewed.',
+    cancelErrorGeneric: 'Could not cancel auto-renewal. Please try again later.',
   }
 };
 
@@ -145,6 +164,11 @@ export default function DriverProfile() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Cancel auto-renew states
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelStatus, setCancelStatus] = useState('idle'); // idle | loading | success | error
+  const [cancelErrorMsg, setCancelErrorMsg] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -283,6 +307,27 @@ export default function DriverProfile() {
     }
   };
 
+  const handleCloseCancelModal = () => {
+    setIsCancelModalOpen(false);
+    setTimeout(() => {
+      setCancelStatus('idle');
+      setCancelErrorMsg('');
+    }, 300);
+  };
+
+  const handleConfirmCancelAutoRenew = async () => {
+    setCancelStatus('loading');
+    setCancelErrorMsg('');
+
+    try {
+      await apiClient.post(API_ENDPOINTS.FEE.CANCEL_AUTO_RENEW);
+      setCancelStatus('success');
+    } catch (error) {
+      setCancelStatus('error');
+      setCancelErrorMsg(error.response?.data?.message || localT.cancelErrorGeneric);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader title={t('sidebar.profile')} subtitle={user?.email || ''} icon="person" />
@@ -306,6 +351,14 @@ export default function DriverProfile() {
           >
             <KeyRound className="h-4 w-4 text-slate-500" />
             {localT.resetPasswordBtn}
+          </button>
+
+          <button
+            onClick={() => setIsCancelModalOpen(true)}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50/60 px-4 py-2.5 text-sm font-semibold text-rose-600 shadow-sm transition hover:bg-rose-50 hover:border-rose-300 active:scale-[0.98] cursor-pointer"
+          >
+            <Ban className="h-4 w-4 text-rose-500" />
+            {localT.cancelSubscriptionBtn}
           </button>
         </div>
 
@@ -743,6 +796,112 @@ export default function DriverProfile() {
                     {localT.btnDone}
                   </button>
                 </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Cancel Auto-Renew Modal */}
+      <AnimatePresence>
+        {isCancelModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={cancelStatus === 'loading' ? undefined : handleCloseCancelModal}
+              className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm"
+            />
+
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              transition={{ type: 'spring', duration: 0.4 }}
+              className="relative w-full max-w-md overflow-hidden rounded-[28px] border border-slate-100 bg-white p-6 shadow-2xl z-10"
+            >
+              {cancelStatus !== 'loading' && (
+                <button
+                  onClick={handleCloseCancelModal}
+                  className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                  type="button"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+
+              {cancelStatus === 'success' ? (
+                <div className="text-center space-y-5 py-2">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 shadow-inner">
+                    <ShieldCheck className="h-8 w-8" />
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="text-lg font-bold text-slate-800">{localT.cancelSuccessTitle}</h4>
+                    <p className="text-sm text-slate-500 leading-relaxed max-w-xs mx-auto">
+                      {localT.cancelSuccessDesc}
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleCloseCancelModal}
+                    className="w-full h-11 bg-[#0EA5E9] !text-white rounded-xl text-sm font-semibold hover:bg-[#0284c7] active:scale-95 transition shadow-md shadow-sky-600/10"
+                  >
+                    {localT.btnDone}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="text-center mb-6">
+                    <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-rose-50 text-rose-600">
+                      <Ban className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900">{localT.cancelModalTitle}</h3>
+                  </div>
+
+                  <div className="space-y-4">
+                    <p className="text-sm text-slate-500 leading-relaxed text-center">
+                      {localT.cancelModalDesc}
+                    </p>
+
+                    <div className="flex items-start gap-2 rounded-xl border border-amber-100 bg-amber-50 p-3 text-xs text-amber-700">
+                      <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                      <span className="leading-relaxed">{localT.cancelModalWarning}</span>
+                    </div>
+
+                    {cancelStatus === 'error' && (
+                      <div className="flex items-center gap-2 p-3 text-xs text-rose-600 bg-rose-50 rounded-xl border border-rose-100">
+                        <AlertCircle className="h-4 w-4 shrink-0" />
+                        <span>{cancelErrorMsg}</span>
+                      </div>
+                    )}
+
+                    <div className="flex gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={handleCloseCancelModal}
+                        disabled={cancelStatus === 'loading'}
+                        className="flex-1 h-11 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 active:scale-95 transition disabled:opacity-50"
+                      >
+                        {localT.btnCancel}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleConfirmCancelAutoRenew}
+                        disabled={cancelStatus === 'loading'}
+                        className="flex-1 h-11 bg-rose-600 !text-white rounded-xl text-sm font-semibold hover:bg-rose-700 active:scale-95 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+                      >
+                        {cancelStatus === 'loading' ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            {localT.cancelling}
+                          </>
+                        ) : (
+                          localT.cancelModalConfirmBtn
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </>
               )}
             </motion.div>
           </div>

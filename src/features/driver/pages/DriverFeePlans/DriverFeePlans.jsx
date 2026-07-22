@@ -6,6 +6,7 @@ import { apiClient } from '../../../../services/apiClient';
 import { API_ENDPOINTS } from '../../../../services/endpoints';
 import dayjs from 'dayjs';
 import PageHeader from '../../components/PageHeader';
+import { isValidLicensePlate, sanitizeLicensePlateInput } from '../../../../utils/licensePlate';
 
 const VEHICLE_TYPE_ID = { MOTORBIKE: 1, CAR: 2 };
 
@@ -335,7 +336,7 @@ export default function DriverFeePlans() {
                       <input
                         type="text"
                         value={licensePlate}
-                        onChange={(e) => setLicensePlate(e.target.value)}
+                        onChange={(e) => setLicensePlate(sanitizeLicensePlateInput(e.target.value))}
                         placeholder={t('feePlans.platePlaceholder')}
                         className="w-full px-3 pr-10 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl focus:outline-none"
                       />
@@ -370,6 +371,12 @@ export default function DriverFeePlans() {
                           <div className="px-4 py-3 text-xs text-slate-400 italic text-center">{t('feePlans.noVehiclesRegistered')}</div>
                         )}
                       </div>
+                    )}
+
+                    {licensePlate && !selectedVehicle && !isValidLicensePlate(licensePlate) && (
+                      <p className="text-[10px] font-semibold text-rose-500 pt-0.5">
+                        {t('feePlans.errorInvalidPlateFormat')}
+                      </p>
                     )}
                   </div>
                 </div>

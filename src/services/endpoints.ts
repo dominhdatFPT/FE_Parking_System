@@ -18,6 +18,7 @@ export const API_ENDPOINTS = {
     REGISTER: '/api/subscriptions/register-stripe',
     INVOICE_STRIPE: (invoiceId: string | number) => `/api/subscriptions/invoices/${invoiceId}/stripe`,
     CANCEL_SUBSCRIPTION: (subscriptionId: string | number) => `/api/subscriptions/${subscriptionId}/cancel`,
+    CANCEL_AUTO_RENEW: '/api/subscriptions/cancel-renew',
   },
   PAYMENTS: {
     STRIPE_ORDER_STATUS: (paymentIntentId: string) => `/api/payments/stripe/orders/${paymentIntentId}/status`,

@@ -3,6 +3,7 @@ import { useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/useAuth';
 import { customerService } from '../../../../services/customerService';
+import { PLATE_MAX_LENGTH, isValidLicensePlate, normalizeLicensePlate, sanitizeLicensePlateInput } from '../../../../utils/licensePlate';
 import PageHeader from '../../components/PageHeader';
 import Button from '../../components/Button';
 
@@ -83,9 +84,13 @@ export default function DriverVehicleRegistration() {
     if (e) e.preventDefault();
     setError('');
 
-    const submittedLicensePlate = licensePlate.trim().toUpperCase().replace(/\s+/g, '');
+    const submittedLicensePlate = normalizeLicensePlate(licensePlate);
     if (!submittedLicensePlate) {
-      setError(t('vehicleRegistration.errorEnterPlate'));
+      setError(t('vehicleRegistration.errorLicensePlate'));
+      return;
+    }
+    if (!isValidLicensePlate(submittedLicensePlate)) {
+      setError(t('vehicleRegistration.errorInvalidPlateFormat'));
       return;
     }
 
@@ -285,8 +290,9 @@ export default function DriverVehicleRegistration() {
                     <input
                       type="text"
                       value={licensePlate}
-                      onChange={(event) => setLicensePlate(event.target.value.toUpperCase())}
+                      onChange={(event) => setLicensePlate(sanitizeLicensePlateInput(event.target.value))}
                       placeholder={t('vehicleRegistration.platePlaceholder')}
+                      maxLength={PLATE_MAX_LENGTH}
                       className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/40 pl-10 pr-3 text-sm font-bold uppercase tracking-wide text-slate-900 outline-none transition focus:border-[#0EA5E9] focus:bg-white focus:ring-4 focus:ring-sky-100"
                     />
                   </span>
