@@ -405,7 +405,11 @@ export default function DriverFeePlans() {
                       const rawPrice = pkg.price ?? pkg.currentPrice ?? 0;
                       const price = Number.isFinite(Number(rawPrice)) ? Number(rawPrice) : 0;
                       const pricePerMonth = pkg.durationMonths > 0 ? Math.round(price / pkg.durationMonths) : price;
-                      const benefitsList = pkg.benefits ? pkg.benefits.split(';').map(b => b.trim()).filter(Boolean) : [];
+                      const benefitsList = Array.isArray(pkg.benefits)
+                        ? pkg.benefits
+                        : typeof pkg.benefits === 'string'
+                          ? pkg.benefits.split(';').map((benefit) => benefit.trim()).filter(Boolean)
+                          : [];
                       const planNameKey = PLAN_NAME_KEYS[pkg.durationMonths];
 
                       return (

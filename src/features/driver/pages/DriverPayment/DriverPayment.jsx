@@ -298,7 +298,7 @@ function PaymentTable({ invoices, t, onPay, creatingPaymentId }) {
                     type="button"
                     disabled={creatingPaymentId === invoice.id}
                     onClick={() => onPay(invoice)}
-                    className="inline-flex h-9 items-center justify-center rounded-xl bg-indigo-600 px-3 text-xs font-bold text-white shadow-sm shadow-indigo-500/20 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                    className="inline-flex h-9 items-center justify-center rounded-xl bg-[#0EA5E9] px-3 text-xs font-bold text-white shadow-sm shadow-sky-500/10 transition hover:bg-[#0284c7] hover:shadow-md hover:shadow-sky-500/15 disabled:cursor-not-allowed disabled:bg-slate-300"
                   >
                     {creatingPaymentId === invoice.id ? 'Đang tạo...' : 'Thanh toán'}
                   </button>
