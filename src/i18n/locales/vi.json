@@ -449,6 +449,7 @@
     "clickToSelect": "Nhấp để chọn",
     "errorSelectPlan": "Vui lòng chọn gói đăng ký trước khi thanh toán",
     "errorEnterPlate": "Vui lòng nhập biển số xe",
+    "errorInvalidPlateFormat": "Định dạng biển số chưa đúng",
     "errorSelectRegisteredVehicle": "Vui lòng chọn biển số xe từ danh sách",
     "noPackagesForVehicleType": "Không có gói cước nào cho loại xe này",
     "cancel": "Hủy",

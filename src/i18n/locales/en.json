@@ -449,6 +449,7 @@
     "clickToSelect": "Click to select",
     "errorSelectPlan": "Please select a package before paying",
     "errorEnterPlate": "Please enter a license plate",
+    "errorInvalidPlateFormat": "Invalid license plate format",
     "errorSelectRegisteredVehicle": "Please select a license plate from the list",
     "noPackagesForVehicleType": "No fee packages are available for this vehicle type",
     "cancel": "Cancel",
