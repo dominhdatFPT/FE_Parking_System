@@ -23,6 +23,7 @@ import {
 import {
   approveStaffBooking,
   deleteVehicleRegistration,
+  getVehicleRegistration,
   getVehicleRegistrations,
   rejectStaffBooking,
   reviewVehicleRegistration,
@@ -111,9 +112,10 @@ const formatCurrency = (value) => {
 };
 
 const getImageSource = (value) => {
-  if (!value) return '';
-  if (value.startsWith('data:image')) return value;
-  return `data:image/jpeg;base64,${value}`;
+  const source = String(value || '').trim();
+  if (!source) return '';
+  if (/^(data:image|https?:\/\/|blob:)/i.test(source)) return source;
+  return `data:image/jpeg;base64,${source}`;
 };
 
 const getStatusInfo = (status) => statusConfig[status] ?? {
@@ -168,6 +170,7 @@ const normalizeRegistration = (item) => ({
     { label: 'CCCD Mặt trước', value: item.cccdFrontImage },
     { label: 'CCCD Mặt sau', value: item.cccdBackImage },
     { label: 'Bằng lái xe', value: item.licenseImage },
+    { label: 'Giấy đăng ký xe', value: item.vehicleDocumentImage },
     { label: 'Ảnh biển số', value: item.plateImage },
   ].filter((document) => document.value),
 });
@@ -311,6 +314,7 @@ function EmptyState() {
 
 export default function StaffBookingReview() {
   const [registrations, setRegistrations] = useState([]);
+  const [registrationDetails, setRegistrationDetails] = useState({});
   const [fallbackBookings, setFallbackBookings] = useState([]);
   const [activeTab, setActiveTab] = useState('pending');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -323,12 +327,19 @@ export default function StaffBookingReview() {
   const [previewImage, setPreviewImage] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [detailLoadingId, setDetailLoadingId] = useState(null);
+  const [detailError, setDetailError] = useState('');
 
   const records = useMemo(() => {
-    const registrationRecords = registrations.map(normalizeRegistration);
+    const registrationRecords = registrations
+      .map((registration) => ({
+        ...registration,
+        ...(registrationDetails[registration.registrationId] || {}),
+      }))
+      .map(normalizeRegistration);
     if (registrationRecords.length > 0) return registrationRecords;
     return fallbackBookings.map(normalizeBooking);
-  }, [fallbackBookings, registrations]);
+  }, [fallbackBookings, registrationDetails, registrations]);
 
   const counts = useMemo(() => {
     const initialCounts = { pending: 0, approved: 0, rejected: 0, all: records.length };
@@ -368,10 +379,12 @@ export default function StaffBookingReview() {
     try {
       const registrationsResult = await getVehicleRegistrations('ALL');
       setRegistrations(registrationsResult);
+      setRegistrationDetails({});
       setFallbackBookings([]);
     } catch (registrationError) {
       const status = registrationError?.response?.status;
       setRegistrations([]);
+      setRegistrationDetails({});
       setFallbackBookings([]);
 
       if (status === 401 || status === 403) {
@@ -400,6 +413,44 @@ export default function StaffBookingReview() {
       setSelectedKey(`${firstRecord.source}-${firstRecord.id}`);
     }
   }, [filteredRecords, selectedKey]);
+
+  useEffect(() => {
+    if (!selectedRecord || selectedRecord.source !== 'registration') {
+      setDetailError('');
+      setDetailLoadingId(null);
+      return;
+    }
+
+    if (registrationDetails[selectedRecord.id]) {
+      setDetailError('');
+      setDetailLoadingId(null);
+      return;
+    }
+
+    let cancelled = false;
+    setDetailLoadingId(selectedRecord.id);
+    setDetailError('');
+
+    getVehicleRegistration(selectedRecord.id)
+      .then((detail) => {
+        if (cancelled || !detail) return;
+        setRegistrationDetails((current) => ({
+          ...current,
+          [selectedRecord.id]: detail,
+        }));
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        setDetailError(error.response?.data?.message || 'Không thể tải ảnh hồ sơ xác thực.');
+      })
+      .finally(() => {
+        if (!cancelled) setDetailLoadingId(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [registrationDetails, selectedRecord]);
 
   useEffect(() => {
     setNote(selectedRecord?.rejectReason || '');
@@ -713,6 +764,14 @@ export default function StaffBookingReview() {
                         <div className="px-3 py-2 text-sm font-black text-slate-700">{document.label}</div>
                       </button>
                     ))}
+                  </div>
+                ) : detailLoadingId === selectedRecord.id ? (
+                  <div className="rounded-2xl bg-slate-50 p-8 text-center text-sm font-bold text-slate-500 ring-1 ring-slate-200">
+                    Đang tải ảnh hồ sơ xác thực...
+                  </div>
+                ) : detailError ? (
+                  <div className="rounded-2xl bg-rose-50 p-8 text-center text-sm font-bold text-rose-600 ring-1 ring-rose-100">
+                    {detailError}
                   </div>
                 ) : (
                   <div className="rounded-2xl bg-slate-50 p-8 text-center text-sm font-bold text-slate-500 ring-1 ring-slate-200">
