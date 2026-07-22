@@ -934,15 +934,20 @@ export default function DriverProfile() {
                           key={sub.id}
                           type="button"
                           onClick={() => handleSelectCancelSub(sub)}
-                          className="flex w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left transition hover:border-rose-300 hover:bg-rose-50/50 active:scale-[0.99]"
+                          className="flex w-full flex-col gap-1.5 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left transition hover:border-rose-300 hover:bg-rose-50/50 active:scale-[0.99]"
                         >
-                          <div className="min-w-0">
+                          <div className="flex items-center justify-between gap-3">
                             <p className="truncate text-sm font-bold text-slate-800">{sub.licensePlate}</p>
-                            <p className="truncate text-xs text-slate-500">{sub.planName}</p>
+                            <p className="shrink-0 text-sm font-bold text-rose-600">
+                              {Number(sub.amountToPay || 0).toLocaleString('vi-VN')} đ
+                            </p>
                           </div>
-                          <span className="shrink-0 text-xs font-semibold text-slate-400">
-                            {sub.endDate ? vietnamDayjs(sub.endDate).format('DD/MM/YYYY') : ''}
-                          </span>
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="truncate text-xs text-slate-500">{sub.planName}</p>
+                            <p className="shrink-0 text-xs font-semibold text-slate-400">
+                              {localT.cancelExpiryLabel}: {sub.endDate ? vietnamDayjs(sub.endDate).format('DD/MM/YYYY') : '-'}
+                            </p>
+                          </div>
                         </button>
                       ))}
                     </div>
