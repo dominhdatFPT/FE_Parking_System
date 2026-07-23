@@ -68,10 +68,6 @@ export default function DriverVehicleRegistration() {
     if (file) validateAndSetFile(file, setter);
   };
 
-  const handleRemovePlan = (months) => {
-    setSelectedPlans((prev) => prev.filter((m) => m !== months));
-  };
-
   const fileToBase64 = (file) =>
     new Promise((resolve, reject) => {
       const reader = new window.FileReader();
@@ -300,34 +296,6 @@ export default function DriverVehicleRegistration() {
 
                 <div className="rounded-xl border border-sky-100 bg-sky-50/70 p-3 text-xs leading-relaxed text-sky-800">
                   {t('vehicleRegistration.manualPlateNotice')}
-                </div>
-
-                {/* Selected Plans List */}
-                <div>
-                  <label className="mb-1.5 block text-xs font-bold text-slate-500">{t('vehicleRegistration.selectedPlans')}</label>
-                  {selectedPlans.length > 0 ? (
-                    <div className="flex flex-wrap gap-2 rounded-xl bg-slate-50 border border-slate-200 p-3">
-                      {selectedPlans.map((months) => (
-                        <div
-                          key={months}
-                          className="flex items-center gap-1.5 bg-[#0EA5E9] text-white px-2.5 py-1 rounded-lg text-xs font-bold animate-in zoom-in-95 duration-150"
-                        >
-                          <span>{t('vehicleRegistration.planMonths', { months })}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemovePlan(months)}
-                            className="material-symbols-outlined text-[14px] hover:text-red-200 transition-colors"
-                          >
-                            close
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex h-[38px] items-center justify-between rounded-xl bg-slate-50 border border-slate-200 px-4 text-xs text-slate-400 font-semibold">
-                      {t('vehicleRegistration.noPlansSelected')}
-                    </div>
-                  )}
                 </div>
 
                 <div className="h-px bg-slate-100 my-2" />
