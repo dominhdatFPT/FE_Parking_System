@@ -131,6 +131,147 @@ const getTabKey = (status) => {
   return 'all';
 };
 
+const CHECK_STATE = {
+  PASS: 'pass',
+  FAIL: 'fail',
+  PENDING: 'pending',
+};
+
+const hasText = (value) => String(value || '').trim().length > 0;
+
+const normalizeVietnameseText = (value) => String(value || '')
+  .normalize('NFD')
+  .replace(/\p{Diacritic}/gu, '')
+  .replace(/[^A-Za-z0-9 ]+/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim()
+  .toUpperCase();
+
+const samePersonName = (first, second) => {
+  const firstName = normalizeVietnameseText(first);
+  const secondName = normalizeVietnameseText(second);
+  if (!firstName || !secondName) return false;
+  if (firstName === secondName) return true;
+
+  const firstTokens = new Set(firstName.split(' ').filter(Boolean));
+  const secondTokens = new Set(secondName.split(' ').filter(Boolean));
+  return firstTokens.size === secondTokens.size
+    && [...firstTokens].every((token) => secondTokens.has(token));
+};
+
+const isNationalIdNumber = (value) => /^\d{9}$|^\d{12}$/.test(String(value || '').replace(/\D/g, ''));
+
+const buildNameCheck = (userFullName, ekycFullName) => {
+  if (!hasText(ekycFullName)) {
+    return {
+      label: 'Họ tên chờ OCR',
+      state: CHECK_STATE.PENDING,
+      detail: 'Ảnh đã được lưu, nhưng backend chưa trả họ tên OCR.',
+    };
+  }
+
+  if (!hasText(userFullName)) {
+    return {
+      label: 'Họ tên đã đọc',
+      state: CHECK_STATE.PASS,
+      detail: ekycFullName,
+    };
+  }
+
+  if (samePersonName(userFullName, ekycFullName)) {
+    return {
+      label: 'Họ tên khớp',
+      state: CHECK_STATE.PASS,
+      detail: ekycFullName,
+    };
+  }
+
+  return {
+    label: 'Họ tên không khớp',
+    state: CHECK_STATE.FAIL,
+    detail: `Tài khoản: ${userFullName} · OCR: ${ekycFullName}`,
+  };
+};
+
+const buildCccdCheck = (item) => {
+  if (item.ekycIsFake === true) {
+    return {
+      label: 'CCCD nghi giả mạo',
+      state: CHECK_STATE.FAIL,
+      detail: 'Nhà cung cấp eKYC đánh dấu tài liệu có dấu hiệu giả mạo.',
+    };
+  }
+
+  if (isNationalIdNumber(item.ekycCccdId)) {
+    return {
+      label: 'CCCD đã đọc',
+      state: CHECK_STATE.PASS,
+      detail: item.ekycCccdId,
+    };
+  }
+
+  if (hasText(item.cccdFrontImage) || hasText(item.cccdBackImage)) {
+    return {
+      label: 'CCCD chờ kiểm tra',
+      state: CHECK_STATE.PENDING,
+      detail: 'Có ảnh CCCD, nhưng backend chưa trả số CCCD OCR.',
+    };
+  }
+
+  return {
+    label: 'Thiếu ảnh CCCD',
+    state: CHECK_STATE.FAIL,
+    detail: 'Hồ sơ chưa có ảnh CCCD để kiểm tra.',
+  };
+};
+
+const buildLicenseCheck = (item) => {
+  if (hasText(item.ekycLicenseNumber) || hasText(item.ekycLicenseClass)) {
+    return {
+      label: 'GPLX đã đọc',
+      state: CHECK_STATE.PASS,
+      detail: [item.ekycLicenseNumber, item.ekycLicenseClass].filter(Boolean).join(' · '),
+    };
+  }
+
+  if (hasText(item.licenseImage)) {
+    return {
+      label: 'GPLX chờ kiểm tra',
+      state: CHECK_STATE.PENDING,
+      detail: 'Có ảnh GPLX, nhưng backend chưa trả dữ liệu OCR.',
+    };
+  }
+
+  return {
+    label: 'Thiếu ảnh GPLX',
+    state: CHECK_STATE.FAIL,
+    detail: 'Hồ sơ chưa có ảnh GPLX để kiểm tra.',
+  };
+};
+
+const buildPlateCheck = (item) => {
+  if (hasText(item.licensePlate)) {
+    return {
+      label: 'Biển số xe đã nhập',
+      state: CHECK_STATE.PASS,
+      detail: item.licensePlate,
+    };
+  }
+
+  return {
+    label: 'Thiếu biển số xe',
+    state: CHECK_STATE.FAIL,
+    detail: 'Người dùng chưa nhập biển số xe.',
+  };
+};
+
+const buildEkycChecks = (item) => [
+  buildNameCheck(item.userFullName, item.ekycFullName),
+  buildCccdCheck(item),
+  buildLicenseCheck(item),
+  buildPlateCheck(item),
+];
+
 const normalizeRegistration = (item) => ({
   source: 'registration',
   id: item.registrationId,
@@ -155,10 +296,7 @@ const normalizeRegistration = (item) => ({
   paymentTime: item.paidAt || item.paymentTime || null,
   paymentMethod: item.paymentMethod || '',
   eKyc: {
-    fullNameMatch: Boolean(item.ekycFullName),
-    cccdValid: Boolean(item.ekycCccdId) && item.ekycIsFake !== true,
-    licenseValid: Boolean(item.ekycLicenseNumber),
-    plateValid: Boolean(item.licensePlate),
+    checks: buildEkycChecks(item),
     isValid: item.ekycIsValid,
     isFake: item.ekycIsFake,
     confidence: item.ekycConfidenceScore,
@@ -199,10 +337,28 @@ const normalizeBooking = (item) => ({
   paymentTime: item.paidAt,
   paymentMethod: item.paymentMethod || '',
   eKyc: {
-    fullNameMatch: false,
-    cccdValid: false,
-    licenseValid: false,
-    plateValid: Boolean(item.slotNumber || item.cardCode),
+    checks: [
+      {
+        label: 'Họ tên chờ kiểm tra',
+        state: CHECK_STATE.PENDING,
+        detail: 'Booking không có hồ sơ OCR/eKYC kèm theo.',
+      },
+      {
+        label: 'CCCD chờ kiểm tra',
+        state: CHECK_STATE.PENDING,
+        detail: 'Booking không có hồ sơ OCR/eKYC kèm theo.',
+      },
+      {
+        label: 'GPLX chờ kiểm tra',
+        state: CHECK_STATE.PENDING,
+        detail: 'Booking không có hồ sơ OCR/eKYC kèm theo.',
+      },
+      {
+        label: item.slotNumber || item.cardCode ? 'Biển số xe đã nhập' : 'Thiếu biển số xe',
+        state: item.slotNumber || item.cardCode ? CHECK_STATE.PASS : CHECK_STATE.FAIL,
+        detail: item.slotNumber || item.cardCode || 'Chưa có thông tin biển số.',
+      },
+    ],
     isValid: null,
     isFake: null,
     confidence: null,
@@ -266,6 +422,18 @@ const infoTones = {
   amber: 'bg-amber-50/80 ring-amber-100',
   violet: 'bg-violet-50/80 ring-violet-100',
   slate: 'bg-slate-50 ring-slate-100',
+};
+
+const ekycCheckStyles = {
+  [CHECK_STATE.PASS]: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
+  [CHECK_STATE.FAIL]: 'bg-rose-50 text-rose-700 ring-rose-100',
+  [CHECK_STATE.PENDING]: 'bg-amber-50 text-amber-700 ring-amber-100',
+};
+
+const getEkycCheckIcon = (state) => {
+  if (state === CHECK_STATE.PASS) return CheckCircle2;
+  if (state === CHECK_STATE.FAIL) return AlertTriangle;
+  return Clock3;
 };
 
 function SectionCard({ title, icon: Icon, children, action, tone = 'sky' }) {
@@ -795,24 +963,25 @@ export default function StaffBookingReview() {
                 }
               >
                 <div className="grid gap-3 md:grid-cols-2">
-                  {[
-                    ['Họ tên khớp', selectedRecord.eKyc.fullNameMatch],
-                    ['CCCD hợp lệ', selectedRecord.eKyc.cccdValid],
-                    ['GPLX hợp lệ', selectedRecord.eKyc.licenseValid],
-                    ['Biển số xe hợp lệ', selectedRecord.eKyc.plateValid],
-                  ].map(([label, ok]) => (
-                    <div
-                      key={label}
-                      className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-black ring-1 ${
-                        ok
-                          ? 'bg-emerald-50 text-emerald-700 ring-emerald-100'
-                          : 'bg-rose-50 text-rose-700 ring-rose-100'
-                      }`}
-                    >
-                      {ok ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
-                      {label}
-                    </div>
-                  ))}
+                  {(selectedRecord.eKyc.checks || []).map((check) => {
+                    const CheckIcon = getEkycCheckIcon(check.state);
+                    return (
+                      <div
+                        key={check.label}
+                        className={`flex items-start gap-3 rounded-xl px-4 py-3 text-sm font-black ring-1 ${
+                          ekycCheckStyles[check.state] || ekycCheckStyles[CHECK_STATE.PENDING]
+                        }`}
+                      >
+                        <CheckIcon className="mt-0.5 shrink-0" size={18} />
+                        <span>
+                          <span className="block">{check.label}</span>
+                          {check.detail ? (
+                            <span className="mt-1 block text-xs font-semibold opacity-80">{check.detail}</span>
+                          ) : null}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
                 {selectedRecord.eKyc.isFake === true && (
                   <div className="mt-4 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-black text-rose-700 ring-1 ring-rose-100">
