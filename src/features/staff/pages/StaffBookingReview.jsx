@@ -132,7 +132,25 @@ const getTabKey = (status) => {
 };
 
 const TRUE_FLAG_VALUES = new Set(['TRUE', 'VALID', 'MATCHED', 'MATCH', 'SUCCESS', 'PASS', 'PASSED', 'APPROVED', 'YES', 'Y', '1']);
-const FALSE_FLAG_VALUES = new Set(['FALSE', 'INVALID', 'NOT_MATCHED', 'NOT MATCHED', 'MISMATCHED', 'MISMATCH', 'FAIL', 'FAILED', 'REJECTED', 'NO', 'N', '0']);
+const FALSE_FLAG_VALUES = new Set([
+  'FALSE',
+  'INVALID',
+  'NOT_MATCHED',
+  'NOT MATCHED',
+  'NOT_MATCH',
+  'NOT MATCH',
+  'NO_MATCH',
+  'NO MATCH',
+  'UNMATCHED',
+  'MISMATCHED',
+  'MISMATCH',
+  'FAIL',
+  'FAILED',
+  'REJECTED',
+  'NO',
+  'N',
+  '0',
+]);
 
 const normalizeBooleanFlag = (value) => {
   if (typeof value === 'boolean') return value;
@@ -204,18 +222,10 @@ const getNormalizedEkyc = (item) => {
   ]);
 
   return {
-    fullNameMatch: fullNameMatchValue === undefined
-      ? Boolean(item.ekycFullName)
-      : normalizeBooleanFlag(fullNameMatchValue),
-    cccdValid: cccdValidValue === undefined
-      ? Boolean(item.ekycCccdId) && !isFake
-      : normalizeBooleanFlag(cccdValidValue),
-    licenseValid: licenseValidValue === undefined
-      ? Boolean(item.ekycLicenseNumber)
-      : normalizeBooleanFlag(licenseValidValue),
-    plateValid: plateValidValue === undefined
-      ? Boolean(item.licensePlate)
-      : normalizeBooleanFlag(plateValidValue),
+    fullNameMatch: normalizeBooleanFlag(fullNameMatchValue),
+    cccdValid: normalizeBooleanFlag(cccdValidValue) && !isFake,
+    licenseValid: normalizeBooleanFlag(licenseValidValue),
+    plateValid: normalizeBooleanFlag(plateValidValue),
     isValid: normalizeBooleanFlag(pickFirstDefined(sources, ['isValid', 'valid', 'ekycIsValid'])),
     isFake,
     confidence: pickFirstDefined(sources, ['confidence', 'confidenceScore', 'ekycConfidenceScore']),
