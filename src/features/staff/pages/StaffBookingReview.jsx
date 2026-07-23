@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  AlertTriangle,
   BadgeCheck,
   CalendarDays,
   CarFront,
@@ -15,7 +14,6 @@ import {
   PackageCheck,
   RefreshCcw,
   Search,
-  ShieldCheck,
   Trash2,
   UserRound,
   XCircle,
@@ -131,286 +129,6 @@ const getTabKey = (status) => {
   return 'all';
 };
 
-const TRUE_FLAG_VALUES = new Set(['TRUE', 'VALID', 'MATCHED', 'MATCH', 'SUCCESS', 'PASS', 'PASSED', 'APPROVED', 'YES', 'Y', '1']);
-const FALSE_FLAG_VALUES = new Set([
-  'FALSE',
-  'INVALID',
-  'NOT_MATCHED',
-  'NOT MATCHED',
-  'NOT_MATCH',
-  'NOT MATCH',
-  'NO_MATCH',
-  'NO MATCH',
-  'UNMATCHED',
-  'MISMATCHED',
-  'MISMATCH',
-  'FAIL',
-  'FAILED',
-  'REJECTED',
-  'NO',
-  'N',
-  '0',
-]);
-
-const normalizeBooleanFlag = (value) => {
-  if (typeof value === 'boolean') return value;
-  if (typeof value === 'number') return value === 1;
-  if (typeof value === 'string') {
-    const normalized = value.trim().toUpperCase();
-    if (TRUE_FLAG_VALUES.has(normalized)) return true;
-    if (FALSE_FLAG_VALUES.has(normalized)) return false;
-  }
-  return false;
-};
-
-const pickFirstDefined = (sources, keys) => {
-  for (const source of sources) {
-    if (!source || typeof source !== 'object') continue;
-    for (const key of keys) {
-      if (source[key] !== undefined && source[key] !== null) return source[key];
-    }
-  }
-  return undefined;
-};
-
-const getEkycSources = (item) => [
-  item.eKyc,
-  item.ekyc,
-  item.ocr,
-  item.ocrResult,
-  item,
-];
-
-const getNormalizedEkyc = (item) => {
-  const sources = getEkycSources(item);
-  const isFake = normalizeBooleanFlag(pickFirstDefined(sources, ['isFake', 'fake', 'ekycIsFake']));
-
-  const fullNameMatchValue = pickFirstDefined(sources, [
-    'fullNameMatch',
-    'isFullNameMatched',
-    'fullNameMatched',
-    'nameMatch',
-    'nameMatched',
-    'ekycFullNameMatch',
-    'fullNameStatus',
-    'nameMatchStatus',
-  ]);
-  const cccdValidValue = pickFirstDefined(sources, [
-    'cccdValid',
-    'isCccdValid',
-    'cccdStatus',
-    'ekycCccdValid',
-    'identityValid',
-    'citizenIdValid',
-    'idCardValid',
-  ]);
-  const licenseValidValue = pickFirstDefined(sources, [
-    'licenseValid',
-    'isLicenseValid',
-    'driverLicenseValid',
-    'gplxValid',
-    'licenseStatus',
-    'ekycLicenseValid',
-  ]);
-  const plateValidValue = pickFirstDefined(sources, [
-    'plateValid',
-    'isPlateValid',
-    'licensePlateValid',
-    'vehiclePlateValid',
-    'plateStatus',
-    'ekycPlateValid',
-  ]);
-
-  return {
-    fullNameMatch: normalizeBooleanFlag(fullNameMatchValue),
-    cccdValid: normalizeBooleanFlag(cccdValidValue) && !isFake,
-    licenseValid: normalizeBooleanFlag(licenseValidValue),
-    plateValid: normalizeBooleanFlag(plateValidValue),
-    isValid: normalizeBooleanFlag(pickFirstDefined(sources, ['isValid', 'valid', 'ekycIsValid'])),
-    isFake,
-    confidence: pickFirstDefined(sources, ['confidence', 'confidenceScore', 'ekycConfidenceScore']),
-    cccdId: pickFirstDefined(sources, ['cccdId', 'cccdNumber', 'citizenId', 'ekycCccdId']),
-    licenseNumber: pickFirstDefined(sources, ['licenseNumber', 'driverLicenseNumber', 'gplxNumber', 'ekycLicenseNumber']),
-    licenseClass: pickFirstDefined(sources, ['licenseClass', 'driverLicenseClass', 'gplxClass', 'ekycLicenseClass']),
-  };
-};
-
-const CHECK_STATE = {
-  PASS: 'pass',
-  FAIL: 'fail',
-  PENDING: 'pending',
-};
-
-const hasText = (value) => String(value || '').trim().length > 0;
-
-const normalizeVietnameseText = (value) => String(value || '')
-  .normalize('NFD')
-  .replace(/\p{Diacritic}/gu, '')
-  .replace(/[^A-Za-z0-9 ]+/g, ' ')
-  .replace(/\s+/g, ' ')
-  .trim()
-  .toUpperCase();
-
-const samePersonName = (first, second) => {
-  const firstName = normalizeVietnameseText(first);
-  const secondName = normalizeVietnameseText(second);
-  if (!firstName || !secondName) return false;
-  if (firstName === secondName) return true;
-
-  const firstTokens = new Set(firstName.split(' ').filter(Boolean));
-  const secondTokens = new Set(secondName.split(' ').filter(Boolean));
-  return firstTokens.size === secondTokens.size
-    && [...firstTokens].every((token) => secondTokens.has(token));
-};
-
-const isNationalIdNumber = (value) => /^\d{9}$|^\d{12}$/.test(String(value || '').replace(/\D/g, ''));
-
-const buildNameCheck = (item, normalizedEkyc) => {
-  const ekycFullName = pickFirstDefined(getEkycSources(item), ['fullName', 'name', 'ekycFullName']);
-  const explicitFlag = pickFirstDefined(getEkycSources(item), [
-    'fullNameMatch',
-    'isFullNameMatched',
-    'fullNameMatched',
-    'nameMatch',
-    'nameMatched',
-    'ekycFullNameMatch',
-  ]);
-
-  if (explicitFlag !== undefined) {
-    return normalizedEkyc.fullNameMatch
-      ? { label: 'Họ tên khớp', state: CHECK_STATE.PASS, detail: ekycFullName || '' }
-      : { label: 'Họ tên không khớp', state: CHECK_STATE.FAIL, detail: ekycFullName || 'Backend trả trạng thái không khớp.' };
-  }
-
-  if (!hasText(ekycFullName)) {
-    return {
-      label: 'Họ tên chờ OCR',
-      state: CHECK_STATE.PENDING,
-      detail: 'Ảnh đã được lưu, nhưng backend chưa trả họ tên OCR.',
-    };
-  }
-
-  if (!hasText(item.userFullName) || samePersonName(item.userFullName, ekycFullName)) {
-    return { label: 'Họ tên khớp', state: CHECK_STATE.PASS, detail: ekycFullName };
-  }
-
-  return {
-    label: 'Họ tên không khớp',
-    state: CHECK_STATE.FAIL,
-    detail: `Tài khoản: ${item.userFullName} · OCR: ${ekycFullName}`,
-  };
-};
-
-const buildCccdCheck = (item, normalizedEkyc) => {
-  const explicitFlag = pickFirstDefined(getEkycSources(item), [
-    'cccdValid',
-    'isCccdValid',
-    'cccdStatus',
-    'ekycCccdValid',
-    'identityValid',
-    'citizenIdValid',
-    'idCardValid',
-  ]);
-
-  if (normalizedEkyc.isFake) {
-    return {
-      label: 'CCCD nghi giả mạo',
-      state: CHECK_STATE.FAIL,
-      detail: 'Nhà cung cấp eKYC đánh dấu tài liệu có dấu hiệu giả mạo.',
-    };
-  }
-
-  if (explicitFlag !== undefined) {
-    return normalizedEkyc.cccdValid
-      ? { label: 'CCCD hợp lệ', state: CHECK_STATE.PASS, detail: normalizedEkyc.cccdId || '' }
-      : { label: 'CCCD không hợp lệ', state: CHECK_STATE.FAIL, detail: normalizedEkyc.cccdId || 'Backend trả trạng thái không hợp lệ.' };
-  }
-
-  if (isNationalIdNumber(normalizedEkyc.cccdId)) {
-    return { label: 'CCCD đã đọc', state: CHECK_STATE.PASS, detail: normalizedEkyc.cccdId };
-  }
-
-  if (hasText(item.cccdFrontImage) || hasText(item.cccdBackImage)) {
-    return {
-      label: 'CCCD chờ kiểm tra',
-      state: CHECK_STATE.PENDING,
-      detail: 'Có ảnh CCCD, nhưng backend chưa trả số CCCD OCR.',
-    };
-  }
-
-  return { label: 'Thiếu ảnh CCCD', state: CHECK_STATE.FAIL, detail: 'Hồ sơ chưa có ảnh CCCD để kiểm tra.' };
-};
-
-const buildLicenseCheck = (item, normalizedEkyc) => {
-  const explicitFlag = pickFirstDefined(getEkycSources(item), [
-    'licenseValid',
-    'isLicenseValid',
-    'driverLicenseValid',
-    'gplxValid',
-    'licenseStatus',
-    'ekycLicenseValid',
-  ]);
-
-  const licenseDetail = [normalizedEkyc.licenseNumber, normalizedEkyc.licenseClass].filter(Boolean).join(' · ');
-  if (explicitFlag !== undefined) {
-    return normalizedEkyc.licenseValid
-      ? { label: 'GPLX hợp lệ', state: CHECK_STATE.PASS, detail: licenseDetail }
-      : { label: 'GPLX không hợp lệ', state: CHECK_STATE.FAIL, detail: licenseDetail || 'Backend trả trạng thái không hợp lệ.' };
-  }
-
-  if (hasText(normalizedEkyc.licenseNumber) || hasText(normalizedEkyc.licenseClass)) {
-    return { label: 'GPLX đã đọc', state: CHECK_STATE.PASS, detail: licenseDetail };
-  }
-
-  if (hasText(item.licenseImage)) {
-    return {
-      label: 'GPLX chờ kiểm tra',
-      state: CHECK_STATE.PENDING,
-      detail: 'Có ảnh GPLX, nhưng backend chưa trả dữ liệu OCR.',
-    };
-  }
-
-  return { label: 'Thiếu ảnh GPLX', state: CHECK_STATE.FAIL, detail: 'Hồ sơ chưa có ảnh GPLX để kiểm tra.' };
-};
-
-const buildPlateCheck = (item, normalizedEkyc) => {
-  const explicitFlag = pickFirstDefined(getEkycSources(item), [
-    'plateValid',
-    'isPlateValid',
-    'licensePlateValid',
-    'vehiclePlateValid',
-    'plateStatus',
-    'ekycPlateValid',
-  ]);
-
-  if (explicitFlag !== undefined) {
-    return normalizedEkyc.plateValid
-      ? { label: 'Biển số xe hợp lệ', state: CHECK_STATE.PASS, detail: item.licensePlate || '' }
-      : { label: 'Biển số xe không hợp lệ', state: CHECK_STATE.FAIL, detail: item.licensePlate || 'Backend trả trạng thái không hợp lệ.' };
-  }
-
-  if (hasText(item.licensePlate)) {
-    return { label: 'Biển số xe đã nhập', state: CHECK_STATE.PASS, detail: item.licensePlate };
-  }
-
-  return { label: 'Thiếu biển số xe', state: CHECK_STATE.FAIL, detail: 'Người dùng chưa nhập biển số xe.' };
-};
-
-const buildEkycChecks = (item, normalizedEkyc) => [
-  buildNameCheck(item, normalizedEkyc),
-  buildCccdCheck(item, normalizedEkyc),
-  buildLicenseCheck(item, normalizedEkyc),
-  buildPlateCheck(item, normalizedEkyc),
-];
-
-const getEkycReview = (item) => {
-  const normalizedEkyc = getNormalizedEkyc(item);
-  return {
-    ...normalizedEkyc,
-    checks: buildEkycChecks(item, normalizedEkyc),
-  };
-};
-
 const normalizeRegistration = (item) => ({
   source: 'registration',
   id: item.registrationId,
@@ -434,7 +152,6 @@ const normalizeRegistration = (item) => ({
   transactionId: item.transactionId || '',
   paymentTime: item.paidAt || item.paymentTime || null,
   paymentMethod: item.paymentMethod || '',
-  eKyc: getEkycReview(item),
   documents: [
     { label: 'CCCD Mặt trước', value: item.cccdFrontImage },
     { label: 'CCCD Mặt sau', value: item.cccdBackImage },
@@ -467,37 +184,6 @@ const normalizeBooking = (item) => ({
   transactionId: item.transactionId || item.paymentCode || '',
   paymentTime: item.paidAt,
   paymentMethod: item.paymentMethod || '',
-  eKyc: {
-    fullNameMatch: false,
-    cccdValid: false,
-    licenseValid: false,
-    plateValid: Boolean(item.slotNumber || item.cardCode),
-    isValid: null,
-    isFake: null,
-    confidence: null,
-    checks: [
-      {
-        label: 'Họ tên chờ kiểm tra',
-        state: CHECK_STATE.PENDING,
-        detail: 'Booking không có hồ sơ OCR/eKYC kèm theo.',
-      },
-      {
-        label: 'CCCD chờ kiểm tra',
-        state: CHECK_STATE.PENDING,
-        detail: 'Booking không có hồ sơ OCR/eKYC kèm theo.',
-      },
-      {
-        label: 'GPLX chờ kiểm tra',
-        state: CHECK_STATE.PENDING,
-        detail: 'Booking không có hồ sơ OCR/eKYC kèm theo.',
-      },
-      {
-        label: item.slotNumber || item.cardCode ? 'Biển số xe đã nhập' : 'Thiếu biển số xe',
-        state: item.slotNumber || item.cardCode ? CHECK_STATE.PASS : CHECK_STATE.FAIL,
-        detail: item.slotNumber || item.cardCode || 'Chưa có thông tin biển số.',
-      },
-    ],
-  },
   documents: [],
 });
 
@@ -557,18 +243,6 @@ const infoTones = {
   amber: 'bg-amber-50/80 ring-amber-100',
   violet: 'bg-violet-50/80 ring-violet-100',
   slate: 'bg-slate-50 ring-slate-100',
-};
-
-const ekycCheckStyles = {
-  [CHECK_STATE.PASS]: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-  [CHECK_STATE.FAIL]: 'border-red-200 bg-red-50 text-red-600',
-  [CHECK_STATE.PENDING]: 'border-amber-200 bg-amber-50 text-amber-700',
-};
-
-const getEkycCheckIcon = (state) => {
-  if (state === CHECK_STATE.PASS) return CheckCircle2;
-  if (state === CHECK_STATE.FAIL) return AlertTriangle;
-  return Clock3;
 };
 
 function SectionCard({ title, icon: Icon, children, action, tone = 'sky' }) {
@@ -1023,107 +697,43 @@ export default function StaffBookingReview() {
               </div>
             </SectionCard>
 
-            <div className="grid gap-5 2xl:grid-cols-2">
-              <SectionCard title="Thông tin thanh toán" icon={CreditCard} tone="amber">
-                <div className="mb-4">
-                  {selectedRecord.paymentStatus === 'PAID' ? (
-                    <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700 ring-1 ring-emerald-200">
-                      <CheckCircle2 size={14} />Đã thanh toán
-                    </span>
-                  ) : selectedRecord.paymentStatus === 'UNKNOWN' ? (
-                    <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600 ring-1 ring-slate-200">
-                      <Clock3 size={14} />Chưa có dữ liệu thanh toán
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700 ring-1 ring-amber-200">
-                      <Clock3 size={14} />Chờ thanh toán
-                    </span>
-                  )}
-                </div>
-                <div className="grid gap-3">
-                  <InfoRow label="Mã giao dịch" value={selectedRecord.transactionId} tone="amber" />
-                  <InfoRow label="Thời gian thanh toán" value={formatDateTime(selectedRecord.paymentTime)} tone="amber" />
-                  <InfoRow label="Phương thức thanh toán" value={selectedRecord.paymentMethod} tone="amber" />
-                </div>
-              </SectionCard>
-
-              <SectionCard title="Hồ sơ xác thực" icon={FileImage} tone="violet">
-                {selectedRecord.documents.length ? (
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {selectedRecord.documents.map((document) => (
-                      <button
-                        key={document.label}
-                        type="button"
-                        onClick={() => setPreviewImage({ label: document.label, src: getImageSource(document.value) })}
-                        className="group overflow-hidden rounded-2xl bg-slate-50 text-left ring-1 ring-slate-200 transition hover:ring-sky-300"
-                      >
-                        <div className="aspect-[4/3] bg-slate-100">
-                          <img
-                            src={getImageSource(document.value)}
-                            alt={document.label}
-                            className="h-full w-full object-cover transition group-hover:scale-[1.02]"
-                          />
-                        </div>
-                        <div className="px-3 py-2 text-sm font-black text-slate-700">{document.label}</div>
-                      </button>
-                    ))}
-                  </div>
-                ) : detailLoadingId === selectedRecord.id ? (
-                  <div className="rounded-2xl bg-slate-50 p-8 text-center text-sm font-bold text-slate-500 ring-1 ring-slate-200">
-                    Đang tải ảnh hồ sơ xác thực...
-                  </div>
-                ) : detailError ? (
-                  <div className="rounded-2xl bg-rose-50 p-8 text-center text-sm font-bold text-rose-600 ring-1 ring-rose-100">
-                    {detailError}
-                  </div>
-                ) : (
-                  <div className="rounded-2xl bg-slate-50 p-8 text-center text-sm font-bold text-slate-500 ring-1 ring-slate-200">
-                    Chưa có ảnh hồ sơ xác thực từ API.
-                  </div>
-                )}
-              </SectionCard>
-            </div>
-
-            <div className="grid gap-5 2xl:grid-cols-[1fr_0.85fr]">
-              <SectionCard
-                title="Kết quả OCR / eKYC"
-                icon={ShieldCheck}
-                tone="rose"
-                action={
-                  selectedRecord.eKyc.confidence ? (
-                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700 ring-1 ring-emerald-200">
-                      Độ tin cậy {Math.round(selectedRecord.eKyc.confidence)}%
-                    </span>
-                  ) : null
-                }
-              >
-                <div className="grid gap-3 md:grid-cols-2">
-                  {(selectedRecord.eKyc.checks || []).map((check) => {
-                    const Icon = getEkycCheckIcon(check.state);
-                    const toneClass = ekycCheckStyles[check.state] || ekycCheckStyles[CHECK_STATE.PENDING];
-                    return (
-                      <div
-                        key={check.label}
-                        className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm font-black ${toneClass}`}
-                      >
-                        <Icon className="mt-0.5 shrink-0" size={18} />
-                        <span>
-                          <span className="block">{check.label}</span>
-                          {check.detail ? (
-                            <span className="mt-1 block text-xs font-semibold opacity-80">{check.detail}</span>
-                          ) : null}
-                        </span>
+            <SectionCard title="Hồ sơ xác thực" icon={FileImage} tone="violet">
+              {selectedRecord.documents.length ? (
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {selectedRecord.documents.map((document) => (
+                    <button
+                      key={document.label}
+                      type="button"
+                      onClick={() => setPreviewImage({ label: document.label, src: getImageSource(document.value) })}
+                      className="group overflow-hidden rounded-2xl bg-slate-50 text-left ring-1 ring-slate-200 transition hover:ring-sky-300"
+                    >
+                      <div className="aspect-[4/3] bg-slate-100">
+                        <img
+                          src={getImageSource(document.value)}
+                          alt={document.label}
+                          className="h-full w-full object-cover transition group-hover:scale-[1.02]"
+                        />
                       </div>
-                    );
-                  })}
+                      <div className="px-3 py-2 text-sm font-black text-slate-700">{document.label}</div>
+                    </button>
+                  ))}
                 </div>
-                {selectedRecord.eKyc.isFake === true && (
-                  <div className="mt-4 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-black text-rose-700 ring-1 ring-rose-100">
-                    Hệ thống phát hiện dấu hiệu tài liệu giả mạo.
-                  </div>
-                )}
-              </SectionCard>
+              ) : detailLoadingId === selectedRecord.id ? (
+                <div className="rounded-2xl bg-slate-50 p-8 text-center text-sm font-bold text-slate-500 ring-1 ring-slate-200">
+                  Đang tải ảnh hồ sơ xác thực...
+                </div>
+              ) : detailError ? (
+                <div className="rounded-2xl bg-rose-50 p-8 text-center text-sm font-bold text-rose-600 ring-1 ring-rose-100">
+                  {detailError}
+                </div>
+              ) : (
+                <div className="rounded-2xl bg-slate-50 p-8 text-center text-sm font-bold text-slate-500 ring-1 ring-slate-200">
+                  Chưa có ảnh hồ sơ xác thực từ API.
+                </div>
+              )}
+            </SectionCard>
 
+            <div className="grid gap-5 2xl:grid-cols-[1fr]">
               <SectionCard title="Lịch sử xử lý" icon={BadgeCheck} tone="slate">
                 <div className="space-y-4">
                   {[
