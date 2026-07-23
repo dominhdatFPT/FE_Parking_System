@@ -9,7 +9,6 @@ import {
   DollarSign,
   FileCheck2,
   FileImage,
-  Filter,
   Mail,
   PackageCheck,
   RefreshCcw,
@@ -294,7 +293,6 @@ export default function StaffBookingReview() {
   const [registrationDetails, setRegistrationDetails] = useState({});
   const [fallbackBookings, setFallbackBookings] = useState([]);
   const [activeTab, setActiveTab] = useState('pending');
-  const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedKey, setSelectedKey] = useState('');
   const [note, setNote] = useState('');
@@ -332,15 +330,14 @@ export default function StaffBookingReview() {
 
     return records.filter((record) => {
       const matchesTab = activeTab === 'all' || getTabKey(record.status) === activeTab;
-      const matchesStatus = statusFilter === 'all' || record.status === statusFilter;
       const matchesKeyword = !keyword
         || [record.name, record.licensePlate, record.planName, record.vehicleType]
           .filter(Boolean)
           .some((value) => value.toLowerCase().includes(keyword));
 
-      return matchesTab && matchesStatus && matchesKeyword;
+      return matchesTab && matchesKeyword;
     });
-  }, [activeTab, records, searchTerm, statusFilter]);
+  }, [activeTab, records, searchTerm]);
 
   const selectedRecord = useMemo(() => {
     if (!filteredRecords.length) return null;
@@ -504,20 +501,6 @@ export default function StaffBookingReview() {
               placeholder="Tìm tên, biển số, tên gói..."
               className="w-full bg-transparent text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400"
             />
-          </label>
-
-          <label className="flex h-12 items-center gap-3 rounded-2xl bg-white px-4 shadow-sm ring-1 ring-indigo-100">
-            <Filter size={18} className="text-slate-500" />
-            <select
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
-              className="bg-transparent text-sm font-black text-slate-700 outline-none"
-            >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="PENDING">Chờ duyệt</option>
-              <option value="APPROVED">Đã duyệt</option>
-              <option value="REJECTED">Từ chối</option>
-            </select>
           </label>
 
           <button
