@@ -211,15 +211,13 @@
     "noMonthlyPayments": "No monthly ticket transactions",
     "noMonthlyPaymentsDesc": "Monthly ticket subscription transactions will appear here.",
     "plateAndPlan": "License Plate / Plan",
-    "momoPayment": "MoMo Payment",
     "waitingForPayment": "Waiting for payment...",
     "orderExpired": "The order has expired",
     "recipient": "Recipient",
     "transferContent": "Transfer content",
     "expiresIn": "Expires in",
     "tenMinutes": "10 minutes",
-    "close": "Close",
-    "momoInstruction": "Scan the QR code with the MoMo app to pay. This page will update automatically once payment is received."
+    "close": "Close"
   },
   "notifications": {
     "title": "Notifications",
@@ -294,7 +292,7 @@
     "faq3q": "Can I cancel a booking?",
     "faq3a": "Yes, you can cancel bookings in PENDING status. Go to \"My Bookings\", select the booking to cancel and press the cancel button.",
     "faq4q": "What payment methods are supported?",
-    "faq4a": "The system supports MoMo, VNPay, and ZaloPay. You can choose your preferred method when paying.",
+    "faq4a": "The system supports online payment through the currently integrated gateways. You can choose your preferred method when paying.",
     "faq5q": "What if the parking lot is full?",
     "faq5a": "When a parking lot is FULL, the \"Select\" button will be disabled. Please choose another lot with available slots.",
     "faq6q": "I need urgent support?",

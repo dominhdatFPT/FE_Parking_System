@@ -235,12 +235,181 @@ const getNormalizedEkyc = (item) => {
   };
 };
 
-const ekycStatusCards = [
-  { key: 'fullNameMatch', validLabel: 'Họ tên khớp', invalidLabel: 'Họ tên không khớp' },
-  { key: 'cccdValid', validLabel: 'CCCD hợp lệ', invalidLabel: 'CCCD không hợp lệ' },
-  { key: 'licenseValid', validLabel: 'GPLX hợp lệ', invalidLabel: 'GPLX không hợp lệ' },
-  { key: 'plateValid', validLabel: 'Biển số xe hợp lệ', invalidLabel: 'Biển số xe không hợp lệ' },
+const CHECK_STATE = {
+  PASS: 'pass',
+  FAIL: 'fail',
+  PENDING: 'pending',
+};
+
+const hasText = (value) => String(value || '').trim().length > 0;
+
+const normalizeVietnameseText = (value) => String(value || '')
+  .normalize('NFD')
+  .replace(/\p{Diacritic}/gu, '')
+  .replace(/[^A-Za-z0-9 ]+/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim()
+  .toUpperCase();
+
+const samePersonName = (first, second) => {
+  const firstName = normalizeVietnameseText(first);
+  const secondName = normalizeVietnameseText(second);
+  if (!firstName || !secondName) return false;
+  if (firstName === secondName) return true;
+
+  const firstTokens = new Set(firstName.split(' ').filter(Boolean));
+  const secondTokens = new Set(secondName.split(' ').filter(Boolean));
+  return firstTokens.size === secondTokens.size
+    && [...firstTokens].every((token) => secondTokens.has(token));
+};
+
+const isNationalIdNumber = (value) => /^\d{9}$|^\d{12}$/.test(String(value || '').replace(/\D/g, ''));
+
+const buildNameCheck = (item, normalizedEkyc) => {
+  const ekycFullName = pickFirstDefined(getEkycSources(item), ['fullName', 'name', 'ekycFullName']);
+  const explicitFlag = pickFirstDefined(getEkycSources(item), [
+    'fullNameMatch',
+    'isFullNameMatched',
+    'fullNameMatched',
+    'nameMatch',
+    'nameMatched',
+    'ekycFullNameMatch',
+  ]);
+
+  if (explicitFlag !== undefined) {
+    return normalizedEkyc.fullNameMatch
+      ? { label: 'Họ tên khớp', state: CHECK_STATE.PASS, detail: ekycFullName || '' }
+      : { label: 'Họ tên không khớp', state: CHECK_STATE.FAIL, detail: ekycFullName || 'Backend trả trạng thái không khớp.' };
+  }
+
+  if (!hasText(ekycFullName)) {
+    return {
+      label: 'Họ tên chờ OCR',
+      state: CHECK_STATE.PENDING,
+      detail: 'Ảnh đã được lưu, nhưng backend chưa trả họ tên OCR.',
+    };
+  }
+
+  if (!hasText(item.userFullName) || samePersonName(item.userFullName, ekycFullName)) {
+    return { label: 'Họ tên khớp', state: CHECK_STATE.PASS, detail: ekycFullName };
+  }
+
+  return {
+    label: 'Họ tên không khớp',
+    state: CHECK_STATE.FAIL,
+    detail: `Tài khoản: ${item.userFullName} · OCR: ${ekycFullName}`,
+  };
+};
+
+const buildCccdCheck = (item, normalizedEkyc) => {
+  const explicitFlag = pickFirstDefined(getEkycSources(item), [
+    'cccdValid',
+    'isCccdValid',
+    'cccdStatus',
+    'ekycCccdValid',
+    'identityValid',
+    'citizenIdValid',
+    'idCardValid',
+  ]);
+
+  if (normalizedEkyc.isFake) {
+    return {
+      label: 'CCCD nghi giả mạo',
+      state: CHECK_STATE.FAIL,
+      detail: 'Nhà cung cấp eKYC đánh dấu tài liệu có dấu hiệu giả mạo.',
+    };
+  }
+
+  if (explicitFlag !== undefined) {
+    return normalizedEkyc.cccdValid
+      ? { label: 'CCCD hợp lệ', state: CHECK_STATE.PASS, detail: normalizedEkyc.cccdId || '' }
+      : { label: 'CCCD không hợp lệ', state: CHECK_STATE.FAIL, detail: normalizedEkyc.cccdId || 'Backend trả trạng thái không hợp lệ.' };
+  }
+
+  if (isNationalIdNumber(normalizedEkyc.cccdId)) {
+    return { label: 'CCCD đã đọc', state: CHECK_STATE.PASS, detail: normalizedEkyc.cccdId };
+  }
+
+  if (hasText(item.cccdFrontImage) || hasText(item.cccdBackImage)) {
+    return {
+      label: 'CCCD chờ kiểm tra',
+      state: CHECK_STATE.PENDING,
+      detail: 'Có ảnh CCCD, nhưng backend chưa trả số CCCD OCR.',
+    };
+  }
+
+  return { label: 'Thiếu ảnh CCCD', state: CHECK_STATE.FAIL, detail: 'Hồ sơ chưa có ảnh CCCD để kiểm tra.' };
+};
+
+const buildLicenseCheck = (item, normalizedEkyc) => {
+  const explicitFlag = pickFirstDefined(getEkycSources(item), [
+    'licenseValid',
+    'isLicenseValid',
+    'driverLicenseValid',
+    'gplxValid',
+    'licenseStatus',
+    'ekycLicenseValid',
+  ]);
+
+  const licenseDetail = [normalizedEkyc.licenseNumber, normalizedEkyc.licenseClass].filter(Boolean).join(' · ');
+  if (explicitFlag !== undefined) {
+    return normalizedEkyc.licenseValid
+      ? { label: 'GPLX hợp lệ', state: CHECK_STATE.PASS, detail: licenseDetail }
+      : { label: 'GPLX không hợp lệ', state: CHECK_STATE.FAIL, detail: licenseDetail || 'Backend trả trạng thái không hợp lệ.' };
+  }
+
+  if (hasText(normalizedEkyc.licenseNumber) || hasText(normalizedEkyc.licenseClass)) {
+    return { label: 'GPLX đã đọc', state: CHECK_STATE.PASS, detail: licenseDetail };
+  }
+
+  if (hasText(item.licenseImage)) {
+    return {
+      label: 'GPLX chờ kiểm tra',
+      state: CHECK_STATE.PENDING,
+      detail: 'Có ảnh GPLX, nhưng backend chưa trả dữ liệu OCR.',
+    };
+  }
+
+  return { label: 'Thiếu ảnh GPLX', state: CHECK_STATE.FAIL, detail: 'Hồ sơ chưa có ảnh GPLX để kiểm tra.' };
+};
+
+const buildPlateCheck = (item, normalizedEkyc) => {
+  const explicitFlag = pickFirstDefined(getEkycSources(item), [
+    'plateValid',
+    'isPlateValid',
+    'licensePlateValid',
+    'vehiclePlateValid',
+    'plateStatus',
+    'ekycPlateValid',
+  ]);
+
+  if (explicitFlag !== undefined) {
+    return normalizedEkyc.plateValid
+      ? { label: 'Biển số xe hợp lệ', state: CHECK_STATE.PASS, detail: item.licensePlate || '' }
+      : { label: 'Biển số xe không hợp lệ', state: CHECK_STATE.FAIL, detail: item.licensePlate || 'Backend trả trạng thái không hợp lệ.' };
+  }
+
+  if (hasText(item.licensePlate)) {
+    return { label: 'Biển số xe đã nhập', state: CHECK_STATE.PASS, detail: item.licensePlate };
+  }
+
+  return { label: 'Thiếu biển số xe', state: CHECK_STATE.FAIL, detail: 'Người dùng chưa nhập biển số xe.' };
+};
+
+const buildEkycChecks = (item, normalizedEkyc) => [
+  buildNameCheck(item, normalizedEkyc),
+  buildCccdCheck(item, normalizedEkyc),
+  buildLicenseCheck(item, normalizedEkyc),
+  buildPlateCheck(item, normalizedEkyc),
 ];
+
+const getEkycReview = (item) => {
+  const normalizedEkyc = getNormalizedEkyc(item);
+  return {
+    ...normalizedEkyc,
+    checks: buildEkycChecks(item, normalizedEkyc),
+  };
+};
 
 const normalizeRegistration = (item) => ({
   source: 'registration',
@@ -265,7 +434,7 @@ const normalizeRegistration = (item) => ({
   transactionId: item.transactionId || '',
   paymentTime: item.paidAt || item.paymentTime || null,
   paymentMethod: item.paymentMethod || '',
-  eKyc: getNormalizedEkyc(item),
+  eKyc: getEkycReview(item),
   documents: [
     { label: 'CCCD Mặt trước', value: item.cccdFrontImage },
     { label: 'CCCD Mặt sau', value: item.cccdBackImage },
@@ -306,6 +475,28 @@ const normalizeBooking = (item) => ({
     isValid: null,
     isFake: null,
     confidence: null,
+    checks: [
+      {
+        label: 'Họ tên chờ kiểm tra',
+        state: CHECK_STATE.PENDING,
+        detail: 'Booking không có hồ sơ OCR/eKYC kèm theo.',
+      },
+      {
+        label: 'CCCD chờ kiểm tra',
+        state: CHECK_STATE.PENDING,
+        detail: 'Booking không có hồ sơ OCR/eKYC kèm theo.',
+      },
+      {
+        label: 'GPLX chờ kiểm tra',
+        state: CHECK_STATE.PENDING,
+        detail: 'Booking không có hồ sơ OCR/eKYC kèm theo.',
+      },
+      {
+        label: item.slotNumber || item.cardCode ? 'Biển số xe đã nhập' : 'Thiếu biển số xe',
+        state: item.slotNumber || item.cardCode ? CHECK_STATE.PASS : CHECK_STATE.FAIL,
+        detail: item.slotNumber || item.cardCode || 'Chưa có thông tin biển số.',
+      },
+    ],
   },
   documents: [],
 });
@@ -366,6 +557,18 @@ const infoTones = {
   amber: 'bg-amber-50/80 ring-amber-100',
   violet: 'bg-violet-50/80 ring-violet-100',
   slate: 'bg-slate-50 ring-slate-100',
+};
+
+const ekycCheckStyles = {
+  [CHECK_STATE.PASS]: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+  [CHECK_STATE.FAIL]: 'border-red-200 bg-red-50 text-red-600',
+  [CHECK_STATE.PENDING]: 'border-amber-200 bg-amber-50 text-amber-700',
+};
+
+const getEkycCheckIcon = (state) => {
+  if (state === CHECK_STATE.PASS) return CheckCircle2;
+  if (state === CHECK_STATE.FAIL) return AlertTriangle;
+  return Clock3;
 };
 
 function SectionCard({ title, icon: Icon, children, action, tone = 'sky' }) {
@@ -895,21 +1098,21 @@ export default function StaffBookingReview() {
                 }
               >
                 <div className="grid gap-3 md:grid-cols-2">
-                  {ekycStatusCards.map((item) => {
-                    const ok = selectedRecord.eKyc[item.key];
-                    const Icon = ok ? CheckCircle2 : AlertTriangle;
-                    const label = ok ? item.validLabel : item.invalidLabel;
-                    const toneClass = ok
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                      : 'border-red-200 bg-red-50 text-red-600';
-
+                  {(selectedRecord.eKyc.checks || []).map((check) => {
+                    const Icon = getEkycCheckIcon(check.state);
+                    const toneClass = ekycCheckStyles[check.state] || ekycCheckStyles[CHECK_STATE.PENDING];
                     return (
                       <div
-                        key={item.key}
-                        className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-black ${toneClass}`}
+                        key={check.label}
+                        className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm font-black ${toneClass}`}
                       >
-                        <Icon size={18} />
-                        {label}
+                        <Icon className="mt-0.5 shrink-0" size={18} />
+                        <span>
+                          <span className="block">{check.label}</span>
+                          {check.detail ? (
+                            <span className="mt-1 block text-xs font-semibold opacity-80">{check.detail}</span>
+                          ) : null}
+                        </span>
                       </div>
                     );
                   })}

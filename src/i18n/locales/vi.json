@@ -211,15 +211,13 @@
     "noMonthlyPayments": "Chưa có giao dịch thẻ tháng",
     "noMonthlyPaymentsDesc": "Các giao dịch đăng ký gói thẻ tháng sẽ hiển thị tại đây.",
     "plateAndPlan": "Biển số / Gói",
-    "momoPayment": "Thanh toán MoMo",
     "waitingForPayment": "Đang chờ thanh toán...",
     "orderExpired": "Đơn hàng đã hết hạn",
     "recipient": "Chuyển đến",
     "transferContent": "Nội dung",
     "expiresIn": "Hết hạn sau",
     "tenMinutes": "10 phút",
-    "close": "Đóng",
-    "momoInstruction": "Quét mã QR bằng ứng dụng MoMo để thanh toán. Trang sẽ tự động cập nhật khi nhận được tiền."
+    "close": "Đóng"
   },
   "notifications": {
     "title": "Thông báo",
@@ -294,7 +292,7 @@
     "faq3q": "Tôi có thể hủy booking không?",
     "faq3a": "Có, bạn có thể hủy booking ở trạng thái PENDING. Vào \"Booking của tôi\", chọn booking cần hủy và nhấn nút hủy.",
     "faq4q": "Phương thức thanh toán nào được hỗ trợ?",
-    "faq4a": "Hệ thống hỗ trợ thanh toán qua MoMo, VNPay và ZaloPay. Bạn có thể chọn phương thức phù hợp khi thanh toán.",
+    "faq4a": "Hệ thống hỗ trợ thanh toán trực tuyến qua các cổng đang được tích hợp. Bạn có thể chọn phương thức phù hợp khi thanh toán.",
     "faq5q": "Làm thế nào khi bãi xe đã đầy?",
     "faq5a": "Khi bãi xe đã đầy (trạng thái FULL), nút \"Chọn bãi\" sẽ bị vô hiệu hóa. Hãy chọn bãi xe khác có slot trống.",
     "faq6q": "Tôi cần hỗ trợ khẩn cấp?",
