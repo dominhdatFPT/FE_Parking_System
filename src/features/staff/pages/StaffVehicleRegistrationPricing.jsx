@@ -71,6 +71,17 @@ function getPackageByDuration(packages, vehicleTypeMatcher, durationMonths) {
   return packages.find((pkg) => vehicleTypeMatcher(pkg) && Number(pkg.durationMonths) === durationMonths) || null;
 }
 
+function getFeePackageId(pkg) {
+  const candidates = [
+    pkg?.feePackageId,
+    pkg?.packageId,
+    pkg?.id,
+    pkg?.fee_package_id,
+    pkg?.feePackage?.id,
+  ];
+  return candidates.find((value) => value !== null && value !== undefined && String(value).trim() !== '') ?? null;
+}
+
 function PackageSkeleton() {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -303,7 +314,13 @@ function PackageEditModal({ pkg, onClose, onSaved }) {
     setSubmitting(true);
     setError('');
     try {
-      await updateFeePackagePrice(pkg.feePackageId, {
+      const feePackageId = getFeePackageId(pkg);
+      if (!feePackageId) {
+        setError('Khong tim thay ID goi phi. Vui long tai lai trang roi thu lai.');
+        setSubmitting(false);
+        return;
+      }
+      await updateFeePackagePrice(feePackageId, {
         originalPrice: originalNumber,
         price: priceNumber,
         discountPercent: discountNumber,
@@ -729,13 +746,14 @@ function PackageColumn({ column, packages, onEdit, onToggle, togglingId, loading
                 </div>
               );
             }
+            const packageId = getFeePackageId(pkg);
             return (
               <PackageCard
-                key={pkg.feePackageId}
+                key={packageId ?? `${d.key}-${pkg.name || 'package'}`}
                 pkg={pkg}
                 onEdit={onEdit}
                 onToggle={onToggle}
-                toggling={togglingId === pkg.feePackageId}
+                toggling={packageId !== null && String(togglingId) === String(packageId)}
               />
             );
           })}
@@ -829,10 +847,14 @@ export default function StaffVehicleRegistrationPricing() {
   }, [fetchPackages, fetchVisitorRates]);
 
   const handleTogglePackage = async (pkg) => {
-    if (!pkg?.feePackageId) return;
-    setTogglingId(pkg.feePackageId);
+    const feePackageId = getFeePackageId(pkg);
+    if (!feePackageId) {
+      showToast('error', 'Khong tim thay ID goi phi. Vui long tai lai trang roi thu lai.');
+      return;
+    }
+    setTogglingId(feePackageId);
     try {
-      const result = await toggleFeePackage(pkg.feePackageId);
+      const result = await toggleFeePackage(feePackageId);
       const message = result?.message || (pkg.isActive ? 'Đã tắt gói thẻ' : 'Đã bật gói thẻ');
       showToast('success', message);
       await fetchPackages();
