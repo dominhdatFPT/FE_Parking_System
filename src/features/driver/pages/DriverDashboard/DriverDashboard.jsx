@@ -48,24 +48,6 @@ const quickActions = [
   },
 ];
 
-// Display-only sample data for the driver overview. This is not loaded from an API yet.
-const suggestedLots = [
-  {
-    id: 'zone-a',
-    nameKey: 'dashboard.centralParking',
-    addressKey: 'dashboard.mainGateGroundFloor',
-    availableSlots: 42,
-    totalSlots: 100,
-  },
-  {
-    id: 'zone-b',
-    nameKey: 'dashboard.monthlyPassArea',
-    addressKey: 'dashboard.zoneBEntrance',
-    availableSlots: 18,
-    totalSlots: 64,
-  },
-];
-
 const steps = [
   { icon: 'badge', titleKey: 'dashboard.profileStep', textKey: 'dashboard.profileStepDesc' },
   { icon: 'approval_delegation', titleKey: 'dashboard.reviewStep', textKey: 'dashboard.reviewStepDesc' },
@@ -207,46 +189,6 @@ export default function DriverDashboard() {
         </div>
 
         <div className="space-y-6">
-          <motion.section variants={itemVariants} className="rounded-[24px] border border-[#E5E7EB] bg-white p-5 shadow-[0_18px_46px_rgba(15,23,42,0.06)]">
-            <h3 className="border-b border-[#E5E7EB] pb-3 text-xs font-black uppercase tracking-[0.18em] text-[#64748B]">
-              {t('dashboard.suggestedParkingAreas')}
-            </h3>
-            <p className="mt-3 rounded-2xl border border-amber-100 bg-amber-50 px-3 py-2 text-[11px] font-semibold leading-relaxed text-amber-700">
-              {t('dashboard.suggestedParkingAreasStaticNote')}
-            </p>
-            <div className="mt-4 space-y-4">
-              {suggestedLots.map((area) => {
-                const fillRate = Math.round(((area.totalSlots - area.availableSlots) / area.totalSlots) * 100);
-                return (
-                  <article
-                    key={area.id}
-                    className="w-full rounded-2xl border border-[#E5E7EB] p-4 text-left"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h4 className="text-sm font-black tracking-tight text-[#0F172A]">{t(area.nameKey)}</h4>
-                        <p className="mt-1 text-xs font-medium text-[#64748B]">{t(area.addressKey)}</p>
-                      </div>
-                      <span className="material-symbols-outlined text-[18px] text-[#0EA5E9]">location_on</span>
-                    </div>
-                    <div className="mt-4 space-y-2">
-                      <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.12em] text-[#64748B]">
-                        <span>{t('dashboard.available')}</span>
-                        <span className="font-mono text-[#334155]">{area.availableSlots} / {area.totalSlots}</span>
-                      </div>
-                      <div className="h-1.5 overflow-hidden rounded-full bg-[#E5E7EB]">
-                        <div
-                          className={`h-full rounded-full ${fillRate >= 75 ? 'bg-amber-500' : 'bg-emerald-500'}`}
-                          style={{ width: `${fillRate}%` }}
-                        />
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </motion.section>
-
           <motion.div variants={itemVariants}>
             <NotificationPanel />
           </motion.div>
