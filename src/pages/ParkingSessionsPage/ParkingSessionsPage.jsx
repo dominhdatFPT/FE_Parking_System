@@ -34,17 +34,17 @@ const statusClasses = {
 const normalizeVehicleType = (item) => {
   if (typeof item !== 'object' || item === null) return 'Ô tô';
 
-  const rawValue = item.vehicleTypeCode || item.vehicleType || item.vehicleTypeName || item.vehicleTypeId;
+  const rawValue = item.vehicleTypeCode || item.vehicleType || item.vehicleTypeName || item.vehicleTypeId || item.type;
   const normalized = normalizeVehicleTypeCode(rawValue);
   if (normalized === 'MOTORBIKE') return 'Xe máy';
   if (normalized === 'CAR') return 'Ô tô';
 
-  const rememberedType = getRememberedVehicleType(item.licensePlate);
+  const rememberedType = getRememberedVehicleType(getLicensePlate(item));
   const rememberedCode = normalizeVehicleTypeCode(rememberedType);
   if (rememberedCode === 'MOTORBIKE') return 'Xe máy';
   if (rememberedCode === 'CAR') return 'Ô tô';
 
-  const cardCode = String(item.visitorCardCode || item.cardId || '').toUpperCase();
+  const cardCode = String(item.visitorCardCode || item.cardCode || item.cardId || item.parkingCardCode || item.ticketCode || '').toUpperCase();
   if (cardCode.startsWith('CAR')) return 'Ô tô';
   if (cardCode.startsWith('VIS') || cardCode.startsWith('MOTO') || cardCode.startsWith('BIKE')) return 'Xe máy';
 
@@ -80,9 +80,70 @@ const formatFee = (fee, active) => active
   ? 'Đang tính'
   : `${Number(fee || 0).toLocaleString('vi-VN')} ₫`;
 
+const pickFirstDefined = (item, keys) => {
+  for (const key of keys) {
+    const value = item?.[key];
+    if (value !== undefined && value !== null && value !== '') return value;
+  }
+  return undefined;
+};
+
+const getSessionId = (item) => pickFirstDefined(item, [
+  'orderCode',
+  'sessionCode',
+  'parkingSessionCode',
+  'code',
+  'orderId',
+  'sessionId',
+  'parkingSessionId',
+  'id',
+]);
+
+const getLicensePlate = (item) => pickFirstDefined(item, [
+  'licensePlate',
+  'plateNumber',
+  'plate',
+  'vehiclePlate',
+  'licensePlateNumber',
+]);
+
+const getEntryTime = (item) => pickFirstDefined(item, [
+  'entryTime',
+  'checkInTime',
+  'checkinTime',
+  'timeIn',
+  'inTime',
+  'startTime',
+  'createdAt',
+]);
+
+const getExitTime = (item) => pickFirstDefined(item, [
+  'exitTime',
+  'checkOutTime',
+  'checkoutTime',
+  'timeOut',
+  'outTime',
+  'endTime',
+  'completedAt',
+]);
+
+const getSessionFee = (item) => pickFirstDefined(item, [
+  'calculatedFee',
+  'fee',
+  'totalFee',
+  'amount',
+  'totalAmount',
+]);
+
+const isCompletedStatus = (status) => ['COMPLETED', 'DONE', 'FINISHED', 'CLOSED', 'EXITED', 'PAID'].includes(String(status || '').toUpperCase());
+
 function mapSession(item) {
-  const completed = item.status === 'COMPLETED' || Boolean(item.exitTime);
-  const minutes = durationMinutes(item.entryTime, item.exitTime);
+  const entryTime = getEntryTime(item);
+  const exitTime = getExitTime(item);
+  const rawStatus = pickFirstDefined(item, ['status', 'sessionStatus', 'parkingStatus', 'orderStatus']);
+  const fee = getSessionFee(item);
+  const completed = isCompletedStatus(rawStatus) || Boolean(exitTime);
+  const minutes = durationMinutes(entryTime, exitTime);
   const displayStatus = completed
     ? 'Đã hoàn thành'
     : minutes >= 7 * 1440
@@ -92,24 +153,24 @@ function mapSession(item) {
         : 'Bình thường';
 
   return {
-    id: item.orderCode || String(item.id),
-    rawId: item.id,
-    plate: item.licensePlate || '--',
+    id: String(getSessionId(item) || '--'),
+    rawId: pickFirstDefined(item, ['id', 'orderId', 'sessionId', 'parkingSessionId']),
+    plate: getLicensePlate(item) || '--',
     type: normalizeVehicleType(item),
-    customer: normalizeCustomerType(item.customerType),
-    cardId: item.visitorCardCode || '--',
-    entry: formatDateTime(item.entryTime),
-    exit: formatDateTime(item.exitTime),
+    customer: normalizeCustomerType(pickFirstDefined(item, ['customerType', 'typeCustomer', 'customerCategory', 'parkingType'])),
+    cardId: pickFirstDefined(item, ['visitorCardCode', 'cardCode', 'cardId', 'parkingCardCode', 'ticketCode']) || '--',
+    entry: formatDateTime(entryTime),
+    exit: formatDateTime(exitTime),
     duration: formatDuration(minutes),
     durationMinutes: minutes,
-    floor: item.floorName || '--',
-    zone: item.parkingName || '--',
+    floor: pickFirstDefined(item, ['floorName', 'floor', 'floorCode']) || '--',
+    zone: pickFirstDefined(item, ['parkingName', 'parkingAreaName', 'areaName', 'zoneName', 'zone']) || '--',
     status: displayStatus,
-    fee: formatFee(item.calculatedFee, !completed),
-    estimatedFee: item.calculatedFee == null ? null : formatFee(item.calculatedFee, false),
-    entryTime: item.entryTime,
-    exitTime: item.exitTime,
-    parkingStatus: item.status,
+    fee: formatFee(fee, !completed),
+    estimatedFee: fee == null ? null : formatFee(fee, false),
+    entryTime,
+    exitTime,
+    parkingStatus: rawStatus,
   };
 }
 

@@ -15,6 +15,28 @@ const formatDateTime = (value) => {
   }).format(date);
 };
 
+const pickFirstDefined = (item, keys) => {
+  for (const key of keys) {
+    const value = item?.[key];
+    if (value !== undefined && value !== null && value !== '') return value;
+  }
+  return undefined;
+};
+
+const normalizeSession = (item) => ({
+  id: pickFirstDefined(item, ['id', 'orderId', 'sessionId', 'parkingSessionId', 'orderCode', 'sessionCode']),
+  licensePlate: pickFirstDefined(item, ['licensePlate', 'plateNumber', 'plate', 'vehiclePlate', 'licensePlateNumber']),
+  orderCode: pickFirstDefined(item, ['orderCode', 'sessionCode', 'parkingSessionCode', 'code']),
+  parkingName: pickFirstDefined(item, ['parkingName', 'parkingAreaName', 'areaName', 'zoneName', 'zone']),
+  floorName: pickFirstDefined(item, ['floorName', 'floor', 'floorCode']),
+  vehicleType: pickFirstDefined(item, ['vehicleType', 'vehicleTypeName', 'vehicleTypeCode', 'type']),
+  visitorCardCode: pickFirstDefined(item, ['visitorCardCode', 'cardCode', 'cardId', 'parkingCardCode', 'ticketCode']),
+  entryTime: pickFirstDefined(item, ['entryTime', 'checkInTime', 'checkinTime', 'timeIn', 'inTime', 'startTime', 'createdAt']),
+  exitTime: pickFirstDefined(item, ['exitTime', 'checkOutTime', 'checkoutTime', 'timeOut', 'outTime', 'endTime', 'completedAt']),
+  status: pickFirstDefined(item, ['status', 'sessionStatus', 'parkingStatus', 'orderStatus']),
+  calculatedFee: pickFirstDefined(item, ['calculatedFee', 'fee', 'totalFee', 'amount', 'totalAmount']),
+});
+
 export default function StaffSessions() {
   const [activities, setActivities] = useState([]);
   const [keyword, setKeyword] = useState('');
@@ -23,7 +45,8 @@ export default function StaffSessions() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      setActivities(await getParkingSessions());
+      const items = await getParkingSessions();
+      setActivities(items.map(normalizeSession));
     } finally {
       setLoading(false);
     }
@@ -81,8 +104,8 @@ export default function StaffSessions() {
           <tbody className="divide-y divide-slate-100">
             {!loading && sessions.length === 0 ? (
               <tr><td colSpan="5" className="px-4 py-10 text-center text-slate-500">Không có phiên gửi xe phù hợp.</td></tr>
-            ) : sessions.map((activity) => (
-              <tr key={activity.id}>
+            ) : sessions.map((activity, index) => (
+              <tr key={activity.id || activity.orderCode || index}>
                 <td className="px-4 py-4">
                   <p className="font-black">{activity.licensePlate || '-'}</p>
                   <p className="text-xs text-slate-500">{activity.vehicleType || activity.orderCode || '-'}</p>

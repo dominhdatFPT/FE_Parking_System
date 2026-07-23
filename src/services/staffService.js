@@ -3,10 +3,25 @@ import { apiClient } from './apiClient';
 const unwrapList = (response) => {
   const payload = response.data?.data ?? response.data;
   if (Array.isArray(payload?.content)) return payload.content;
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.records)) return payload.records;
+  if (Array.isArray(payload?.list)) return payload.list;
+  if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload?.result)) return payload.result;
+  if (Array.isArray(payload?.parkingSessions)) return payload.parkingSessions;
+  if (Array.isArray(payload?.sessions)) return payload.sessions;
+  if (Array.isArray(payload?.orders)) return payload.orders;
+  if (Array.isArray(payload?.recentVehicleActivities)) return payload.recentVehicleActivities;
   return Array.isArray(payload) ? payload : [];
 };
 
 const unwrapData = (response) => response.data?.data ?? response.data;
+
+const unwrapParkingSessions = (response) => {
+  const payload = response.data?.data ?? response.data;
+  if (Array.isArray(payload?.recentVehicleActivities)) return payload.recentVehicleActivities;
+  return unwrapList(response);
+};
 
 const VEHICLE_TYPE_ID = {
   MOTORBIKE: 1,
@@ -122,8 +137,27 @@ export const getStaffOperationsDashboard = async (date) => {
 };
 
 export const getParkingSessions = async (params = {}) => {
-  const response = await apiClient.get('/api/v1/staff/parking-sessions', { params });
-  return unwrapList(response);
+  const requests = [
+    () => apiClient.get('/api/v1/staff/parking-sessions', { params }).then(unwrapParkingSessions),
+    () => apiClient.get('/api/v1/staff/operations-dashboard').then(unwrapParkingSessions),
+    () => apiClient.get('/api/v1/parking-orders/active', { params }).then(unwrapParkingSessions),
+    () => apiClient.get('/api/customer/parking-orders/active', { params }).then(unwrapParkingSessions),
+  ];
+
+  let lastError = null;
+  let hasSuccessfulRequest = false;
+  for (const request of requests) {
+    try {
+      const items = await request();
+      hasSuccessfulRequest = true;
+      if (items.length > 0) return items;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  if (!hasSuccessfulRequest && lastError) throw lastError;
+  return [];
 };
 
 export const checkParkingEntry = async (licensePlate, vehicleType = null) => {
