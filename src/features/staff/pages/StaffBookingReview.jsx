@@ -131,6 +131,107 @@ const getTabKey = (status) => {
   return 'all';
 };
 
+const TRUE_FLAG_VALUES = new Set(['TRUE', 'VALID', 'MATCHED', 'MATCH', 'SUCCESS', 'PASS', 'PASSED', 'APPROVED', 'YES', 'Y', '1']);
+const FALSE_FLAG_VALUES = new Set(['FALSE', 'INVALID', 'NOT_MATCHED', 'NOT MATCHED', 'MISMATCHED', 'MISMATCH', 'FAIL', 'FAILED', 'REJECTED', 'NO', 'N', '0']);
+
+const normalizeBooleanFlag = (value) => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value === 1;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toUpperCase();
+    if (TRUE_FLAG_VALUES.has(normalized)) return true;
+    if (FALSE_FLAG_VALUES.has(normalized)) return false;
+  }
+  return false;
+};
+
+const pickFirstDefined = (sources, keys) => {
+  for (const source of sources) {
+    if (!source || typeof source !== 'object') continue;
+    for (const key of keys) {
+      if (source[key] !== undefined && source[key] !== null) return source[key];
+    }
+  }
+  return undefined;
+};
+
+const getEkycSources = (item) => [
+  item.eKyc,
+  item.ekyc,
+  item.ocr,
+  item.ocrResult,
+  item,
+];
+
+const getNormalizedEkyc = (item) => {
+  const sources = getEkycSources(item);
+  const isFake = normalizeBooleanFlag(pickFirstDefined(sources, ['isFake', 'fake', 'ekycIsFake']));
+
+  const fullNameMatchValue = pickFirstDefined(sources, [
+    'fullNameMatch',
+    'isFullNameMatched',
+    'fullNameMatched',
+    'nameMatch',
+    'nameMatched',
+    'ekycFullNameMatch',
+    'fullNameStatus',
+    'nameMatchStatus',
+  ]);
+  const cccdValidValue = pickFirstDefined(sources, [
+    'cccdValid',
+    'isCccdValid',
+    'cccdStatus',
+    'ekycCccdValid',
+    'identityValid',
+    'citizenIdValid',
+    'idCardValid',
+  ]);
+  const licenseValidValue = pickFirstDefined(sources, [
+    'licenseValid',
+    'isLicenseValid',
+    'driverLicenseValid',
+    'gplxValid',
+    'licenseStatus',
+    'ekycLicenseValid',
+  ]);
+  const plateValidValue = pickFirstDefined(sources, [
+    'plateValid',
+    'isPlateValid',
+    'licensePlateValid',
+    'vehiclePlateValid',
+    'plateStatus',
+    'ekycPlateValid',
+  ]);
+
+  return {
+    fullNameMatch: fullNameMatchValue === undefined
+      ? Boolean(item.ekycFullName)
+      : normalizeBooleanFlag(fullNameMatchValue),
+    cccdValid: cccdValidValue === undefined
+      ? Boolean(item.ekycCccdId) && !isFake
+      : normalizeBooleanFlag(cccdValidValue),
+    licenseValid: licenseValidValue === undefined
+      ? Boolean(item.ekycLicenseNumber)
+      : normalizeBooleanFlag(licenseValidValue),
+    plateValid: plateValidValue === undefined
+      ? Boolean(item.licensePlate)
+      : normalizeBooleanFlag(plateValidValue),
+    isValid: normalizeBooleanFlag(pickFirstDefined(sources, ['isValid', 'valid', 'ekycIsValid'])),
+    isFake,
+    confidence: pickFirstDefined(sources, ['confidence', 'confidenceScore', 'ekycConfidenceScore']),
+    cccdId: pickFirstDefined(sources, ['cccdId', 'cccdNumber', 'citizenId', 'ekycCccdId']),
+    licenseNumber: pickFirstDefined(sources, ['licenseNumber', 'driverLicenseNumber', 'gplxNumber', 'ekycLicenseNumber']),
+    licenseClass: pickFirstDefined(sources, ['licenseClass', 'driverLicenseClass', 'gplxClass', 'ekycLicenseClass']),
+  };
+};
+
+const ekycStatusCards = [
+  { key: 'fullNameMatch', validLabel: 'Họ tên khớp', invalidLabel: 'Họ tên không khớp' },
+  { key: 'cccdValid', validLabel: 'CCCD hợp lệ', invalidLabel: 'CCCD không hợp lệ' },
+  { key: 'licenseValid', validLabel: 'GPLX hợp lệ', invalidLabel: 'GPLX không hợp lệ' },
+  { key: 'plateValid', validLabel: 'Biển số xe hợp lệ', invalidLabel: 'Biển số xe không hợp lệ' },
+];
+
 const normalizeRegistration = (item) => ({
   source: 'registration',
   id: item.registrationId,
@@ -154,18 +255,7 @@ const normalizeRegistration = (item) => ({
   transactionId: item.transactionId || '',
   paymentTime: item.paidAt || item.paymentTime || null,
   paymentMethod: item.paymentMethod || '',
-  eKyc: {
-    fullNameMatch: Boolean(item.ekycFullName),
-    cccdValid: Boolean(item.ekycCccdId) && item.ekycIsFake !== true,
-    licenseValid: Boolean(item.ekycLicenseNumber),
-    plateValid: Boolean(item.licensePlate),
-    isValid: item.ekycIsValid,
-    isFake: item.ekycIsFake,
-    confidence: item.ekycConfidenceScore,
-    cccdId: item.ekycCccdId,
-    licenseNumber: item.ekycLicenseNumber,
-    licenseClass: item.ekycLicenseClass,
-  },
+  eKyc: getNormalizedEkyc(item),
   documents: [
     { label: 'CCCD Mặt trước', value: item.cccdFrontImage },
     { label: 'CCCD Mặt sau', value: item.cccdBackImage },
@@ -795,24 +885,24 @@ export default function StaffBookingReview() {
                 }
               >
                 <div className="grid gap-3 md:grid-cols-2">
-                  {[
-                    ['Họ tên khớp', selectedRecord.eKyc.fullNameMatch],
-                    ['CCCD hợp lệ', selectedRecord.eKyc.cccdValid],
-                    ['GPLX hợp lệ', selectedRecord.eKyc.licenseValid],
-                    ['Biển số xe hợp lệ', selectedRecord.eKyc.plateValid],
-                  ].map(([label, ok]) => (
-                    <div
-                      key={label}
-                      className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-black ring-1 ${
-                        ok
-                          ? 'bg-emerald-50 text-emerald-700 ring-emerald-100'
-                          : 'bg-rose-50 text-rose-700 ring-rose-100'
-                      }`}
-                    >
-                      {ok ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
-                      {label}
-                    </div>
-                  ))}
+                  {ekycStatusCards.map((item) => {
+                    const ok = selectedRecord.eKyc[item.key];
+                    const Icon = ok ? CheckCircle2 : AlertTriangle;
+                    const label = ok ? item.validLabel : item.invalidLabel;
+                    const toneClass = ok
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                      : 'border-red-200 bg-red-50 text-red-600';
+
+                    return (
+                      <div
+                        key={item.key}
+                        className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-black ${toneClass}`}
+                      >
+                        <Icon size={18} />
+                        {label}
+                      </div>
+                    );
+                  })}
                 </div>
                 {selectedRecord.eKyc.isFake === true && (
                   <div className="mt-4 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-black text-rose-700 ring-1 ring-rose-100">

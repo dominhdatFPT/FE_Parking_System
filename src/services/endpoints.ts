@@ -8,6 +8,7 @@ export const API_ENDPOINTS = {
   },
   PARKING: {
     SLOTS: '/api/v1/parking-slots',
+    ACTIVE_ORDERS: '/api/v1/parking-orders/active',
   },
   FEE: {
     PACKAGES: '/api/v1/fee-packages',
