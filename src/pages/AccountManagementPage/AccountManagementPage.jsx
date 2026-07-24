@@ -364,6 +364,7 @@ export default function AccountManagementPage() {
   const { role: currentRole } = useAuth();
   const normalizedRole = String(currentRole || '').toUpperCase();
   const isAdmin = normalizedRole === 'ADMIN';
+  const isStaff = normalizedRole === 'STAFF';
 
   const showToast = useCallback((type, message) => {
     setToast({ type, message });
@@ -745,7 +746,7 @@ export default function AccountManagementPage() {
             Nhân viên{totalStaff !== null ? ` (${totalStaff})` : ''}
           </button>
         </div>
-        {isAdmin && (
+        {(isAdmin || isStaff) && (
           <button
             type="button"
             onClick={openCreateDialog}
