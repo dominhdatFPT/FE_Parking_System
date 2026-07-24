@@ -1573,8 +1573,8 @@ export default function AccountManagementPage() {
                     }}
                   >
                     <option value="USER">USER — Người dùng</option>
-                    <option value="STAFF">STAFF — Nhân viên</option>
-                    <option value="ADMIN">ADMIN — Quản trị viên</option>
+                    {isAdmin && <option value="STAFF">STAFF — Nhân viên</option>}
+                    {isAdmin && <option value="ADMIN">ADMIN — Quản trị viên</option>}
                   </select>
                 </div>
                 {createErrors.role && (
