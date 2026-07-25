@@ -285,7 +285,7 @@ function PaymentTable({ invoices, t, onPay, creatingPaymentId }) {
                 <p className="text-xs text-slate-400">{invoice.planName || '--'}</p>
               </td>
               <td className="px-5 py-3 font-bold">{t('payment.currencyAmount', { amount: Number(invoice.amount || 0).toLocaleString('vi-VN') })}</td>
-              <td className="px-5 py-3 text-blue-600">VNPay</td>
+              <td className="px-5 py-3 text-blue-600">Stripe</td>
               <td className="px-5 py-3">
                 <StatusBadge status={invoice.status === 'SUCCESS' ? 'PAID' : invoice.status} />
               </td>
