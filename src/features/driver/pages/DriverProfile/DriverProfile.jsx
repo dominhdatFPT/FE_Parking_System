@@ -15,7 +15,6 @@ import {
   Ban
 } from 'lucide-react';
 import { useAuth } from '../../../../contexts/useAuth';
-import { bookingService } from '../../../../services/bookingService';
 import { apiClient } from '../../../../services/apiClient';
 import { API_ENDPOINTS } from '../../../../services/endpoints';
 import { vietnamDayjs } from '../../../../utils/dateTime';
@@ -69,8 +68,13 @@ const tProfile = {
     noEmail: 'Chưa có email',
     role: 'Vai trò',
     vehicleManagement: 'Quản lý phương tiện',
-    vehicleManagementDesc: 'Tính năng quản lý phương tiện sẽ khả dụng khi API được kết nối.',
+    vehicleManagementDesc: 'Các xe đã đăng ký với tài khoản này',
     loadingUsage: 'Đang tải tổng quan sử dụng',
+    loadingVehicles: 'Đang tải danh sách xe',
+    vehicleLoadError: 'Không thể tải danh sách xe đã đăng ký. Vui lòng thử lại sau.',
+    noVehicles: 'Tài khoản này chưa có xe nào được đăng ký.',
+    licensePlateLabel: 'Biển số',
+    planLabel: 'Gói đăng ký',
     cancelSubscriptionBtn: 'Hủy đăng ký thẻ',
     cancelSelectTitle: 'Chọn xe cần hủy',
     cancelSelectDesc: 'Chọn xe đang có gói đăng ký hoạt động mà bạn muốn hủy.',
@@ -138,8 +142,13 @@ const tProfile = {
     noEmail: 'No email available',
     role: 'Role',
     vehicleManagement: 'Vehicle Management',
-    vehicleManagementDesc: 'Vehicle management will be available when the API is connected.',
+    vehicleManagementDesc: 'Vehicles registered with this account',
     loadingUsage: 'Loading usage overview',
+    loadingVehicles: 'Loading registered vehicles',
+    vehicleLoadError: 'Could not load registered vehicles. Please try again later.',
+    noVehicles: 'This account has no registered vehicles yet.',
+    licensePlateLabel: 'License plate',
+    planLabel: 'Subscription plan',
     cancelSubscriptionBtn: 'Cancel Subscription',
     cancelSelectTitle: 'Select a vehicle to cancel',
     cancelSelectDesc: 'Choose the vehicle with an active subscription you want to cancel.',
@@ -162,6 +171,33 @@ const tProfile = {
   }
 };
 
+const unwrapVehicleList = (payload) => {
+  const data = payload?.data ?? payload;
+  if (Array.isArray(data?.content)) return data.content;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.records)) return data.records;
+  if (Array.isArray(data?.vehicles)) return data.vehicles;
+  if (Array.isArray(data?.data)) return data.data;
+  return Array.isArray(data) ? data : [];
+};
+
+const normalizeVehicleTypeName = (vehicle) => {
+  const raw = vehicle.vehicleTypeName || vehicle.vehicleType || vehicle.vehicleTypeCode || vehicle.type || '';
+  const normalized = String(raw).toUpperCase();
+  if (normalized.includes('CAR') || normalized.includes('OTO') || normalized.includes('Ô TÔ')) return 'Ô tô';
+  if (normalized.includes('MOTOR') || normalized.includes('BIKE') || normalized.includes('MOTO') || normalized.includes('XE MÁY')) return 'Xe máy';
+  return raw || 'Chưa có dữ liệu';
+};
+
+const normalizeRegisteredVehicle = (vehicle) => ({
+  id: vehicle.vehicleId || vehicle.id || vehicle.registrationId || vehicle.licensePlate,
+  licensePlate: vehicle.licensePlate || vehicle.plateNumber || vehicle.vehiclePlate || 'Chưa có biển số',
+  vehicleType: normalizeVehicleTypeName(vehicle),
+  status: vehicle.subscriptionStatus || vehicle.registrationStatus || vehicle.status || '',
+  planName: vehicle.planName || vehicle.packageName || vehicle.subscriptionPlanName || '',
+  endDate: vehicle.endDate || vehicle.expiredAt || vehicle.expireAt || vehicle.validUntil || null,
+});
+
 export default function DriverProfile() {
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
@@ -169,9 +205,9 @@ export default function DriverProfile() {
 
   const currentLanguage = i18n.language.startsWith('en') ? 'en' : 'vi';
   const localT = tProfile[currentLanguage];
-  const [bookings, setBookings] = useState([]);
-  const [usageLoading, setUsageLoading] = useState(true);
-  const [usageError, setUsageError] = useState(false);
+  const [registeredVehicles, setRegisteredVehicles] = useState([]);
+  const [vehiclesLoading, setVehiclesLoading] = useState(true);
+  const [vehiclesError, setVehiclesError] = useState(false);
 
   // Reset password states
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -198,36 +234,29 @@ export default function DriverProfile() {
   useEffect(() => {
     let cancelled = false;
 
-    async function loadUsageOverview() {
-      setUsageLoading(true);
-      const { data, error } = await bookingService.getMyBookings();
+    async function loadRegisteredVehicles() {
+      setVehiclesLoading(true);
+      setVehiclesError(false);
 
-      if (cancelled) return;
-
-      setBookings(Array.isArray(data) ? data : []);
-      setUsageError(Boolean(error));
-      setUsageLoading(false);
+      try {
+        const response = await apiClient.get(API_ENDPOINTS.FEE.MY_VEHICLES);
+        if (cancelled) return;
+        setRegisteredVehicles(unwrapVehicleList(response.data).map(normalizeRegisteredVehicle));
+      } catch {
+        if (cancelled) return;
+        setRegisteredVehicles([]);
+        setVehiclesError(true);
+      } finally {
+        if (!cancelled) setVehiclesLoading(false);
+      }
     }
 
-    loadUsageOverview();
+    loadRegisteredVehicles();
 
     return () => {
       cancelled = true;
     };
   }, []);
-
-  const usageSummary = useMemo(() => {
-    const latestBooking = [...bookings]
-      .filter((booking) => booking.createdAt)
-      .sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt))[0];
-
-    return {
-      total: bookings.length,
-      confirmed: bookings.filter((booking) => booking.status === 'CONFIRMED').length,
-      paid: bookings.filter((booking) => booking.paymentStatus === 'PAID').length,
-      latestBooking,
-    };
-  }, [bookings]);
 
   // Password criteria check
   const criteria = useMemo(() => {
@@ -416,15 +445,6 @@ export default function DriverProfile() {
         </div>
 
         <div className="space-y-6">
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-white/50 px-6 py-12 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
-              <span className="material-symbols-outlined text-[32px]">directions_car</span>
-            </div>
-            <h3 className="text-base font-bold text-slate-700">{localT.vehicleManagement}</h3>
-            <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-400">
-              {localT.vehicleManagementDesc}
-            </p>
-          </div>
           <section className="overflow-hidden rounded-[24px] bg-white shadow-[0_18px_50px_rgba(30,64,175,0.08)] ring-1 ring-slate-900/[0.05]">
             <header className="flex items-start justify-between gap-4 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.14),transparent_48%),linear-gradient(135deg,#f8fbff_0%,#ffffff_70%)] px-5 pb-5 pt-5 sm:px-6">
               <div>
@@ -432,75 +452,83 @@ export default function DriverProfile() {
                   Smart Parking
                 </p>
                 <h3 className="mt-1 text-lg font-bold tracking-[-0.02em] text-slate-900">
-                  {localT.usageTitle}
+                  {localT.vehicleManagement}
                 </h3>
                 <p className="mt-1 text-sm leading-5 text-slate-500">
-                  {localT.usageSubtitle}
+                  {localT.vehicleManagementDesc}
                 </p>
               </div>
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-sky-50 text-sky-600 ring-1 ring-sky-100">
-                <span className="material-symbols-outlined text-[22px]">monitoring</span>
+                <span className="material-symbols-outlined text-[22px]">directions_car</span>
               </span>
             </header>
 
             <div className="px-5 pb-5 sm:px-6 sm:pb-6">
-              {usageLoading ? (
-                <div className="grid grid-cols-3 gap-3" aria-label={localT.loadingUsage}>
-                  {[1, 2, 3].map((item) => (
+              {vehiclesLoading ? (
+                <div className="grid gap-3" aria-label={localT.loadingVehicles}>
+                  {[1, 2].map((item) => (
                     <div key={item} className="h-24 animate-pulse rounded-2xl bg-slate-100" />
                   ))}
                 </div>
-              ) : usageError ? (
+              ) : vehiclesError ? (
                 <div className="flex items-start gap-3 rounded-2xl bg-rose-50 px-4 py-4 text-sm text-rose-700 ring-1 ring-rose-100">
                   <span className="material-symbols-outlined mt-0.5 text-[19px]">error</span>
-                  <p className="leading-5">{localT.usageLoadError}</p>
+                  <p className="leading-5">{localT.vehicleLoadError}</p>
+                </div>
+              ) : registeredVehicles.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-5 py-8 text-center">
+                  <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-slate-400 ring-1 ring-slate-100">
+                    <span className="material-symbols-outlined text-[28px]">directions_car_off</span>
+                  </div>
+                  <p className="text-sm font-semibold text-slate-500">{localT.noVehicles}</p>
                 </div>
               ) : (
-                <>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    {[
-                      { label: localT.totalBookings, value: usageSummary.total, icon: 'confirmation_number' },
-                      { label: localT.confirmedBookings, value: usageSummary.confirmed, icon: 'task_alt' },
-                      { label: localT.paidBookings, value: usageSummary.paid, icon: 'receipt_long' },
-                    ].map((stat) => (
-                      <article
-                        key={stat.label}
-                        className="group rounded-2xl bg-slate-50/90 px-4 py-4 ring-1 ring-slate-900/[0.045] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:bg-sky-50/70 hover:ring-sky-200"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <strong className="text-2xl font-bold tabular-nums tracking-[-0.04em] text-slate-900">
-                            {stat.value}
-                          </strong>
-                          <span className="grid h-8 w-8 place-items-center rounded-xl bg-white text-sky-600 shadow-[0_8px_20px_rgba(14,165,233,0.08)] ring-1 ring-sky-100 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-105">
-                            <span className="material-symbols-outlined text-[17px]">{stat.icon}</span>
+                <div className="grid gap-3">
+                  {registeredVehicles.map((vehicle) => (
+                    <article
+                      key={vehicle.id || vehicle.licensePlate}
+                      className="rounded-2xl bg-slate-50/90 p-4 ring-1 ring-slate-900/[0.045]"
+                    >
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white text-sky-600 shadow-sm ring-1 ring-sky-100">
+                            <span className="material-symbols-outlined text-[23px]">
+                              {vehicle.vehicleType === 'Ô tô' ? 'directions_car' : 'two_wheeler'}
+                            </span>
                           </span>
+                          <div className="min-w-0">
+                            <p className="truncate text-base font-bold text-slate-900">{vehicle.licensePlate}</p>
+                            <p className="mt-0.5 text-sm font-medium text-slate-500">{vehicle.vehicleType}</p>
+                          </div>
                         </div>
-                        <p className="mt-2 text-xs font-medium leading-4 text-slate-500">{stat.label}</p>
-                      </article>
-                    ))}
-                  </div>
 
-                  <div className="mt-3 flex items-center gap-3 rounded-2xl bg-slate-950 px-4 py-3.5 text-white shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-sky-300 ring-1 ring-white/10">
-                      <span className="material-symbols-outlined text-[18px]">schedule</span>
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                        {localT.latestActivity}
-                      </p>
-                      {usageSummary.latestBooking ? (
-                        <p className="mt-0.5 truncate text-sm font-semibold text-slate-100">
-                          {usageSummary.latestBooking.parkingAreaName}
-                          <span className="ml-2 font-normal text-slate-400">
-                            {vietnamDayjs(usageSummary.latestBooking.createdAt).format('HH:mm · DD/MM/YYYY')}
+                        {vehicle.status && (
+                          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            {vehicle.status}
                           </span>
-                        </p>
-                      ) : (
-                        <p className="mt-0.5 text-sm text-slate-300">{localT.noActivity}</p>
-                      )}
-                    </div>
-                  </div>
-                </>
+                        )}
+                      </div>
+
+                      <dl className="mt-4 grid gap-3 sm:grid-cols-3">
+                        <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-100">
+                          <dt className="text-[10px] font-bold uppercase text-slate-400">{localT.licensePlateLabel}</dt>
+                          <dd className="mt-1 truncate text-sm font-semibold text-slate-800">{vehicle.licensePlate}</dd>
+                        </div>
+                        <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-100">
+                          <dt className="text-[10px] font-bold uppercase text-slate-400">{localT.planLabel}</dt>
+                          <dd className="mt-1 truncate text-sm font-semibold text-slate-800">{vehicle.planName || '-'}</dd>
+                        </div>
+                        <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-100">
+                          <dt className="text-[10px] font-bold uppercase text-slate-400">{localT.cancelExpiryLabel}</dt>
+                          <dd className="mt-1 truncate text-sm font-semibold text-slate-800">
+                            {vehicle.endDate ? vietnamDayjs(vehicle.endDate).format('DD/MM/YYYY') : '-'}
+                          </dd>
+                        </div>
+                      </dl>
+                    </article>
+                  ))}
+                </div>
               )}
             </div>
           </section>

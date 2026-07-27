@@ -115,8 +115,26 @@ export const rejectStaffBooking = async (id, staffNote = '') => {
 };
 
 export const deleteVehicleRegistration = async (id) => {
-  const response = await apiClient.delete(`/api/v1/vehicle-registrations/${id}`);
-  return unwrapData(response);
+  const requests = [
+    () => apiClient.delete(`/api/v1/vehicle-registrations/${id}`),
+    () => apiClient.delete(`/api/v1/admin/vehicle-registrations/${id}`),
+    () => apiClient.patch(`/api/v1/vehicle-registrations/${id}/soft-delete`),
+    () => apiClient.patch(`/api/v1/admin/vehicle-registrations/${id}/soft-delete`),
+  ];
+
+  let lastError = null;
+  for (const request of requests) {
+    try {
+      const response = await request();
+      return unwrapData(response);
+    } catch (error) {
+      lastError = error;
+      const status = error.response?.status;
+      if (![403, 404, 405].includes(status)) throw error;
+    }
+  }
+
+  throw lastError;
 };
 
 export const getStaffParkingSlots = async () => {

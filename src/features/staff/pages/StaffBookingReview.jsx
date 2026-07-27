@@ -128,9 +128,11 @@ const getTabKey = (status) => {
   return 'all';
 };
 
+const getRegistrationId = (item) => item.registrationId ?? item.id ?? item.vehicleRegistrationId ?? item.vehicleId;
+
 const normalizeRegistration = (item) => ({
   source: 'registration',
-  id: item.registrationId,
+  id: getRegistrationId(item),
   userId: item.userId,
   name: item.userFullName || item.ekycFullName || `Người dùng #${item.userId || '-'}`,
   email: item.email || '',
@@ -309,7 +311,7 @@ export default function StaffBookingReview() {
     const registrationRecords = registrations
       .map((registration) => ({
         ...registration,
-        ...(registrationDetails[registration.registrationId] || {}),
+        ...(registrationDetails[getRegistrationId(registration)] || {}),
       }))
       .map(normalizeRegistration);
     if (registrationRecords.length > 0) return registrationRecords;
@@ -345,7 +347,9 @@ export default function StaffBookingReview() {
   }, [filteredRecords, selectedKey]);
 
   const canReview = selectedRecord && ['PENDING', 'WAITING_STAFF_APPROVAL'].includes(selectedRecord.status);
-  const canSoftDeleteVehicle = selectedRecord?.source === 'registration' && selectedRecord.status === 'APPROVED';
+  const canSoftDeleteVehicle = selectedRecord?.source === 'registration'
+    && Boolean(selectedRecord.id)
+    && ['APPROVED', 'APPROVED_WAITING_PAYMENT', 'PAID', 'CONFIRMED', 'ACTIVE'].includes(selectedRecord.status);
 
   const fetchData = async () => {
     setLoading(true);
@@ -466,7 +470,7 @@ export default function StaffBookingReview() {
     try {
       await deleteVehicleRegistration(selectedRecord.id);
       setRegistrations((current) => current.filter(
-        (item) => item.registrationId !== selectedRecord.id,
+        (item) => String(getRegistrationId(item)) !== String(selectedRecord.id),
       ));
       setSelectedKey('');
       setShowDeleteConfirm(false);
