@@ -19,7 +19,8 @@ import {
 } from 'lucide-react';
 import {
   approveStaffBooking,
-  deleteVehicleRegistration,
+  cancelVehicleSubscription,
+  deleteRegisteredVehicle,
   getVehicleRegistration,
   getVehicleRegistrations,
   rejectStaffBooking,
@@ -134,6 +135,8 @@ const normalizeRegistration = (item) => ({
   source: 'registration',
   id: getRegistrationId(item),
   userId: item.userId,
+  vehicleId: item.vehicleId,
+  subscriptionId: item.subscriptionId,
   name: item.userFullName || item.ekycFullName || `Người dùng #${item.userId || '-'}`,
   email: item.email || '',
   phone: item.phone || '',
@@ -166,6 +169,8 @@ const normalizeBooking = (item) => ({
   source: 'booking',
   id: item.id,
   userId: item.userId,
+  vehicleId: item.vehicleId,
+  subscriptionId: item.subscriptionId,
   name: item.userFullName || `Người dùng #${item.userId || '-'}`,
   email: '',
   phone: '',
@@ -302,7 +307,7 @@ export default function StaffBookingReview() {
   const [actionLoading, setActionLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [previewImage, setPreviewImage] = useState(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteAction, setDeleteAction] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [detailLoadingId, setDetailLoadingId] = useState(null);
   const [detailError, setDetailError] = useState('');
@@ -347,9 +352,8 @@ export default function StaffBookingReview() {
   }, [filteredRecords, selectedKey]);
 
   const canReview = selectedRecord && ['PENDING', 'WAITING_STAFF_APPROVAL'].includes(selectedRecord.status);
-  const canSoftDeleteVehicle = selectedRecord?.source === 'registration'
-    && Boolean(selectedRecord.id)
-    && ['APPROVED', 'APPROVED_WAITING_PAYMENT', 'PAID', 'CONFIRMED', 'ACTIVE'].includes(selectedRecord.status);
+  const canCancelSubscription = selectedRecord?.source === 'registration' && Boolean(selectedRecord.subscriptionId);
+  const canDeleteVehicle = selectedRecord?.source === 'registration' && Boolean(selectedRecord.vehicleId);
 
   const fetchData = async () => {
     setLoading(true);
@@ -463,21 +467,29 @@ export default function StaffBookingReview() {
   };
 
   const handleDelete = async () => {
-    if (!canSoftDeleteVehicle) return;
+    if (!selectedRecord || !deleteAction) return;
+    if (deleteAction === 'subscription' && !canCancelSubscription) return;
+    if (deleteAction === 'vehicle' && !canDeleteVehicle) return;
 
     setDeleteLoading(true);
     setMessage('');
     try {
-      await deleteVehicleRegistration(selectedRecord.id);
-      setRegistrations((current) => current.filter(
-        (item) => String(getRegistrationId(item)) !== String(selectedRecord.id),
-      ));
-      setSelectedKey('');
-      setShowDeleteConfirm(false);
-      setMessage(`Đã xóa mềm xe ${selectedRecord.licensePlate}.`);
+      if (deleteAction === 'subscription') {
+        await cancelVehicleSubscription(selectedRecord.subscriptionId);
+        setMessage(`Đã hủy gói của xe ${selectedRecord.licensePlate}.`);
+      } else {
+        await deleteRegisteredVehicle(selectedRecord.vehicleId);
+        setMessage(`Đã xóa xe ${selectedRecord.licensePlate}.`);
+      }
+
+      setDeleteAction(null);
+      await fetchData();
     } catch (error) {
-      setMessage(error.response?.data?.message || 'Không thể xóa xe. Vui lòng thử lại.');
-      setShowDeleteConfirm(false);
+      const fallbackMessage = deleteAction === 'subscription'
+        ? 'Không thể hủy gói xe. Vui lòng thử lại.'
+        : 'Không thể xóa xe. Backend hiện có thể chưa hỗ trợ API xóa xe riêng.';
+      setMessage(error.response?.data?.message || fallbackMessage);
+      setDeleteAction(null);
     } finally {
       setDeleteLoading(false);
     }
@@ -626,10 +638,20 @@ export default function StaffBookingReview() {
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  {canSoftDeleteVehicle && (
+                  {canCancelSubscription && (
                     <button
                       type="button"
-                      onClick={() => setShowDeleteConfirm(true)}
+                      onClick={() => setDeleteAction('subscription')}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500 px-3 py-1.5 text-xs font-bold text-white shadow-sm shadow-amber-500/25 ring-1 ring-amber-400 transition hover:bg-amber-600"
+                    >
+                      <PackageCheck size={13} />
+                      Xóa gói
+                    </button>
+                  )}
+                  {canDeleteVehicle && (
+                    <button
+                      type="button"
+                      onClick={() => setDeleteAction('vehicle')}
                       className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm shadow-rose-500/25 ring-1 ring-rose-500 transition hover:bg-rose-700"
                     >
                       <Trash2 size={13} />
@@ -804,24 +826,35 @@ export default function StaffBookingReview() {
         </div>
       )}
 
-      {showDeleteConfirm && selectedRecord && (
+      {deleteAction && selectedRecord && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/50 p-6 backdrop-blur-sm" role="dialog" aria-modal="true">
           <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
             <div className="px-6 pt-6 text-center">
               <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-rose-50 text-rose-600 ring-1 ring-rose-200">
-                <Trash2 size={26} />
+                {deleteAction === 'subscription' ? <PackageCheck size={26} /> : <Trash2 size={26} />}
               </div>
-              <h2 className="mt-4 text-lg font-black text-slate-950">Xác nhận xóa xe</h2>
+              <h2 className="mt-4 text-lg font-black text-slate-950">
+                {deleteAction === 'subscription' ? 'Xác nhận xóa gói' : 'Xác nhận xóa xe'}
+              </h2>
               <p className="mt-3 text-sm font-semibold text-slate-600">
-                Xe <span className="font-black text-slate-900">{selectedRecord.licensePlate}</span> sẽ
-                được xóa mềm và không còn xuất hiện trong danh sách hoạt động.
+                {deleteAction === 'subscription' ? (
+                  <>
+                    Gói đăng ký của xe <span className="font-black text-slate-900">{selectedRecord.licensePlate}</span> sẽ bị hủy,
+                    nhưng thông tin xe vẫn được giữ trong hệ thống.
+                  </>
+                ) : (
+                  <>
+                    Xe <span className="font-black text-slate-900">{selectedRecord.licensePlate}</span> sẽ bị xóa khỏi hệ thống.
+                    Hãy hủy gói của xe trước nếu backend yêu cầu.
+                  </>
+                )}
               </p>
             </div>
             <div className="mt-6 grid grid-cols-2 gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
               <button
                 type="button"
                 disabled={deleteLoading}
-                onClick={() => setShowDeleteConfirm(false)}
+                onClick={() => setDeleteAction(null)}
                 className="h-11 rounded-2xl bg-white text-sm font-black text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-100 disabled:opacity-50"
               >
                 Hủy
@@ -837,7 +870,7 @@ export default function StaffBookingReview() {
                 ) : (
                   <Trash2 size={16} />
                 )}
-                {deleteLoading ? 'Đang xóa...' : 'Xác nhận xóa'}
+                {deleteLoading ? 'Đang xử lý...' : (deleteAction === 'subscription' ? 'Xóa gói' : 'Xóa xe')}
               </button>
             </div>
           </div>

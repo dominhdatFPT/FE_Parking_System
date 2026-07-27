@@ -137,6 +137,50 @@ export const deleteVehicleRegistration = async (id) => {
   throw lastError;
 };
 
+export const cancelVehicleSubscription = async (subscriptionId) => {
+  const requests = [
+    () => apiClient.patch(`/api/v1/admin/accounts/subscriptions/${subscriptionId}/cancel`),
+    () => apiClient.patch(`/api/subscriptions/${subscriptionId}/cancel`),
+    () => apiClient.patch(`/api/v1/fee-subscriptions/${subscriptionId}/cancel`),
+  ];
+
+  let lastError = null;
+  for (const request of requests) {
+    try {
+      const response = await request();
+      return unwrapData(response);
+    } catch (error) {
+      lastError = error;
+      const status = error.response?.status;
+      if (![403, 404, 405].includes(status)) throw error;
+    }
+  }
+
+  throw lastError;
+};
+
+export const deleteRegisteredVehicle = async (vehicleId) => {
+  const requests = [
+    () => apiClient.delete(`/api/v1/vehicles/${vehicleId}`),
+    () => apiClient.delete(`/api/v1/admin/vehicles/${vehicleId}`),
+    () => apiClient.delete(`/api/v1/admin/accounts/vehicles/${vehicleId}`),
+  ];
+
+  let lastError = null;
+  for (const request of requests) {
+    try {
+      const response = await request();
+      return unwrapData(response);
+    } catch (error) {
+      lastError = error;
+      const status = error.response?.status;
+      if (![403, 404, 405].includes(status)) throw error;
+    }
+  }
+
+  throw lastError;
+};
+
 export const getStaffParkingSlots = async () => {
   const response = await apiClient.get('/api/v1/parking-slots');
   return unwrapList(response);
