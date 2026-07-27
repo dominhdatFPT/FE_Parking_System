@@ -247,7 +247,7 @@ export async function exportParkingDashboardReport({ data, selectedDate }) {
 
   addSectionTitle(worksheet, nextRow, 'PHIÊN GẦN ĐÂY');
   const completedRows = sessionRows(data.completedSessions || [], true);
-  const completedRevenue = completedRows.reduce((sum, row) => sum + (typeof row[7] === 'number' ? row[7] : 0), 0);
+  const completedRevenue = revenue;
   addTable(
     worksheet,
     nextRow + 1,
