@@ -12,7 +12,9 @@ import {
   AlertCircle,
   Loader2,
   CheckCircle2,
-  Ban
+  Ban,
+  Phone,
+  Save
 } from 'lucide-react';
 import { useAuth } from '../../../../contexts/useAuth';
 import { apiClient } from '../../../../services/apiClient';
@@ -199,15 +201,37 @@ const normalizeRegisteredVehicle = (vehicle) => ({
 });
 
 export default function DriverProfile() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const { t, i18n } = useTranslation();
   const displayName = user?.fullName || user?.name || 'Driver';
 
   const currentLanguage = i18n.language.startsWith('en') ? 'en' : 'vi';
   const localT = tProfile[currentLanguage];
+  const phoneTexts = currentLanguage === 'vi'
+    ? {
+        label: 'Số điện thoại',
+        placeholder: 'Nhập số điện thoại',
+        help: 'Dùng để nhận hỗ trợ khi có sự cố bảo vệ hoặc thanh toán.',
+        save: 'Lưu',
+        saved: 'Đã cập nhật số điện thoại.',
+        invalid: 'Số điện thoại phải bắt đầu bằng 0 và có 10-11 chữ số.',
+        error: 'Không thể cập nhật số điện thoại.',
+      }
+    : {
+        label: 'Phone number',
+        placeholder: 'Enter phone number',
+        help: 'Used for support when security or payment incidents need follow-up.',
+        save: 'Save',
+        saved: 'Phone number updated.',
+        invalid: 'Phone number must start with 0 and contain 10-11 digits.',
+        error: 'Could not update phone number.',
+      };
   const [registeredVehicles, setRegisteredVehicles] = useState([]);
   const [vehiclesLoading, setVehiclesLoading] = useState(true);
   const [vehiclesError, setVehiclesError] = useState(false);
+  const [phoneDraft, setPhoneDraft] = useState(user?.phone || '');
+  const [phoneStatus, setPhoneStatus] = useState('idle');
+  const [phoneMessage, setPhoneMessage] = useState('');
 
   // Reset password states
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -230,6 +254,12 @@ export default function DriverProfile() {
   const [cancelListLoading, setCancelListLoading] = useState(false);
   const [cancelListError, setCancelListError] = useState(false);
   const [selectedCancelSub, setSelectedCancelSub] = useState(null);
+
+  useEffect(() => {
+    setPhoneDraft(user?.phone || '');
+    setPhoneStatus('idle');
+    setPhoneMessage('');
+  }, [user?.phone]);
 
   useEffect(() => {
     let cancelled = false;
@@ -288,6 +318,45 @@ export default function DriverProfile() {
     if (strengthScore === 2) return 'bg-amber-500';
     return 'bg-emerald-500';
   }, [strengthScore]);
+
+  const normalizedPhone = useMemo(() => phoneDraft.trim().replace(/\s+/g, ''), [phoneDraft]);
+  const storedPhone = String(user?.phone || '');
+  const isPhoneChanged = normalizedPhone !== storedPhone;
+  const isPhoneValid = normalizedPhone === '' || /^0\d{9,10}$/.test(normalizedPhone);
+
+  const handlePhoneSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!isPhoneValid) {
+      setPhoneStatus('error');
+      setPhoneMessage(phoneTexts.invalid);
+      return;
+    }
+
+    setPhoneStatus('saving');
+    setPhoneMessage('');
+
+    try {
+      const response = await apiClient.patch(API_ENDPOINTS.PROFILE.UPDATE, { phone: normalizedPhone });
+      const updatedProfile = response.data?.data ?? response.data ?? {};
+      setUser((currentUser) => ({
+        ...currentUser,
+        id: updatedProfile.userId ?? updatedProfile.id ?? currentUser?.id,
+        fullName: updatedProfile.fullName ?? currentUser?.fullName,
+        name: updatedProfile.fullName ?? currentUser?.name,
+        email: updatedProfile.email ?? currentUser?.email,
+        phone: updatedProfile.phone ?? normalizedPhone,
+        avatarUrl: updatedProfile.avatarUrl ?? currentUser?.avatarUrl,
+        role: updatedProfile.role ?? currentUser?.role,
+      }));
+      setPhoneDraft(updatedProfile.phone ?? normalizedPhone);
+      setPhoneStatus('success');
+      setPhoneMessage(phoneTexts.saved);
+    } catch (error) {
+      setPhoneStatus('error');
+      setPhoneMessage(error.response?.data?.message || phoneTexts.error);
+    }
+  };
 
   // Reset form states
   const handleCloseModal = () => {
@@ -426,6 +495,52 @@ export default function DriverProfile() {
             <p className="text-slate-400">{localT.role}</p>
             <p className="font-semibold text-slate-700">{user?.role || 'driver'}</p>
           </div>
+
+          <form onSubmit={handlePhoneSubmit} className="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-left ring-1 ring-slate-100">
+            <label className="text-xs font-semibold uppercase text-slate-400" htmlFor="driver-phone">
+              {phoneTexts.label}
+            </label>
+            <div className="mt-2 flex gap-2">
+              <div className="relative min-w-0 flex-1">
+                <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  id="driver-phone"
+                  type="tel"
+                  inputMode="tel"
+                  value={phoneDraft}
+                  onChange={(e) => {
+                    setPhoneDraft(e.target.value.replace(/[^\d\s]/g, ''));
+                    if (phoneStatus !== 'idle') {
+                      setPhoneStatus('idle');
+                      setPhoneMessage('');
+                    }
+                  }}
+                  placeholder={phoneTexts.placeholder}
+                  disabled={phoneStatus === 'saving'}
+                  className={`h-11 w-full rounded-xl border bg-white py-2 pl-9 pr-3 text-sm font-semibold text-slate-800 outline-none transition focus:ring-4 ${
+                    phoneStatus === 'error'
+                      ? 'border-rose-200 focus:border-rose-400 focus:ring-rose-100'
+                      : 'border-slate-200 focus:border-sky-500 focus:ring-sky-100'
+                  }`}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={phoneStatus === 'saving' || !isPhoneChanged || !isPhoneValid}
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-sky-500 text-white shadow-sm shadow-sky-200 transition hover:bg-sky-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-45"
+                aria-label={phoneTexts.save}
+                title={phoneTexts.save}
+              >
+                {phoneStatus === 'saving' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              </button>
+            </div>
+            <p className="mt-2 text-xs leading-5 text-slate-400">{phoneTexts.help}</p>
+            {phoneMessage && (
+              <p className={`mt-2 text-xs font-semibold ${phoneStatus === 'success' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {phoneMessage}
+              </p>
+            )}
+          </form>
 
           <button
             onClick={() => setIsResetModalOpen(true)}

@@ -59,6 +59,7 @@ export const API_ENDPOINTS = {
     REGISTER_TOKEN: '/api/v1/notifications/register-token',
   },
   PROFILE: {
+    UPDATE: '/api/v1/profile',
     VERIFY_PASSWORD: '/api/v1/profile/verify-password',
     CHANGE_PASSWORD: '/api/v1/profile/change-password',
   },
