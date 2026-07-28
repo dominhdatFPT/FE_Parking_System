@@ -92,7 +92,7 @@ export function AppRoutes() {
         }
       />
       {/* Driver Portal Routes */}
-      <Route element={<DriverLayout />}>
+      <Route element={<RequireAuth><DriverLayout /></RequireAuth>}>
         <Route path={ROUTES.DRIVER.DASHBOARD} element={<DriverDashboard />} />
         <Route path={ROUTES.DRIVER.VEHICLE_REGISTRATION} element={<DriverVehicleRegistration />} />
         <Route path={ROUTES.DRIVER.FEE_PLANS} element={<DriverFeePlans />} />
