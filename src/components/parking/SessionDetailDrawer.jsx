@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Bike, CarFront, X } from 'lucide-react';
 import { formatVietnamDateTime } from '../../utils/dateTime';
 import { normalizeVehicleTypeCode } from '../../utils/vehicleTypeMemory';
+import ImageLightbox from './ImageLightbox';
 
 const statusClasses = {
   'Bình thường': 'bg-emerald-50 text-emerald-700',
@@ -45,6 +46,8 @@ function isMotorbikeSession(session) {
 }
 
 export default function SessionDetailDrawer({ open, session, onClose }) {
+  const [lightboxImage, setLightboxImage] = useState(null);
+
   if (!open || !session) return null;
 
   const isPackageCustomer = session.customer === 'Gói tháng';
@@ -128,6 +131,41 @@ export default function SessionDetailDrawer({ open, session, onClose }) {
             </div>
           </section>
 
+          {(session.entryImage || session.exitImage) ? (
+            <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Hình ảnh</h3>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div>
+                  <p className="mb-1.5 text-xs font-medium text-slate-500">Lúc vào</p>
+                  {session.entryImage ? (
+                    <button
+                      type="button"
+                      onClick={() => setLightboxImage({ src: session.entryImage, title: `Xe vào · ${session.plate || ''}` })}
+                      className="block w-full"
+                    >
+                      <img src={session.entryImage} alt="Ảnh lúc vào" className="h-28 w-full rounded-xl border border-slate-200 object-cover transition hover:opacity-85" />
+                    </button>
+                  ) : (
+                    <div className="grid h-28 w-full place-items-center rounded-xl border border-dashed border-slate-200 text-xs font-medium text-slate-300">Chưa có ảnh</div>
+                  )}
+                </div>
+                <div>
+                  <p className="mb-1.5 text-xs font-medium text-slate-500">Lúc ra</p>
+                  {session.exitImage ? (
+                    <button
+                      type="button"
+                      onClick={() => setLightboxImage({ src: session.exitImage, title: `Xe ra · ${session.plate || ''}` })}
+                      className="block w-full"
+                    >
+                      <img src={session.exitImage} alt="Ảnh lúc ra" className="h-28 w-full rounded-xl border border-slate-200 object-cover transition hover:opacity-85" />
+                    </button>
+                  ) : (
+                    <div className="grid h-28 w-full place-items-center rounded-xl border border-dashed border-slate-200 text-xs font-medium text-slate-300">Chưa có ảnh</div>
+                  )}
+                </div>
+              </div>
+            </section>
+          ) : null}
 
         </div>
 
@@ -141,6 +179,8 @@ export default function SessionDetailDrawer({ open, session, onClose }) {
           </button>
         </div>
       </aside>
+
+      <ImageLightbox src={lightboxImage?.src} title={lightboxImage?.title} onClose={() => setLightboxImage(null)} />
     </div>
   );
 }
