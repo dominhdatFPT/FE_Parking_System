@@ -1,10 +1,12 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { AlertCircle, CarFront, CheckCircle2, TicketCheck, Bike, Keyboard, ChevronDown, Clock3, User, ScanLine, SlidersHorizontal } from 'lucide-react';
+import { AlertCircle, CarFront, CheckCircle2, TicketCheck, Bike, Keyboard, ChevronDown, Clock3, User, ScanLine, SlidersHorizontal, ImageOff, RotateCcw, VideoOff } from 'lucide-react';
 import { checkParkingEntry, confirmParkingEntry } from '../../services/staffService';
 import { VIETNAM_TIME_ZONE } from '../../utils/dateTime';
 import { rememberVehicleType } from '../../utils/vehicleTypeMemory';
+import { useCameraCapture } from '../../hooks/useCameraCapture';
+import ImageLightbox from '../../components/parking/ImageLightbox';
 import {
   PLATE_REGEX,
   PLATE_MIN_LENGTH,
@@ -82,6 +84,16 @@ const formatEntryMessage = (message, fallback) => {
   return rawMessage || fallback;
 };
 
+function getFriendlyCaptureBlockedMessage(camera) {
+  if (camera.status === 'error') {
+    return camera.error || 'Không thể truy cập camera. Vui lòng cấp quyền camera rồi thử lại.';
+  }
+  if (camera.status === 'starting') {
+    return 'Camera đang khởi động, vui lòng đợi vài giây rồi thử lại.';
+  }
+  return 'Camera chưa sẵn sàng để chụp ảnh biển số. Vui lòng cấp quyền camera rồi thử lại.';
+}
+
 function Info({ label, value, tone = 'blue', icon: Icon = CarFront }) {
   const tones = {
     blue:   { card: 'border-blue-100 shadow-blue-950/[0.04]',    icon: 'bg-blue-50 text-blue-600 ring-blue-100',       accent: 'bg-blue-500',    glow: 'bg-blue-300/15' },
@@ -105,32 +117,89 @@ function Info({ label, value, tone = 'blue', icon: Icon = CarFront }) {
   );
 }
 
-function CameraPanel({ label, status = 'Online' }) {
+// CAMERA 1 — webcam thật, tự bật khi vào trang, không có nút "Chụp" thủ công
+// (ảnh được chụp tự động ngay tại thời điểm bấm "Xác nhận vào").
+function CameraPanel({ label, camera }) {
+  const isStreaming = camera.status === 'streaming';
+
   return (
     <article className="group relative h-full overflow-hidden rounded-[24px] border border-[#E5EDF7] bg-slate-900 shadow-[0_16px_42px_rgba(15,23,42,0.07)] transition-all duration-300">
       <div className="absolute inset-0 bg-[linear-gradient(135deg,#0f172a_0%,#1e293b_50%,#0f172a_100%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(148,163,184,0.12)_1px,transparent_1px),linear-gradient(0deg,rgba(148,163,184,0.1)_1px,transparent_1px)] bg-[size:34px_34px]" />
       <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10" />
 
-      {/* TOP: camera label pill (left) + online status pill (right) */}
+      <video
+        ref={camera.videoRef}
+        autoPlay
+        playsInline
+        muted
+        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${isStreaming ? 'opacity-100' : 'opacity-0'}`}
+      />
+
+      {/* TOP: camera label pill (left) + trạng thái (right) */}
       <div className="absolute left-0 right-0 top-0 flex items-center justify-between px-4 pt-4">
         <span className="inline-flex items-center gap-1.5 rounded-[10px] bg-slate-950/55 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-white backdrop-blur-sm ring-1 ring-white/10">
           {label}
         </span>
         <span className="inline-flex items-center gap-2 rounded-[10px] bg-slate-950/55 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm ring-1 ring-white/10">
-          <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-emerald-400" />
-          {status}
+          <span className={`h-2 w-2 shrink-0 rounded-full ${isStreaming ? 'animate-pulse bg-emerald-400' : 'bg-slate-500'}`} />
+          {isStreaming ? 'Đang chạy' : camera.status === 'starting' ? 'Đang bật...' : camera.status === 'error' ? 'Lỗi camera' : 'Chưa bật'}
         </span>
       </div>
 
-      {/* BOTTOM: LIVE indicator (left) + timestamp (right) */}
-      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-5 py-4 text-white">
-        <span className="inline-flex shrink-0 items-center gap-2 text-sm font-black">
-          <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
-          LIVE
+      {!isStreaming && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
+          {camera.status === 'error' ? (
+            <>
+              <VideoOff className="h-8 w-8 text-rose-400" strokeWidth={2} />
+              <p className="max-w-[260px] text-xs font-semibold text-rose-200">{camera.error}</p>
+              <button
+                type="button"
+                onClick={camera.startCamera}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-xs font-bold text-slate-900 shadow-lg transition hover:bg-slate-100"
+              >
+                <RotateCcw className="h-3.5 w-3.5" strokeWidth={2.25} />
+                Thử lại
+              </button>
+            </>
+          ) : (
+            <p className="text-xs font-semibold text-slate-300">Đang yêu cầu quyền truy cập camera...</p>
+          )}
+        </div>
+      )}
+
+      {isStreaming && (
+        <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-5 py-4 text-white">
+          <span className="inline-flex shrink-0 items-center gap-2 text-sm font-black">
+            <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+            LIVE
+          </span>
+        </div>
+      )}
+    </article>
+  );
+}
+
+// CAMERA 2 — không webcam, chỉ hiển thị lại ảnh biển số vừa lưu ở lượt xe vào gần nhất.
+function SavedPlatePanel({ image, onView }) {
+  return (
+    <article className="group relative h-full overflow-hidden rounded-[24px] border border-[#E5EDF7] bg-slate-50 shadow-[0_16px_42px_rgba(15,23,42,0.05)] transition-all duration-300">
+      <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between px-4 pt-4">
+        <span className="inline-flex items-center gap-1.5 rounded-[10px] bg-slate-900/80 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-white backdrop-blur-sm">
+          ẢNH BIỂN SỐ (ĐÃ LƯU)
         </span>
-        <p className="truncate text-sm font-semibold">27/06/2026 • 21:07:27</p>
       </div>
+
+      {image ? (
+        <button type="button" onClick={onView} className="absolute inset-0 h-full w-full cursor-zoom-in">
+          <img src={image} alt="Ảnh biển số đã lưu" className="h-full w-full object-cover" />
+        </button>
+      ) : (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-8 text-center">
+          <ImageOff className="h-8 w-8 text-slate-300" strokeWidth={1.75} />
+          <p className="max-w-[240px] text-xs font-semibold text-slate-400">Ảnh biển số sẽ hiện ở đây sau khi xác nhận xe vào</p>
+        </div>
+      )}
     </article>
   );
 }
@@ -144,6 +213,15 @@ export default function VehicleEntryPage() {
   const [notice, setNotice] = useState(null);
   // hasChecked: true only after the user explicitly pressed "Kiểm tra xe" and got a response
   const [hasChecked, setHasChecked] = useState(false);
+  const camera = useCameraCapture();
+  const [savedEntryImage, setSavedEntryImage] = useState(null);
+  const [lightboxImage, setLightboxImage] = useState(null);
+
+  // Tự xin quyền camera ngay khi vào trang, không cần bấm nút "Bật camera".
+  useEffect(() => {
+    camera.startCamera();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCheckVehicle = async (values) => {
     const plate = normalizeLicensePlate(values.licensePlate);
@@ -205,6 +283,7 @@ export default function VehicleEntryPage() {
     setResult(null);
     setNotice(null);
     setHasChecked(false);
+    setSavedEntryImage(null);
   };
 
   const handleVehicleTypeChange = (value) => {
@@ -218,6 +297,14 @@ export default function VehicleEntryPage() {
 
   const confirm = async () => {
     if (!result?.canConfirm || !selectedVehicleType) return;
+
+    // Chụp ảnh biển số ngay tại thời điểm xác nhận để đảm bảo đúng khung hình mới nhất.
+    const entryImage = camera.capture();
+    if (!entryImage) {
+      setNotice({ type: 'error', message: getFriendlyCaptureBlockedMessage(camera) });
+      return;
+    }
+
     setConfirming(true); setNotice(null);
     try {
       const payload = {
@@ -227,11 +314,13 @@ export default function VehicleEntryPage() {
         vehicleType: selectedVehicleType.code,
         vehicleTypeCode: selectedVehicleType.code,
         vehicleTypeId: selectedVehicleType.id,
+        entryImage,
       };
       console.log('[DEBUG confirm] vehicleType state:', selectedVehicleType.code, '| vehicleTypeId:', selectedVehicleType.id, '| payload.vehicleType:', payload.vehicleType, '| payload.vehicleTypeCode:', payload.vehicleTypeCode, '| result.vehicleType:', result?.vehicleType);
       setResult(await confirmParkingEntry(payload));
       rememberVehicleType(result?.licensePlate || formik.values.licensePlate, selectedVehicleType.code);
       setNotice({ type: 'success', message: 'Đã xác nhận xe vào bãi' });
+      setSavedEntryImage(entryImage);
       formik.resetForm({
         values: {
           licensePlate: '',
@@ -256,7 +345,8 @@ export default function VehicleEntryPage() {
     !formik.isValid ||
     !result?.canConfirm ||
     result?.checkedPlate !== currentNormalizedPlate ||
-    result?.checkedVehicleType !== formik.values.vehicleType;
+    result?.checkedVehicleType !== formik.values.vehicleType ||
+    camera.status !== 'streaming';
   const bannerNotice = validationMessage
     ? { type: 'validation', message: validationMessage }
     : notice;
@@ -302,8 +392,8 @@ export default function VehicleEntryPage() {
 
       {/* ═══ ROW 1 — Cameras (0.95fr ≈ 48%) ═══ */}
       <div className="grid min-h-0 grid-cols-2 gap-4">
-        <CameraPanel label="CAMERA 1" />
-        <CameraPanel label="CAMERA 2" />
+        <CameraPanel label="CAMERA 1" camera={camera} />
+        <SavedPlatePanel image={savedEntryImage} onView={() => setLightboxImage({ src: savedEntryImage, title: 'Ảnh biển số đã lưu' })} />
       </div>
 
       {/* ═══ ROW 2 — Control (0.9fr ≈ 32%) + Result (1.9fr ≈ 68%) (1.05fr ≈ 52%) ═══ */}
@@ -377,6 +467,7 @@ export default function VehicleEntryPage() {
                 type="button"
                 onClick={confirm}
                 disabled={isConfirmDisabled}
+                title={camera.status !== 'streaming' ? getFriendlyCaptureBlockedMessage(camera) : undefined}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-[14px] bg-gradient-to-r from-blue-600 to-sky-500 px-4 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:scale-[1.01] hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
               >
                 <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} />
@@ -473,6 +564,8 @@ export default function VehicleEntryPage() {
         </div>
 
       </div>
+
+      <ImageLightbox src={lightboxImage?.src} title={lightboxImage?.title} onClose={() => setLightboxImage(null)} />
     </div>
   );
 }
