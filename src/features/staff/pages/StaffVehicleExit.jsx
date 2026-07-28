@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AlertCircle, ArrowUpFromLine, Bike, CarFront, CheckCircle2, Clock3,
   CreditCard, Keyboard, LoaderCircle, ReceiptText, ScanLine,
-  ShieldCheck, TimerReset, UserRound,
+  ShieldCheck, TimerReset, UserRound, ImageOff, RotateCcw, VideoOff,
 } from 'lucide-react';
 import { checkParkingExit, confirmParkingExit } from '../../../services/staffService';
 import { VIETNAM_TIME_ZONE } from '../../../utils/dateTime';
 import { getRememberedVehicleType, normalizeVehicleTypeCode } from '../../../utils/vehicleTypeMemory';
+import { useCameraCapture } from '../../../hooks/useCameraCapture';
+import ImageLightbox from '../../../components/parking/ImageLightbox';
 
 const formatCurrency = (value) => `${Number(value || 0).toLocaleString('vi-VN')} đ`;
 const formatVND = (value) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
@@ -148,28 +150,98 @@ function InfoCard({ icon: Icon, label, value, chip }) {
   );
 }
 
-function CameraPanel({ label, status = 'Online' }) {
+function getFriendlyCaptureBlockedMessage(camera) {
+  if (camera.status === 'error') {
+    return camera.error || 'Không thể truy cập camera. Vui lòng cấp quyền camera rồi thử lại.';
+  }
+  if (camera.status === 'starting') {
+    return 'Camera đang khởi động, vui lòng đợi vài giây rồi thử lại.';
+  }
+  return 'Camera chưa sẵn sàng để chụp ảnh biển số. Vui lòng cấp quyền camera rồi thử lại.';
+}
+
+// CAMERA 1 — webcam thật, tự bật khi vào trang, dùng để chụp ảnh xe lúc ra.
+// Không có nút "Chụp" thủ công — ảnh được chụp tự động khi bấm xác nhận cho xe ra.
+function CameraPanel({ label, camera }) {
+  const isStreaming = camera.status === 'streaming';
+
   return (
     <article className="group relative h-full overflow-hidden rounded-2xl bg-slate-900 shadow-sm ring-1 ring-black/[0.06] transition-all duration-300">
       <div className="absolute inset-0 bg-[linear-gradient(135deg,#0f172a_0%,#1e293b_50%,#0f172a_100%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(148,163,184,0.12)_1px,transparent_1px),linear-gradient(0deg,rgba(148,163,184,0.1)_1px,transparent_1px)] bg-[size:32px_32px]" />
       <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10" />
+
+      <video
+        ref={camera.videoRef}
+        autoPlay
+        playsInline
+        muted
+        className={`absolute inset-0 h-full w-full rounded-2xl object-cover transition-opacity duration-300 ${isStreaming ? 'opacity-100' : 'opacity-0'}`}
+      />
+
       <div className="absolute left-0 right-0 top-0 flex items-center justify-between px-3 pt-3">
         <span className="inline-flex items-center gap-1.5 rounded-lg bg-black/55 px-2.5 py-1 text-[10.5px] font-black uppercase tracking-widest text-white backdrop-blur-sm">
           {label}
         </span>
         <span className="inline-flex items-center gap-1.5 rounded-lg bg-black/55 px-2.5 py-1 text-[10.5px] font-semibold text-white backdrop-blur-sm">
-          <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-emerald-400" />
-          {status}
+          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${isStreaming ? 'animate-pulse bg-emerald-400' : 'bg-slate-500'}`} />
+          {isStreaming ? 'Đang chạy' : camera.status === 'starting' ? 'Đang bật...' : camera.status === 'error' ? 'Lỗi camera' : 'Chưa bật'}
         </span>
       </div>
-      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 py-2.5">
-        <span className="inline-flex shrink-0 items-center gap-1.5 text-[10.5px] font-black text-white">
-          <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" />
-          LIVE
+
+      {!isStreaming && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center">
+          {camera.status === 'error' ? (
+            <>
+              <VideoOff className="h-6 w-6 text-rose-400" strokeWidth={2} />
+              <p className="max-w-[220px] text-[10.5px] font-semibold text-rose-200">{camera.error}</p>
+              <button
+                type="button"
+                onClick={camera.startCamera}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-[10.5px] font-bold text-slate-900 shadow-lg transition hover:bg-slate-100"
+              >
+                <RotateCcw className="h-3 w-3" strokeWidth={2.25} />
+                Thử lại
+              </button>
+            </>
+          ) : (
+            <p className="text-[10.5px] font-semibold text-slate-300">Đang yêu cầu quyền truy cập camera...</p>
+          )}
+        </div>
+      )}
+
+      {isStreaming && (
+        <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 py-2.5">
+          <span className="inline-flex shrink-0 items-center gap-1.5 text-[10.5px] font-black text-white">
+            <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" />
+            LIVE
+          </span>
+        </div>
+      )}
+    </article>
+  );
+}
+
+// CAMERA 2 — không webcam, chỉ hiển thị lại ảnh lúc xe vào (từ /parking-exit/check) để đối chiếu.
+function EntryReferencePanel({ image, onView }) {
+  return (
+    <article className="group relative h-full overflow-hidden rounded-2xl bg-slate-50 shadow-sm ring-1 ring-black/[0.06] transition-all duration-300">
+      <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between px-3 pt-3">
+        <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900/80 px-2.5 py-1 text-[10.5px] font-black uppercase tracking-widest text-white backdrop-blur-sm">
+          ẢNH LÚC VÀO (ĐỐI CHIẾU)
         </span>
-        <p className="truncate text-[10.5px] font-semibold text-white/90">27/06/2026 • 21:07:27</p>
       </div>
+
+      {image ? (
+        <button type="button" onClick={onView} className="absolute inset-0 h-full w-full cursor-zoom-in">
+          <img src={image} alt="Ảnh lúc vào" className="h-full w-full rounded-2xl object-cover" />
+        </button>
+      ) : (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center">
+          <ImageOff className="h-6 w-6 text-slate-300" strokeWidth={1.75} />
+          <p className="max-w-[200px] text-[10.5px] font-semibold text-slate-400">Nhập biển số và bấm Kiểm tra xe để xem ảnh lúc vào</p>
+        </div>
+      )}
     </article>
   );
 }
@@ -185,6 +257,14 @@ export default function StaffVehicleExit() {
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const camera = useCameraCapture();
+  const [lightboxImage, setLightboxImage] = useState(null);
+
+  // Tự xin quyền camera ngay khi vào trang, không cần bấm nút "Bật camera".
+  useEffect(() => {
+    camera.startCamera();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const hasExitData = hasCheckedVehicle && Boolean(result);
   const isVisitor = result?.exitType === 'VISITOR';
@@ -233,12 +313,21 @@ export default function StaffVehicleExit() {
       setError('Vui lòng xác nhận đã nhận đủ tiền trước khi hoàn tất xe ra.');
       return;
     }
+
+    // Chụp ảnh biển số ngay tại thời điểm xác nhận để đảm bảo đúng khung hình mới nhất.
+    const exitImage = camera.capture();
+    if (!exitImage) {
+      setError(getFriendlyCaptureBlockedMessage(camera));
+      return;
+    }
+
     setConfirming(true);
     setError('');
     try {
       const data = await confirmParkingExit(result.orderId, {
         paymentConfirmed: isVisitor ? (alreadyPaid || hasReceivedCash) : false,
         paymentMethod: isVisitor ? (alreadyPaid ? result?.payment?.method : 'CASH') : null,
+        exitImage,
       });
       setResult(data);
       setIsExitCompleted(true);
@@ -292,15 +381,19 @@ export default function StaffVehicleExit() {
 
   const canConfirmExit =
     hasCheckedVehicle && result && !isExitCompleted &&
-    (!isVisitor || alreadyPaid || hasReceivedCash);
+    (!isVisitor || alreadyPaid || hasReceivedCash) &&
+    camera.status === 'streaming';
 
   return (
     <div className="flex h-full flex-col gap-3 overflow-hidden bg-[#EEF3FB] px-5 pb-3 pt-0 font-sans">
 
       {/* ══════ CAMERAS ══════ */}
       <div className="grid h-[24vh] max-h-[220px] min-h-[150px] shrink-0 grid-cols-2 gap-3">
-        <CameraPanel label="CAMERA 1" />
-        <CameraPanel label="CAMERA 2" />
+        <CameraPanel label="CAMERA 1" camera={camera} />
+        <EntryReferencePanel
+          image={result?.entryImage}
+          onView={() => setLightboxImage({ src: result?.entryImage, title: `Xe vào · ${result?.licensePlate || ''}` })}
+        />
       </div>
 
       {/* ══════ MAIN CONTENT ══════ */}
@@ -531,6 +624,7 @@ export default function StaffVehicleExit() {
                 type="button"
                 onClick={handleConfirmExit}
                 disabled={confirming || !canConfirmExit}
+                title={hasExitData && camera.status !== 'streaming' ? getFriendlyCaptureBlockedMessage(camera) : undefined}
                 className={`inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl text-[13px] font-black text-white shadow-md transition-all ${
                   !canConfirmExit || confirming
                     ? 'cursor-not-allowed bg-slate-200 text-slate-400 shadow-none'
@@ -548,6 +642,8 @@ export default function StaffVehicleExit() {
         </div>
 
       </div>
+
+      <ImageLightbox src={lightboxImage?.src} title={lightboxImage?.title} onClose={() => setLightboxImage(null)} />
     </div>
   );
 }
