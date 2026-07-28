@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getParkingSessions } from '../../../services/staffService';
 import { VIETNAM_TIME_ZONE } from '../../../utils/dateTime';
+import ImageLightbox from '../../../components/parking/ImageLightbox';
 
 const formatDateTime = (value) => {
   if (!value) return '-';
@@ -35,12 +36,15 @@ const normalizeSession = (item) => ({
   exitTime: pickFirstDefined(item, ['exitTime', 'checkOutTime', 'checkoutTime', 'timeOut', 'outTime', 'endTime', 'completedAt']),
   status: pickFirstDefined(item, ['status', 'sessionStatus', 'parkingStatus', 'orderStatus']),
   calculatedFee: pickFirstDefined(item, ['calculatedFee', 'fee', 'totalFee', 'amount', 'totalAmount']),
+  entryImage: pickFirstDefined(item, ['entryImage', 'entry_image']),
+  exitImage: pickFirstDefined(item, ['exitImage', 'exit_image']),
 });
 
 export default function StaffSessions() {
   const [activities, setActivities] = useState([]);
   const [keyword, setKeyword] = useState('');
   const [loading, setLoading] = useState(true);
+  const [lightboxImage, setLightboxImage] = useState(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -99,11 +103,12 @@ export default function StaffSessions() {
               <th className="px-4 py-3">Thời gian</th>
               <th className="px-4 py-3">Trạng thái</th>
               <th className="px-4 py-3">Phí</th>
+              <th className="px-4 py-3">Ảnh</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {!loading && sessions.length === 0 ? (
-              <tr><td colSpan="5" className="px-4 py-10 text-center text-slate-500">Không có phiên gửi xe phù hợp.</td></tr>
+              <tr><td colSpan="6" className="px-4 py-10 text-center text-slate-500">Không có phiên gửi xe phù hợp.</td></tr>
             ) : sessions.map((activity, index) => (
               <tr key={activity.id || activity.orderCode || index}>
                 <td className="px-4 py-4">
@@ -114,11 +119,39 @@ export default function StaffSessions() {
                 <td className="px-4 py-4">{formatDateTime(activity.entryTime)} → {formatDateTime(activity.exitTime)}</td>
                 <td className="px-4 py-4"><span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-700">{activity.status || '-'}</span></td>
                 <td className="px-4 py-4 font-bold">{Number(activity.calculatedFee || 0).toLocaleString('vi-VN')} VNĐ</td>
+                <td className="px-4 py-4">
+                  <div className="flex items-center gap-1.5">
+                    {activity.entryImage ? (
+                      <button
+                        type="button"
+                        onClick={() => setLightboxImage({ src: activity.entryImage, title: `Xe vào · ${activity.licensePlate || ''}` })}
+                        title="Xem ảnh lúc vào"
+                      >
+                        <img src={activity.entryImage} alt="Ảnh lúc vào" className="h-10 w-14 rounded-lg border border-slate-200 object-cover transition hover:opacity-80" />
+                      </button>
+                    ) : (
+                      <span className="grid h-10 w-14 place-items-center rounded-lg border border-dashed border-slate-200 text-[9px] font-semibold text-slate-300">Vào</span>
+                    )}
+                    {activity.exitImage ? (
+                      <button
+                        type="button"
+                        onClick={() => setLightboxImage({ src: activity.exitImage, title: `Xe ra · ${activity.licensePlate || ''}` })}
+                        title="Xem ảnh lúc ra"
+                      >
+                        <img src={activity.exitImage} alt="Ảnh lúc ra" className="h-10 w-14 rounded-lg border border-slate-200 object-cover transition hover:opacity-80" />
+                      </button>
+                    ) : (
+                      <span className="grid h-10 w-14 place-items-center rounded-lg border border-dashed border-slate-200 text-[9px] font-semibold text-slate-300">Ra</span>
+                    )}
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </section>
+
+      <ImageLightbox src={lightboxImage?.src} title={lightboxImage?.title} onClose={() => setLightboxImage(null)} />
     </div>
   );
 }
