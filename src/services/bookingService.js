@@ -143,33 +143,6 @@ export const bookingService = {
     }
   },
 
-  getNotifications: async () => {
-    try {
-      const response = await apiClient.get('/api/customer/notifications');
-      return { data: unwrap(response) || [], error: null };
-    } catch (error) {
-      return { ...apiError(error), data: [] };
-    }
-  },
-
-  markNotificationRead: async (id) => {
-    try {
-      await apiClient.patch(`/api/customer/notifications/${id}/read`);
-      return { data: null, error: null };
-    } catch (error) {
-      return apiError(error);
-    }
-  },
-
-  markAllNotificationsRead: async () => {
-    try {
-      await apiClient.patch('/api/customer/notifications/read-all');
-      return { data: null, error: null };
-    } catch (error) {
-      return apiError(error);
-    }
-  },
-
   getPayments: async () => {
     try {
       const { data, error } = await bookingService.getMyBookings();

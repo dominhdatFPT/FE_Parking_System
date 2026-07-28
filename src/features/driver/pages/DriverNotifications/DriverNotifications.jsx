@@ -33,7 +33,8 @@ export default function DriverNotifications() {
       }
     };
     loadNotifications();
-    const intervalId = window.setInterval(loadNotifications, 10000);
+    const intervalId = window.setInterval(loadNotifications, 10000);  //tự gọi lại API sau mỗi 10 giây để cập nhật thông báo mới
+    
     return () => { cancelled = true; window.clearInterval(intervalId); };
   }, []);
 
