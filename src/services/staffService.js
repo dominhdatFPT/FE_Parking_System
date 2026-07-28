@@ -245,6 +245,7 @@ export const confirmParkingEntry = async (entry) => {
     vehicleTypeCode,
     vehicleTypeId: getVehicleTypeId(entry, vehicleTypeCode),
     visitorCardCode: entry.entryType === 'VISITOR' ? entry.visitorCardCode : null,
+    entryImage: entry.entryImage || null,
   });
   return unwrapData(response);
 };

@@ -171,6 +171,8 @@ function mapSession(item) {
     entryTime,
     exitTime,
     parkingStatus: rawStatus,
+    entryImage: pickFirstDefined(item, ['entryImage', 'entry_image']),
+    exitImage: pickFirstDefined(item, ['exitImage', 'exit_image']),
   };
 }
 
