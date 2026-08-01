@@ -28,6 +28,7 @@ import {
   updateFeePackagePrice,
   updateVisitorFeeRate,
 } from '../../../services/adminPricingService';
+import { useAuth } from '../../../contexts/useAuth';
 
 const VEHICLE_COLUMNS = [
   { key: 'MOTORBIKE', label: 'Xe máy', subLabel: '2 bánh', Icon: Bike, accent: 'from-sky-500 to-blue-600' },
@@ -789,6 +790,9 @@ function VisitorRateColumn({ column, rate, onEdit, loading }) {
 }
 
 export default function StaffVehicleRegistrationPricing() {
+  const { role: currentRole } = useAuth();
+  const isStaff = String(currentRole || '').toUpperCase() !== 'ADMIN';
+
   const [packages, setPackages] = useState([]);
   const [visitorRates, setVisitorRates] = useState([]);
   const [loadingPackages, setLoadingPackages] = useState(true);
@@ -803,6 +807,12 @@ export default function StaffVehicleRegistrationPricing() {
   }, []);
 
   const closeToast = useCallback(() => setToast(null), []);
+
+  useEffect(() => {
+    if (isStaff) {
+      showToast('error', 'Chỉ Admin mới có quyền chỉnh giá');
+    }
+  }, [isStaff, showToast]);
 
   const handleApiError = useCallback(
     (error) => {
