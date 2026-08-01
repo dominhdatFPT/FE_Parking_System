@@ -2,7 +2,9 @@ import React, { useMemo, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import {
   AlertTriangle,
+  ArrowDownToLine,
   ArrowDownUp,
+  ArrowUpFromLine,
   BellRing,
   Boxes,
   ChevronLeft,
@@ -112,6 +114,24 @@ export default function AdminLayout() {
     ROUTES.STAFF.VEHICLE_ENTRY,
     ROUTES.STAFF.VEHICLE_EXIT,
   ].includes(location.pathname);
+  const isVehicleFlowPage = [
+    ROUTES.ADMIN.VEHICLE_FLOW,
+    ROUTES.STAFF.VEHICLE_FLOW,
+  ].includes(location.pathname);
+  const vehicleFlowMode = new window.URLSearchParams(location.search).get('mode') === 'exit'
+    ? 'exit'
+    : 'entry';
+
+  function changeVehicleFlowMode(nextMode) {
+    const params = new window.URLSearchParams(location.search);
+    params.set('mode', nextMode);
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+  }
+
+  const vehicleFlowTabs = [
+    { key: 'entry', label: 'Xe vào', icon: ArrowDownToLine },
+    { key: 'exit', label: 'Xe ra', icon: ArrowUpFromLine },
+  ];
   const pageTitle = useMemo(
     () => getCurrentPageTitle(location.pathname, location.search),
     [location.pathname, location.search],
@@ -270,18 +290,52 @@ export default function AdminLayout() {
       >
         <header className="sticky top-0 z-40 border-b border-slate-100 bg-white px-5 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)] lg:px-8">
           <div className="flex min-h-12 items-center justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                Parking Management
-              </p>
-              <h2 className="mt-0.5 truncate text-lg font-semibold tracking-tight text-slate-800">
-                {pageTitle}
-              </h2>
-              {location.pathname === ROUTES.ADMIN.PARKING_SESSIONS ? (
-                <p className="mt-1 text-xs font-medium text-slate-500">
-                  Theo dõi toàn bộ phiên gửi xe trong hệ thống
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  Parking Management
                 </p>
+                <h2 className="mt-0.5 truncate text-lg font-semibold tracking-tight text-slate-800">
+                  {pageTitle}
+                </h2>
+                {location.pathname === ROUTES.ADMIN.PARKING_SESSIONS ? (
+                  <p className="mt-1 text-xs font-medium text-slate-500">
+                    Theo dõi toàn bộ phiên gửi xe trong hệ thống
+                  </p>
+                ) : null}
+              </div>
+
+              {isVehicleFlowPage ? (
+                <div
+                  className="flex shrink-0 items-center gap-1 rounded-xl border border-slate-200 bg-slate-100 p-1"
+                  role="tablist"
+                  aria-label="Chọn luồng xe"
+                >
+                  {vehicleFlowTabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const active = vehicleFlowMode === tab.key;
+
+                    return (
+                      <button
+                        key={tab.key}
+                        type="button"
+                        role="tab"
+                        aria-selected={active}
+                        onClick={() => changeVehicleFlowMode(tab.key)}
+                        className={`inline-flex h-8 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-bold transition-all active:scale-[0.98] sm:px-3 ${
+                          active
+                            ? 'bg-sky-600 text-white shadow-sm shadow-sky-600/20'
+                            : 'text-slate-600 hover:bg-white hover:text-slate-950'
+                        }`}
+                      >
+                        <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
+                        <span className="hidden sm:inline">{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               ) : null}
+
             </div>
 
             <div className="flex shrink-0 items-center gap-3">

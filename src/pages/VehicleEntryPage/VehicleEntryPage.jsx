@@ -379,12 +379,7 @@ export default function VehicleEntryPage() {
         : 'Phiên gửi xe đã tạo';
 
   return (
-    /*
-     * Single-root CSS grid — cameras get 0.95fr (~48%), bottom gets 1.05fr (~52%).
-     * Decorative divs are absolute so the browser ignores them for grid placement.
-     * h-full fills AdminLayout <main>'s content area; overflow-hidden is the hard stop.
-     */
-    <div className="relative grid h-full grid-rows-[0.95fr_1.05fr] gap-4 overflow-hidden bg-[#F5FAFF] px-5 pb-5 pt-0 font-sans">
+    <div className="relative grid h-full min-h-0 grid-rows-[minmax(180px,0.8fr)_minmax(0,1.2fr)] gap-4 overflow-hidden font-sans">
 
       {/* decorative glows — absolute, do not participate in grid */}
       <div className="pointer-events-none absolute -left-24 top-8 h-72 w-72 rounded-full bg-blue-200/20 blur-3xl" />
@@ -400,8 +395,8 @@ export default function VehicleEntryPage() {
       <div className="grid min-h-0 grid-cols-[0.9fr_1.9fr] gap-4">
 
         {/* ── CONTROL CARD ── */}
-        <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[24px] border border-[#E5EDF7] bg-white p-5 shadow-[0_16px_42px_rgba(15,23,42,0.07)]">
-          <div className="mb-4 flex shrink-0 items-center gap-3">
+        <div className="flex h-full min-h-0 flex-col overflow-y-auto rounded-[24px] border border-[#E5EDF7] bg-white p-4 shadow-[0_16px_42px_rgba(15,23,42,0.07)]">
+          <div className="mb-3 flex shrink-0 items-center gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
               <SlidersHorizontal className="h-5 w-5" strokeWidth={2.25} />
             </span>
@@ -553,7 +548,7 @@ export default function VehicleEntryPage() {
           </div>
 
           {/* 4 KPI tiles — compact state summary for quick scanning */}
-          <div className="grid shrink-0 translate-y-2 grid-cols-4 gap-3">
+          <div className="mt-3 grid shrink-0 grid-cols-4 gap-3">
             <Info label="Loại xe"    value={vehicleTypeDisplay}                                           tone="blue"   icon={VehicleTypeIcon} />
             <Info label="Loại khách" value={customerType}                                                   tone="green"  icon={User}        />
             <Info label="Giờ vào"    value={entryTime}                                                      tone="purple" icon={Clock3}      />

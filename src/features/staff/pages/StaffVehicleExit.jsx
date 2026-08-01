@@ -385,7 +385,7 @@ export default function StaffVehicleExit() {
     camera.status === 'streaming';
 
   return (
-    <div className="flex h-full flex-col gap-3 overflow-hidden bg-[#EEF3FB] px-5 pb-3 pt-0 font-sans">
+    <div className="flex h-full min-h-0 flex-col gap-3 overflow-hidden font-sans">
 
       {/* ══════ CAMERAS ══════ */}
       <div className="grid h-[24vh] max-h-[220px] min-h-[150px] shrink-0 grid-cols-2 gap-3">
