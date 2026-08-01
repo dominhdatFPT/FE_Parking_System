@@ -470,7 +470,13 @@ export default function LoginPage() {
           navigate(getDashboardPath(authenticatedUser.role));
         }
       } catch (err) {
-        setError(t('errors.loginFailed'));
+        const status = err?.response?.status;
+        const serverMessage = err?.response?.data?.message;
+        if (status === 403 && serverMessage) {
+          setError(serverMessage);
+        } else {
+          setError(t('errors.loginFailed'));
+        }
         console.error('Login error:', err);
       } finally {
         setSubmitting(false);
