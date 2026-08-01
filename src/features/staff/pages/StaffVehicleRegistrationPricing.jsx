@@ -808,12 +808,6 @@ export default function StaffVehicleRegistrationPricing() {
 
   const closeToast = useCallback(() => setToast(null), []);
 
-  useEffect(() => {
-    if (isStaff) {
-      showToast('error', 'Chỉ Admin mới có quyền chỉnh giá');
-    }
-  }, [isStaff, showToast]);
-
   const handleApiError = useCallback(
     (error) => {
       if (error?.response?.status === 403) {
@@ -894,6 +888,25 @@ export default function StaffVehicleRegistrationPricing() {
       CAR: visitorRates.find(isCarType) || null,
     };
   }, [visitorRates]);
+
+  if (isStaff) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1">
+        <div className="grid place-items-center rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-8 text-center shadow-sm">
+          <div className="flex max-w-md flex-col items-center gap-3">
+            <span className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 ring-1 ring-amber-200">
+              <ShieldCheck size={30} />
+            </span>
+            <h2 className="text-xl font-black text-amber-800">Chỉ Admin mới có quyền chỉnh giá</h2>
+            <p className="text-sm font-semibold text-amber-700">
+              Tài khoản Staff không được phép thay đổi giá gói thẻ hoặc giá vãng lai.
+            </p>
+          </div>
+        </div>
+        <PricingToast toast={toast} onClose={closeToast} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1">
