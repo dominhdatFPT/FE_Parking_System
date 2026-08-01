@@ -10,6 +10,7 @@ export const ROUTES = {
 
   ADMIN: {
     DASHBOARD: '/admin',
+    VEHICLE_FLOW: '/admin/vehicle-flow',
     VEHICLE_ENTRY: '/admin/vehicle-entry',
     VEHICLE_EXIT: '/admin/vehicle-exit',
     PARKING_SESSIONS: '/admin/parking-sessions',
@@ -33,6 +34,7 @@ export const ROUTES = {
   STAFF: {
     DASHBOARD: '/staff',
     VEHICLE_REGISTRATIONS: '/staff/vehicle-registrations',
+    VEHICLE_FLOW: '/staff/vehicle-flow',
     VEHICLE_ENTRY: '/staff/vehicle-entry',
     VEHICLE_EXIT: '/staff/vehicle-exit',
     SESSIONS: '/staff/sessions',

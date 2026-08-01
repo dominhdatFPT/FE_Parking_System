@@ -23,11 +23,10 @@ import NotificationDetailPage from '../pages/NotificationDetailPage';
 import NotificationManagement from '../pages/NotificationManagement';
 import SystemConfigurationPage from '../pages/SystemConfigurationPage';
 import AuditLogPage from '../pages/AuditLogPage';
-import StaffVehicleExit from '../features/staff/pages/StaffVehicleExit';
 import StaffSessions from '../features/staff/pages/StaffSessions';
 import StaffExceptions from '../features/staff/pages/StaffExceptions';
 import StaffBookingReview from '../features/staff/pages/StaffBookingReview';
-import VehicleEntryPage from '../pages/VehicleEntryPage';
+import VehicleFlowPage from '../pages/VehicleFlowPage';
 import ParkingSessionsPage from '../pages/ParkingSessionsPage';
 
 function AuthLoadingScreen() {
@@ -104,19 +103,21 @@ export function AppRoutes() {
       
       <Route element={<RequireBackOfficeRole><AdminLayout /></RequireBackOfficeRole>}>
         <Route path={ROUTES.ADMIN.DASHBOARD} element={<HomePage />} />
-        <Route path={ROUTES.ADMIN.VEHICLE_ENTRY} element={<VehicleEntryPage />} />
+        <Route path={ROUTES.ADMIN.VEHICLE_FLOW} element={<VehicleFlowPage />} />
+        <Route path={ROUTES.ADMIN.VEHICLE_ENTRY} element={<Navigate to={`${ROUTES.ADMIN.VEHICLE_FLOW}?mode=entry`} replace />} />
         <Route path={ROUTES.ADMIN.PARKING_SESSIONS} element={<ParkingSessionsPage />} />
         <Route path={ROUTES.ADMIN.USERS} element={<AccountManagementPage />} />
         <Route path={ROUTES.ADMIN.USER_VEHICLE_REGISTRATION} element={<UserVehicleRegistrationPage />} />
-        <Route path={ROUTES.ADMIN.VEHICLE_EXIT} element={<StaffVehicleExit />} />
+        <Route path={ROUTES.ADMIN.VEHICLE_EXIT} element={<Navigate to={`${ROUTES.ADMIN.VEHICLE_FLOW}?mode=exit`} replace />} />
         <Route path={ROUTES.ADMIN.SYSTEM_CONFIG} element={<SystemConfigurationPage />} />
         <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AuditLogPage />} />
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.BASE} element={<NotificationManagement />} />
         <Route path={ROUTES.ADMIN.NOTIFICATIONS.DETAIL} element={<NotificationDetailPage />} />
         <Route path={ROUTES.STAFF.DASHBOARD} element={<Navigate to={ROUTES.ADMIN.DASHBOARD} replace />} />
         <Route path={ROUTES.STAFF.VEHICLE_REGISTRATIONS} element={<Navigate to={ROUTES.STAFF.BOOKINGS} replace />} />
-        <Route path={ROUTES.STAFF.VEHICLE_ENTRY} element={<VehicleEntryPage />} />
-        <Route path={ROUTES.STAFF.VEHICLE_EXIT} element={<StaffVehicleExit />} />
+        <Route path={ROUTES.STAFF.VEHICLE_FLOW} element={<VehicleFlowPage />} />
+        <Route path={ROUTES.STAFF.VEHICLE_ENTRY} element={<Navigate to={`${ROUTES.STAFF.VEHICLE_FLOW}?mode=entry`} replace />} />
+        <Route path={ROUTES.STAFF.VEHICLE_EXIT} element={<Navigate to={`${ROUTES.STAFF.VEHICLE_FLOW}?mode=exit`} replace />} />
         <Route path={ROUTES.STAFF.SESSIONS} element={<StaffSessions />} />
         <Route path={ROUTES.STAFF.EXCEPTIONS} element={<StaffExceptions />} />
         <Route path={ROUTES.STAFF.BOOKINGS} element={<StaffBookingReview />} />

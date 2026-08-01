@@ -2,8 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import {
   AlertTriangle,
-  ArrowDownToLine,
-  ArrowUpFromLine,
+  ArrowDownUp,
   BellRing,
   Boxes,
   ChevronLeft,
@@ -24,8 +23,7 @@ import Logo from '../components/Logo';
 
 const mainNavigationItems = [
   { icon: LayoutDashboard, label: 'Tổng quan bãi', path: ROUTES.ADMIN.DASHBOARD },
-  { icon: ArrowDownToLine, label: 'Xe vào', path: ROUTES.ADMIN.VEHICLE_ENTRY },
-  { icon: ArrowUpFromLine, label: 'Xe ra', path: ROUTES.ADMIN.VEHICLE_EXIT },
+  { icon: ArrowDownUp, label: 'Xe vào / Xe ra', path: ROUTES.ADMIN.VEHICLE_FLOW },
   { icon: Boxes, label: 'Phiên gửi xe', path: ROUTES.ADMIN.PARKING_SESSIONS },
   { icon: Package, label: 'Duyệt đăng ký xe', path: ROUTES.STAFF.BOOKINGS },
   { icon: ClipboardPlus, label: 'Đăng ký xe', path: ROUTES.ADMIN.USER_VEHICLE_REGISTRATION },
@@ -43,6 +41,8 @@ const pageTitles = [
   { path: ROUTES.ADMIN.DASHBOARD, title: 'Tổng quan bãi', end: true },
   { path: ROUTES.STAFF.BOOKINGS, title: 'Duyệt đăng ký xe' },
   { path: ROUTES.ADMIN.USER_VEHICLE_REGISTRATION, title: 'Đăng ký xe' },
+  { path: ROUTES.ADMIN.VEHICLE_FLOW, title: 'Xe vào / Xe ra' },
+  { path: ROUTES.STAFF.VEHICLE_FLOW, title: 'Xe vào / Xe ra' },
   { path: ROUTES.ADMIN.VEHICLE_ENTRY, title: 'Xe vào' },
   { path: ROUTES.ADMIN.PARKING_SESSIONS, title: 'Quản lý phiên gửi xe' },
   { path: ROUTES.ADMIN.VEHICLE_EXIT, title: 'Xe ra' },
@@ -104,7 +104,14 @@ export default function AdminLayout() {
         avatar: '',
       };
 
-  const isVehicleEntryPage = location.pathname === ROUTES.ADMIN.VEHICLE_ENTRY;
+  const isVehicleEntryPage = [
+    ROUTES.ADMIN.VEHICLE_FLOW,
+    ROUTES.ADMIN.VEHICLE_ENTRY,
+    ROUTES.ADMIN.VEHICLE_EXIT,
+    ROUTES.STAFF.VEHICLE_FLOW,
+    ROUTES.STAFF.VEHICLE_ENTRY,
+    ROUTES.STAFF.VEHICLE_EXIT,
+  ].includes(location.pathname);
   const pageTitle = useMemo(
     () => getCurrentPageTitle(location.pathname, location.search),
     [location.pathname, location.search],

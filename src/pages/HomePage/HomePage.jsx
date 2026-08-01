@@ -62,19 +62,12 @@ function asNumber(value) {
 
 function formatMoney(value) {
   const amount = asNumber(value);
-  if (amount >= 1000000) {
-    return `${(amount / 1000000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} triệu`;
-  }
-  if (amount >= 1000) {
-    return `${(amount / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} nghìn`;
-  }
-  return amount.toLocaleString('vi-VN');
+  return `${amount.toLocaleString('vi-VN')} vnd`;
 }
 
 function formatCurrency(value) {
   const amount = asNumber(value);
-  if (!amount) return '0đ';
-  return `${amount.toLocaleString('vi-VN')}đ`;
+  return `${amount.toLocaleString('vi-VN')} vnd`;
 }
 
 function formatTime(value) {

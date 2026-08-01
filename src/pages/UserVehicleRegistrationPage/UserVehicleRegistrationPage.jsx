@@ -53,13 +53,21 @@ function fileToBase64(file) {
   });
 }
 
+function normalizeUserStatus(value) {
+  const normalized = String(value || '').trim().toUpperCase();
+  if (['ACTIVE', 'ENABLED', 'TRUE', '1'].includes(normalized)) {
+    return 'ACTIVE';
+  }
+  return 'INACTIVE';
+}
+
 function normalizeUser(item) {
   return {
     userId: item.userId ?? item.id,
     fullName: item.fullName || item.name || 'Người dùng',
     email: item.email || '',
     phone: item.phone || '',
-    status: item.status || 'UNKNOWN',
+    status: normalizeUserStatus(item.status),
     role: item.role || 'USER',
   };
 }
@@ -276,7 +284,11 @@ export default function UserVehicleRegistrationPage() {
                       <p className="truncate font-bold text-slate-600">{user.phone || 'Chưa có số điện thoại'}</p>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700 ring-1 ring-emerald-200">
+                      <span className={`inline-flex rounded-full px-3 py-1 text-xs font-black ring-1 ${
+                        user.status === 'ACTIVE'
+                          ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+                          : 'bg-slate-100 text-slate-600 ring-slate-200'
+                      }`}>
                         {user.status}
                       </span>
                     </td>
